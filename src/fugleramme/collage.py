@@ -27,9 +27,11 @@ from .paper import PAD, paper_texture, process_sprite
 DEFAULT_RESOLUTION = (1280, 800)
 _INK = (30, 30, 30)
 _MAX_BIRDS = 40
-_ALPHA_CUTOFF = 24     # pixels above this alpha count as opaque
-_GAP_PX = 3            # min gap enforced between opaque regions (mask dilation)
-_STEP = 8             # spiral search step in px
+_ALPHA_CUTOFF = 24
+_OVERLAP_PX = 2        # erode the collision mask slightly so birds nestle into
+                       # each other's (invisible on paper) halos. No rotation:
+                       # it tilts the ground/water on birds drawn with terrain.
+_STEP = 6
 
 
 def _trim(path: Path) -> Image.Image:
@@ -40,7 +42,8 @@ def _trim(path: Path) -> Image.Image:
 
 def _scaled_sprite(img: Image.Image, max_dim: int) -> tuple[Image.Image, np.ndarray]:
     """Scale a trimmed sprite to max_dim on its longest side and return it with
-    its dilated opaque mask (bool array, True = keep-clear)."""
+    an eroded opaque mask (bool array, True = keep-clear). Eroding lets the paper
+    halos overlap so birds pack a little tighter; their bodies still can't."""
     scale = max_dim / max(img.width, img.height)
     if scale != 1.0:
         img = img.resize(
@@ -48,7 +51,8 @@ def _scaled_sprite(img: Image.Image, max_dim: int) -> tuple[Image.Image, np.ndar
             Image.LANCZOS,
         )
     mask = img.getchannel("A").point(lambda a: 255 if a > _ALPHA_CUTOFF else 0)
-    mask = mask.filter(ImageFilter.MaxFilter(_GAP_PX * 2 + 1))  # dilate for a gap
+    if _OVERLAP_PX:
+        mask = mask.filter(ImageFilter.MinFilter(_OVERLAP_PX * 2 + 1))
     return img, np.asarray(mask, dtype=bool)
 
 
@@ -123,7 +127,7 @@ def render_collage(
 
     # Largest bird size that still packs: overshoot, then shrink to the first
     # fit so the cluster fills the canvas and gaps stay small.
-    max_dim = min(int(math.sqrt(width * height * 1.4 / len(arts))), int(min(width, height) * 0.7))
+    max_dim = min(int(math.sqrt(width * height * 1.5 / len(arts))), int(min(width, height) * 0.7))
     placed = None
     for _ in range(20):
         sprites = [_scaled_sprite(img, max_dim) for _, img in arts]
