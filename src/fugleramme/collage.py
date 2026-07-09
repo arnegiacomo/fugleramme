@@ -22,12 +22,14 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from .config import REPO_ROOT
 from .db import Database
 from .names import image_for
 from .paper import PAD, TARGET_PAPER, paper_texture, process_sprite
 from .sizes import SIZE_EXPONENT, mass_of
 
 DEFAULT_RESOLUTION = (1280, 800)
+PERCHES_DIR = REPO_ROOT / "assets" / "perches"
 _INK = (30, 30, 30)
 _MAX_BIRDS = 40
 _ALPHA_CUTOFF = 24
@@ -137,14 +139,7 @@ def render_collage(
 
     arts = [(name, _trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
     if not arts:
-        draw = ImageDraw.Draw(canvas)
-        font = ImageFont.load_default(size=max(20, height // 20))
-        msg = "Ingen fugler siste 24 timer"
-        left, top, right, bottom = draw.textbbox((0, 0), msg, font=font)
-        draw.text(
-            ((width - (right - left)) / 2, (height - (bottom - top)) / 2),
-            msg, font=font, fill=_INK,
-        )
+        _draw_empty(canvas, width, height, rng)
         return canvas
 
     # Each bird's target size scales with its real mass (compressed); the whole
@@ -174,6 +169,24 @@ def render_collage(
             _draw_names(canvas, [arts[i][0] for i in order], centered)
 
     return canvas
+
+
+def _draw_empty(canvas, width: int, height: int, rng: random.Random) -> None:
+    """No detections: a single empty perch, centered on the paper page."""
+    perches = sorted(PERCHES_DIR.glob("*.png"))
+    if not perches:
+        return
+    perch = _trim(rng.choice(perches))
+    if rng.random() < 0.5:
+        perch = perch.transpose(Image.FLIP_LEFT_RIGHT)
+    target = int(min(width, height) * 0.7)
+    scale = target / max(perch.width, perch.height)
+    perch = perch.resize(
+        (max(1, round(perch.width * scale)), max(1, round(perch.height * scale))),
+        Image.LANCZOS,
+    )
+    proc = process_sprite(perch)
+    canvas.paste(proc, ((width - proc.width) // 2, (height - proc.height) // 2), proc)
 
 
 def _draw_names(canvas, names, placed):
