@@ -88,6 +88,17 @@ class Database:
         ).fetchall()
         return [_row_to_detection(r) for r in rows]
 
+    def species_last_24h(self) -> list[tuple[str, int]]:
+        """Distinct species seen in the last 24h with their detection count,
+        most frequent first. Drives the kiosk collage."""
+        since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+        rows = self.conn.execute(
+            "SELECT scientific_name, COUNT(*) AS n FROM detections "
+            "WHERE detected_at >= ? GROUP BY scientific_name ORDER BY n DESC, scientific_name",
+            (since,),
+        ).fetchall()
+        return [(r["scientific_name"], r["n"]) for r in rows]
+
     def stats(self) -> dict:
         """Aggregate figures for the dashboard."""
         total = self.conn.execute("SELECT COUNT(*) FROM detections").fetchone()[0]

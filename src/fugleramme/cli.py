@@ -12,9 +12,11 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import random
+
+from .collage import DEFAULT_RESOLUTION, gather_entries, render_collage
 from .config import DEFAULT_PANEL, PANEL_RESOLUTIONS, REPO_ROOT, Config, resolve_resolution
 from .db import Database
-from .render import render_frame
 from .service import run
 
 
@@ -40,7 +42,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument(
-        "--preview", type=Path, help="render the latest detection to this path and exit"
+        "--preview", type=Path, help="render the full-color collage to this path and exit"
     )
     return parser.parse_args(argv)
 
@@ -59,7 +61,10 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.preview:
         db = Database(config.db_path)
-        render_frame(db.latest(), config.images_dir, config.resolution, args.preview)
+        species = db.species_last_24h()
+        rng = random.Random(hash(tuple(name for name, _ in species)))
+        entries = gather_entries(db, config.images_dir, rng)
+        render_collage(entries, DEFAULT_RESOLUTION, True, rng).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")
         return
