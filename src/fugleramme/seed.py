@@ -15,9 +15,8 @@ from pathlib import Path
 
 from .db import Database
 
-# A handful of common Norwegian species for a believable dashboard. Mixes ones
-# with artwork (Turdus merula, Parus major) and ones that will hit the fallback
-# card (Cyanistes caeruleus, Erithacus rubecula) so both paths get exercised.
+# A handful of common Norwegian species. Mixes ones with artwork and ones with
+# none (Cyanistes caeruleus, Erithacus rubecula), which the collage omits.
 SPECIES = [
     "Turdus merula",
     "Parus major",

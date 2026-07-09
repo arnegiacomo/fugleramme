@@ -13,9 +13,9 @@ from __future__ import annotations
 import numpy as np
 from PIL import Image, ImageFilter
 
-TARGET_PAPER = (242, 237, 226)  # shared paper tone
-FEATHER = 5                     # halo edge softness (gaussian sigma, px)
-PAD = 16                        # transparent margin added for the feather to bleed into
+TARGET_PAPER = (242, 237, 226)
+FEATHER = 5                     # gaussian blur sigma (px)
+PAD = 16                        # transparent margin for the feather to bleed into
 
 
 def paper_texture(width: int, height: int, base=TARGET_PAPER, seed: int = 0) -> Image.Image:
