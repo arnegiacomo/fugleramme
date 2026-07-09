@@ -1,0 +1,31 @@
+[project]
+name = "fugleramme"
+version = "0.1.0"
+description = "E-ink bird frame: renders the latest BirdNET detection to an Inky panel and serves a stats dashboard."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pillow>=10.0",
+]
+
+[project.scripts]
+fugleramme-frame = "fugleramme.cli:main"
+
+[project.optional-dependencies]
+# Pi-only hardware driver. Not installed on the Mac dev loop; the frame
+# service degrades to web-only when it is absent.
+panel = [
+    "inky>=1.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fugleramme"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
