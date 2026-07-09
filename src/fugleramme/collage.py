@@ -1,10 +1,12 @@
 """Kiosk collage: full-color composite of the species seen in the last 24h.
 
 This is the web/kiosk view (also dithered onto the panel). It uses the source
-PNGs at full color and packs them tightly by their silhouettes: opaque pixels
-never overlap and nothing clips off screen, but the transparent margins are
-free to overlap so birds nestle closely. Placement is largest-first on an
-outward spiral from the centre, maximising bird size so gaps stay small.
+PNGs at full color and packs them by their silhouettes: opaque pixels never
+overlap and nothing clips off screen, but the transparent margins are free to
+overlap so birds nestle closely. Birds are sized by their real body mass
+(compressed, see sizes.py) and placed largest-first on an outward spiral from
+the centre, so big birds land in the middle; the whole set is then scaled to
+fill the canvas.
 
 Species with no artwork are omitted (there is nothing to draw for them once
 names are off). Names are off by default; they will become an admin toggle.
@@ -23,6 +25,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from .db import Database
 from .names import image_for
 from .paper import PAD, paper_texture, process_sprite
+from .sizes import SIZE_EXPONENT, mass_of
 
 DEFAULT_RESOLUTION = (1280, 800)
 _INK = (30, 30, 30)
@@ -102,6 +105,14 @@ def _center(placed, width: int, height: int):
     return [(img, x + dx, y + dy) for img, x, y in placed]
 
 
+def _size_weights(names: list[str]) -> list[float]:
+    """Per-bird display weight from real mass, centered on the present set's
+    geometric mean and compressed by SIZE_EXPONENT."""
+    masses = [mass_of(n) for n in names]
+    geo = math.exp(sum(math.log(m) for m in masses) / len(masses))
+    return [(m / geo) ** SIZE_EXPONENT for m in masses]
+
+
 def render_collage(
     entries: list[tuple[str, Path | None]],
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
@@ -125,35 +136,38 @@ def render_collage(
         )
         return canvas
 
-    # Largest bird size that still packs: overshoot, then shrink to the first
-    # fit so the cluster fills the canvas and gaps stay small.
-    max_dim = min(int(math.sqrt(width * height * 1.5 / len(arts))), int(min(width, height) * 0.7))
+    # Each bird's target size scales with its real mass (compressed); the whole
+    # set then overshoots and shrinks to the first fit that fills the canvas.
+    # Placing biggest-first on the center-out spiral keeps large birds central.
+    weights = _size_weights([name for name, _ in arts])
+    order = sorted(range(len(arts)), key=lambda i: -weights[i])
+    base = min(
+        math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
+        min(width, height) * 0.7 / max(weights),
+    )
     placed = None
     for _ in range(20):
-        sprites = [_scaled_sprite(img, max_dim) for _, img in arts]
-        sprites.sort(key=lambda s: -int(s[1].sum()))  # largest silhouette first
+        sprites = [_scaled_sprite(arts[i][1], max(24, int(base * weights[i]))) for i in order]
         placed = _pack(sprites, width, height)
         if placed is not None:
             break
-        max_dim = int(max_dim * 0.9)
+        base *= 0.9
 
     if placed:
-        for img, x, y in _center(placed, width, height):
+        centered = _center(placed, width, height)
+        for img, x, y in centered:
             proc = process_sprite(img)
             canvas.paste(proc, (x - PAD, y - PAD), proc)
-
-    if show_names:
-        _draw_names(canvas, [(name, img) for name, img in arts], placed)
+        if show_names:
+            _draw_names(canvas, [arts[i][0] for i in order], centered)
 
     return canvas
 
 
-def _draw_names(canvas, arts, placed):
-    if not placed:
-        return
+def _draw_names(canvas, names, placed):
     draw = ImageDraw.Draw(canvas)
     font = ImageFont.load_default(size=16)
-    for (name, _), (img, x, y) in zip(arts, placed):
+    for name, (img, x, y) in zip(names, placed):
         draw.text((x, y + img.height - 4), name, font=font, fill=_INK)
 
 
