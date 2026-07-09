@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from .db import Database
 from .names import image_for
-from .paper import PAD, paper_texture, process_sprite
+from .paper import PAD, TARGET_PAPER, paper_texture, process_sprite
 from .sizes import SIZE_EXPONENT, mass_of
 
 DEFAULT_RESOLUTION = (1280, 800)
@@ -124,10 +124,15 @@ def render_collage(
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
     show_names: bool = False,
     rng: random.Random | None = None,
+    textured: bool = True,
 ) -> Image.Image:
-    """Composite the given (name, image) entries into a tightly packed collage."""
+    """Composite the given (name, image) entries into a tightly packed collage.
+
+    textured: paper grain for the web; flat paper for the panel, whose dither
+    would otherwise turn the grain into noise.
+    """
     width, height = resolution
-    canvas = paper_texture(width, height)
+    canvas = paper_texture(width, height) if textured else Image.new("RGB", (width, height), TARGET_PAPER)
     rng = rng or random.Random()
 
     arts = [(name, _trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]

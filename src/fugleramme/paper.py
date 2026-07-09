@@ -19,15 +19,23 @@ PAD = 16                        # transparent margin for the feather to bleed in
 
 
 def paper_texture(width: int, height: int, base=TARGET_PAPER, seed: int = 0) -> Image.Image:
-    """A subtly textured paper background: fine grain plus low-frequency mottle."""
+    """A subtly textured paper background: fine even grain with a faint mottle.
+
+    Kept high-frequency on purpose - a strong low-frequency component reads as
+    splotches rather than paper.
+    """
     rng = np.random.default_rng(seed)
-    fine = rng.normal(0, 3.0, (height, width))
-    coarse = rng.normal(0, 3.5, (height // 40 + 1, width // 40 + 1))
-    coarse = np.asarray(
-        Image.fromarray((coarse + 128).clip(0, 255).astype(np.uint8))
-        .resize((width, height), Image.BILINEAR)
+    fine = rng.normal(0, 2.6, (height, width))
+    fine = np.asarray(
+        Image.fromarray((fine + 128).clip(0, 255).astype(np.uint8))
+        .filter(ImageFilter.GaussianBlur(0.6))
     ).astype(np.float32) - 128
-    noise = fine * 0.7 + coarse
+    mottle = rng.normal(0, 1.4, (height // 16 + 1, width // 16 + 1))
+    mottle = np.asarray(
+        Image.fromarray((mottle + 128).clip(0, 255).astype(np.uint8))
+        .resize((width, height), Image.BICUBIC)
+    ).astype(np.float32) - 128
+    noise = fine + mottle
     tex = np.clip(np.array(base)[None, None, :] + noise[..., None], 0, 255).astype(np.uint8)
     return Image.fromarray(tex, "RGB")
 

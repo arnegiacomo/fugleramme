@@ -52,7 +52,7 @@ def run(config: Config) -> None:
         if key != last_key:
             rng = random.Random(hash(tuple(name for name, _ in species)))
             entries = gather_entries(db, config.images_dir, rng)
-            collage = render_collage(entries, config.resolution, SHOW_NAMES, rng)
+            collage = render_collage(entries, config.resolution, SHOW_NAMES, rng, textured=False)
             panel_image = dither(collage)
             panel_image.save(config.output_path)
             log.info("Rendered panel collage: %d species", len(species))
