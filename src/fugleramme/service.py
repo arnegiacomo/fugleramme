@@ -27,7 +27,7 @@ from .server import serve
 log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 30
-SHOW_NAMES = True  # will become an admin toggle
+SHOW_NAMES = False  # will become an admin toggle
 
 
 def run(config: Config) -> None:

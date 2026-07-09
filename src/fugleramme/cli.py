@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> None:
         species = db.species_last_24h()
         rng = random.Random(hash(tuple(name for name, _ in species)))
         entries = gather_entries(db, config.images_dir, rng)
-        render_collage(entries, DEFAULT_RESOLUTION, True, rng).save(args.preview)
+        render_collage(entries, DEFAULT_RESOLUTION, False, rng).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")
         return

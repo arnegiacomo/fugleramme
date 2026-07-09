@@ -71,7 +71,7 @@ def serve(
     host: str,
     port: int,
     resolution=DEFAULT_RESOLUTION,
-    show_names: bool = True,
+    show_names: bool = False,
 ) -> None:
     """Blocking server loop. Opens its own DB connection."""
     db = Database(db_path)
