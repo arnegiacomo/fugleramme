@@ -28,7 +28,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 class Config:
     resolution: tuple[int, int]
     images_dir: Path
-    aliases_path: Path
     db_path: Path
     output_path: Path
     host: str
