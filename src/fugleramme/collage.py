@@ -22,9 +22,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from .db import Database
 from .names import image_for
+from .paper import PAD, paper_texture, process_sprite
 
 DEFAULT_RESOLUTION = (1280, 800)
-_BG = (250, 249, 246)  # warm off-white
 _INK = (30, 30, 30)
 _MAX_BIRDS = 40
 _ALPHA_CUTOFF = 24     # pixels above this alpha count as opaque
@@ -106,7 +106,7 @@ def render_collage(
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage."""
     width, height = resolution
-    canvas = Image.new("RGBA", (width, height), (*_BG, 255))
+    canvas = paper_texture(width, height)
     rng = rng or random.Random()
 
     arts = [(name, _trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
@@ -119,7 +119,7 @@ def render_collage(
             ((width - (right - left)) / 2, (height - (bottom - top)) / 2),
             msg, font=font, fill=_INK,
         )
-        return canvas.convert("RGB")
+        return canvas
 
     # Largest bird size that still packs: overshoot, then shrink to the first
     # fit so the cluster fills the canvas and gaps stay small.
@@ -135,12 +135,13 @@ def render_collage(
 
     if placed:
         for img, x, y in _center(placed, width, height):
-            canvas.alpha_composite(img, (x, y))
+            proc = process_sprite(img)
+            canvas.paste(proc, (x - PAD, y - PAD), proc)
 
     if show_names:
         _draw_names(canvas, [(name, img) for name, img in arts], placed)
 
-    return canvas.convert("RGB")
+    return canvas
 
 
 def _draw_names(canvas, arts, placed):
