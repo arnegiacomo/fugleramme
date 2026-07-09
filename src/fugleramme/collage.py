@@ -43,16 +43,22 @@ def _trim(path: Path) -> Image.Image:
     return img.crop(bbox) if bbox else img
 
 
-def _scaled_sprite(img: Image.Image, max_dim: int) -> tuple[Image.Image, np.ndarray]:
-    """Scale a trimmed sprite to max_dim on its longest side and return it with
-    an eroded opaque mask (bool array, True = keep-clear). Eroding lets the paper
-    halos overlap so birds pack a little tighter; their bodies still can't."""
+def _scaled_sprite(
+    img: Image.Image, max_dim: int, flip: bool = False
+) -> tuple[Image.Image, np.ndarray]:
+    """Scale a trimmed sprite to max_dim on its longest side, optionally mirror
+    it, and return it with an eroded opaque mask (bool array, True = keep-clear).
+    Eroding lets the paper halos overlap so birds pack a little tighter; their
+    bodies still can't. Mirroring (not rotation) adds variety while keeping any
+    ground or water level."""
     scale = max_dim / max(img.width, img.height)
     if scale != 1.0:
         img = img.resize(
             (max(1, round(img.width * scale)), max(1, round(img.height * scale))),
             Image.LANCZOS,
         )
+    if flip:
+        img = img.transpose(Image.FLIP_LEFT_RIGHT)
     mask = img.getchannel("A").point(lambda a: 255 if a > _ALPHA_CUTOFF else 0)
     if _OVERLAP_PX:
         mask = mask.filter(ImageFilter.MinFilter(_OVERLAP_PX * 2 + 1))
@@ -141,13 +147,14 @@ def render_collage(
     # Placing biggest-first on the center-out spiral keeps large birds central.
     weights = _size_weights([name for name, _ in arts])
     order = sorted(range(len(arts)), key=lambda i: -weights[i])
+    flips = [rng.random() < 0.5 for _ in arts]
     base = min(
         math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
         min(width, height) * 0.7 / max(weights),
     )
     placed = None
     for _ in range(20):
-        sprites = [_scaled_sprite(arts[i][1], max(24, int(base * weights[i]))) for i in order]
+        sprites = [_scaled_sprite(arts[i][1], max(24, int(base * weights[i])), flips[i]) for i in order]
         placed = _pack(sprites, width, height)
         if placed is not None:
             break
