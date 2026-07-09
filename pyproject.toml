@@ -10,6 +10,8 @@ dependencies = [
 
 [project.scripts]
 fugleramme-frame = "fugleramme.cli:main"
+# Dev-only: same service with auto-restart on source change. Needs the dev group.
+fugleramme-dev = "fugleramme.dev:main"
 
 [project.optional-dependencies]
 # Pi-only hardware driver. Not installed on the Mac dev loop; the frame
@@ -28,4 +30,5 @@ packages = ["src/fugleramme"]
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "watchfiles>=0.24",
 ]
