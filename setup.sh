@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# One-command Raspberry Pi bootstrap. Installs any missing dependencies
+# (prompting first), then brings up the whole appliance as systemd services:
+# BirdNET-Go + the sync (detector) and the render loop + kiosk (frame).
+# Idempotent - safe to re-run. Pass -y to auto-accept installs.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ASSUME_YES=0
+[[ "${1:-}" == "-y" || "${1:-}" == "--yes" ]] && ASSUME_YES=1
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+confirm() {
+  [[ $ASSUME_YES == 1 ]] && return 0
+  local ans
+  read -rp "$1 [y/N] " ans
+  [[ "$ans" == [yY] || "$ans" == [yY][eE][sS] ]]
+}
+
+need() {
+  echo "cannot continue without $1" >&2
+  exit 1
+}
+
+require_linux() {
+  [[ "$(uname -s)" == "Linux" ]] && return 0
+  echo "setup.sh provisions the Pi (Linux). On the Mac run the pieces by hand with 'uv run'." >&2
+  exit 1
+}
+
+ensure_apt_pkg() {  # $1 = command to probe, $2 = apt package
+  have "$1" && return 0
+  echo "missing: $1"
+  confirm "install $2 via apt?" || need "$1"
+  sudo apt-get update
+  sudo apt-get install -y "$2"
+}
+
+ensure_uv() {
+  have uv && return 0
+  echo "missing: uv"
+  confirm "install uv (astral.sh installer)?" || need uv
+  curl -fsSL https://astral.sh/uv/install.sh | sh
+  export PATH="$HOME/.local/bin:$PATH"
+}
+
+ensure_docker() {
+  if have docker && docker compose version >/dev/null 2>&1; then return 0; fi
+  echo "missing: docker + compose plugin"
+  confirm "install docker (get.docker.com)?" || need docker
+  curl -fsSL https://get.docker.com | sudo sh
+  sudo usermod -aG docker "$USER"
+  echo "added $USER to the docker group - log out/in later so 'docker' works without sudo"
+}
+
+# docker or sudo docker, depending on whether the group change has taken effect
+docker_compose() {
+  if docker info >/dev/null 2>&1; then
+    docker compose "$@"
+  else
+    sudo docker compose "$@"
+  fi
+}
+
+install_service() {  # $1 = unit name, $2 = description, $3 = `uv run` target
+  local unit="/etc/systemd/system/$1.service"
+  local uv_bin
+  uv_bin="$(command -v uv)"
+  sudo tee "$unit" >/dev/null <<EOF
+[Unit]
+Description=$2
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=$USER
+WorkingDirectory=$REPO_ROOT
+ExecStart=$uv_bin run $3
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now "$1"
+}
+
+ensure_deps() {
+  echo "==> dependencies"
+  ensure_uv
+  ensure_docker
+  ensure_apt_pkg arecord alsa-utils
+
+  echo "==> python env"
+  # Panel extra is Pi-only; if its driver can't build, the frame still runs
+  # web-only, so fall back rather than fail the whole bootstrap.
+  uv sync --extra panel || uv sync
+}
+
+converge_detector() {
+  echo "==> mic pre-flight"
+  "$REPO_ROOT/detector/preflight.sh"
+
+  echo "==> tmpfs data dir"
+  sudo install -m 0644 "$REPO_ROOT/detector/fugleramme-tmpfiles.conf" \
+    /etc/tmpfiles.d/fugleramme.conf
+  sudo systemd-tmpfiles --create /etc/tmpfiles.d/fugleramme.conf
+
+  echo "==> birdnet-go"
+  docker_compose -f "$REPO_ROOT/detector/docker-compose.yml" up -d
+
+  echo "==> sync service"
+  install_service fugleramme-sync \
+    "Fugleramme detector sync (BirdNET-Go notes -> detections)" fugleramme-sync
+}
+
+converge_frame() {
+  # Panel access needs these groups; harmless where they don't exist. Takes
+  # effect after the next login - until then the frame serves the kiosk only.
+  local g
+  for g in spi i2c gpio; do
+    getent group "$g" >/dev/null 2>&1 && sudo usermod -aG "$g" "$USER"
+  done
+
+  echo "==> frame service"
+  install_service fugleramme-frame \
+    "Fugleramme frame service (render loop + kiosk)" fugleramme-frame
+}
+
+require_linux
+ensure_deps
+converge_detector
+converge_frame
+echo "==> up. Kiosk: http://$(hostname -I | awk '{print $1}'):8080"
+echo "    Logs: journalctl -u fugleramme-frame -u fugleramme-sync -f"

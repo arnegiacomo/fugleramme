@@ -1,0 +1,17 @@
+services:
+  birdnet-go:
+    # BirdNET-Go ships only nightlies; pin a dated one and bump deliberately.
+    image: ghcr.io/tphakala/birdnet-go:nightly-20260615
+    container_name: birdnet-go
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Oslo               # must match `fugleramme-sync --tz`
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - audio                        # or the GID from `getent group audio`
+    volumes:
+      - ./config:/config
+      - /dev/shm/fugleramme:/data    # notes.db on tmpfs; ephemeral, synced to disk
+    ports:
+      - "8090:8080"                  # 8080 is the frame kiosk

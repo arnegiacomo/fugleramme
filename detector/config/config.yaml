@@ -1,0 +1,30 @@
+# Only keys differing from defaults. Reference:
+# https://github.com/tphakala/birdnet-go/wiki
+
+birdnet:
+  locale: en-us
+  threshold: 0.7
+  latitude: 60.39
+  longitude: 5.32
+  rangefilter:
+    model: latest
+    threshold: 0.01
+
+realtime:
+  interval: 15               # min seconds between repeat detections of a species
+  audio:
+    sources:
+      # `default` may resolve to the wrong ALSA card; preflight.sh lists the
+      # capture devices to set here instead (e.g. plughw:CARD=Device,DEV=0).
+      - name: "USB mic"
+        device: "default"
+        gain: 0
+    export:
+      enabled: false
+
+output:
+  sqlite:
+    enabled: true
+    path: /data/birdnet.db
+  mysql:
+    enabled: false

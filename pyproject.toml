@@ -11,6 +11,8 @@ dependencies = [
 
 [project.scripts]
 fugleramme-frame = "fugleramme.cli:main"
+# Detector-side (#3): polls BirdNET-Go's notes DB into the frame's detections DB.
+fugleramme-sync = "fugleramme.sync:main"
 # Dev-only: same service with auto-restart on source change. Needs the dev group.
 fugleramme-dev = "fugleramme.dev:main"
 

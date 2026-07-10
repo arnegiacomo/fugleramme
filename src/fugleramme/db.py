@@ -75,6 +75,14 @@ class Database:
         self.conn.commit()
         return cur.lastrowid
 
+    def has_detection(self, scientific_name: str, detected_at: str) -> bool:
+        """True if a row with this species and exact timestamp already exists."""
+        row = self.conn.execute(
+            "SELECT 1 FROM detections WHERE scientific_name = ? AND detected_at = ? LIMIT 1",
+            (scientific_name, detected_at),
+        ).fetchone()
+        return row is not None
+
     def latest(self) -> Detection | None:
         row = self.conn.execute(
             "SELECT * FROM detections ORDER BY detected_at DESC, id DESC LIMIT 1"
