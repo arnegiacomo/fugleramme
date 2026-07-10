@@ -8,6 +8,8 @@ birdnet:
   threshold: 0.8
   latitude: 60.39
   longitude: 5.32
+  rangefilter:
+    threshold: 0.05          # up from the 0.01 default: cut species unlikely at this lat/lon + week
 
 realtime:
   interval: 15               # min seconds between repeat detections of a species
