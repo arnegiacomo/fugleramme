@@ -196,9 +196,11 @@ def _draw_names(canvas, names, placed):
         draw.text((x, y + img.height - 4), name, font=font, fill=_INK)
 
 
-def gather_entries(db: Database, images_dir: Path, rng: random.Random) -> list[tuple[str, Path | None]]:
-    """Last-24h species paired with a (random) artwork path, or None if absent."""
-    return [(name, image_for(name, images_dir, rng)) for name, _count in db.species_last_24h()]
+def gather_entries(
+    db: Database, images_dir: Path, rng: random.Random, hours: int = 24
+) -> list[tuple[str, Path | None]]:
+    """Recent-window species paired with a (random) artwork path, or None if absent."""
+    return [(name, image_for(name, images_dir, rng)) for name, _count in db.species_since(hours)]
 
 
 _cache: tuple[tuple, bytes] | None = None
@@ -210,6 +212,7 @@ def collage_png_bytes(
     images_dir: Path,
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
     show_names: bool = False,
+    lookback_hours: int = 24,
 ) -> bytes:
     """Render the current collage to PNG bytes for the HTTP endpoint.
 
@@ -220,7 +223,7 @@ def collage_png_bytes(
     restlessly swap it.
     """
     global _cache
-    species = tuple(name for name, _ in db.species_last_24h())
+    species = tuple(name for name, _ in db.species_since(lookback_hours))
     key = (species or _EMPTY, resolution, show_names)
     if _cache is not None and _cache[0] == key:
         return _cache[1]
@@ -229,7 +232,7 @@ def collage_png_bytes(
         image = render_collage([], resolution, show_names, random.Random())
     else:
         rng = random.Random(hash(species))
-        image = render_collage(gather_entries(db, images_dir, rng), resolution, show_names, rng)
+        image = render_collage(gather_entries(db, images_dir, rng, lookback_hours), resolution, show_names, rng)
 
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")

@@ -2,8 +2,8 @@
 
 The only place that knows BirdNET-Go's schema (a `labels`/`label_types` join,
 epoch-seconds timestamps). Opened `mode=ro`; the frame reads BirdNET-Go's file
-directly. The method surface (`Detection`, `species_last_24h`, `recent`,
-`latest`, `stats`) is unchanged so callers don't care about the source.
+directly. The method surface (`Detection`, `species_since`, `recent`,
+`latest`, `stats`) hides the source from callers.
 """
 
 from __future__ import annotations
@@ -42,8 +42,8 @@ def _row_to_detection(row: sqlite3.Row) -> Detection:
     )
 
 
-def _epoch_24h_ago() -> int:
-    return int((datetime.now(timezone.utc) - timedelta(hours=24)).timestamp())
+def _epoch_hours_ago(hours: int) -> int:
+    return int((datetime.now(timezone.utc) - timedelta(hours=hours)).timestamp())
 
 
 class Database:
@@ -95,14 +95,14 @@ class Database:
         )
         return [_row_to_detection(r) for r in rows]
 
-    def species_last_24h(self) -> list[tuple[str, int]]:
-        """Distinct species seen in the last 24h with their detection count,
-        most frequent first. Drives the kiosk collage."""
+    def species_since(self, hours: int = 24) -> list[tuple[str, int]]:
+        """Distinct species seen in the last `hours` with their detection count,
+        most frequent first. Drives the kiosk collage; window is the #2 setting."""
         rows = self._rows(
             f"SELECT l.scientific_name AS scientific_name, COUNT(*) AS n {_FROM} "
             "AND d.detected_at >= ? "
             "GROUP BY l.scientific_name ORDER BY n DESC, l.scientific_name",
-            (_epoch_24h_ago(),),
+            (_epoch_hours_ago(hours),),
         )
         return [(r["scientific_name"], r["n"]) for r in rows]
 
@@ -117,7 +117,7 @@ class Database:
             "total": self._scalar(f"SELECT COUNT(*) {_FROM}"),
             "species": self._scalar(f"SELECT COUNT(DISTINCT l.scientific_name) {_FROM}"),
             "last_24h": self._scalar(
-                f"SELECT COUNT(*) {_FROM} AND d.detected_at >= ?", (_epoch_24h_ago(),)
+                f"SELECT COUNT(*) {_FROM} AND d.detected_at >= ?", (_epoch_hours_ago(24),)
             ),
             "top": [dict(r) for r in top],
         }

@@ -1,5 +1,36 @@
 # fugleramme
-E-ink bird frame for Raspberry Pi - real-time bird detection by audio using birdnet
+E-ink bird frame for Raspberry Pi - real-time bird detection by audio.
+
+Built on top of [BirdNET-Go](https://github.com/tphakala/birdnet-go), which runs
+the mic and the BirdNET classifier and owns all detection config. Fugleramme reads
+its detections and renders the recently-seen birds as a collage on an [Inky-Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel, and serves the same view as a web kiosk.
+
+## Art
+
+The birds are cut-outs from historic, public-domain natural-history drawings,
+hand-curated for this project. Each detected species is matched to its
+illustration, background-removed, and packed onto a textured paper page - larger
+birds toward the centre, sized by real body mass. Species with no illustration
+are currently left off, and an empty window shows a bare perch.
+
+| No detections | A few visitors | A full garden |
+| :---: | :---: | :---: |
+| ![No birds detected](docs/samples/empty.png) | ![A few garden birds](docs/samples/few.png) | ![Many garden birds](docs/samples/many.png) |
+
+## Run locally
+
+```bash
+uv sync                                       # set up venv
+uv run python -m fugleramme.seed --count 40   # seed db (no BirdNET-Go in dev)
+uv run fugleramme-frame                       # start service on :8080
+uv run fugleramme-dev                         # same as above with hot-reload
+```
+
+Open the kiosk (no SPI-panel needed):
+
+```bash
+open -na "Google Chrome" --args --kiosk --app=http://localhost:8080/
+```
 
 ## License
 

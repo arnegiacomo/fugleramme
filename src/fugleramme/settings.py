@@ -1,0 +1,113 @@
+"""Runtime presentation settings (#2).
+
+Persisted to a small JSON file (no frame DB, per #7), shared by the render loop
+and the HTTP server in one process. The file is the source of truth: it is
+reloaded when its mtime changes, so hand edits and admin-form writes are both
+picked up live without a restart. Writes are atomic (temp + os.replace).
+
+Presentation only - detector config lives in BirdNET-Go's own UI, and bird-name
+display / language is #5.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import threading
+from dataclasses import asdict, dataclass
+from pathlib import Path
+
+from .config import DEFAULT_PANEL, PANEL_RESOLUTIONS
+
+ORIENTATIONS = ("landscape", "portrait")
+
+
+@dataclass(frozen=True)
+class Settings:
+    panel: str = DEFAULT_PANEL
+    orientation: str = "landscape"
+    lookback_hours: int = 24
+    kiosk_refresh_seconds: int = 60
+
+    def oriented(self, resolution: tuple[int, int]) -> tuple[int, int]:
+        """Apply orientation to a landscape-native (w, h)."""
+        long, short = max(resolution), min(resolution)
+        return (long, short) if self.orientation == "landscape" else (short, long)
+
+    def resolution(self) -> tuple[int, int]:
+        """Render resolution: the selected panel's native size, oriented."""
+        return self.oriented(PANEL_RESOLUTIONS[self.panel])
+
+
+def _as_int(value, default: int, lo: int, hi: int) -> int:
+    try:
+        return max(lo, min(hi, int(value)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce(raw: dict) -> Settings:
+    """Build validated Settings from an untrusted dict, filling defaults and
+    clamping out-of-range values. Unknown keys are ignored."""
+    d = Settings()
+    panel = str(raw.get("panel", d.panel))
+    if panel not in PANEL_RESOLUTIONS:
+        panel = d.panel
+    orientation = str(raw.get("orientation", d.orientation)).lower()
+    if orientation not in ORIENTATIONS:
+        orientation = d.orientation
+    return Settings(
+        panel=panel,
+        orientation=orientation,
+        lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, 1, 24 * 30),
+        kiosk_refresh_seconds=_as_int(
+            raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 5, 3600
+        ),
+    )
+
+
+class SettingsStore:
+    """Thread-safe view of the settings file for the render loop + HTTP server."""
+
+    def __init__(self, path: Path):
+        self.path = Path(path)
+        self._lock = threading.Lock()
+        self._settings = Settings()
+        self._mtime: float | None = None
+        self._load()
+
+    def get(self) -> Settings:
+        with self._lock:
+            self._reload_if_changed()
+            return self._settings
+
+    def update(self, **changes) -> Settings:
+        with self._lock:
+            self._reload_if_changed()
+            new = _coerce({**asdict(self._settings), **changes})
+            self._write(new)
+            self._settings = new
+            return new
+
+    def _reload_if_changed(self) -> None:
+        try:
+            mtime = self.path.stat().st_mtime
+        except OSError:
+            return  # missing: keep current in-memory settings
+        if mtime != self._mtime:
+            self._load()
+
+    def _load(self) -> None:
+        try:
+            raw = json.loads(self.path.read_text())
+            self._mtime = self.path.stat().st_mtime
+        except (OSError, json.JSONDecodeError):
+            return  # missing or corrupt: fall back to what we have
+        self._settings = _coerce(raw)
+
+    def _write(self, settings: Settings) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.path.with_name(self.path.name + ".tmp")
+        tmp.write_text(json.dumps(asdict(settings), indent=2) + "\n")
+        os.replace(tmp, self.path)
+        self._mtime = self.path.stat().st_mtime

@@ -16,38 +16,31 @@ import random
 
 from .collage import gather_entries, render_collage
 from .config import (
+    DEFAULT_CONFIG_PATH,
     DEFAULT_DB_PATH,
-    DEFAULT_PANEL,
-    PANEL_RESOLUTIONS,
+    DEFAULT_HOST,
+    DEFAULT_PORT,
     REPO_ROOT,
     Config,
-    resolve_resolution,
 )
 from .db import Database
 from .service import run
+from .settings import SettingsStore
 
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="fugleramme-frame", description=__doc__)
     parser.add_argument(
-        "--panel",
-        choices=sorted(PANEL_RESOLUTIONS),
-        default=DEFAULT_PANEL,
-        help=f"Inky size preset (default {DEFAULT_PANEL})",
-    )
-    parser.add_argument(
-        "--resolution", help="explicit WxH, overrides --panel (e.g. 800x480)"
-    )
-    parser.add_argument(
         "--images", type=Path, default=REPO_ROOT / "assets" / "birds",
         help="bird artwork directory",
     )
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="settings file (#2)")
     parser.add_argument(
         "--output", type=Path, default=Path("frame.png"), help="rendered frame path"
     )
-    parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--host", default=DEFAULT_HOST)
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument(
         "--preview", type=Path, help="render the full-color collage to this path and exit"
     )
@@ -56,21 +49,21 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> None:
     args = _parse_args(argv)
-    resolution = resolve_resolution(args.panel, args.resolution)
     config = Config(
-        resolution=resolution,
         images_dir=args.images,
         db_path=args.db,
         output_path=args.output,
         host=args.host,
         port=args.port,
+        config_path=args.config,
     )
 
     if args.preview:
+        settings = SettingsStore(config.config_path).get()
         db = Database(config.db_path)
-        rng = random.Random(hash(tuple(name for name, _ in db.species_last_24h())))
-        entries = gather_entries(db, config.images_dir, rng)
-        render_collage(entries, resolution, False, rng).save(args.preview)
+        rng = random.Random(hash(tuple(name for name, _ in db.species_since(settings.lookback_hours))))
+        entries = gather_entries(db, config.images_dir, rng, settings.lookback_hours)
+        render_collage(entries, settings.resolution(), False, rng).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")
         return

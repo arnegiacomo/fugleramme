@@ -19,13 +19,13 @@ uv run pytest -q                            # run tests
 uv run pytest tests/test_artwork_names.py   # run a single test file
 ```
 
-`--panel {4.0,7.3,13.3}` / `--resolution WxH` set render resolution (default 7.3" / 800x480); `--db`, `--images`, `--host`, `--port` are also flags.
+Panel size, orientation, lookback window, and kiosk refresh are runtime settings in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). CLI flags are launch-only: `--db`, `--images`, `--config`, `--output`, `--host`, `--port`.
 
 ## Architecture
 
-Work is split by concern across GitHub issues: **#1 frame service**, **#2 admin interface** (not yet built), **#3 detector** (BirdNET-Go + mic), **#7 direct-read refactor**. #1 and #3 exist in code; each issue is the source of truth for its half.
+Work is split by concern across GitHub issues: **#1 frame service**, **#2 admin interface** (presentation settings at `/admin`), **#3 detector** (BirdNET-Go + mic), **#7 direct-read refactor**. Each issue is the source of truth for its half.
 
-The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own normalized SQLite, bind-mounted to a persistent host path (`detector/data`, on NVMe on the Pi); the frame reads that same file directly, read-only. `db.py` is a thin adapter and the only code that knows BirdNET-Go's schema (species come from a `labels`/`label_types` join, timestamps are epoch seconds); it exposes `species_last_24h` / `recent` / `latest` / `stats` so nothing else sees BirdNET-Go SQL. There is no frame-owned DB and no sync process (dropped in #7). WAL lets the render loop and the HTTP server each hold a read connection in one process without contention. Detector detail: [`detector/README.md`](detector/README.md).
+The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own normalized SQLite, bind-mounted to a persistent host path (`detector/data`, on NVMe on the Pi); the frame reads that same file directly, read-only. `db.py` is a thin adapter and the only code that knows BirdNET-Go's schema (species come from a `labels`/`label_types` join, timestamps are epoch seconds); it exposes `species_since` / `recent` / `latest` / `stats` so nothing else sees BirdNET-Go SQL. There is no frame-owned DB and no sync process (dropped in #7). WAL lets the render loop and the HTTP server each hold a read connection in one process without contention. Detector detail: [`detector/README.md`](detector/README.md).
 
 **Render once, fan out** (`service.py`): the loop re-renders only when the set of species seen in the last 24h changes, dithers the collage to 6 colors for the panel (`render.py`), and pushes it if a panel is present. The kiosk serves the same collage full-color per request (`server.py`, cached per species-set). If the Inky is absent it logs a warning and runs web-only, the same path as `--preview`.
 

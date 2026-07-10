@@ -47,19 +47,20 @@ def test_join_epoch_and_species_filter(tmp_path):
     db.close()
 
 
-def test_species_last_24h_window(tmp_path):
+def test_species_since_window(tmp_path):
     now = datetime.now(timezone.utc)
     recent_epoch = int((now - timedelta(hours=1)).timestamp())
     stale_epoch = int((now - timedelta(hours=30)).timestamp())
     db_path = tmp_path / "birdnet.db"
     _birdnet_db(db_path, [
-        (1, 10, recent_epoch, 0.9, None),   # inside window
+        (1, 10, recent_epoch, 0.9, None),   # inside default 24h window
         (2, 10, recent_epoch, 0.8, None),   # inside window, same species
-        (3, 11, stale_epoch, 0.7, None),    # outside window
+        (3, 11, stale_epoch, 0.7, None),    # outside 24h, inside 48h
     ])
     db = Database(db_path)
 
-    assert db.species_last_24h() == [("Turdus merula", 2)]
+    assert db.species_since() == [("Turdus merula", 2)]
+    assert db.species_since(hours=48) == [("Turdus merula", 2), ("Parus major", 1)]
     assert db.stats()["last_24h"] == 2
     assert db.stats()["total"] == 3         # stale row still counts in totals
     db.close()
@@ -69,7 +70,7 @@ def test_missing_db_reads_empty(tmp_path):
     """The frame may start before BirdNET-Go creates the DB - reads are empty,
     not an error, so the render loop keeps going."""
     db = Database(tmp_path / "does-not-exist.db")
-    assert db.species_last_24h() == []
+    assert db.species_since() == []
     assert db.recent() == []
     assert db.latest() is None
     assert db.stats()["total"] == 0
