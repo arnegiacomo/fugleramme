@@ -14,7 +14,7 @@ from pathlib import Path
 
 import random
 
-from .collage import DEFAULT_RESOLUTION, gather_entries, render_collage
+from .collage import gather_entries, render_collage
 from .config import (
     DEFAULT_DB_PATH,
     DEFAULT_PANEL,
@@ -68,10 +68,9 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.preview:
         db = Database(config.db_path)
-        species = db.species_last_24h()
-        rng = random.Random(hash(tuple(name for name, _ in species)))
+        rng = random.Random(hash(tuple(name for name, _ in db.species_last_24h())))
         entries = gather_entries(db, config.images_dir, rng)
-        render_collage(entries, DEFAULT_RESOLUTION, False, rng).save(args.preview)
+        render_collage(entries, resolution, False, rng).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")
         return

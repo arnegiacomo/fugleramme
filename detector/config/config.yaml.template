@@ -8,9 +8,6 @@ birdnet:
   threshold: 0.8
   latitude: 60.39
   longitude: 5.32
-  rangefilter:
-    model: latest
-    threshold: 0.01
 
 realtime:
   interval: 15               # min seconds between repeat detections of a species
@@ -22,5 +19,3 @@ output:
   sqlite:
     enabled: true
     path: /data/birdnet.db
-  mysql:
-    enabled: false

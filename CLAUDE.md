@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds and logs detections to SQLite; a small Python sync process copies those into the frame's DB, and the frame service renders the recently seen birds as a collage on the Pimoroni Inky Impression (Spectra 6) panel and serves it over HTTP. The frame stack is Python managed with `uv`, Pillow + numpy for rendering, stdlib `sqlite3` and `http.server`, and the Pi-only `inky` driver. The Pi hardware does not exist yet, so the frame runs on a Mac (web-only, no panel); the detector (Docker + mic) is Pi-only and untested on hardware.
+Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds and logs detections to its own SQLite; the frame service reads that DB directly (read-only) and renders the recently seen birds as a collage on the Pimoroni Inky Impression (Spectra 6) panel and serves it over HTTP. The frame stack is Python managed with `uv`, Pillow + numpy for rendering, stdlib `sqlite3` and `http.server`, and the Pi-only `inky` driver. It's deployed and running on a Pi; the frame also runs on a Mac for development (web-only, no panel). Live mic capture and the Inky panel push are Pi-only.
 
 ## Commands
 
@@ -51,6 +51,6 @@ The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own norm
 ## Docs
 
 - [`README.md`](README.md) - project summary and licensing split
-- [`detector/README.md`](detector/README.md) - BirdNET-Go container, the sync process, and Pi deployment
+- [`detector/README.md`](detector/README.md) - BirdNET-Go container, the direct-read DB, and Pi deployment
 - [`assets/birds/ATTRIBUTION.md`](assets/birds/ATTRIBUTION.md) - artwork provenance and CC BY-SA 4.0 terms
 - [`wikimedia-scrape/README.md`](wikimedia-scrape/README.md) - how the cut-outs are scraped and background-removed from the von Wright plates
