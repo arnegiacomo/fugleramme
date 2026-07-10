@@ -20,3 +20,6 @@ frame.png
 
 # Per-Pi detector config, generated from config.yaml.template by setup.sh
 detector/config/config.yaml
+
+# Per-Pi container env (UID/GID/ALSA card), written by setup.sh
+detector/.env

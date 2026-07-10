@@ -7,13 +7,10 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG="$REPO_ROOT/detector/config/config.yaml"
-MIC_PLACEHOLDER="PICK_WITH_SETUP"
 ASSUME_YES=0
-FORCE_MIC=0
 for arg in "$@"; do
   case "$arg" in
     -y|--yes) ASSUME_YES=1 ;;
-    --mic) FORCE_MIC=1 ;;   # re-run the capture-device selection
   esac
 done
 
@@ -105,43 +102,19 @@ ensure_config() {
   echo "created $CONFIG from template"
 }
 
-# Pick the ALSA capture device and write it into config.yaml. Runs on first
-# setup (device still the placeholder) or when forced with --mic.
-configure_mic() {
-  local current
-  current="$(sed -nE 's/^[[:space:]]*device:[[:space:]]*"(.*)".*/\1/p' "$CONFIG" | head -1)"
-  if [[ "$current" != "$MIC_PLACEHOLDER" && $FORCE_MIC == 0 ]]; then
-    echo "audio device: $current (unchanged; pass --mic to reselect)"
-    return 0
-  fi
-
-  local labels=() devices=() line re='^card ([0-9]+): ([^ ]+) \[([^]]*)\], device ([0-9]+):'
-  while IFS= read -r line; do
-    [[ "$line" =~ $re ]] || continue
-    labels+=("${BASH_REMATCH[3]} (card ${BASH_REMATCH[1]}, device ${BASH_REMATCH[4]})")
-    devices+=("plughw:CARD=${BASH_REMATCH[2]},DEV=${BASH_REMATCH[4]}")
-  done < <(arecord -l 2>/dev/null)
-
-  local n=${#devices[@]} choice=1
-  if (( n == 0 )); then
-    echo "no ALSA capture device found - is the USB mic plugged in?" >&2
-    exit 1
-  elif (( n == 1 )); then
-    echo "capture device: ${labels[0]}"
-  elif [[ $ASSUME_YES == 1 ]]; then
-    echo "multiple capture devices; using ${labels[0]} (-y). Re-run with --mic to choose."
-  else
-    echo "select the capture device:"
-    local i
-    for i in "${!labels[@]}"; do printf "  %d) %s\n" "$((i + 1))" "${labels[$i]}"; done
-    read -rp "choice [1]: " choice || true
-    [[ "$choice" =~ ^[0-9]+$ ]] || choice=1
-  fi
-
-  local dev="${devices[$((choice - 1))]:-}"
-  [[ -n "$dev" ]] || { echo "invalid choice" >&2; exit 1; }
-  sed -i -E "s|^([[:space:]]*)device:.*|\1device: \"$dev\"|" "$CONFIG"
-  echo "audio device set: $dev"
+# Per-Pi container env, read by compose even under sudo (which strips exported
+# vars - the cause of the config dir flipping owner). UID/GID = host user so the
+# entrypoint's chown of /config leaves files owned by us; ALSA_CARD makes the USB
+# mic ALSA's default card (HDMI takes cards 0/1, which have no capture stream) so
+# BirdNET-Go can enumerate it. The mic itself is picked in the BirdNET-Go UI.
+write_env() {
+  local card
+  card="$(arecord -l 2>/dev/null | sed -nE 's/^card [0-9]+: ([^ ]+) \[.*/\1/p' | head -1)"
+  cat > "$REPO_ROOT/detector/.env" <<EOF
+BIRDNET_UID=$(id -u)
+BIRDNET_GID=$(id -g)
+ALSA_CARD=$card
+EOF
 }
 
 ensure_deps() {
@@ -160,9 +133,8 @@ converge_detector() {
   echo "==> mic pre-flight"
   "$REPO_ROOT/detector/preflight.sh"
 
-  echo "==> config + capture device"
+  echo "==> config"
   ensure_config
-  configure_mic
 
   echo "==> tmpfs data dir"
   # owned by the host user so the container (run as the same uid) can write it
@@ -171,12 +143,10 @@ converge_detector() {
   sudo systemd-tmpfiles --create /etc/tmpfiles.d/fugleramme.conf
 
   echo "==> birdnet-go"
-  # run the container as the host user; force-recreate so a changed config.yaml
-  # (e.g. the capture device) is reloaded
-  export BIRDNET_UID="$(id -u)" BIRDNET_GID="$(id -g)"
-  # pin ALSA's default card to the mic (HDMI owns cards 0/1, which have no input)
-  export ALSA_CARD="$(sed -nE 's/.*device:.*CARD=([^,"]+).*/\1/p' "$CONFIG" | head -1)"
-  docker_compose -f "$REPO_ROOT/detector/docker-compose.yml" up -d --force-recreate
+  # force-recreate so a changed config.yaml or .env reloads
+  write_env
+  docker_compose --env-file "$REPO_ROOT/detector/.env" \
+    -f "$REPO_ROOT/detector/docker-compose.yml" up -d --force-recreate
 
   echo "==> sync service"
   install_service fugleramme-sync \

@@ -1,6 +1,7 @@
-# Template for the per-Pi config. setup.sh copies this to config.yaml (gitignored)
-# and fills in the capture device. Only keys differing from BirdNET-Go's defaults
-# are set. Reference: https://github.com/tphakala/birdnet-go/wiki
+# Template for the per-Pi config. setup.sh copies this to config.yaml (gitignored).
+# Only keys differing from BirdNET-Go's defaults are set; the capture device is
+# picked in the BirdNET-Go UI (Settings -> Audio), not here.
+# Reference: https://github.com/tphakala/birdnet-go/wiki
 
 birdnet:
   locale: en-us
@@ -14,10 +15,6 @@ birdnet:
 realtime:
   interval: 15               # min seconds between repeat detections of a species
   audio:
-    sources:
-      - name: "USB mic"
-        device: "PICK_WITH_SETUP"   # set automatically by setup.sh from `arecord -l`
-        gain: 0
     export:
       enabled: false
 
