@@ -5,7 +5,7 @@ services:
     container_name: birdnet-go
     restart: unless-stopped
     environment:
-      - TZ=Europe/Oslo               # must match `fugleramme-sync --tz`
+      - TZ=Europe/Oslo               # BirdNET-Go's local day boundaries / logs
     devices:
       - /dev/snd:/dev/snd
     group_add:

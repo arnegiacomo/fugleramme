@@ -6,14 +6,15 @@ classifies bird sounds and logs them to its own SQLite. A small host-side syncer
 two halves meet only at the DB.
 
 ```
-USB mic --> BirdNET-Go (container) --> notes.db (tmpfs) --> fugleramme-sync --> detections.db (disk) --> frame (#1)
+USB mic --> BirdNET-Go (container) --> birdnet.db (tmpfs) --> fugleramme-sync --> detections.db (disk) --> frame (#1)
 ```
 
 ## Why a syncer instead of pointing the frame at BirdNET-Go's DB
 
-BirdNET-Go's schema (table `notes`, GORM-migrated, local-time `Date`+`Time`
-columns) is not the frame's `detections` shape. The syncer is the one place that
-knows both, so:
+BirdNET-Go's schema is not the frame's: it is GORM-migrated and normalized (the
+species name comes from a `labels` join, the timestamp is a Unix epoch), and its
+own table is confusingly also called `detections`. The syncer is the one place
+that knows both, so:
 
 - a BirdNET-Go schema change touches `sync.py` only, never the renderer;
 - dev/prod parity holds - `detections` is a real table everywhere, so `seed.py`
@@ -27,7 +28,7 @@ See issue #3 for the full rationale.
 
 | File | Purpose |
 | --- | --- |
-| `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, notes.db on a tmpfs bind mount, web UI on `:8090` |
+| `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db on a tmpfs bind mount, web UI on `:8090` |
 | `config/config.yaml` | BirdNET-Go config: Bergen lat/lon + range/week filter, `interval` debounce, clips off, SQLite at `/data/birdnet.db` |
 | `preflight.sh` | Fatal check that an ALSA capture device exists |
 | `fugleramme-tmpfiles.conf` | Recreates the tmpfs data dir on boot |
@@ -42,16 +43,14 @@ Pull the repo on the Pi and run one command:
 
 It installs anything missing (uv, docker, alsa-utils - prompting first), runs
 `uv sync`, checks the mic, installs the tmpfiles rule, brings up BirdNET-Go, and
-enables the `fugleramme-sync` systemd service. Follow it with:
+enables the `fugleramme-sync` and `fugleramme-frame` systemd services. Follow
+them with:
 
 ```bash
-journalctl -u fugleramme-sync -f
+journalctl -u fugleramme-sync -u fugleramme-frame -f
 ```
 
-The syncer's `--tz` (default `Europe/Oslo`) must match `TZ` in
-`docker-compose.yml`, or detection timestamps will be off by the UTC offset.
-
-To run the syncer by hand instead (e.g. on the Mac against a fake source DB):
+To run the syncer by hand instead:
 
 ```bash
 uv run fugleramme-sync --source /dev/shm/fugleramme/birdnet.db --db data/detections.db

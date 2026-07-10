@@ -1,8 +1,11 @@
-"""Poll BirdNET-Go's `notes` table into the frame's `detections` table.
+"""Poll BirdNET-Go's detections into the frame's `detections` table.
 
-The only code that knows BirdNET-Go's schema: it maps each note into the frame's
-shape, converting BirdNET-Go's local Date+Time to UTC. Idempotent (dedup on
-scientific_name + detected_at) so a source reset or restart never dupes or skips.
+The only code that knows BirdNET-Go's schema. BirdNET-Go's own table is also
+called `detections` (a coincidence - it lives in a separate DB file); it is
+normalized, so the species name comes from a join to `labels` and the timestamp
+is a Unix epoch (UTC, seconds). This maps each new row into the frame's shape.
+Idempotent (dedup on scientific_name + detected_at) so a source reset or restart
+never dupes or skips.
 """
 
 from __future__ import annotations
@@ -13,30 +16,28 @@ import sqlite3
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from .db import Database
 
 log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 10
-# BirdNET-Go's notes.date + notes.time strings (Go layouts "2006-01-02" + "15:04:05").
-_SRC_FORMAT = "%Y-%m-%d %H:%M:%S"
+# BirdNET-Go stores only species detections we care about; noise/environment/
+# device labels are filtered out. detected_at is epoch seconds (UTC).
 _SELECT = (
-    "SELECT id, date, time, scientific_name, confidence, clip_name "
-    "FROM notes WHERE id > ? ORDER BY id"
+    "SELECT d.id, d.detected_at, l.scientific_name, d.confidence, d.clip_name "
+    "FROM detections d "
+    "JOIN labels l ON l.id = d.label_id "
+    "JOIN label_types t ON t.id = l.label_type_id "
+    "WHERE t.name = 'species' AND d.id > ? "
+    "ORDER BY d.id"
 )
 
 
-def to_utc(date: str, clock: str, tz: ZoneInfo) -> datetime:
-    local = datetime.strptime(f"{date} {clock}", _SRC_FORMAT).replace(tzinfo=tz)
-    return local.astimezone(timezone.utc)
-
-
-def sync_once(source: sqlite3.Connection, target: Database, tz: ZoneInfo, cursor: int) -> int:
-    """Copy notes with id > cursor into detections. Returns the new cursor."""
+def sync_once(source: sqlite3.Connection, target: Database, cursor: int) -> int:
+    """Copy detections with id > cursor into the frame's table. Returns the new cursor."""
     for row in source.execute(_SELECT, (cursor,)).fetchall():
-        detected_at = to_utc(row["date"], row["time"], tz)
+        detected_at = datetime.fromtimestamp(row["detected_at"], tz=timezone.utc)
         if not target.has_detection(row["scientific_name"], detected_at.isoformat()):
             target.insert(
                 scientific_name=row["scientific_name"],
@@ -50,13 +51,12 @@ def sync_once(source: sqlite3.Connection, target: Database, tz: ZoneInfo, cursor
     return cursor
 
 
-def run(source_db: Path, target_db: Path, tz_name: str) -> None:
+def run(source_db: Path, target_db: Path) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    tz = ZoneInfo(tz_name)
     target = Database(target_db)
     source: sqlite3.Connection | None = None
     cursor = 0
-    log.info("Syncing %s -> %s (tz=%s)", source_db, target_db, tz_name)
+    log.info("Syncing %s -> %s", source_db, target_db)
     while True:
         try:
             if source is None:
@@ -64,7 +64,7 @@ def run(source_db: Path, target_db: Path, tz_name: str) -> None:
                 # file shadowing BirdNET-Go's if it hasn't written yet.
                 source = sqlite3.connect(f"file:{source_db}?mode=rw", uri=True)
                 source.row_factory = sqlite3.Row
-            cursor = sync_once(source, target, tz, cursor)
+            cursor = sync_once(source, target, cursor)
         except sqlite3.OperationalError as exc:
             # Source missing or recreated: reconnect and re-scan; dedup guards dupes.
             log.warning("source not ready (%s); retrying", exc)
@@ -79,18 +79,14 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="fugleramme-sync", description=__doc__)
     parser.add_argument(
         "--source", type=Path, default=Path("/dev/shm/fugleramme/birdnet.db"),
-        help="BirdNET-Go's SQLite file (the notes table)",
+        help="BirdNET-Go's SQLite file",
     )
     parser.add_argument(
         "--db", type=Path, default=Path("data/detections.db"),
         help="the frame's detections DB to write into",
     )
-    parser.add_argument(
-        "--tz", default="Europe/Oslo",
-        help="timezone BirdNET-Go stores Date/Time in; must match the compose TZ",
-    )
     args = parser.parse_args(argv)
-    run(args.source, args.db, args.tz)
+    run(args.source, args.db)
 
 
 if __name__ == "__main__":
