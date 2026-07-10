@@ -31,7 +31,6 @@ See issue #3 for the full rationale.
 | `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db on a tmpfs bind mount, web UI on `:8090` |
 | `config/config.yaml.template` | Tracked template; `setup.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, clips off, SQLite at `/data/birdnet.db` |
 | `preflight.sh` | Fatal check that an ALSA capture device exists |
-| `fugleramme-tmpfiles.conf` | Recreates the tmpfs data dir on boot |
 
 ## Deploy
 
@@ -65,6 +64,9 @@ uv run fugleramme-sync --source /dev/shm/fugleramme/birdnet.db --db data/detecti
 - **Mic device:** `setup.sh` picks the ALSA capture device from `arecord -l` and
   writes a `plughw:CARD=<name>,DEV=<n>` entry into `config.yaml` (by card name, so
   it survives reboots/replugs). Re-pick with `./setup.sh --mic`.
+- **Container user:** BirdNET-Go's entrypoint chowns `/config` and `/data`, so
+  `setup.sh` runs it as the host user (`BIRDNET_UID`/`BIRDNET_GID` = `id -u`/`id -g`)
+  to avoid leaving repo/tmpfs files owned by a foreign uid.
 - **Audio group:** the container needs the host `audio` group to read `/dev/snd`.
   If `group_add: audio` fails, substitute the numeric GID from
   `getent group audio`.

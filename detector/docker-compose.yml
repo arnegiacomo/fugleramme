@@ -6,6 +6,13 @@ services:
     restart: unless-stopped
     environment:
       - TZ=Europe/Oslo               # BirdNET-Go's local day boundaries / logs
+      # Run as the host user so the entrypoint's chown of /config and /data
+      # doesn't leave repo/tmpfs files owned by a foreign uid. setup.sh sets these.
+      - BIRDNET_UID=${BIRDNET_UID:-1000}
+      - BIRDNET_GID=${BIRDNET_GID:-1000}
+      # Pin ALSA's default card to the USB mic; the Pi's HDMI cards 0/1 have no
+      # capture stream, breaking enumeration. setup.sh derives it.
+      - ALSA_CARD=${ALSA_CARD:-}
     devices:
       - /dev/snd:/dev/snd
     group_add:

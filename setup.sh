@@ -165,12 +165,17 @@ converge_detector() {
   configure_mic
 
   echo "==> tmpfs data dir"
-  sudo install -m 0644 "$REPO_ROOT/detector/fugleramme-tmpfiles.conf" \
-    /etc/tmpfiles.d/fugleramme.conf
+  # owned by the host user so the container (run as the same uid) can write it
+  printf 'd /dev/shm/fugleramme 0755 %s %s -\n' "$(id -u)" "$(id -g)" \
+    | sudo tee /etc/tmpfiles.d/fugleramme.conf >/dev/null
   sudo systemd-tmpfiles --create /etc/tmpfiles.d/fugleramme.conf
 
   echo "==> birdnet-go"
-  # force-recreate so a changed config.yaml (e.g. the capture device) is reloaded
+  # run the container as the host user; force-recreate so a changed config.yaml
+  # (e.g. the capture device) is reloaded
+  export BIRDNET_UID="$(id -u)" BIRDNET_GID="$(id -g)"
+  # pin ALSA's default card to the mic (HDMI owns cards 0/1, which have no input)
+  export ALSA_CARD="$(sed -nE 's/.*device:.*CARD=([^,"]+).*/\1/p' "$CONFIG" | head -1)"
   docker_compose -f "$REPO_ROOT/detector/docker-compose.yml" up -d --force-recreate
 
   echo "==> sync service"
