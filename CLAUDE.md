@@ -13,8 +13,7 @@ uv sync                                     # create/refresh the venv from the l
 uv run fugleramme-frame                     # run the service: render loop + kiosk on 0.0.0.0:8080
 uv run fugleramme-dev                       # same, auto-restart on source change
 uv run fugleramme-frame --preview out.png   # render the current collage once and exit, no server/panel
-uv run python -m fugleramme.seed --count 40 # insert fake detections so the collage has content
-uv run fugleramme-sync                      # detector: sync BirdNET-Go detections into the frame DB
+uv run python -m fugleramme.seed --count 40 # write a BirdNET-Go-shaped fixture DB so the collage has content
 ./setup.sh                                   # Pi only: one-command bootstrap (deps + BirdNET-Go + services)
 uv run pytest -q                            # run tests
 uv run pytest tests/test_artwork_names.py   # run a single test file
@@ -24,9 +23,9 @@ uv run pytest tests/test_artwork_names.py   # run a single test file
 
 ## Architecture
 
-Work is split by concern across GitHub issues: **#1 frame service**, **#2 admin interface** (not yet built), **#3 detector** (BirdNET-Go + mic + sync). #1 and #3 exist in code; each issue is the source of truth for its half.
+Work is split by concern across GitHub issues: **#1 frame service**, **#2 admin interface** (not yet built), **#3 detector** (BirdNET-Go + mic), **#7 direct-read refactor**. #1 and #3 exist in code; each issue is the source of truth for its half.
 
-The two halves meet only at the DB. BirdNET-Go (Docker) writes its own normalized SQLite on a tmpfs (RAM, to spare the SD card); a host-side syncer (`fugleramme-sync`, `sync.py`) is the only code that knows BirdNET-Go's schema, reconciling new rows into the frame's `detections` table on disk (see `db.py`), which the frame reads. WAL lets the render loop and the HTTP server each hold a connection in one process without contention. Detector detail: [`detector/README.md`](detector/README.md).
+The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own normalized SQLite, bind-mounted to a persistent host path (`detector/data`, on NVMe on the Pi); the frame reads that same file directly, read-only. `db.py` is a thin adapter and the only code that knows BirdNET-Go's schema (species come from a `labels`/`label_types` join, timestamps are epoch seconds); it exposes `species_last_24h` / `recent` / `latest` / `stats` so nothing else sees BirdNET-Go SQL. There is no frame-owned DB and no sync process (dropped in #7). WAL lets the render loop and the HTTP server each hold a read connection in one process without contention. Detector detail: [`detector/README.md`](detector/README.md).
 
 **Render once, fan out** (`service.py`): the loop re-renders only when the set of species seen in the last 24h changes, dithers the collage to 6 colors for the panel (`render.py`), and pushes it if a panel is present. The kiosk serves the same collage full-color per request (`server.py`, cached per species-set). If the Inky is absent it logs a warning and runs web-only, the same path as `--preview`.
 

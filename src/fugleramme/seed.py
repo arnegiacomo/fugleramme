@@ -1,22 +1,24 @@
-"""Seed fake detections for a hardware-free dev loop.
+"""Seed a BirdNET-Go-shaped fixture DB for a hardware-free dev loop.
 
-Kept out of the data-access layer on purpose: seeding is a dev/ops concern.
+Writes the minimal slice the read adapter joins on (`label_types`, `labels`,
+`detections`) with fake detections, standing in for BirdNET-Go on the Mac.
+Re-runnable: appends detections, reusing the reference rows.
 
 Usage:
-    python -m fugleramme.seed --db data/detections.db --count 20
+    python -m fugleramme.seed --count 20      # writes to detector/data/birdnet.db
 """
 
 from __future__ import annotations
 
 import argparse
 import random
+import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .db import Database
+from .config import DEFAULT_DB_PATH
 
-# A handful of common Norwegian species. Mixes ones with artwork and ones with
-# none (Cyanistes caeruleus, Erithacus rubecula), which the collage omits.
+# Common Norwegian species; some without artwork (Cyanistes, Erithacus), which the collage omits.
 SPECIES = [
     "Turdus merula",
     "Parus major",
@@ -28,33 +30,67 @@ SPECIES = [
     "Corvus cornix",
 ]
 
+# Minimal slice of BirdNET-Go's normalized schema - only the columns db.py reads.
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS label_types (
+    id   INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS labels (
+    id              INTEGER PRIMARY KEY,
+    scientific_name TEXT NOT NULL,
+    label_type_id   INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS detections (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    label_id    INTEGER NOT NULL,
+    detected_at INTEGER NOT NULL,   -- epoch seconds UTC
+    confidence  REAL NOT NULL,
+    clip_name   TEXT
+);
+"""
 
-def seed(db: Database, count: int) -> list[int]:
-    now = datetime.now(timezone.utc)
-    ids = []
-    for i in range(count):
-        ids.append(
-            db.insert(
-                scientific_name=random.choice(SPECIES),
-                confidence=round(random.uniform(0.6, 0.98), 2),
-                detected_at=now - timedelta(minutes=i * 7),
+
+def seed(path: Path, count: int) -> int:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(path)
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")  # mirror BirdNET-Go
+        conn.executescript(_SCHEMA)
+        conn.execute("INSERT OR IGNORE INTO label_types (id, name) VALUES (1, 'species')")
+        label_id = {}
+        for i, name in enumerate(SPECIES, start=1):
+            conn.execute(
+                "INSERT OR IGNORE INTO labels (id, scientific_name, label_type_id) "
+                "VALUES (?, ?, 1)",
+                (i, name),
             )
-        )
-    return ids
+            label_id[name] = i
+        now = datetime.now(timezone.utc)
+        for i in range(count):
+            name = random.choice(SPECIES)
+            when = int((now - timedelta(minutes=i * 7)).timestamp())
+            conn.execute(
+                "INSERT INTO detections (label_id, detected_at, confidence, clip_name) "
+                "VALUES (?, ?, ?, NULL)",
+                (label_id[name], when, round(random.uniform(0.6, 0.98), 2)),
+            )
+        conn.commit()
+        # Fold the WAL into the main file so the read-only frame sees the rows.
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        return count
+    finally:
+        conn.close()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Seed fake detections.")
-    parser.add_argument("--db", type=Path, default=Path("data/detections.db"))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
     parser.add_argument("--count", type=int, default=20)
     args = parser.parse_args()
 
-    db = Database(args.db)
-    try:
-        ids = seed(db, args.count)
-    finally:
-        db.close()
-    print(f"seeded {len(ids)} detections into {args.db}")
+    n = seed(args.db, args.count)
+    print(f"seeded {n} detections into {args.db}")
 
 
 if __name__ == "__main__":

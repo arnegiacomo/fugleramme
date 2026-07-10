@@ -1,34 +1,37 @@
 # Detector (issue #3)
 
 The detector half of the appliance: a USB mic feeds **BirdNET-Go**, which
-classifies bird sounds and logs them to its own SQLite. A small host-side syncer
-(`fugleramme-sync`) copies those into the frame's durable `detections.db`. The
-two halves meet only at the DB.
+classifies bird sounds and logs them to its own SQLite. The frame reads that DB
+directly (issue #7); the two halves meet only at the DB file.
 
 ```
-USB mic --> BirdNET-Go (container) --> birdnet.db (tmpfs) --> fugleramme-sync --> detections.db (disk) --> frame (#1)
+USB mic --> BirdNET-Go (container) --> birdnet.db (disk/NVMe, bind mount) --> frame (#1, read-only)
 ```
 
-## Why a syncer instead of pointing the frame at BirdNET-Go's DB
+## The frame reads BirdNET-Go's DB directly
 
-BirdNET-Go's schema is not the frame's: it is GORM-migrated and normalized (the
-species name comes from a `labels` join, the timestamp is a Unix epoch), and its
-own table is confusingly also called `detections`. The syncer is the one place
-that knows both, so:
+BirdNET-Go's schema is GORM-migrated and normalized: the species name comes from
+a `labels`/`label_types` join and the timestamp is a Unix epoch. The frame's read
+adapter (`db.py`) is the one place that knows this schema; nothing else in the
+renderer sees BirdNET-Go SQL. The adapter opens the file `mode=ro`.
 
-- a BirdNET-Go schema change touches `sync.py` only, never the renderer;
-- dev/prod parity holds - `detections` is a real table everywhere, so `seed.py`
-  and the tests keep working unchanged;
-- BirdNET-Go's DB can live on **tmpfs (RAM)** while `detections.db` stays durable
-  on disk, keeping BirdNET-Go's writes off the SD card.
+Two decisions make the direct read work:
 
-See issue #3 for the full rationale.
+- **Disk, not tmpfs.** BirdNET-Go's DB used to live on a RAM tmpfs to spare the
+  SD card, which forced a second durable DB and a copying sync process. On NVMe
+  the SD-wear concern is gone, so the DB persists on disk and the sync step is
+  deleted.
+- **Bind mount, not a named volume.** BirdNET-Go's DB is bind-mounted from the
+  container to a host path (`detector/data`, gitignored). The frame runs on the
+  *host* and reads the same file; named volumes aren't cleanly host-accessible.
+
+See issue #7 for the full rationale.
 
 ## Layout
 
 | File | Purpose |
 | --- | --- |
-| `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db on a tmpfs bind mount, web UI on `:8090` |
+| `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db bind-mounted from `./data` (persistent), web UI on `:8090` |
 | `config/config.yaml.template` | Tracked template; `setup.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, clips off, SQLite at `/data/birdnet.db` |
 | `preflight.sh` | Fatal check that an ALSA capture device exists |
 
@@ -42,19 +45,14 @@ Pull the repo on the Pi and run one command:
 
 It installs anything missing (uv, docker, alsa-utils - prompting first), runs
 `uv sync`, generates the per-Pi `config.yaml` and prompts you to pick the ALSA
-capture device (auto-selected if there's only one), installs the tmpfiles rule,
-brings up BirdNET-Go, and enables the `fugleramme-sync` and `fugleramme-frame`
-systemd services. To re-pick the mic later, run `./setup.sh --mic`. Follow the
-logs with:
+capture device (auto-selected if there's only one), creates the persistent
+`detector/data` dir, brings up BirdNET-Go, and enables the `fugleramme-frame`
+systemd service (which reads BirdNET-Go's DB directly). To re-pick the mic later,
+run `./setup.sh --mic`. Follow the logs with:
 
 ```bash
-journalctl -u fugleramme-sync -u fugleramme-frame -f
-```
-
-To run the syncer by hand instead:
-
-```bash
-uv run fugleramme-sync --source /dev/shm/fugleramme/birdnet.db --db data/detections.db
+journalctl -u fugleramme-frame -f            # frame
+docker logs -f birdnet-go                     # detector
 ```
 
 ## Deployment notes
@@ -66,7 +64,7 @@ uv run fugleramme-sync --source /dev/shm/fugleramme/birdnet.db --db data/detecti
   it survives reboots/replugs). Re-pick with `./setup.sh --mic`.
 - **Container user:** BirdNET-Go's entrypoint chowns `/config` and `/data`, so
   `setup.sh` runs it as the host user (`BIRDNET_UID`/`BIRDNET_GID` = `id -u`/`id -g`)
-  to avoid leaving repo/tmpfs files owned by a foreign uid.
+  to avoid leaving the bind-mounted `config`/`data` files owned by a foreign uid.
 - **Audio group:** the container needs the host `audio` group to read `/dev/snd`.
   If `group_add: audio` fails, substitute the numeric GID from
   `getent group audio`.

@@ -23,6 +23,9 @@ DEFAULT_PANEL = "7.3"
 # Repo root: src/fugleramme/config.py -> repo root is three parents up.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
+# BirdNET-Go's SQLite, bind-mounted to detector/data and read directly by the frame.
+DEFAULT_DB_PATH = REPO_ROOT / "detector" / "data" / "birdnet.db"
+
 
 @dataclass(frozen=True)
 class Config:

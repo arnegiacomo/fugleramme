@@ -28,6 +28,7 @@ log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 30
 SHOW_NAMES = False  # will become an admin toggle
+_BIRDNET_PORT = 8090  # BirdNET-Go web UI, per detector/docker-compose.yml
 
 
 def run(config: Config) -> None:
@@ -43,6 +44,7 @@ def run(config: Config) -> None:
     )
     server_thread.start()
     log.info("Serving kiosk on http://%s:%s", config.host, config.port)
+    log.info("BirdNET-Go UI on http://%s:%s", config.host, _BIRDNET_PORT)
 
     db = Database(config.db_path)
     last_key: tuple | None = None

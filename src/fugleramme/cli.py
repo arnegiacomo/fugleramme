@@ -15,7 +15,14 @@ from pathlib import Path
 import random
 
 from .collage import DEFAULT_RESOLUTION, gather_entries, render_collage
-from .config import DEFAULT_PANEL, PANEL_RESOLUTIONS, REPO_ROOT, Config, resolve_resolution
+from .config import (
+    DEFAULT_DB_PATH,
+    DEFAULT_PANEL,
+    PANEL_RESOLUTIONS,
+    REPO_ROOT,
+    Config,
+    resolve_resolution,
+)
 from .db import Database
 from .service import run
 
@@ -35,7 +42,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         "--images", type=Path, default=REPO_ROOT / "assets" / "birds",
         help="bird artwork directory",
     )
-    parser.add_argument("--db", type=Path, default=Path("data/detections.db"))
+    parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
     parser.add_argument(
         "--output", type=Path, default=Path("frame.png"), help="rendered frame path"
     )

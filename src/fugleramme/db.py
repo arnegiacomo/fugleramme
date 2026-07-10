@@ -1,9 +1,9 @@
-"""SQLite data access for detections.
+"""Read-only adapter over BirdNET-Go's SQLite.
 
-WAL mode makes power-loss corruption a non-issue on the Pi. For the Mac dev
-slice we own this table; the phase-2 detector (BirdNET-Go) will populate the
-same shape. This module is a pure data-access layer - seeding lives in
-`fugleramme.seed`.
+The only place that knows BirdNET-Go's schema (a `labels`/`label_types` join,
+epoch-seconds timestamps). Opened `mode=ro`; the frame reads BirdNET-Go's file
+directly. The method surface (`Detection`, `species_last_24h`, `recent`,
+`latest`, `stats`) is unchanged so callers don't care about the source.
 """
 
 from __future__ import annotations
@@ -13,17 +13,14 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS detections (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    detected_at     TEXT    NOT NULL,   -- ISO 8601 UTC
-    scientific_name TEXT    NOT NULL,   -- as emitted by the detector, e.g. "Turdus merula"
-    confidence      REAL    NOT NULL,
-    clip_path       TEXT               -- optional audio clip on disk
-);
-CREATE INDEX IF NOT EXISTS idx_detections_detected_at
-    ON detections (detected_at DESC);
-"""
+# Keep only real species; noise/environment/device labels are dropped.
+_FROM = (
+    "FROM detections d "
+    "JOIN labels l ON l.id = d.label_id "
+    "JOIN label_types t ON t.id = l.label_type_id "
+    "WHERE t.name = 'species'"
+)
+_COLS = "d.id, d.detected_at, l.scientific_name, d.confidence, d.clip_name"
 
 
 @dataclass(frozen=True)
@@ -38,92 +35,89 @@ class Detection:
 def _row_to_detection(row: sqlite3.Row) -> Detection:
     return Detection(
         id=row["id"],
-        detected_at=datetime.fromisoformat(row["detected_at"]),
+        detected_at=datetime.fromtimestamp(row["detected_at"], tz=timezone.utc),
         scientific_name=row["scientific_name"],
         confidence=row["confidence"],
-        clip_path=row["clip_path"],
+        clip_path=row["clip_name"] or None,
     )
+
+
+def _epoch_24h_ago() -> int:
+    return int((datetime.now(timezone.utc) - timedelta(hours=24)).timestamp())
 
 
 class Database:
     def __init__(self, path: Path):
-        self.path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(path, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
-        self.conn.execute("PRAGMA journal_mode=WAL")
-        self.conn.execute("PRAGMA synchronous=NORMAL")
-        self.conn.executescript(SCHEMA)
-        self.conn.commit()
+        self.path = Path(path)
+        self._uri = f"file:{self.path}?mode=ro"
+        self.conn: sqlite3.Connection | None = None
+
+    def _connect(self) -> sqlite3.Connection | None:
+        if self.conn is None:
+            try:
+                conn = sqlite3.connect(self._uri, uri=True, check_same_thread=False)
+            except sqlite3.OperationalError:
+                return None  # DB not created yet
+            conn.row_factory = sqlite3.Row
+            self.conn = conn
+        return self.conn
+
+    def _rows(self, sql: str, params: tuple = ()) -> list[sqlite3.Row]:
+        conn = self._connect()
+        if conn is None:
+            return []
+        try:
+            return conn.execute(sql, params).fetchall()
+        except sqlite3.OperationalError:
+            # Missing/recreated: drop the handle, treat as empty, reconnect next call.
+            self.close()
+            return []
+
+    def _scalar(self, sql: str, params: tuple = (), default: int = 0) -> int:
+        rows = self._rows(sql, params)
+        return rows[0][0] if rows else default
 
     def close(self) -> None:
-        self.conn.close()
-
-    def insert(
-        self,
-        scientific_name: str,
-        confidence: float,
-        detected_at: datetime | None = None,
-        clip_path: str | None = None,
-    ) -> int:
-        when = (detected_at or datetime.now(timezone.utc)).isoformat()
-        cur = self.conn.execute(
-            "INSERT INTO detections (detected_at, scientific_name, confidence, clip_path) "
-            "VALUES (?, ?, ?, ?)",
-            (when, scientific_name, confidence, clip_path),
-        )
-        self.conn.commit()
-        return cur.lastrowid
-
-    def has_detection(self, scientific_name: str, detected_at: str) -> bool:
-        """True if a row with this species and exact timestamp already exists."""
-        row = self.conn.execute(
-            "SELECT 1 FROM detections WHERE scientific_name = ? AND detected_at = ? LIMIT 1",
-            (scientific_name, detected_at),
-        ).fetchone()
-        return row is not None
+        if self.conn is not None:
+            self.conn.close()
+            self.conn = None
 
     def latest(self) -> Detection | None:
-        row = self.conn.execute(
-            "SELECT * FROM detections ORDER BY detected_at DESC, id DESC LIMIT 1"
-        ).fetchone()
-        return _row_to_detection(row) if row else None
+        rows = self._rows(
+            f"SELECT {_COLS} {_FROM} ORDER BY d.detected_at DESC, d.id DESC LIMIT 1"
+        )
+        return _row_to_detection(rows[0]) if rows else None
 
     def recent(self, limit: int = 20) -> list[Detection]:
-        rows = self.conn.execute(
-            "SELECT * FROM detections ORDER BY detected_at DESC, id DESC LIMIT ?",
+        rows = self._rows(
+            f"SELECT {_COLS} {_FROM} ORDER BY d.detected_at DESC, d.id DESC LIMIT ?",
             (limit,),
-        ).fetchall()
+        )
         return [_row_to_detection(r) for r in rows]
 
     def species_last_24h(self) -> list[tuple[str, int]]:
         """Distinct species seen in the last 24h with their detection count,
         most frequent first. Drives the kiosk collage."""
-        since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
-        rows = self.conn.execute(
-            "SELECT scientific_name, COUNT(*) AS n FROM detections "
-            "WHERE detected_at >= ? GROUP BY scientific_name ORDER BY n DESC, scientific_name",
-            (since,),
-        ).fetchall()
+        rows = self._rows(
+            f"SELECT l.scientific_name AS scientific_name, COUNT(*) AS n {_FROM} "
+            "AND d.detected_at >= ? "
+            "GROUP BY l.scientific_name ORDER BY n DESC, l.scientific_name",
+            (_epoch_24h_ago(),),
+        )
         return [(r["scientific_name"], r["n"]) for r in rows]
 
     def stats(self) -> dict:
         """Aggregate figures for the dashboard."""
-        total = self.conn.execute("SELECT COUNT(*) FROM detections").fetchone()[0]
-        species = self.conn.execute(
-            "SELECT COUNT(DISTINCT scientific_name) FROM detections"
-        ).fetchone()[0]
-        since_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
-        last_24h = self.conn.execute(
-            "SELECT COUNT(*) FROM detections WHERE detected_at >= ?", (since_24h,)
-        ).fetchone()[0]
-        top = self.conn.execute(
-            "SELECT scientific_name, COUNT(*) AS n, MAX(confidence) AS best "
-            "FROM detections GROUP BY scientific_name ORDER BY n DESC LIMIT 10"
-        ).fetchall()
+        top = self._rows(
+            "SELECT l.scientific_name AS scientific_name, COUNT(*) AS n, "
+            f"MAX(d.confidence) AS best {_FROM} "
+            "GROUP BY l.scientific_name ORDER BY n DESC LIMIT 10"
+        )
         return {
-            "total": total,
-            "species": species,
-            "last_24h": last_24h,
+            "total": self._scalar(f"SELECT COUNT(*) {_FROM}"),
+            "species": self._scalar(f"SELECT COUNT(DISTINCT l.scientific_name) {_FROM}"),
+            "last_24h": self._scalar(
+                f"SELECT COUNT(*) {_FROM} AND d.detected_at >= ?", (_epoch_24h_ago(),)
+            ),
             "top": [dict(r) for r in top],
         }

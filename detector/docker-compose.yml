@@ -19,6 +19,7 @@ services:
       - audio                        # or the GID from `getent group audio`
     volumes:
       - ./config:/config
-      - /dev/shm/fugleramme:/data    # notes.db on tmpfs; ephemeral, synced to disk
+      # Persistent: BirdNET-Go writes birdnet.db here; the frame reads it read-only.
+      - ./data:/data
     ports:
       - "8090:8080"                  # 8080 is the frame kiosk

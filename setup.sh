@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # One-command Raspberry Pi bootstrap. Installs any missing dependencies
-# (prompting first), then brings up the whole appliance as systemd services:
-# BirdNET-Go + the sync (detector) and the render loop + kiosk (frame).
+# (prompting first), then brings up the appliance: BirdNET-Go (container,
+# detector) plus the render loop + kiosk (frame, systemd). The frame reads
+# BirdNET-Go's DB directly - no sync process.
 # Idempotent - safe to re-run. Pass -y to auto-accept installs.
 set -euo pipefail
 
@@ -136,21 +137,16 @@ converge_detector() {
   echo "==> config"
   ensure_config
 
-  echo "==> tmpfs data dir"
-  # owned by the host user so the container (run as the same uid) can write it
-  printf 'd /dev/shm/fugleramme 0755 %s %s -\n' "$(id -u)" "$(id -g)" \
-    | sudo tee /etc/tmpfiles.d/fugleramme.conf >/dev/null
-  sudo systemd-tmpfiles --create /etc/tmpfiles.d/fugleramme.conf
+  echo "==> data dir"
+  # Persistent bind mount for BirdNET-Go's DB; drop the old tmpfs rule if present.
+  mkdir -p "$REPO_ROOT/detector/data"
+  sudo rm -f /etc/tmpfiles.d/fugleramme.conf
 
   echo "==> birdnet-go"
   # force-recreate so a changed config.yaml or .env reloads
   write_env
   docker_compose --env-file "$REPO_ROOT/detector/.env" \
     -f "$REPO_ROOT/detector/docker-compose.yml" up -d --force-recreate
-
-  echo "==> sync service"
-  install_service fugleramme-sync \
-    "Fugleramme detector sync (BirdNET-Go notes -> detections)" fugleramme-sync
 }
 
 converge_frame() {
@@ -171,4 +167,4 @@ ensure_deps
 converge_detector
 converge_frame
 echo "==> up. Kiosk: http://$(hostname -I | awk '{print $1}'):8080"
-echo "    Logs: journalctl -u fugleramme-frame -u fugleramme-sync -f"
+echo "    Logs: journalctl -u fugleramme-frame -f  (BirdNET-Go: docker logs -f birdnet-go)"
