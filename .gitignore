@@ -17,3 +17,6 @@ data/
 *.db-wal
 *.db-shm
 frame.png
+
+# Per-Pi detector config, generated from config.yaml.template by setup.sh
+detector/config/config.yaml

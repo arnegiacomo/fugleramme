@@ -29,7 +29,7 @@ See issue #3 for the full rationale.
 | File | Purpose |
 | --- | --- |
 | `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db on a tmpfs bind mount, web UI on `:8090` |
-| `config/config.yaml` | BirdNET-Go config: Bergen lat/lon + range/week filter, `interval` debounce, clips off, SQLite at `/data/birdnet.db` |
+| `config/config.yaml.template` | Tracked template; `setup.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, clips off, SQLite at `/data/birdnet.db` |
 | `preflight.sh` | Fatal check that an ALSA capture device exists |
 | `fugleramme-tmpfiles.conf` | Recreates the tmpfs data dir on boot |
 
@@ -42,9 +42,11 @@ Pull the repo on the Pi and run one command:
 ```
 
 It installs anything missing (uv, docker, alsa-utils - prompting first), runs
-`uv sync`, checks the mic, installs the tmpfiles rule, brings up BirdNET-Go, and
-enables the `fugleramme-sync` and `fugleramme-frame` systemd services. Follow
-them with:
+`uv sync`, generates the per-Pi `config.yaml` and prompts you to pick the ALSA
+capture device (auto-selected if there's only one), installs the tmpfiles rule,
+brings up BirdNET-Go, and enables the `fugleramme-sync` and `fugleramme-frame`
+systemd services. To re-pick the mic later, run `./setup.sh --mic`. Follow the
+logs with:
 
 ```bash
 journalctl -u fugleramme-sync -u fugleramme-frame -f
@@ -60,10 +62,9 @@ uv run fugleramme-sync --source /dev/shm/fugleramme/birdnet.db --db data/detecti
 
 - **Image pin:** BirdNET-Go ships only nightlies; the compose pins a dated tag.
   Bump it deliberately after testing rather than tracking `nightly`.
-- **Mic device:** `config.yaml` uses ALSA `default`, which may resolve to the
-  wrong card on a headless Pi. If no detections appear, set the source `device`
-  to the mic (e.g. `plughw:CARD=Device,DEV=0`); `preflight.sh` prints the
-  capture devices to choose from.
+- **Mic device:** `setup.sh` picks the ALSA capture device from `arecord -l` and
+  writes a `plughw:CARD=<name>,DEV=<n>` entry into `config.yaml` (by card name, so
+  it survives reboots/replugs). Re-pick with `./setup.sh --mic`.
 - **Audio group:** the container needs the host `audio` group to read `/dev/snd`.
   If `group_add: audio` fails, substitute the numeric GID from
   `getent group audio`.

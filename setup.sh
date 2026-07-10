@@ -6,8 +6,16 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG="$REPO_ROOT/detector/config/config.yaml"
+MIC_PLACEHOLDER="PICK_WITH_SETUP"
 ASSUME_YES=0
-[[ "${1:-}" == "-y" || "${1:-}" == "--yes" ]] && ASSUME_YES=1
+FORCE_MIC=0
+for arg in "$@"; do
+  case "$arg" in
+    -y|--yes) ASSUME_YES=1 ;;
+    --mic) FORCE_MIC=1 ;;   # re-run the capture-device selection
+  esac
+done
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
@@ -90,6 +98,52 @@ EOF
   sudo systemctl restart "$1"
 }
 
+# Copy the tracked template to the per-Pi config on first run.
+ensure_config() {
+  [[ -f "$CONFIG" ]] && return 0
+  cp "$CONFIG.template" "$CONFIG"
+  echo "created $CONFIG from template"
+}
+
+# Pick the ALSA capture device and write it into config.yaml. Runs on first
+# setup (device still the placeholder) or when forced with --mic.
+configure_mic() {
+  local current
+  current="$(sed -nE 's/^[[:space:]]*device:[[:space:]]*"(.*)".*/\1/p' "$CONFIG" | head -1)"
+  if [[ "$current" != "$MIC_PLACEHOLDER" && $FORCE_MIC == 0 ]]; then
+    echo "audio device: $current (unchanged; pass --mic to reselect)"
+    return 0
+  fi
+
+  local labels=() devices=() line re='^card ([0-9]+): ([^ ]+) \[([^]]*)\], device ([0-9]+):'
+  while IFS= read -r line; do
+    [[ "$line" =~ $re ]] || continue
+    labels+=("${BASH_REMATCH[3]} (card ${BASH_REMATCH[1]}, device ${BASH_REMATCH[4]})")
+    devices+=("plughw:CARD=${BASH_REMATCH[2]},DEV=${BASH_REMATCH[4]}")
+  done < <(arecord -l 2>/dev/null)
+
+  local n=${#devices[@]} choice=1
+  if (( n == 0 )); then
+    echo "no ALSA capture device found - is the USB mic plugged in?" >&2
+    exit 1
+  elif (( n == 1 )); then
+    echo "capture device: ${labels[0]}"
+  elif [[ $ASSUME_YES == 1 ]]; then
+    echo "multiple capture devices; using ${labels[0]} (-y). Re-run with --mic to choose."
+  else
+    echo "select the capture device:"
+    local i
+    for i in "${!labels[@]}"; do printf "  %d) %s\n" "$((i + 1))" "${labels[$i]}"; done
+    read -rp "choice [1]: " choice || true
+    [[ "$choice" =~ ^[0-9]+$ ]] || choice=1
+  fi
+
+  local dev="${devices[$((choice - 1))]:-}"
+  [[ -n "$dev" ]] || { echo "invalid choice" >&2; exit 1; }
+  sed -i -E "s|^([[:space:]]*)device:.*|\1device: \"$dev\"|" "$CONFIG"
+  echo "audio device set: $dev"
+}
+
 ensure_deps() {
   echo "==> dependencies"
   ensure_uv
@@ -106,13 +160,18 @@ converge_detector() {
   echo "==> mic pre-flight"
   "$REPO_ROOT/detector/preflight.sh"
 
+  echo "==> config + capture device"
+  ensure_config
+  configure_mic
+
   echo "==> tmpfs data dir"
   sudo install -m 0644 "$REPO_ROOT/detector/fugleramme-tmpfiles.conf" \
     /etc/tmpfiles.d/fugleramme.conf
   sudo systemd-tmpfiles --create /etc/tmpfiles.d/fugleramme.conf
 
   echo "==> birdnet-go"
-  docker_compose -f "$REPO_ROOT/detector/docker-compose.yml" up -d
+  # force-recreate so a changed config.yaml (e.g. the capture device) is reloaded
+  docker_compose -f "$REPO_ROOT/detector/docker-compose.yml" up -d --force-recreate
 
   echo "==> sync service"
   install_service fugleramme-sync \
