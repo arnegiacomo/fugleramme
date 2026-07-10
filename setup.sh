@@ -85,7 +85,9 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
   sudo systemctl daemon-reload
-  sudo systemctl enable --now "$1"
+  sudo systemctl enable "$1"
+  # restart (not just start) so re-running setup.sh picks up pulled code
+  sudo systemctl restart "$1"
 }
 
 ensure_deps() {
