@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET, which classifies bird sounds and logs detections to SQLite; the frame service renders the recently seen birds as a collage on the Pimoroni Inky Impression (Spectra 6) panel and serves it over HTTP. The stack is Python managed with `uv`, Pillow + numpy for rendering, stdlib `sqlite3` and `http.server`, and the Pi-only `inky` driver. The Pi hardware does not exist yet, so everything built runs on a Mac (web-only, no panel).
+Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds and logs detections to SQLite; a small Python sync process copies those into the frame's DB, and the frame service renders the recently seen birds as a collage on the Pimoroni Inky Impression (Spectra 6) panel and serves it over HTTP. The frame stack is Python managed with `uv`, Pillow + numpy for rendering, stdlib `sqlite3` and `http.server`, and the Pi-only `inky` driver. The Pi hardware does not exist yet, so the frame runs on a Mac (web-only, no panel); the detector (Docker + mic) is Pi-only and untested on hardware.
 
 ## Commands
 
@@ -14,6 +14,8 @@ uv run fugleramme-frame                     # run the service: render loop + kio
 uv run fugleramme-dev                       # same, auto-restart on source change
 uv run fugleramme-frame --preview out.png   # render the current collage once and exit, no server/panel
 uv run python -m fugleramme.seed --count 40 # insert fake detections so the collage has content
+uv run fugleramme-sync                      # detector: sync BirdNET-Go detections into the frame DB
+./setup.sh                                   # Pi only: one-command bootstrap (deps + BirdNET-Go + services)
 uv run pytest -q                            # run tests
 uv run pytest tests/test_artwork_names.py   # run a single test file
 ```
@@ -22,9 +24,9 @@ uv run pytest tests/test_artwork_names.py   # run a single test file
 
 ## Architecture
 
-Work is split by concern across GitHub issues: **#1 frame service** (all current code), **#2 admin interface**, **#3 detector / BirdNET + mic**. Only the frame service exists in code; #1 is its source of truth.
+Work is split by concern across GitHub issues: **#1 frame service**, **#2 admin interface** (not yet built), **#3 detector** (BirdNET-Go + mic + sync). #1 and #3 exist in code; each issue is the source of truth for its half.
 
-Two processes share one SQLite file (WAL mode) and meet only at the DB: the detector (#3) writes `detections`, the frame service reads them. WAL lets the render loop and the HTTP server each hold a connection in one process without contention.
+The two halves meet only at the DB. BirdNET-Go (Docker) writes its own normalized SQLite on a tmpfs (RAM, to spare the SD card); a host-side syncer (`fugleramme-sync`, `sync.py`) is the only code that knows BirdNET-Go's schema, reconciling new rows into the frame's `detections` table on disk (see `db.py`), which the frame reads. WAL lets the render loop and the HTTP server each hold a connection in one process without contention. Detector detail: [`detector/README.md`](detector/README.md).
 
 **Render once, fan out** (`service.py`): the loop re-renders only when the set of species seen in the last 24h changes, dithers the collage to 6 colors for the panel (`render.py`), and pushes it if a panel is present. The kiosk serves the same collage full-color per request (`server.py`, cached per species-set). If the Inky is absent it logs a warning and runs web-only, the same path as `--preview`.
 
@@ -50,5 +52,6 @@ Two processes share one SQLite file (WAL mode) and meet only at the DB: the dete
 ## Docs
 
 - [`README.md`](README.md) - project summary and licensing split
+- [`detector/README.md`](detector/README.md) - BirdNET-Go container, the sync process, and Pi deployment
 - [`assets/birds/ATTRIBUTION.md`](assets/birds/ATTRIBUTION.md) - artwork provenance and CC BY-SA 4.0 terms
 - [`wikimedia-scrape/README.md`](wikimedia-scrape/README.md) - how the cut-outs are scraped and background-removed from the von Wright plates
