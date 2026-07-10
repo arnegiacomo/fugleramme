@@ -32,6 +32,20 @@ Open the kiosk (no SPI-panel needed):
 open -na "Google Chrome" --args --kiosk --app=http://localhost:8080/
 ```
 
+## Run on a Raspberry Pi
+
+Clone the repo on the Pi and run the idempotent one-command bootstrap:
+
+```bash
+./setup.sh          # add -y to auto-accept dependency installs (uv, docker, etc...)
+```
+
+It installs any missing deps, brings up BirdNET-Go (container + mic), and enables
+the frame as a systemd service that pushes to the Inky panel and serves the kiosk
+on `:8080`. Details: [`detector/README.md`](detector/README.md). 
+
+Want to update? Just pull and run ./setup.sh again
+
 ## License
 
 - Code (`wikimedia-scrape/`, application code): MIT - see [`LICENSE`](LICENSE).
