@@ -202,6 +202,7 @@ def gather_entries(db: Database, images_dir: Path, rng: random.Random) -> list[t
 
 
 _cache: tuple[tuple, bytes] | None = None
+_EMPTY = None  # cache-key marker for the no-species perch
 
 
 def collage_png_bytes(
@@ -212,27 +213,24 @@ def collage_png_bytes(
 ) -> bytes:
     """Render the current collage to PNG bytes for the HTTP endpoint.
 
-    With birds the output is a pure function of the species set (the layout is
-    seeded from it), so it is cached and only re-packed when the set changes -
-    packing is a couple of seconds and the kiosk refreshes every 60s. The empty
-    state is a single cheap sprite and re-rolls its perch each render, so it is
-    neither seeded from the (constant) empty set nor cached.
+    Both states share the single _cache slot, keyed by the species set. Birds:
+    the layout is a pure function of the set, re-packed only when it changes.
+    Empty: the perch is held for the whole empty period and re-rolled only when
+    a new one begins (the cache still holds a bird key), so refreshes don't
+    restlessly swap it.
     """
     global _cache
     species = tuple(name for name, _ in db.species_last_24h())
+    key = (species or _EMPTY, resolution, show_names)
+    if _cache is not None and _cache[0] == key:
+        return _cache[1]
 
     if not species:
         image = render_collage([], resolution, show_names, random.Random())
-        buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
-        return buffer.getvalue()
+    else:
+        rng = random.Random(hash(species))
+        image = render_collage(gather_entries(db, images_dir, rng), resolution, show_names, rng)
 
-    key = (species, resolution, show_names)
-    if _cache is not None and _cache[0] == key:
-        return _cache[1]
-    rng = random.Random(hash(species))
-    entries = gather_entries(db, images_dir, rng)
-    image = render_collage(entries, resolution, show_names, rng)
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     _cache = (key, buffer.getvalue())
