@@ -8,6 +8,7 @@ birdnet:
   threshold: 0.8
   latitude: 60.39
   longitude: 5.32
+  overlap: 1.5               # deep detection "lenient": require 2 confirmations in 15s, drops one-off false positives
   rangefilter:
     threshold: 0.05          # up from the 0.01 default: cut species unlikely at this lat/lon + week
 
