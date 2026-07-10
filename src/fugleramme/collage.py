@@ -139,7 +139,7 @@ def render_collage(
 
     arts = [(name, _trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
     if not arts:
-        _draw_empty(canvas, width, height, rng)
+        _draw_empty(canvas, width, height, rng, textured)
         return canvas
 
     # Each bird's target size scales with its real mass (compressed); the whole
@@ -163,7 +163,7 @@ def render_collage(
     if placed:
         centered = _center(placed, width, height)
         for img, x, y in centered:
-            proc = process_sprite(img)
+            proc = process_sprite(img, textured=textured)
             canvas.paste(proc, (x - PAD, y - PAD), proc)
         if show_names:
             _draw_names(canvas, [arts[i][0] for i in order], centered)
@@ -171,7 +171,7 @@ def render_collage(
     return canvas
 
 
-def _draw_empty(canvas, width: int, height: int, rng: random.Random) -> None:
+def _draw_empty(canvas, width: int, height: int, rng: random.Random, textured: bool = True) -> None:
     """No detections: a single empty perch, centered on the paper page."""
     perches = sorted(PERCHES_DIR.glob("*.png"))
     if not perches:
@@ -185,7 +185,7 @@ def _draw_empty(canvas, width: int, height: int, rng: random.Random) -> None:
         (max(1, round(perch.width * scale)), max(1, round(perch.height * scale))),
         Image.LANCZOS,
     )
-    proc = process_sprite(perch)
+    proc = process_sprite(perch, textured=textured)
     canvas.paste(proc, ((width - proc.width) // 2, (height - proc.height) // 2), proc)
 
 
@@ -212,16 +212,24 @@ def collage_png_bytes(
 ) -> bytes:
     """Render the current collage to PNG bytes for the HTTP endpoint.
 
-    The output is a pure function of the species set (the layout is seeded from
-    it), so it is cached and only re-packed when the set of birds changes -
-    packing is a couple of seconds and the kiosk refreshes every 60s.
+    With birds the output is a pure function of the species set (the layout is
+    seeded from it), so it is cached and only re-packed when the set changes -
+    packing is a couple of seconds and the kiosk refreshes every 60s. The empty
+    state is a single cheap sprite and re-rolls its perch each render, so it is
+    neither seeded from the (constant) empty set nor cached.
     """
     global _cache
     species = tuple(name for name, _ in db.species_last_24h())
+
+    if not species:
+        image = render_collage([], resolution, show_names, random.Random())
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        return buffer.getvalue()
+
     key = (species, resolution, show_names)
     if _cache is not None and _cache[0] == key:
         return _cache[1]
-
     rng = random.Random(hash(species))
     entries = gather_entries(db, images_dir, rng)
     image = render_collage(entries, resolution, show_names, rng)

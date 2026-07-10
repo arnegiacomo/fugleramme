@@ -18,6 +18,14 @@ FEATHER = 5                     # gaussian blur sigma (px)
 PAD = 16                        # transparent margin for the feather to bleed into
 
 
+def _fine_grain(shape, rng, sigma: float = 2.6, blur: float = 0.6) -> np.ndarray:
+    """Zero-mean high-frequency grain, shared by the page and the halos on it."""
+    g = rng.normal(0, sigma, shape)
+    return np.asarray(
+        Image.fromarray((g + 128).clip(0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(blur))
+    ).astype(np.float32) - 128
+
+
 def paper_texture(width: int, height: int, base=TARGET_PAPER, seed: int = 0) -> Image.Image:
     """A subtly textured paper background: fine even grain with a faint mottle.
 
@@ -25,11 +33,7 @@ def paper_texture(width: int, height: int, base=TARGET_PAPER, seed: int = 0) -> 
     splotches rather than paper.
     """
     rng = np.random.default_rng(seed)
-    fine = rng.normal(0, 2.6, (height, width))
-    fine = np.asarray(
-        Image.fromarray((fine + 128).clip(0, 255).astype(np.uint8))
-        .filter(ImageFilter.GaussianBlur(0.6))
-    ).astype(np.float32) - 128
+    fine = _fine_grain((height, width), rng)
     mottle = rng.normal(0, 1.4, (height // 16 + 1, width // 16 + 1))
     mottle = np.asarray(
         Image.fromarray((mottle + 128).clip(0, 255).astype(np.uint8))
@@ -40,10 +44,11 @@ def paper_texture(width: int, height: int, base=TARGET_PAPER, seed: int = 0) -> 
     return Image.fromarray(tex, "RGB")
 
 
-def process_sprite(sprite: Image.Image, target=TARGET_PAPER) -> Image.Image:
+def process_sprite(sprite: Image.Image, target=TARGET_PAPER, textured: bool = True, seed: int = 0) -> Image.Image:
     """Normalise a scaled RGBA sprite's paper halo to the shared tone and
     feather its edge. Returns a PAD-padded image; composite it offset by
-    (-PAD, -PAD)."""
+    (-PAD, -PAD). When textured, grain the halo to match the page so its edge
+    does not read as an outline; on the flat panel page keep it flat."""
     arr = np.asarray(sprite).astype(np.int16)
     alpha, rgb = arr[..., 3], arr[..., :3]
     opaque = alpha > 24
@@ -62,6 +67,9 @@ def process_sprite(sprite: Image.Image, target=TARGET_PAPER) -> Image.Image:
     paper_px = opaque & (dist < 50) & (sat < 55) & (rgb.max(2) > 160)
     out = arr.copy()
     out[paper_px, :3] = np.clip(rgb[paper_px] + delta, 0, 255)
+    # the outer ring's bright fringe (bg-removal + resize overshoot) survives the
+    # median delta and rims the halo; snap it flat to target. Always halo paper.
+    out[ring & paper_px, :3] = target
 
     # pad so the feather has room; give all transparent pixels the paper tone so
     # the feathered edge reveals paper, not whatever RGB sat under the alpha
@@ -70,6 +78,13 @@ def process_sprite(sprite: Image.Image, target=TARGET_PAPER) -> Image.Image:
     padded[..., :3] = target
     padded[PAD:PAD + h, PAD:PAD + w] = out
     padded[padded[..., 3] <= 24, :3] = target
+
+    # grain the paper to the page's texture so its edge stops reading as an outline
+    if textured:
+        paper_mask = padded[..., 3] <= 24
+        paper_mask[PAD:PAD + h, PAD:PAD + w] |= paper_px
+        grain = _fine_grain(padded.shape[:2], np.random.default_rng(seed))
+        padded[paper_mask, :3] = np.clip(padded[paper_mask, :3] + grain[paper_mask, None], 0, 255)
 
     feathered = np.asarray(
         Image.fromarray(padded[..., 3].astype(np.uint8)).filter(ImageFilter.GaussianBlur(FEATHER))
