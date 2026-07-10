@@ -5,7 +5,7 @@
 
 birdnet:
   locale: en-us
-  threshold: 0.7
+  threshold: 0.8
   latitude: 60.39
   longitude: 5.32
   rangefilter:
