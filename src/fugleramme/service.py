@@ -20,6 +20,7 @@ import time
 from .collage import gather_entries, render_collage
 from .config import BIRDNET_PORT, Config
 from .db import Database
+from .names import resolve
 from .panel import init_panel
 from .render import dither
 from .server import serve
@@ -52,10 +53,11 @@ def run(config: Config) -> None:
     while True:
         settings = store.get()
         species = db.species_since(settings.lookback_hours)
-        key = (tuple(species), settings.panel, settings.orientation)
+        sources = resolve(settings.sources, config.images_dir)
+        key = (tuple(species), settings.panel, settings.orientation, tuple(sources))
         if key != last_key:
             rng = random.Random(hash(tuple(name for name, _ in species)))
-            entries = gather_entries(db, config.images_dir, rng, settings.lookback_hours)
+            entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
             collage = render_collage(entries, settings.resolution(), SHOW_NAMES, rng, textured=False)
             panel_image = dither(collage)
             panel_image.save(config.output_path)

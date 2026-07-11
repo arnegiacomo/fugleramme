@@ -28,6 +28,9 @@ class Settings:
     orientation: str = "landscape"
     lookback_hours: int = 24
     kiosk_refresh_seconds: int = 60
+    # Active artwork source folders; empty means "all present" (resolved against
+    # the filesystem at render time, so it survives added/removed sources).
+    sources: tuple[str, ...] = ()
 
     def oriented(self, resolution: tuple[int, int]) -> tuple[int, int]:
         """Apply orientation to a landscape-native (w, h)."""
@@ -44,6 +47,16 @@ def _as_int(value, default: int, lo: int, hi: int) -> int:
         return max(lo, min(hi, int(value)))
     except (TypeError, ValueError):
         return default
+
+
+def _sources(value) -> tuple[str, ...]:
+    """A deduped tuple of source names, order preserved. Existence isn't checked
+    here (settings has no filesystem view) - names.resolve does that at use."""
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, (list, tuple)):
+        return ()
+    return tuple(dict.fromkeys(s for s in value if isinstance(s, str) and s))
 
 
 def _coerce(raw: dict) -> Settings:
@@ -63,6 +76,7 @@ def _coerce(raw: dict) -> Settings:
         kiosk_refresh_seconds=_as_int(
             raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 5, 3600
         ),
+        sources=_sources(raw.get("sources")),
     )
 
 

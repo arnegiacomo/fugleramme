@@ -42,7 +42,7 @@ def _base(stem: str) -> str:
 def test_every_artwork_name_is_a_birdnet_label_or_exception():
     labels = _labels()
     unknown = []
-    for png in sorted(IMAGES.glob("*.png")):
+    for png in sorted(IMAGES.rglob("*.png")):
         stem = _base(png.stem)
         if "-x-" in stem:  # hybrids: BirdNET never emits these
             continue

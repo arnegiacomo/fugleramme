@@ -24,6 +24,7 @@ from .config import (
     Config,
 )
 from .db import Database
+from .names import resolve
 from .service import run
 from .settings import SettingsStore
 
@@ -61,8 +62,9 @@ def main(argv: list[str] | None = None) -> None:
     if args.preview:
         settings = SettingsStore(config.config_path).get()
         db = Database(config.db_path)
+        sources = resolve(settings.sources, config.images_dir)
         rng = random.Random(hash(tuple(name for name, _ in db.species_since(settings.lookback_hours))))
-        entries = gather_entries(db, config.images_dir, rng, settings.lookback_hours)
+        entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
         render_collage(entries, settings.resolution(), False, rng).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")

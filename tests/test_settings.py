@@ -47,6 +47,26 @@ def test_reload_picks_up_external_edit(tmp_path):
     assert store.get().lookback_hours == 48
 
 
+def test_sources_default_empty_means_all(tmp_path):
+    # Empty is the "all present" sentinel; names.resolve expands it at render time.
+    assert SettingsStore(tmp_path / "s.json").get().sources == ()
+
+
+def test_sources_persist_and_dedupe(tmp_path):
+    path = tmp_path / "s.json"
+    saved = SettingsStore(path).update(sources=["gould", "vonwright", "gould"])
+    assert saved.sources == ("gould", "vonwright")
+    assert json.loads(path.read_text())["sources"] == ["gould", "vonwright"]
+    assert SettingsStore(path).get() == saved
+
+
+def test_sources_invalid_falls_back_to_empty(tmp_path):
+    path = tmp_path / "s.json"
+    path.write_text(json.dumps({"sources": [1, "gould", None, ""]}))
+    # Non-string / empty entries are dropped, not coerced.
+    assert SettingsStore(path).get().sources == ("gould",)
+
+
 def test_oriented_swaps_only_for_portrait():
     assert Settings(orientation="landscape").oriented((800, 480)) == (800, 480)
     assert Settings(orientation="portrait").oriented((800, 480)) == (480, 800)

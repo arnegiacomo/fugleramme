@@ -2,8 +2,9 @@
 
 Scrapes public-domain bird plates from Wikimedia Commons into
 transparent-background cut-outs. Approximate - outputs land in a `staging/`
-folder for manual review; you curate the good ones into `../assets/birds/` by
-hand.
+folder for manual review; you curate the good ones into
+`../assets/birds/<source>/` by hand (one folder per source, e.g.
+`assets/birds/gould/`), which the frame's admin UI then lets you toggle on/off.
 
 ## Sources
 

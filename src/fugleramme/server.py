@@ -21,7 +21,7 @@ from urllib.parse import parse_qs, urlparse
 from .collage import collage_png_bytes
 from .config import BIRDNET_PORT, PANEL_RESOLUTIONS
 from .db import Database, Detection
-from .names import variants_for
+from .names import available_sources, resolve, variants_for
 from .settings import ORIENTATIONS, Settings, SettingsStore
 
 
@@ -61,19 +61,42 @@ def _ago(dt: datetime) -> str:
     return f"{s}s ago"
 
 
-def _species_li(name: str, count: int, has_art: bool) -> str:
-    # Species detected but without artwork are counted here yet omitted from the
-    # collage (#9), so mark them - it explains any "detected > drawn" gap.
-    cls = "" if has_art else ' class="noart"'
-    note = "" if has_art else " · no art"
-    return f'<li{cls}>{name} <small>×{count}{note}</small></li>'
+def _species_li(name: str, art: list[Path]) -> str:
+    # Species detected but without artwork are still counted in the window yet
+    # omitted from the collage (#9), so mark them - it explains any gap. When art
+    # exists, show the active source(s) and, if more than one candidate, the
+    # variant count (one is picked at random per render). The filename itself is
+    # just the species slug, so it's redundant with the name and left off.
+    if not art:
+        return f'<li class="noart">{name} <small>no art</small></li>'
+    note = ", ".join(_source_label(s) for s in sorted({p.parent.name for p in art}))
+    if len(art) > 1:
+        note += f" ({len(art)})"
+    return f'<li>{name} <small>{note}</small></li>'
+
+
+_SOURCE_LABELS = {"vonwright": "von Wright", "gould": "Gould"}
+
+
+def _source_label(name: str) -> str:
+    return _SOURCE_LABELS.get(name, name.replace("-", " ").title())
+
+
+def _checkboxes(available: list[str], active: list[str]) -> str:
+    return "".join(
+        f'<label class="src"><input type="checkbox" name="sources" value="{s}"'
+        f'{" checked" if s in active else ""}> {_source_label(s)}</label>'
+        for s in available
+    )
 
 
 def _admin_html(
     settings: Settings,
-    species: list[tuple[str, int, bool]],
+    species: list[tuple[str, list[Path]]],
     latest: Detection | None,
     panel_present: bool,
+    available: list[str],
+    active: list[str],
 ) -> str:
     panels = _options(
         PANEL_RESOLUTIONS,
@@ -81,6 +104,10 @@ def _admin_html(
         lambda p: f'{p}" ({PANEL_RESOLUTIONS[p][0]}×{PANEL_RESOLUTIONS[p][1]})',
     )
     orientations = _options(ORIENTATIONS, settings.orientation)
+    sources_field = (
+        f'<div class="field"><span>Artwork sources</span>'
+        f"{_checkboxes(available, active)}</div>"
+    )
     w, h = settings.resolution()
     last = f"{latest.scientific_name} · {_ago(latest.detected_at)}" if latest else "none yet"
     rows = "".join(_species_li(*s) for s in species) or '<li class="empty">none yet</li>'
@@ -105,6 +132,9 @@ def _admin_html(
   small {{ color: #666; font-weight: 400; }}
   select {{ font-size: 1rem; padding: 0.4rem; }}
   input {{ font-size: 1rem; padding: 0.4rem; width: 8rem; }}
+  .field {{ margin: 0 0 1.25rem; }}
+  label.src {{ display: flex; align-items: center; gap: 0.4rem; font-weight: 400; margin: 0 0 0.3rem; }}
+  label.src input {{ width: auto; padding: 0; }}
   button {{ font-size: 1rem; padding: 0.5rem 1.25rem; margin-top: 0.5rem; }}
   a {{ color: #446; }}
   dl.status {{ display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
@@ -143,6 +173,7 @@ def _admin_html(
       <input type="number" name="lookback_hours" min="1" max="720" value="{settings.lookback_hours}"></label>
     <label><span>Kiosk refresh <small>(seconds)</small></span>
       <input type="number" name="kiosk_refresh_seconds" min="5" max="3600" value="{settings.kiosk_refresh_seconds}"></label>
+    {sources_field}
     <button type="submit">Save</button>
   </form>
   <aside class="side">
@@ -203,14 +234,21 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_pre
             if route in ("/", "/index.html"):
                 self._send(200, _kiosk_html(settings.kiosk_refresh_seconds).encode(), "text/html; charset=utf-8")
             elif route == "/collage.png":
-                png = collage_png_bytes(db, images_dir, settings.resolution(), False, settings.lookback_hours)
+                sources = resolve(settings.sources, images_dir)
+                png = collage_png_bytes(
+                    db, images_dir, sources, settings.resolution(), False, settings.lookback_hours
+                )
                 self._send_png(png)
             elif route == "/admin":
+                available = available_sources(images_dir)
+                sources = resolve(settings.sources, images_dir)
                 species = [
-                    (name, n, bool(variants_for(name, images_dir)))
-                    for name, n in db.species_since(settings.lookback_hours)
+                    (name, variants_for(name, images_dir, sources))
+                    for name, _n in db.species_since(settings.lookback_hours)
                 ]
-                html = _admin_html(settings, species, db.latest(), panel_present)
+                html = _admin_html(
+                    settings, species, db.latest(), panel_present, available, sources
+                )
                 self._send(200, html.encode(), "text/html; charset=utf-8")
             elif route == "/health":
                 self._send(200, b"ok", "text/plain")
@@ -223,7 +261,11 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_pre
                 return
             length = int(self.headers.get("Content-Length", 0))
             form = parse_qs(self.rfile.read(length).decode())
-            store.update(**{k: v[0] for k, v in form.items()})  # _coerce validates + clamps
+            # `sources` is a multi-value checkbox group (absent when all unchecked);
+            # the rest are single values. _coerce validates + clamps.
+            changes = {k: v[0] for k, v in form.items() if k != "sources"}
+            changes["sources"] = form.get("sources", [])
+            store.update(**changes)
             self.send_response(303)
             self.send_header("Location", "/admin")
             self.end_headers()

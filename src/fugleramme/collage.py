@@ -17,6 +17,7 @@ from __future__ import annotations
 import io
 import math
 import random
+from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
@@ -197,10 +198,17 @@ def _draw_names(canvas, names, placed):
 
 
 def gather_entries(
-    db: Database, images_dir: Path, rng: random.Random, hours: int = 24
+    db: Database,
+    images_dir: Path,
+    sources: Sequence[str],
+    rng: random.Random,
+    hours: int = 24,
 ) -> list[tuple[str, Path | None]]:
     """Recent-window species paired with a (random) artwork path, or None if absent."""
-    return [(name, image_for(name, images_dir, rng)) for name, _count in db.species_since(hours)]
+    return [
+        (name, image_for(name, images_dir, sources, rng))
+        for name, _count in db.species_since(hours)
+    ]
 
 
 _cache: tuple[tuple, bytes] | None = None
@@ -210,6 +218,7 @@ _EMPTY = None  # cache-key marker for the no-species perch
 def collage_png_bytes(
     db: Database,
     images_dir: Path,
+    sources: Sequence[str],
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
     show_names: bool = False,
     lookback_hours: int = 24,
@@ -224,7 +233,7 @@ def collage_png_bytes(
     """
     global _cache
     species = tuple(name for name, _ in db.species_since(lookback_hours))
-    key = (species or _EMPTY, resolution, show_names)
+    key = (species or _EMPTY, tuple(sources), resolution, show_names)
     if _cache is not None and _cache[0] == key:
         return _cache[1]
 
@@ -232,7 +241,10 @@ def collage_png_bytes(
         image = render_collage([], resolution, show_names, random.Random())
     else:
         rng = random.Random(hash(species))
-        image = render_collage(gather_entries(db, images_dir, rng, lookback_hours), resolution, show_names, rng)
+        image = render_collage(
+            gather_entries(db, images_dir, sources, rng, lookback_hours),
+            resolution, show_names, rng,
+        )
 
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
