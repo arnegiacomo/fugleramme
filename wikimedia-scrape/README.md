@@ -1,36 +1,53 @@
 # wikimedia-scrape
 
-Scrapes the Wikimedia Commons category
-[Svenska fåglar (von Wright)](https://commons.wikimedia.org/wiki/Category:Svenska_f%C3%A5glar_(von_Wright))
-into transparent-background bird cut-outs. Approximate - some images may need
-manual touch-ups.
+Scrapes public-domain bird plates from Wikimedia Commons into
+transparent-background cut-outs. Approximate - outputs land in a `staging/`
+folder for manual review; you curate the good ones into `../assets/birds/` by
+hand.
 
-## Scripts
+## Sources
 
-- **`scrape.py`** - downloads every plate to `wikimedia-scrape/originals/`
-  (gitignored), named by Latin binomial (`genus-species.jpg`, duplicates get
-  `-2`, `-3`, ...).
-- **`remove_background.py`** - writes `assets/birds/<name>.png`, per image:
-  - crops off the species-name caption (found via the empty paper gap above it);
-  - masks the subject with a color-key flood-fill unioned with a birefnet matte
-    (crisp leaf edges + solid white birds);
-  - keeps the artist signature (dark ink above the crop), drops paper specks;
-  - leaves a `BUFFER_PX` (50 px) ring of the original image around the subject.
+Each work is a module in `sources/`:
 
-Both are resumable (skip files already produced).
+- **`vonwright`** - [Svenska fåglar (von Wright)](https://commons.wikimedia.org/wiki/Category:Svenska_f%C3%A5glar_(von_Wright)).
+- **`gould`** - [The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould)), Volumes 1-5.
+
+A source declares its Commons categories, a `plan(info)` that resolves each file
+to a Latin binomial, and an attribution block. Add a new source by dropping a
+module in `sources/` and registering it in `sources/__init__.py`.
+
+## Layout
+
+```
+common/      shared machinery: Commons API, name/slug/variant, background pipeline
+sources/     one module per work (categories + name parser + attribution)
+scrape.py    download plates          -> originals/<source>/   (gitignored)
+remove_background.py  key out for review -> staging/<source>/  (gitignored)
+```
+
+`common/naming.py` slugs each name to `genus-species` and numbers duplicates
+(`-2`, `-3`, ...). Gould reads the `<Genus species> (illustrations)` member
+category (falling back to a filename binomial, then a common-name map);
+von Wright parses the rawpixel image descriptions.
 
 ## Usage
 
-Run from anywhere; paths resolve relative to the scripts.
+Run from the repo root; paths resolve relative to the scripts.
 
 ```bash
 python3.13 -m venv .venv && source .venv/bin/activate   # 3.14 has no onnxruntime wheels
 pip install -r wikimedia-scrape/requirements.txt
 
-python wikimedia-scrape/scrape.py             # -> wikimedia-scrape/originals/
-python wikimedia-scrape/remove_background.py  # -> assets/birds/
+python wikimedia-scrape/scrape.py gould               # -> originals/gould/
+python wikimedia-scrape/remove_background.py gould    # -> staging/gould/
+# review staging/gould/, then move the good cut-outs into assets/birds/
 ```
 
-`remove_background.py` downloads the birefnet-general model (~1 GB) on first
-run and is CPU-heavy (~3-8 s/image). See `../assets/birds/ATTRIBUTION.md` for
-image licensing.
+Use `all` in place of a source name to process every source. Both scripts are
+resumable (skip files already produced).
+
+`remove_background.py` downloads the birefnet-general model (~1 GB) on first run
+and is CPU-heavy (~3-8 s/image). The pipeline is tuned to the von Wright plates;
+other sources may need per-source tuning (add a `BG` dict to the source module)
+- reviewing `staging/` is where you catch that. See
+`../assets/birds/ATTRIBUTION.md` for image licensing.

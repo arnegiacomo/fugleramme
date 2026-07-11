@@ -53,4 +53,4 @@ The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own norm
 - [`README.md`](README.md) - project summary and licensing split
 - [`detector/README.md`](detector/README.md) - BirdNET-Go container, the direct-read DB, and Pi deployment
 - [`assets/birds/ATTRIBUTION.md`](assets/birds/ATTRIBUTION.md) - artwork provenance and CC BY-SA 4.0 terms
-- [`wikimedia-scrape/README.md`](wikimedia-scrape/README.md) - how the cut-outs are scraped and background-removed from the von Wright plates
+- [`wikimedia-scrape/README.md`](wikimedia-scrape/README.md) - how the cut-outs are scraped and background-removed from the Wikimedia Commons plate sources (von Wright, Gould)
