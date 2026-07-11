@@ -12,6 +12,7 @@ it coexist with the render loop's connection in one process.
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -180,6 +181,22 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_pre
             self.end_headers()
             self.wfile.write(body)
 
+        def _send_png(self, png: bytes):
+            # no-cache + ETag lets an unchanged refresh return a bodyless 304 instead of re-downloading the collage.
+            etag = f'"{hashlib.md5(png).hexdigest()}"'
+            if self.headers.get("If-None-Match") == etag:
+                self.send_response(304)
+                self.send_header("ETag", etag)
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Length", str(len(png)))
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("ETag", etag)
+            self.end_headers()
+            self.wfile.write(png)
+
         def do_GET(self):
             route = urlparse(self.path).path
             settings = store.get()
@@ -187,7 +204,7 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_pre
                 self._send(200, _kiosk_html(settings.kiosk_refresh_seconds).encode(), "text/html; charset=utf-8")
             elif route == "/collage.png":
                 png = collage_png_bytes(db, images_dir, settings.resolution(), False, settings.lookback_hours)
-                self._send(200, png, "image/png")
+                self._send_png(png)
             elif route == "/admin":
                 species = [
                     (name, n, bool(variants_for(name, images_dir)))
