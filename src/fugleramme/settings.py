@@ -21,6 +21,16 @@ from .config import DEFAULT_PANEL, PANEL_RESOLUTIONS
 
 ORIENTATIONS = ("landscape", "portrait")
 
+# Lookback windows offered in the admin UI, as (hours, label), shortest-first.
+LOOKBACK_OPTIONS = (
+    (6, "Last 6 hours"),
+    (12, "Last 12 hours"),
+    (24, "Today (24 hours)"),
+    (72, "Last 3 days"),
+    (168, "Last week"),
+    (720, "Last 30 days"),
+)
+
 
 @dataclass(frozen=True)
 class Settings:

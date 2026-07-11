@@ -22,7 +22,7 @@ from .collage import collage_png_bytes
 from .config import BIRDNET_PORT, PANEL_RESOLUTIONS
 from .db import Database, Detection
 from .names import available_sources, resolve, variants_for
-from .settings import ORIENTATIONS, Settings, SettingsStore
+from .settings import LOOKBACK_OPTIONS, ORIENTATIONS, Settings, SettingsStore
 
 
 def _kiosk_html(refresh_seconds: int) -> str:
@@ -104,6 +104,10 @@ def _admin_html(
         lambda p: f'{p}" ({PANEL_RESOLUTIONS[p][0]}×{PANEL_RESOLUTIONS[p][1]})',
     )
     orientations = _options(ORIENTATIONS, settings.orientation)
+    # A hand-edited non-preset value stays selectable so Save doesn't drop it.
+    labels = dict(LOOKBACK_OPTIONS)
+    labels.setdefault(settings.lookback_hours, f"{settings.lookback_hours} hours")
+    lookbacks = _options(sorted(labels), settings.lookback_hours, labels.get)
     sources_field = (
         f'<div class="field"><span>Artwork sources</span>'
         f"{_checkboxes(available, active)}</div>"
@@ -169,8 +173,8 @@ def _admin_html(
       <select name="panel">{panels}</select></label>
     <label><span>Orientation</span>
       <select name="orientation">{orientations}</select></label>
-    <label><span>Lookback window <small>(hours)</small></span>
-      <input type="number" name="lookback_hours" min="1" max="720" value="{settings.lookback_hours}"></label>
+    <label><span>Lookback window</span>
+      <select name="lookback_hours">{lookbacks}</select></label>
     <label><span>Kiosk refresh <small>(seconds)</small></span>
       <input type="number" name="kiosk_refresh_seconds" min="5" max="3600" value="{settings.kiosk_refresh_seconds}"></label>
     {sources_field}
