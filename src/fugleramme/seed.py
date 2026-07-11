@@ -48,6 +48,11 @@ CREATE TABLE IF NOT EXISTS detections (
     confidence  REAL NOT NULL,
     clip_name   TEXT
 );
+CREATE TABLE IF NOT EXISTS detection_reviews (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    detection_id INTEGER NOT NULL,
+    verified     TEXT NOT NULL      -- 'correct' | 'false_positive'
+);
 """
 
 
@@ -70,11 +75,18 @@ def seed(path: Path, count: int) -> int:
         for i in range(count):
             name = random.choice(SPECIES)
             when = int((now - timedelta(minutes=i * 7)).timestamp())
-            conn.execute(
+            cur = conn.execute(
                 "INSERT INTO detections (label_id, detected_at, confidence, clip_name) "
                 "VALUES (?, ?, ?, NULL)",
                 (label_id[name], when, round(random.uniform(0.6, 0.98), 2)),
             )
+            # Mark a fraction "incorrect" so the frame's false_positive filter is exercised.
+            if random.random() < 0.15:
+                conn.execute(
+                    "INSERT INTO detection_reviews (detection_id, verified) "
+                    "VALUES (?, 'false_positive')",
+                    (cur.lastrowid,),
+                )
         conn.commit()
         # Fold the WAL into the main file so the read-only frame sees the rows.
         conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")

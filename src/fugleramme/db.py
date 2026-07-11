@@ -13,12 +13,15 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-# Keep only real species; noise/environment/device labels are dropped.
+# Keep real species only, and drop detections the user marked incorrect in
+# BirdNET-Go (verified='false_positive'); unreviewed and correct are kept.
 _FROM = (
     "FROM detections d "
     "JOIN labels l ON l.id = d.label_id "
     "JOIN label_types t ON t.id = l.label_type_id "
-    "WHERE t.name = 'species'"
+    "LEFT JOIN detection_reviews rv ON rv.detection_id = d.id "
+    "WHERE t.name = 'species' "
+    "AND (rv.verified IS NULL OR rv.verified <> 'false_positive')"
 )
 _COLS = "d.id, d.detected_at, l.scientific_name, d.confidence, d.clip_name"
 

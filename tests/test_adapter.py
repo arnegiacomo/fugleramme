@@ -9,19 +9,24 @@ from datetime import datetime, timedelta, timezone
 from fugleramme.db import Database
 
 
-def _birdnet_db(path, detections):
+def _birdnet_db(path, detections, reviews=()):
     """Write a minimal BirdNET-Go-shaped DB. `detections` rows are
-    (id, label_id, detected_at_epoch, confidence, clip_name)."""
+    (id, label_id, detected_at_epoch, confidence, clip_name); `reviews` rows are
+    (detection_id, verified) e.g. ('false_positive',) for a user-marked-incorrect."""
     conn = sqlite3.connect(path)
     conn.executescript(
         "CREATE TABLE label_types (id INTEGER PRIMARY KEY, name TEXT);"
         "CREATE TABLE labels (id INTEGER PRIMARY KEY, scientific_name TEXT, label_type_id INTEGER);"
         "CREATE TABLE detections (id INTEGER PRIMARY KEY, label_id INTEGER, "
         "detected_at INTEGER, confidence REAL, clip_name TEXT);"
+        "CREATE TABLE detection_reviews (id INTEGER PRIMARY KEY, detection_id INTEGER, verified TEXT);"
         "INSERT INTO label_types VALUES (1,'species'),(2,'noise');"
         "INSERT INTO labels VALUES (10,'Turdus merula',1),(11,'Parus major',1),(12,'Static',2);"
     )
     conn.executemany("INSERT INTO detections VALUES (?, ?, ?, ?, ?)", detections)
+    conn.executemany(
+        "INSERT INTO detection_reviews (detection_id, verified) VALUES (?, ?)", reviews
+    )
     conn.commit()
     conn.close()
 
@@ -63,6 +68,31 @@ def test_species_since_window(tmp_path):
     assert db.species_since(hours=48) == [("Turdus merula", 2), ("Parus major", 1)]
     assert db.stats()["last_24h"] == 2
     assert db.stats()["total"] == 3         # stale row still counts in totals
+    db.close()
+
+
+def test_false_positive_review_excluded(tmp_path):
+    """A detection marked "incorrect" in BirdNET-Go (verified='false_positive')
+    is dropped everywhere; 'correct' and unreviewed detections are kept."""
+    now = datetime.now(timezone.utc)
+    epoch = int((now - timedelta(hours=1)).timestamp())
+    db_path = tmp_path / "birdnet.db"
+    _birdnet_db(
+        db_path,
+        [
+            (1, 10, epoch, 0.9, None),  # Turdus merula, unreviewed -> kept
+            (2, 11, epoch, 0.8, None),  # Parus major, verified correct -> kept
+            (3, 11, epoch, 0.7, None),  # Parus major, false positive -> dropped
+        ],
+        reviews=[(2, "correct"), (3, "false_positive")],
+    )
+    db = Database(db_path)
+
+    assert {d.scientific_name for d in db.recent()} == {"Turdus merula", "Parus major"}
+    assert db.species_since() == [("Parus major", 1), ("Turdus merula", 1)]
+    stats = db.stats()
+    assert stats["total"] == 2      # the false positive is not counted
+    assert stats["last_24h"] == 2
     db.close()
 
 
