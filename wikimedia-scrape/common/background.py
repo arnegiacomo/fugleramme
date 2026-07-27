@@ -19,8 +19,8 @@ Pipeline:
      misses (leaves, rock, water).
   3. Signature: keep word-sized patches of dark ink above the crop line; drop
      light paper foxing and dust specks.
-  4. Buffer: dilate the subject by buffer_px so a ring of the ORIGINAL image
-     is kept around it, then crop to that region.
+  4. Buffer: dilate the subject by a resolution-relative margin so a ring of
+     the ORIGINAL image is kept around it, then crop to that region.
 
 The pipeline is tuned to the von Wright plates; per-source overrides come in
 through `process(**bg)`. Outputs are for manual review, not the final assets.
@@ -35,7 +35,7 @@ import numpy as np
 from PIL import Image
 from rembg import new_session, remove
 
-BUFFER_PX = 50                                          # ring of original image kept around subject
+BUFFER_FRAC = 0.0234    # halo width / geometric mean side; = the 50 px tuned on von Wright
 
 
 def colorkey_fg(bgr, coltol=55, canny_lo=30, canny_hi=90, dilate=2):
@@ -110,9 +110,10 @@ def caption_crop_row(bgr, tau=0.008, min_gap_frac=0.03, tail_frac=0.15,
 
 
 def keyout(path, session, subj_frac=0.00035, sig_min_frac=0.00005,
-           buffer_px=BUFFER_PX):
+           buffer_frac=BUFFER_FRAC, pale_gray=200, pale_sat=30, coloured_sat=30):
     bgr = cv2.imread(str(path), cv2.IMREAD_COLOR)
     h, w = bgr.shape[:2]
+    buffer_px = round(buffer_frac * (h * w) ** 0.5)
     ck = colorkey_fg(bgr)                                # bird + illustration + all text
     out = remove(open(path, 'rb').read(), session=session, post_process_mask=True)
     ba = np.array(Image.open(io.BytesIO(out)).convert('RGBA'))[..., 3].astype(np.float32)
@@ -142,13 +143,13 @@ def keyout(path, session, subj_frac=0.00035, sig_min_frac=0.00005,
             continue
         comp = lab == i
         overlaps_bird = (comp & bird).sum() >= 0.01 * st[i, cv2.CC_STAT_AREA]
-        coloured = sat[comp].mean() > 30
+        coloured = sat[comp].mean() > coloured_sat
         if overlaps_bird or coloured:
             core[comp] = 1
     # erase trapped paper the border fill missed (or that fused to the bird):
     # pale, low-saturation pixels that birefnet does not call bird. The bird's
     # own white/grey areas are protected because birefnet covers them.
-    pale = (gray > 200) & (sat < 30) & (~bird)
+    pale = (gray > pale_gray) & (sat < pale_sat) & (~bird)
     core[pale] = 0
     core = cv2.morphologyEx(core, cv2.MORPH_OPEN,
                             cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
@@ -185,25 +186,25 @@ def keyout(path, session, subj_frac=0.00035, sig_min_frac=0.00005,
 
 def process(src_dir, dst_dir, **bg):
     """Key out every image in `src_dir` into `dst_dir` (resumable). `bg` passes
-    per-source overrides (e.g. buffer_px) through to `keyout`."""
+    per-source overrides (e.g. buffer_frac) through to `keyout`."""
     src_dir, dst_dir = Path(src_dir), Path(dst_dir)
     dst_dir.mkdir(parents=True, exist_ok=True)
     files = sorted(f for f in os.listdir(src_dir)
                    if f.lower().endswith(('.jpg', '.jpeg', '.png')))
+    todo = [(f, dst_dir / (os.path.splitext(f)[0] + '.png')) for f in files]
+    todo = [(f, d) for f, d in todo if not (d.exists() and d.stat().st_size > 1000)]
+    print(f'{len(files) - len(todo)} already done, {len(todo)} to go')
     session = new_session('birefnet-general')           # downloads the model on first run
-    done = skip = err = 0
+    err = 0
     t0 = time.time()
-    for i, f in enumerate(files, 1):
-        dst = dst_dir / (os.path.splitext(f)[0] + '.png')
-        if dst.exists() and dst.stat().st_size > 1000:
-            skip += 1; continue
+    for i, (f, dst) in enumerate(todo, 1):
         try:
             keyout(src_dir / f, session, **bg).save(dst)
-            done += 1
         except Exception as e:
-            err += 1; print('ERR', f, str(e)[:60], flush=True)
-        if (done + skip) % 25 == 0:
-            print(f'{i}/{len(files)} done={done} skip={skip} err={err} '
-                  f'{time.time() - t0:.0f}s', flush=True)
-    print(f'FINISHED done={done} skip={skip} err={err} '
-          f'out={len(list(dst_dir.glob("*.png")))}', flush=True)
+            err += 1
+            print(f'\rERR {f} {str(e)[:60]}', flush=True)
+        eta = (time.time() - t0) / i * (len(todo) - i)
+        fill = round(28 * i / len(todo))
+        print(f'\r[{"#" * fill}{"." * (28 - fill)}] {i}/{len(todo)} '
+              f'err={err} eta {eta // 60:.0f}m{eta % 60:02.0f}s ', end='', flush=True)
+    print(f'\nFINISHED err={err} out={len(list(dst_dir.glob("*.png")))}', flush=True)

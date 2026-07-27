@@ -36,11 +36,11 @@ von Wright parses the rawpixel image descriptions.
 Run from the repo root; paths resolve relative to the scripts.
 
 ```bash
-python3.13 -m venv .venv && source .venv/bin/activate   # 3.14 has no onnxruntime wheels
-pip install -r wikimedia-scrape/requirements.txt
+uv venv --python 3.13 .venv-rembg            # 3.14 has no onnxruntime wheels
+.venv-rembg/bin/pip install -r wikimedia-scrape/requirements.txt
 
-python wikimedia-scrape/scrape.py gould               # -> originals/gould/
-python wikimedia-scrape/remove_background.py gould    # -> staging/gould/
+.venv-rembg/bin/python wikimedia-scrape/scrape.py gould            # -> originals/gould/
+.venv-rembg/bin/python wikimedia-scrape/remove_background.py gould # -> staging/gould/
 # review staging/gould/, then move the good cut-outs into assets/birds/
 ```
 
