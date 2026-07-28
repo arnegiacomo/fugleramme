@@ -9,6 +9,7 @@ directly. The method surface (`Detection`, `species_since`, `recent`,
 from __future__ import annotations
 
 import sqlite3
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -54,6 +55,8 @@ class Database:
         self.path = Path(path)
         self._uri = f"file:{self.path}?mode=ro"
         self.conn: sqlite3.Connection | None = None
+        # Shared across the threaded server's requests; reentrant for _rows -> close.
+        self._lock = threading.RLock()
 
     def _connect(self) -> sqlite3.Connection | None:
         if self.conn is None:
@@ -66,24 +69,26 @@ class Database:
         return self.conn
 
     def _rows(self, sql: str, params: tuple = ()) -> list[sqlite3.Row]:
-        conn = self._connect()
-        if conn is None:
-            return []
-        try:
-            return conn.execute(sql, params).fetchall()
-        except sqlite3.OperationalError:
-            # Missing/recreated: drop the handle, treat as empty, reconnect next call.
-            self.close()
-            return []
+        with self._lock:
+            conn = self._connect()
+            if conn is None:
+                return []
+            try:
+                return conn.execute(sql, params).fetchall()
+            except sqlite3.OperationalError:
+                # Missing/recreated: drop the handle, treat as empty, reconnect next call.
+                self.close()
+                return []
 
     def _scalar(self, sql: str, params: tuple = (), default: int = 0) -> int:
         rows = self._rows(sql, params)
         return rows[0][0] if rows else default
 
     def close(self) -> None:
-        if self.conn is not None:
-            self.conn.close()
-            self.conn = None
+        with self._lock:
+            if self.conn is not None:
+                self.conn.close()
+                self.conn = None
 
     def latest(self) -> Detection | None:
         rows = self._rows(

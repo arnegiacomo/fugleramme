@@ -12,8 +12,10 @@ push, the same path as the Mac preview.
 
 from __future__ import annotations
 
+import faulthandler
 import logging
 import random
+import signal
 import threading
 import time
 
@@ -34,6 +36,8 @@ SHOW_NAMES = False  # bird names + language are #5
 
 def run(config: Config) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    # `kill -USR1 <pid>` dumps every thread's stack to the journal - for when it wedges.
+    faulthandler.register(signal.SIGUSR1, all_threads=True)
 
     panel = init_panel()
     store = SettingsStore(config.config_path)

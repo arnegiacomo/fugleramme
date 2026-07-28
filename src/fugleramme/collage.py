@@ -17,6 +17,7 @@ from __future__ import annotations
 import io
 import math
 import random
+import threading
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -212,6 +213,7 @@ def gather_entries(
 
 
 _cache: tuple[tuple, bytes] | None = None
+_cache_lock = threading.Lock()
 _EMPTY = None  # cache-key marker for the no-species perch
 
 
@@ -230,23 +232,27 @@ def collage_png_bytes(
     Empty: the perch is held for the whole empty period and re-rolled only when
     a new one begins (the cache still holds a bird key), so refreshes don't
     restlessly swap it.
+
+    The lock is held across the render so concurrent kiosk requests wait for one
+    render instead of each doing their own.
     """
     global _cache
-    species = tuple(name for name, _ in db.species_since(lookback_hours))
-    key = (species or _EMPTY, tuple(sources), resolution, show_names)
-    if _cache is not None and _cache[0] == key:
+    with _cache_lock:
+        species = tuple(name for name, _ in db.species_since(lookback_hours))
+        key = (species or _EMPTY, tuple(sources), resolution, show_names)
+        if _cache is not None and _cache[0] == key:
+            return _cache[1]
+
+        if not species:
+            image = render_collage([], resolution, show_names, random.Random())
+        else:
+            rng = random.Random(hash(species))
+            image = render_collage(
+                gather_entries(db, images_dir, sources, rng, lookback_hours),
+                resolution, show_names, rng,
+            )
+
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        _cache = (key, buffer.getvalue())
         return _cache[1]
-
-    if not species:
-        image = render_collage([], resolution, show_names, random.Random())
-    else:
-        rng = random.Random(hash(species))
-        image = render_collage(
-            gather_entries(db, images_dir, sources, rng, lookback_hours),
-            resolution, show_names, rng,
-        )
-
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    _cache = (key, buffer.getvalue())
-    return _cache[1]

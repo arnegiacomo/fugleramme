@@ -6,15 +6,18 @@ at `/admin` (#2) - orientation, lookback window, refresh interval - and are
 read per request from the shared SettingsStore, so a change takes effect on the
 next kiosk refresh without a restart. No auth: both views are open on the LAN.
 
-Stdlib http.server only. The server opens its own SQLite connection; WAL lets
-it coexist with the render loop's connection in one process.
+Stdlib http.server only, but threaded with a socket timeout: a serial server is
+one silent client away from a dead kiosk, since a connection that never sends a
+request blocks the accept loop forever. The server opens its own SQLite
+connection; WAL lets it coexist with the render loop's connection.
 """
 
 from __future__ import annotations
 
 import hashlib
+import logging
 from datetime import datetime, timezone
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -23,6 +26,10 @@ from .config import BIRDNET_PORT, PANEL_RESOLUTIONS
 from .db import Database, Detection
 from .names import available_sources, resolve, variants_for
 from .settings import LOOKBACK_OPTIONS, ORIENTATIONS, Settings, SettingsStore
+
+log = logging.getLogger(__name__)
+
+REQUEST_TIMEOUT = 15
 
 
 def _kiosk_html(refresh_seconds: int) -> str:
@@ -205,8 +212,13 @@ def _admin_html(
 
 def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_present: bool):
     class Handler(BaseHTTPRequestHandler):
-        def log_message(self, *args):  # quiet
-            pass
+        timeout = REQUEST_TIMEOUT
+
+        def log_message(self, fmt, *args):
+            log.debug("%s %s", self.address_string(), fmt % args)
+
+        def log_error(self, fmt, *args):
+            log.warning("%s %s", self.address_string(), fmt % args)
 
         def _send(self, status: int, body: bytes, content_type: str):
             self.send_response(status)
@@ -287,5 +299,5 @@ def serve(
 ) -> None:
     """Blocking server loop. Opens its own DB connection."""
     db = Database(db_path)
-    httpd = HTTPServer((host, port), make_handler(db, images_dir, store, panel_present))
+    httpd = ThreadingHTTPServer((host, port), make_handler(db, images_dir, store, panel_present))
     httpd.serve_forever()
