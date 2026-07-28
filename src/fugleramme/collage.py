@@ -198,6 +198,12 @@ def _draw_names(canvas, names, placed):
         draw.text((x, y + img.height - 4), name, font=font, fill=_INK)
 
 
+def render_rng(species: Sequence[str]) -> random.Random:
+    """The per-render rng, seeded by the species set so the panel, the kiosk and
+    the admin listing all draw (and report) the same artwork for a given set."""
+    return random.Random(hash(tuple(species)))
+
+
 def gather_entries(
     db: Database,
     images_dir: Path,
@@ -246,7 +252,7 @@ def collage_png_bytes(
         if not species:
             image = render_collage([], resolution, show_names, random.Random())
         else:
-            rng = random.Random(hash(species))
+            rng = render_rng(species)
             image = render_collage(
                 gather_entries(db, images_dir, sources, rng, lookback_hours),
                 resolution, show_names, rng,

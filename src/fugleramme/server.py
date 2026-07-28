@@ -21,10 +21,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from .collage import collage_png_bytes
+from .collage import collage_png_bytes, render_rng
 from .config import BIRDNET_PORT, PANEL_RESOLUTIONS
 from .db import Database, Detection
-from .names import available_sources, resolve, variants_for
+from .names import available_sources, image_for, resolve, variants_for
 from .settings import LOOKBACK_OPTIONS, ORIENTATIONS, Settings, SettingsStore
 
 log = logging.getLogger(__name__)
@@ -68,17 +68,14 @@ def _ago(dt: datetime) -> str:
     return f"{s}s ago"
 
 
-def _species_li(name: str, art: list[Path]) -> str:
-    # Species detected but without artwork are still counted in the window yet
-    # omitted from the collage (#9), so mark them - it explains any gap. When art
-    # exists, show the active source(s) and, if more than one candidate, the
-    # variant count (one is picked at random per render). The filename itself is
-    # just the species slug, so it's redundant with the name and left off.
-    if not art:
+def _species_li(name: str, pick: Path | None, candidates: list[Path]) -> str:
+    # Marks species counted in the window but omitted from the collage (#9); else
+    # names the source of the artwork actually on the frame, plus which candidate.
+    if pick is None:
         return f'<li class="noart">{name} <small>no art</small></li>'
-    note = ", ".join(_source_label(s) for s in sorted({p.parent.name for p in art}))
-    if len(art) > 1:
-        note += f" ({len(art)})"
+    note = _source_label(pick.parent.name)
+    if len(candidates) > 1:
+        note += f" ({candidates.index(pick) + 1})"
     return f'<li>{name} <small>{note}</small></li>'
 
 
@@ -99,7 +96,7 @@ def _checkboxes(available: list[str], active: list[str]) -> str:
 
 def _admin_html(
     settings: Settings,
-    species: list[tuple[str, list[Path]]],
+    species: list[tuple[str, Path | None, list[Path]]],
     latest: Detection | None,
     panel_present: bool,
     available: list[str],
@@ -258,9 +255,13 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_pre
             elif route == "/admin":
                 available = available_sources(images_dir)
                 sources = resolve(settings.sources, images_dir)
+                # Same seed as the render, so the picks listed are the ones on the frame.
+                names = [n for n, _c in db.species_since(settings.lookback_hours)]
+                rng = render_rng(names)
                 species = [
-                    (name, variants_for(name, images_dir, sources))
-                    for name, _n in db.species_since(settings.lookback_hours)
+                    (name, image_for(name, images_dir, sources, rng),
+                     variants_for(name, images_dir, sources))
+                    for name in names
                 ]
                 html = _admin_html(
                     settings, species, db.latest(), panel_present, available, sources

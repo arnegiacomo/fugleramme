@@ -12,9 +12,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-import random
-
-from .collage import gather_entries, render_collage
+from .collage import gather_entries, render_collage, render_rng
 from .config import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_DB_PATH,
@@ -63,7 +61,7 @@ def main(argv: list[str] | None = None) -> None:
         settings = SettingsStore(config.config_path).get()
         db = Database(config.db_path)
         sources = resolve(settings.sources, config.images_dir)
-        rng = random.Random(hash(tuple(name for name, _ in db.species_since(settings.lookback_hours))))
+        rng = render_rng([name for name, _ in db.species_since(settings.lookback_hours)])
         entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
         render_collage(entries, settings.resolution(), False, rng).save(args.preview)
         db.close()

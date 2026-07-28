@@ -14,12 +14,11 @@ from __future__ import annotations
 
 import faulthandler
 import logging
-import random
 import signal
 import threading
 import time
 
-from .collage import gather_entries, render_collage
+from .collage import gather_entries, render_collage, render_rng
 from .config import BIRDNET_PORT, Config
 from .db import Database
 from .names import resolve
@@ -60,7 +59,7 @@ def run(config: Config) -> None:
         sources = resolve(settings.sources, config.images_dir)
         key = (tuple(species), settings.panel, settings.orientation, tuple(sources))
         if key != last_key:
-            rng = random.Random(hash(tuple(name for name, _ in species)))
+            rng = render_rng([name for name, _ in species])
             entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
             collage = render_collage(entries, settings.resolution(), SHOW_NAMES, rng, textured=False)
             panel_image = dither(collage)
