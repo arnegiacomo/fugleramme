@@ -23,6 +23,16 @@ EXCEPTIONS = {
     "polysticta-stelleri",    # Steller's Eider
     "pagophila-eburnea",      # Ivory Gull
     "gulosus-aristotelis",    # European Shag
+    "aquila-fasciata",        # Bonelli's Eagle
+    "bubo-ascalaphus",        # Pharaoh Eagle-Owl
+    "curruca-ruppeli",        # Rüppell's Warbler
+    "falco-biarmicus",        # Lanner Falcon
+    "falco-concolor",         # Sooty Falcon
+    "gypaetus-barbatus",      # Bearded Vulture
+    "neophron-percnopterus",  # Egyptian Vulture
+    "numenius-tenuirostris",  # Slender-billed Curlew
+    "pelecanus-crispus",      # Dalmatian Pelican
+    "pinguinus-impennis",     # Great Auk (extinct)
 }
 
 

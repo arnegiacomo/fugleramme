@@ -283,12 +283,13 @@ def _from_categories(cats):
     return None
 
 
-# A bulk archive.org upload of the whole book: every page (plates and text)
-# titled with only the book title and a numeric id, e.g. "The birds of Europe
-# (1837) (14565247670).jpg". No species signal in title, category, or
-# description, so to_binomial would mistake the book title's first two words
-# ("The birds") for a binomial. Reject them so they resolve to None and drop.
-_BOOK_TITLE = re.compile(r"^The birds of Europe \(\d{4}\)", re.I)
+# Bulk archive.org uploads of the whole book: every page (plates and text)
+# titled with only the book title and a numeric id, with or without the year -
+# "The birds of Europe (1837) (14565247670).jpg", "The birds of Europe
+# (9398556943).jpg". No species signal in title, category, or description, so
+# to_binomial would mistake the book title's first two words ("The birds") for
+# a binomial. Reject them so they resolve to None and drop.
+_BOOK_TITLE = re.compile(r"^The birds of Europe \(\d+\)", re.I)
 
 # "GouldBirdsEurope<vol><CommonName>.jpg". The volume numeral runs straight into
 # the common name with no separator, so `\bGould\b` never fires and to_binomial
