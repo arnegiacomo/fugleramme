@@ -14,6 +14,7 @@ names are off). Names are off by default; they will become an admin toggle.
 
 from __future__ import annotations
 
+import hashlib
 import io
 import math
 import random
@@ -223,6 +224,24 @@ _cache_lock = threading.Lock()
 _EMPTY = None  # cache-key marker for the no-species perch
 
 
+def collage_key(
+    db: Database,
+    sources: Sequence[str],
+    resolution: tuple[int, int] = DEFAULT_RESOLUTION,
+    show_names: bool = False,
+    lookback_hours: int = 24,
+) -> tuple:
+    """Everything the collage is a function of: the cache key, and what the kiosk polls."""
+    species = tuple(name for name, _ in db.species_since(lookback_hours))
+    return (species or _EMPTY, tuple(sources), resolution, show_names)
+
+
+def collage_token(key: tuple) -> str:
+    """Short digest of a collage key. blake2b, not hash(): hash() is salted per
+    process and would fire a spurious swap on every restart."""
+    return hashlib.blake2b(repr(key).encode(), digest_size=8).hexdigest()
+
+
 def collage_png_bytes(
     db: Database,
     images_dir: Path,
@@ -244,11 +263,11 @@ def collage_png_bytes(
     """
     global _cache
     with _cache_lock:
-        species = tuple(name for name, _ in db.species_since(lookback_hours))
-        key = (species or _EMPTY, tuple(sources), resolution, show_names)
+        key = collage_key(db, sources, resolution, show_names, lookback_hours)
         if _cache is not None and _cache[0] == key:
             return _cache[1]
 
+        species = key[0] or ()  # _EMPTY back to an empty tuple
         if not species:
             image = render_collage([], resolution, show_names, random.Random())
         else:

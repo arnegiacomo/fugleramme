@@ -1,10 +1,12 @@
 """HTTP server for the kiosk and admin views.
 
 The kiosk (`/`) serves one thing: a full-color collage of the species seen in
-the recent window, full-screen and auto-refreshed. Presentation settings live
-at `/admin` (#2) - orientation, lookback window, refresh interval - and are
-read per request from the shared SettingsStore, so a change takes effect on the
-next kiosk refresh without a restart. No auth: both views are open on the LAN.
+the recent window, full-screen. It never reloads; instead it polls `/state` and
+swaps the image only when the collage actually changed, so a new bird appears
+within one poll interval with no flash. Presentation settings live at `/admin`
+(#2) - orientation, lookback window, poll interval - and are read per request
+from the shared SettingsStore, so a change takes effect without a restart. No
+auth: both views are open on the LAN.
 
 Stdlib http.server only, but threaded with a socket timeout: a serial server is
 one silent client away from a dead kiosk, since a connection that never sends a
@@ -15,13 +17,14 @@ connection; WAL lets it coexist with the render loop's connection.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from .collage import collage_png_bytes, render_rng
+from .collage import collage_key, collage_png_bytes, collage_token, render_rng
 from .config import BIRDNET_PORT, PANEL_RESOLUTIONS
 from .db import Database, Detection
 from .names import available_sources, image_for, resolve, variants_for
@@ -38,7 +41,6 @@ def _kiosk_html(refresh_seconds: int) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="{refresh_seconds}">
 <title>Fugleramme</title>
 <style>
   html, body {{ margin: 0; height: 100%; background: #faf9f6; }}
@@ -47,7 +49,25 @@ def _kiosk_html(refresh_seconds: int) -> str:
 </style>
 </head>
 <body>
-<img src="/collage.png" alt="Fugler siste {refresh_seconds}s">
+<img id="collage" src="/collage.png" alt="Fugler sett nylig">
+<script>
+  // The interval comes from /state: without a reload, nothing else picks up an admin change.
+  let token = null, delay = {refresh_seconds};
+  async function tick() {{
+    try {{
+      const state = await (await fetch("/state", {{cache: "no-store"}})).json();
+      delay = state.refresh;
+      if (state.token !== token) {{
+        token = state.token;
+        const next = new Image();  // decode before swapping, so the frame never blanks
+        next.onload = () => {{ document.getElementById("collage").src = next.src; }};
+        next.src = "/collage.png?v=" + encodeURIComponent(token);
+      }}
+    }} catch (e) {{}}  // transient: retry next tick
+    setTimeout(tick, delay * 1000);
+  }}
+  tick();
+</script>
 </body>
 </html>
 """
@@ -179,8 +199,8 @@ def _admin_html(
       <select name="orientation">{orientations}</select></label>
     <label><span>Lookback window</span>
       <select name="lookback_hours">{lookbacks}</select></label>
-    <label><span>Kiosk refresh <small>(seconds)</small></span>
-      <input type="number" name="kiosk_refresh_seconds" min="5" max="3600" value="{settings.kiosk_refresh_seconds}"></label>
+    <label><span>Kiosk poll <small>(seconds between checks)</small></span>
+      <input type="number" name="kiosk_refresh_seconds" min="1" max="3600" value="{settings.kiosk_refresh_seconds}"></label>
     {sources_field}
     <button type="submit">Save</button>
   </form>
@@ -252,6 +272,16 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_pre
                     db, images_dir, sources, settings.resolution(), False, settings.lookback_hours
                 )
                 self._send_png(png)
+            elif route == "/state":
+                # Cheap enough to poll every second: one grouped query, no render.
+                key = collage_key(
+                    db, resolve(settings.sources, images_dir), settings.resolution(),
+                    False, settings.lookback_hours,
+                )
+                body = json.dumps(
+                    {"token": collage_token(key), "refresh": settings.kiosk_refresh_seconds}
+                )
+                self._send(200, body.encode(), "application/json")
             elif route == "/admin":
                 available = available_sources(images_dir)
                 sources = resolve(settings.sources, images_dir)

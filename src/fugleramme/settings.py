@@ -37,7 +37,8 @@ class Settings:
     panel: str = DEFAULT_PANEL
     orientation: str = "landscape"
     lookback_hours: int = 24
-    kiosk_refresh_seconds: int = 60
+    # How often the kiosk asks /state whether the collage changed; a check, not a render.
+    kiosk_refresh_seconds: int = 3
     # Active artwork source folders; empty means "all present" (resolved against
     # the filesystem at render time, so it survives added/removed sources).
     sources: tuple[str, ...] = ()
@@ -84,7 +85,7 @@ def _coerce(raw: dict) -> Settings:
         orientation=orientation,
         lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, 1, 24 * 30),
         kiosk_refresh_seconds=_as_int(
-            raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 5, 3600
+            raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 1, 3600
         ),
         sources=_sources(raw.get("sources")),
     )

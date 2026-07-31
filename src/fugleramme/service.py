@@ -29,7 +29,7 @@ from .settings import SettingsStore
 
 log = logging.getLogger(__name__)
 
-_POLL_SECONDS = 30
+_POLL_SECONDS = 5  # one query per tick; re-renders only on change, so e-ink stays the bottleneck
 SHOW_NAMES = False  # bird names + language are #5
 
 

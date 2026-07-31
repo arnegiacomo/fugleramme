@@ -17,11 +17,11 @@ def test_update_persists_and_clamps(tmp_path):
     path = tmp_path / "settings.json"
     store = SettingsStore(path)
 
-    saved = store.update(panel="13.3", orientation="portrait", lookback_hours="6", kiosk_refresh_seconds="3")
+    saved = store.update(panel="13.3", orientation="portrait", lookback_hours="6", kiosk_refresh_seconds="0")
     assert saved.panel == "13.3"
     assert saved.orientation == "portrait"
     assert saved.lookback_hours == 6
-    assert saved.kiosk_refresh_seconds == 5  # clamped up to the floor
+    assert saved.kiosk_refresh_seconds == 1  # clamped up to the floor
 
     # Written to disk and reloaded identically by a fresh store.
     assert json.loads(path.read_text())["orientation"] == "portrait"
