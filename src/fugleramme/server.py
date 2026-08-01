@@ -4,7 +4,7 @@ The kiosk (`/`) serves one thing: a full-color collage of the species seen in
 the recent window, full-screen. It never reloads; instead it polls `/state` and
 swaps the image only when the collage actually changed, so a new bird appears
 within one poll interval with no flash. Presentation settings live at `/admin`
-(#2) - orientation, lookback window, poll interval - and are read per request
+(#2) - rotation, lookback window, poll interval - and are read per request
 from the shared SettingsStore, so a change takes effect without a restart. No
 auth: both views are open on the LAN.
 
@@ -29,7 +29,7 @@ from .config import BIRDNET_PORT, WEB_RESOLUTIONS
 from .db import Database, Detection
 from .names import available_sources, image_for, resolve, variants_for
 from .panel import Panel
-from .settings import LOOKBACK_OPTIONS, ORIENTATIONS, Settings, SettingsStore
+from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, SettingsStore
 
 log = logging.getLogger(__name__)
 
@@ -100,6 +100,8 @@ def _species_li(name: str, pick: Path | None, candidates: list[Path]) -> str:
     return f'<li>{name} <small>{note}</small></li>'
 
 
+_ASPECT = {0: "(landscape)", 90: "(portrait)"}
+
 _SOURCE_LABELS = {"vonwright": "von Wright", "gould": "Gould"}
 
 
@@ -128,7 +130,7 @@ def _admin_html(
         settings.web_resolution,
         lambda r: f"{r} ({WEB_RESOLUTIONS[r][0]}×{WEB_RESOLUTIONS[r][1]})",
     )
-    orientations = _options(ORIENTATIONS, settings.orientation)
+    rotations = _options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}")
     # A hand-edited non-preset value stays selectable so Save doesn't drop it.
     labels = dict(LOOKBACK_OPTIONS)
     labels.setdefault(settings.lookback_hours, f"{settings.lookback_hours} hours")
@@ -200,8 +202,8 @@ def _admin_html(
   <form class="settings" method="post" action="/admin">
     <label><span>Kiosk resolution <small>(web view only)</small></span>
       <select name="web_resolution">{resolutions}</select></label>
-    <label><span>Orientation <small>(kiosk and panel)</small></span>
-      <select name="orientation">{orientations}</select></label>
+    <label><span>Rotation <small>(how the frame hangs)</small></span>
+      <select name="rotation">{rotations}</select></label>
     <label><span>Lookback window</span>
       <select name="lookback_hours">{lookbacks}</select></label>
     <label><span>Kiosk poll <small>(seconds between checks)</small></span>

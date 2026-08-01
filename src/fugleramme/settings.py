@@ -19,7 +19,8 @@ from pathlib import Path
 
 from .config import DEFAULT_WEB_RESOLUTION, WEB_RESOLUTIONS
 
-ORIENTATIONS = ("landscape", "portrait")
+# How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
+ROTATIONS = (0, 90, 180, 270)
 
 # Lookback windows offered in the admin UI, as (hours, label), shortest-first.
 LOOKBACK_OPTIONS = (
@@ -35,8 +36,8 @@ LOOKBACK_OPTIONS = (
 @dataclass(frozen=True)
 class Settings:
     web_resolution: str = DEFAULT_WEB_RESOLUTION
-    # Applies to both outputs: the kiosk render and the panel push.
-    orientation: str = "landscape"
+    # Shapes both outputs; only the panel actually turns the pixels.
+    rotation: int = 0
     lookback_hours: int = 24
     # How often the kiosk asks /state whether the collage changed; a check, not a render.
     kiosk_refresh_seconds: int = 3
@@ -45,9 +46,9 @@ class Settings:
     sources: tuple[str, ...] = ()
 
     def oriented(self, resolution: tuple[int, int]) -> tuple[int, int]:
-        """Apply orientation to a landscape-native (w, h)."""
+        """Apply the rotation's aspect to a landscape-native (w, h)."""
         long, short = max(resolution), min(resolution)
-        return (long, short) if self.orientation == "landscape" else (short, long)
+        return (short, long) if self.rotation % 180 else (long, short)
 
     def web_size(self) -> tuple[int, int]:
         """Kiosk render size: the selected resolution, oriented."""
@@ -78,12 +79,15 @@ def _coerce(raw: dict) -> Settings:
     web_resolution = str(raw.get("web_resolution", d.web_resolution))
     if web_resolution not in WEB_RESOLUTIONS:
         web_resolution = d.web_resolution
-    orientation = str(raw.get("orientation", d.orientation)).lower()
-    if orientation not in ORIENTATIONS:
-        orientation = d.orientation
+    try:
+        rotation = int(raw.get("rotation", d.rotation))
+    except (TypeError, ValueError):
+        rotation = d.rotation
+    if rotation not in ROTATIONS:
+        rotation = d.rotation
     return Settings(
         web_resolution=web_resolution,
-        orientation=orientation,
+        rotation=rotation,
         lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, 1, 24 * 30),
         kiosk_refresh_seconds=_as_int(
             raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 1, 3600

@@ -56,7 +56,7 @@ journalctl -u fugleramme-frame -f    # "Inky panel initialised: inky.inky_el133u
 ```
 
 The panel's size comes from the panel itself - the admin resolution setting is
-the web kiosk's only. Orientation applies to both. If it still reads
+the web kiosk's only. Rotation (0/90/180/270) applies to both. If it still reads
 "not detected", check `ls /dev/spidev*` and that your login has picked up the
 `spi`/`i2c`/`gpio` groups (`id`); the frame serves the kiosk either way.
 

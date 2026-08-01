@@ -3,7 +3,7 @@
 One collage, two outputs (issue #1 "render once, fan out"): the web/kiosk view
 serves it full-color on request; the Inky panel gets the same collage dithered
 to 6 colors. The loop re-renders the panel image only when its inputs change -
-the species in the lookback window, the orientation, the artwork sources - a
+the species in the lookback window, the rotation, the artwork sources - a
 natural debounce for the slow e-ink refresh. The web view renders fresh per
 request, at its own resolution setting.
 
@@ -60,7 +60,7 @@ def run(config: Config) -> None:
         species = db.species_since(settings.lookback_hours)
         sources = resolve(settings.sources, config.images_dir)
         size = settings.oriented(panel.resolution if panel else FALLBACK_PANEL_RESOLUTION)
-        key = (tuple(species), size, tuple(sources))
+        key = (tuple(species), size, tuple(sources), settings.rotation)
         if key != last_key:
             rng = render_rng([name for name, _ in species])
             entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
@@ -69,10 +69,10 @@ def run(config: Config) -> None:
             panel_image.save(config.output_path)
             log.info("Rendered panel collage: %d species at %dx%d", len(species), *size)
             last_key = key
-            pending = panel_image if panel is not None else None
+            pending = (panel_image, settings.rotation) if panel is not None else None
         if pending is not None:
             try:
-                panel.push(pending)
+                panel.push(*pending)
                 pending = None
             except Exception:
                 # Retry next tick from the same image rather than re-rendering.

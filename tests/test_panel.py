@@ -40,19 +40,26 @@ def _panel() -> tuple[Panel, FakeInky]:
     return Panel(device), device
 
 
-def test_landscape_image_pushes_unrotated():
+def test_unrotated_image_pushes_as_is():
     panel, device = _panel()
     panel.push(Image.new("P", (1600, 1200)))
     assert device.image.size == (1600, 1200)
     assert device.shown == 1
 
 
-def test_portrait_image_is_rotated_to_native():
+@pytest.mark.parametrize("rotation,size", [(90, (1200, 1600)), (180, (1600, 1200)), (270, (1200, 1600))])
+def test_every_rotation_lands_in_the_native_buffer(rotation, size):
+    panel, device = _panel()
+    panel.push(Image.new("RGB", size), rotation)
+    assert device.image.size == panel.resolution
+
+
+def test_rotation_direction_is_counter_clockwise():
+    # 90 is the case verified on hardware; the others are derived from it.
     panel, device = _panel()
     source = Image.new("RGB", (1200, 1600))
-    source.putpixel((0, 0), (255, 0, 0))  # top-left; ROTATE_90 puts it bottom-left
-    panel.push(source)
-    assert device.image.size == (1600, 1200)
+    source.putpixel((0, 0), (255, 0, 0))  # top-left -> bottom-left when rotated CCW
+    panel.push(source, 90)
     assert device.image.getpixel((0, 1199)) == (255, 0, 0)
 
 
@@ -60,6 +67,14 @@ def test_mismatched_size_raises_rather_than_pushing():
     panel, device = _panel()
     with pytest.raises(ValueError):
         panel.push(Image.new("P", (800, 480)))
+    assert device.shown == 0
+
+
+def test_rotation_that_does_not_fit_the_panel_raises():
+    # A portrait render sent without its rotation would otherwise be silently wrong.
+    panel, device = _panel()
+    with pytest.raises(ValueError):
+        panel.push(Image.new("P", (1200, 1600)))
     assert device.shown == 0
 
 

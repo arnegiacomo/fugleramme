@@ -19,7 +19,7 @@ uv run pytest -q                            # run tests
 uv run pytest tests/test_artwork_names.py   # run a single test file
 ```
 
-Kiosk resolution, orientation, lookback window, and kiosk refresh are runtime settings in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The panel's own size is never a setting - it comes from the attached Inky. CLI flags are launch-only: `--db`, `--images`, `--config`, `--output`, `--host`, `--port`.
+Kiosk resolution, rotation, lookback window, and kiosk refresh are runtime settings in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The panel's own size is never a setting - it comes from the attached Inky. CLI flags are launch-only: `--db`, `--images`, `--config`, `--output`, `--host`, `--port`.
 
 ## Architecture
 
@@ -29,7 +29,7 @@ The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own norm
 
 **Render once, fan out** (`service.py`): the loop re-renders only when the set of species seen in the last 24h changes, dithers the collage to 6 colors for the panel (`render.py`), and pushes it if a panel is present. The kiosk serves the same collage full-color per request (`server.py`, cached per species-set). If the Inky is absent it logs a warning and runs web-only, the same path as `--preview`.
 
-**The panel sizes itself** (`panel.py`, #4): the loop renders at the attached Inky's own resolution (`FALLBACK_PANEL_RESOLUTION`, the 13.3", when none is attached), so the admin resolution setting only ever governs the kiosk. Orientation is shared by both; the driver takes native landscape only, so `push` rotates a portrait render back. Color reduction is ours, not the driver's: `inky.set_image` re-dithers anything that is not already a 6-color "P" image, so `render.dither` hands it one whose palette maps 1:1 onto the driver's, which `tests/test_panel.py` pins. The palette is a blend of the driver's desaturated and saturated sets, so the saved frame and the glass agree.
+**The panel sizes itself** (`panel.py`, #4): the loop renders at the attached Inky's own resolution (`FALLBACK_PANEL_RESOLUTION`, the 13.3", when none is attached), so the admin resolution setting only ever governs the kiosk. `settings.rotation` (0/90/180/270, counter-clockwise) shapes both, but only `push` turns pixels: the render is sized as the viewer sees it and the driver takes native landscape only. Color reduction is ours, not the driver's: `inky.set_image` re-dithers anything that is not already a 6-color "P" image, so `render.dither` hands it one whose palette maps 1:1 onto the driver's, which `tests/test_panel.py` pins. The palette is a blend of the driver's desaturated and saturated sets, so the saved frame and the glass agree.
 
 **The collage is the product** (`collage.py` + `paper.py`), not a single-detection frame or a dashboard (stats/config are #2). Birds are packed by their alpha silhouette so opaque pixels never overlap and nothing clips; the von Wright cut-outs' paper "halos" are normalized to one tone and feathered onto a textured paper page at render time (assets untouched). No-artwork species are omitted.
 

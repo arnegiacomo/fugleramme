@@ -1,7 +1,7 @@
 """Static, per-launch configuration for the frame service.
 
 Paths and the network binding come from CLI flags. Presentation settings that
-change at runtime (kiosk resolution, orientation, lookback, refresh) live in the
+change at runtime (kiosk resolution, rotation, lookback, refresh) live in the
 admin-owned settings file instead - see settings.py.
 """
 

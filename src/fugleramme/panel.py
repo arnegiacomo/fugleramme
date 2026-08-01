@@ -5,9 +5,9 @@ or the physical device is absent (as on the Mac), we log a warning and return
 None so the caller runs web-only.
 
 The attached panel's own resolution is authoritative for the panel render - the
-admin resolution setting is the kiosk's, not the glass's. Orientation is shared
-with the kiosk, so a portrait render arrives rotated and `push` turns it back:
-the driver only accepts a buffer in the panel's native landscape.
+admin resolution setting is the kiosk's, not the glass's. The render is sized as
+the viewer sees it, so `push` turns it back into the panel's native landscape,
+which is the only buffer the driver accepts.
 """
 
 from __future__ import annotations
@@ -18,16 +18,22 @@ from PIL import Image
 
 log = logging.getLogger(__name__)
 
+# PIL rotates counter-clockwise, matching how settings.rotation is described.
+_TRANSPOSE = {
+    90: Image.Transpose.ROTATE_90,
+    180: Image.Transpose.ROTATE_180,
+    270: Image.Transpose.ROTATE_270,
+}
+
 
 class Panel:
     def __init__(self, device):
         self._device = device
         self.resolution: tuple[int, int] = tuple(device.resolution)
 
-    def push(self, image: Image.Image) -> None:
-        width, height = self.resolution
-        if image.size == (height, width):
-            image = image.transpose(Image.Transpose.ROTATE_90)
+    def push(self, image: Image.Image, rotation: int = 0) -> None:
+        if rotation:
+            image = image.transpose(_TRANSPOSE[rotation])
         if image.size != self.resolution:
             raise ValueError(f"image is {image.size}, panel is {self.resolution}")
         self._device.set_image(image)
