@@ -46,6 +46,20 @@ on `:8080`. Details: [`detector/README.md`](detector/README.md).
 
 Want to update? Just pull and run ./setup.sh again
 
+### The panel
+
+Setup enables SPI and I2C and adds the overlays the `inky` driver needs, so the
+first run needs a **reboot** before the panel will drive. After that:
+
+```bash
+journalctl -u fugleramme-frame -f    # "Inky panel initialised: inky.inky_el133uf1 1600x1200"
+```
+
+The panel's size comes from the panel itself - the admin resolution setting is
+the web kiosk's only. Orientation applies to both. If it still reads
+"not detected", check `ls /dev/spidev*` and that your login has picked up the
+`spi`/`i2c`/`gpio` groups (`id`); the frame serves the kiosk either way.
+
 ## License
 
 - Code (`wikimedia-scrape/`, application code): MIT - see [`LICENSE`](LICENSE).

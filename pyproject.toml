@@ -16,9 +16,10 @@ fugleramme-dev = "fugleramme.dev:main"
 
 [project.optional-dependencies]
 # Pi-only hardware driver. Not installed on the Mac dev loop; the frame
-# service degrades to web-only when it is absent.
+# service degrades to web-only when it is absent. 2.2 is the floor for the
+# Spectra 6 boards: 2.1 added the 13.3" and 2.2 fixed its palette handling.
 panel = [
-    "inky>=1.5",
+    "inky>=2.2",
 ]
 
 [build-system]

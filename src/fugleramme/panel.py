@@ -1,10 +1,13 @@
-"""Inky panel init with graceful degrade.
+"""Inky panel init and push, with graceful degrade.
 
-The frame service owns the panel and treats it as optional: if the Inky
-library or the physical device is absent (as on the Mac, and per issue #1),
-we log a warning and return None so the caller runs web-only. Pushing pixels
-is the same rendered image either way. The actual SPI push is exercised in
-phase 2 on hardware.
+The frame service owns the panel and treats it as optional: if the Inky library
+or the physical device is absent (as on the Mac), we log a warning and return
+None so the caller runs web-only.
+
+The attached panel's own resolution is authoritative for the panel render - the
+admin resolution setting is the kiosk's, not the glass's. Orientation is shared
+with the kiosk, so a portrait render arrives rotated and `push` turns it back:
+the driver only accepts a buffer in the panel's native landscape.
 """
 
 from __future__ import annotations
@@ -19,10 +22,16 @@ log = logging.getLogger(__name__)
 class Panel:
     def __init__(self, device):
         self._device = device
+        self.resolution: tuple[int, int] = tuple(device.resolution)
 
     def push(self, image: Image.Image) -> None:
+        width, height = self.resolution
+        if image.size == (height, width):
+            image = image.transpose(Image.Transpose.ROTATE_90)
+        if image.size != self.resolution:
+            raise ValueError(f"image is {image.size}, panel is {self.resolution}")
         self._device.set_image(image)
-        self._device.show()
+        self._device.show()  # blocks ~35s on the 13.3" while the panel refreshes
 
 
 def init_panel() -> Panel | None:
@@ -37,5 +46,6 @@ def init_panel() -> Panel | None:
     except Exception as exc:  # library present but no panel wired up
         log.warning("No Inky panel detected (%s); running web-only", exc)
         return None
-    log.info("Inky panel initialised: %sx%s", *device.resolution)
+    # Every driver class is named Inky; the module is what identifies the board.
+    log.info("Inky panel initialised: %s %sx%s", type(device).__module__, *device.resolution)
     return Panel(device)

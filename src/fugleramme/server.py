@@ -25,9 +25,10 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from .collage import collage_key, collage_png_bytes, collage_token, render_rng
-from .config import BIRDNET_PORT, PANEL_RESOLUTIONS
+from .config import BIRDNET_PORT, WEB_RESOLUTIONS
 from .db import Database, Detection
 from .names import available_sources, image_for, resolve, variants_for
+from .panel import Panel
 from .settings import LOOKBACK_OPTIONS, ORIENTATIONS, Settings, SettingsStore
 
 log = logging.getLogger(__name__)
@@ -118,14 +119,14 @@ def _admin_html(
     settings: Settings,
     species: list[tuple[str, Path | None, list[Path]]],
     latest: Detection | None,
-    panel_present: bool,
+    panel_size: tuple[int, int] | None,
     available: list[str],
     active: list[str],
 ) -> str:
-    panels = _options(
-        PANEL_RESOLUTIONS,
-        settings.panel,
-        lambda p: f'{p}" ({PANEL_RESOLUTIONS[p][0]}×{PANEL_RESOLUTIONS[p][1]})',
+    resolutions = _options(
+        WEB_RESOLUTIONS,
+        settings.web_resolution,
+        lambda r: f"{r} ({WEB_RESOLUTIONS[r][0]}×{WEB_RESOLUTIONS[r][1]})",
     )
     orientations = _options(ORIENTATIONS, settings.orientation)
     # A hand-edited non-preset value stays selectable so Save doesn't drop it.
@@ -136,7 +137,11 @@ def _admin_html(
         f'<div class="field"><span>Artwork sources</span>'
         f"{_checkboxes(available, active)}</div>"
     )
-    w, h = settings.resolution()
+    w, h = settings.web_size()
+    panel_status = (
+        f"detected · {panel_size[0]}×{panel_size[1]}" if panel_size
+        else "not detected (web-only)"
+    )
     last = f"{latest.scientific_name} · {_ago(latest.detected_at)}" if latest else "none yet"
     rows = "".join(_species_li(*s) for s in species) or '<li class="empty">none yet</li>'
     return f"""<!doctype html>
@@ -193,9 +198,9 @@ def _admin_html(
 </header>
 <div class="cols">
   <form class="settings" method="post" action="/admin">
-    <label><span>Inky panel</span>
-      <select name="panel">{panels}</select></label>
-    <label><span>Orientation</span>
+    <label><span>Kiosk resolution <small>(web view only)</small></span>
+      <select name="web_resolution">{resolutions}</select></label>
+    <label><span>Orientation <small>(kiosk and panel)</small></span>
       <select name="orientation">{orientations}</select></label>
     <label><span>Lookback window</span>
       <select name="lookback_hours">{lookbacks}</select></label>
@@ -207,8 +212,8 @@ def _admin_html(
   <aside class="side">
     <dl class="status">
       <dt>Last detection</dt><dd>{last}</dd>
-      <dt>Inky panel</dt><dd>{"detected" if panel_present else "not detected (web-only)"}</dd>
-      <dt>Render size</dt><dd>{w}×{h}</dd>
+      <dt>Inky panel</dt><dd>{panel_status}</dd>
+      <dt>Kiosk render</dt><dd>{w}×{h}</dd>
     </dl>
     <h2>Species in window ({len(species)})</h2>
     <ul class="species">{rows}</ul>
@@ -227,7 +232,7 @@ def _admin_html(
 """
 
 
-def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_present: bool):
+def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel: Panel | None):
     class Handler(BaseHTTPRequestHandler):
         timeout = REQUEST_TIMEOUT
 
@@ -269,13 +274,13 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_pre
             elif route == "/collage.png":
                 sources = resolve(settings.sources, images_dir)
                 png = collage_png_bytes(
-                    db, images_dir, sources, settings.resolution(), False, settings.lookback_hours
+                    db, images_dir, sources, settings.web_size(), False, settings.lookback_hours
                 )
                 self._send_png(png)
             elif route == "/state":
                 # Cheap enough to poll every second: one grouped query, no render.
                 key = collage_key(
-                    db, resolve(settings.sources, images_dir), settings.resolution(),
+                    db, resolve(settings.sources, images_dir), settings.web_size(),
                     False, settings.lookback_hours,
                 )
                 body = json.dumps(
@@ -294,7 +299,8 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel_pre
                     for name in names
                 ]
                 html = _admin_html(
-                    settings, species, db.latest(), panel_present, available, sources
+                    settings, species, db.latest(),
+                    panel.resolution if panel else None, available, sources,
                 )
                 self._send(200, html.encode(), "text/html; charset=utf-8")
             elif route == "/health":
@@ -326,9 +332,9 @@ def serve(
     host: str,
     port: int,
     store: SettingsStore,
-    panel_present: bool = False,
+    panel: Panel | None = None,
 ) -> None:
     """Blocking server loop. Opens its own DB connection."""
     db = Database(db_path)
-    httpd = ThreadingHTTPServer((host, port), make_handler(db, images_dir, store, panel_present))
+    httpd = ThreadingHTTPServer((host, port), make_handler(db, images_dir, store, panel))
     httpd.serve_forever()

@@ -3,8 +3,9 @@
 One collage, two outputs (issue #1 "render once, fan out"): the web/kiosk view
 serves it full-color on request; the Inky panel gets the same collage dithered
 to 6 colors. The loop re-renders the panel image only when its inputs change -
-the species in the lookback window, or a panel/orientation setting - a natural
-debounce for the slow e-ink refresh. The web view renders fresh per request.
+the species in the lookback window, the orientation, the artwork sources - a
+natural debounce for the slow e-ink refresh. The web view renders fresh per
+request, at its own resolution setting.
 
 Panel-absent is not a special case: init_panel returns None and we skip the
 push, the same path as the Mac preview.
@@ -19,7 +20,7 @@ import threading
 import time
 
 from .collage import gather_entries, render_collage, render_rng
-from .config import BIRDNET_PORT, Config
+from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
 from .names import resolve
 from .panel import init_panel
@@ -43,7 +44,7 @@ def run(config: Config) -> None:
 
     server_thread = threading.Thread(
         target=serve,
-        args=(config.db_path, config.images_dir, config.host, config.port, store, panel is not None),
+        args=(config.db_path, config.images_dir, config.host, config.port, store, panel),
         daemon=True,
     )
     server_thread.start()
@@ -53,19 +54,27 @@ def run(config: Config) -> None:
 
     db = Database(config.db_path)
     last_key: tuple | None = None
+    pending = None  # rendered but not yet on the glass; survives a failed push
     while True:
         settings = store.get()
         species = db.species_since(settings.lookback_hours)
         sources = resolve(settings.sources, config.images_dir)
-        key = (tuple(species), settings.panel, settings.orientation, tuple(sources))
+        size = settings.oriented(panel.resolution if panel else FALLBACK_PANEL_RESOLUTION)
+        key = (tuple(species), size, tuple(sources))
         if key != last_key:
             rng = render_rng([name for name, _ in species])
             entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
-            collage = render_collage(entries, settings.resolution(), SHOW_NAMES, rng, textured=False)
+            collage = render_collage(entries, size, SHOW_NAMES, rng, textured=False)
             panel_image = dither(collage)
             panel_image.save(config.output_path)
-            log.info("Rendered panel collage: %d species", len(species))
-            if panel is not None:
-                panel.push(panel_image)
+            log.info("Rendered panel collage: %d species at %dx%d", len(species), *size)
             last_key = key
+            pending = panel_image if panel is not None else None
+        if pending is not None:
+            try:
+                panel.push(pending)
+                pending = None
+            except Exception:
+                # Retry next tick from the same image rather than re-rendering.
+                log.exception("Panel push failed")
         time.sleep(_POLL_SECONDS)

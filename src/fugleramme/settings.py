@@ -17,7 +17,7 @@ import threading
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from .config import DEFAULT_PANEL, PANEL_RESOLUTIONS
+from .config import DEFAULT_WEB_RESOLUTION, WEB_RESOLUTIONS
 
 ORIENTATIONS = ("landscape", "portrait")
 
@@ -34,7 +34,8 @@ LOOKBACK_OPTIONS = (
 
 @dataclass(frozen=True)
 class Settings:
-    panel: str = DEFAULT_PANEL
+    web_resolution: str = DEFAULT_WEB_RESOLUTION
+    # Applies to both outputs: the kiosk render and the panel push.
     orientation: str = "landscape"
     lookback_hours: int = 24
     # How often the kiosk asks /state whether the collage changed; a check, not a render.
@@ -48,9 +49,9 @@ class Settings:
         long, short = max(resolution), min(resolution)
         return (long, short) if self.orientation == "landscape" else (short, long)
 
-    def resolution(self) -> tuple[int, int]:
-        """Render resolution: the selected panel's native size, oriented."""
-        return self.oriented(PANEL_RESOLUTIONS[self.panel])
+    def web_size(self) -> tuple[int, int]:
+        """Kiosk render size: the selected resolution, oriented."""
+        return self.oriented(WEB_RESOLUTIONS[self.web_resolution])
 
 
 def _as_int(value, default: int, lo: int, hi: int) -> int:
@@ -74,14 +75,14 @@ def _coerce(raw: dict) -> Settings:
     """Build validated Settings from an untrusted dict, filling defaults and
     clamping out-of-range values. Unknown keys are ignored."""
     d = Settings()
-    panel = str(raw.get("panel", d.panel))
-    if panel not in PANEL_RESOLUTIONS:
-        panel = d.panel
+    web_resolution = str(raw.get("web_resolution", d.web_resolution))
+    if web_resolution not in WEB_RESOLUTIONS:
+        web_resolution = d.web_resolution
     orientation = str(raw.get("orientation", d.orientation)).lower()
     if orientation not in ORIENTATIONS:
         orientation = d.orientation
     return Settings(
-        panel=panel,
+        web_resolution=web_resolution,
         orientation=orientation,
         lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, 1, 24 * 30),
         kiosk_refresh_seconds=_as_int(

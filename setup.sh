@@ -149,7 +149,32 @@ converge_detector() {
     -f "$REPO_ROOT/detector/docker-compose.yml" up -d --force-recreate
 }
 
+# SPI for the pixels, I2C for the EEPROM inky.auto() identifies the board from.
+# Overlays and raspi-config calls mirror pimoroni/inky's own installer.
+ensure_panel_bus() {
+  local boot_config="/boot/firmware/config.txt" line changed=0
+  [[ -f "$boot_config" ]] || boot_config="/boot/config.txt"
+  [[ -f "$boot_config" ]] || return 0
+
+  # Not fatal: without the buses the frame still serves the kiosk.
+  if have raspi-config; then
+    sudo raspi-config nonint do_i2c 0 || echo "   could not enable I2C"
+    sudo raspi-config nonint do_spi 0 || echo "   could not enable SPI"
+  fi
+
+  for line in dtoverlay=i2c1 dtoverlay=i2c1-pi5 dtoverlay=spi0-0cs; do
+    grep -qxF "$line" "$boot_config" && continue
+    echo "$line" | sudo tee -a "$boot_config" >/dev/null
+    changed=1
+  done
+  [[ $changed == 1 ]] && echo "   $boot_config updated - reboot before the panel will drive"
+  return 0
+}
+
 converge_frame() {
+  echo "==> panel bus"
+  ensure_panel_bus
+
   # Panel access needs these groups; harmless where they don't exist. Takes
   # effect after the next login - until then the frame serves the kiosk only.
   local g

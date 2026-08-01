@@ -1,7 +1,7 @@
 """Static, per-launch configuration for the frame service.
 
 Paths and the network binding come from CLI flags. Presentation settings that
-change at runtime (panel size, orientation, lookback, refresh) live in the
+change at runtime (kiosk resolution, orientation, lookback, refresh) live in the
 admin-owned settings file instead - see settings.py.
 """
 
@@ -10,14 +10,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-# Inky Impression sizes -> native resolution (width, height).
-PANEL_RESOLUTIONS: dict[str, tuple[int, int]] = {
-    "4.0": (600, 400),
-    "7.3": (800, 480),
-    "13.3": (1600, 1200),
+# Kiosk render sizes offered in the admin UI, landscape-native (width, height).
+# The panel render never uses these: it takes the attached Inky's own resolution.
+WEB_RESOLUTIONS: dict[str, tuple[int, int]] = {
+    "720p": (1280, 720),
+    "1080p": (1920, 1080),
+    "1440p": (2560, 1440),
+    "4K": (3840, 2160),
 }
 
-DEFAULT_PANEL = "7.3"
+DEFAULT_WEB_RESOLUTION = "1080p"
+
+# Panel render size when no Inky is attached (Mac dev loop): Impression 13.3".
+FALLBACK_PANEL_RESOLUTION = (1600, 1200)
 
 # Network defaults, single source for the app. The kiosk + admin bind here; the
 # BirdNET-Go container publishes its own UI on BIRDNET_PORT (detector/docker-compose.yml).

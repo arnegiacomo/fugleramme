@@ -17,8 +17,10 @@ def test_update_persists_and_clamps(tmp_path):
     path = tmp_path / "settings.json"
     store = SettingsStore(path)
 
-    saved = store.update(panel="13.3", orientation="portrait", lookback_hours="6", kiosk_refresh_seconds="0")
-    assert saved.panel == "13.3"
+    saved = store.update(
+        web_resolution="1440p", orientation="portrait", lookback_hours="6", kiosk_refresh_seconds="0"
+    )
+    assert saved.web_resolution == "1440p"
     assert saved.orientation == "portrait"
     assert saved.lookback_hours == 6
     assert saved.kiosk_refresh_seconds == 1  # clamped up to the floor
@@ -30,9 +32,11 @@ def test_update_persists_and_clamps(tmp_path):
 
 def test_invalid_values_fall_back_to_defaults(tmp_path):
     path = tmp_path / "settings.json"
-    path.write_text(json.dumps({"panel": "9.9", "orientation": "sideways", "lookback_hours": "abc"}))
+    path.write_text(
+        json.dumps({"web_resolution": "9000p", "orientation": "sideways", "lookback_hours": "abc"})
+    )
     settings = SettingsStore(path).get()
-    assert settings.panel == "7.3"
+    assert settings.web_resolution == "1080p"
     assert settings.orientation == "landscape"
     assert settings.lookback_hours == 24
 
@@ -74,7 +78,7 @@ def test_oriented_swaps_only_for_portrait():
     assert Settings(orientation="landscape").oriented((480, 800)) == (800, 480)
 
 
-def test_resolution_from_panel_and_orientation():
-    assert Settings(panel="7.3").resolution() == (800, 480)
-    assert Settings(panel="13.3").resolution() == (1600, 1200)
-    assert Settings(panel="7.3", orientation="portrait").resolution() == (480, 800)
+def test_web_size_from_resolution_and_orientation():
+    assert Settings(web_resolution="1080p").web_size() == (1920, 1080)
+    assert Settings(web_resolution="720p").web_size() == (1280, 720)
+    assert Settings(web_resolution="1080p", orientation="portrait").web_size() == (1080, 1920)

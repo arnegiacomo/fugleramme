@@ -51,7 +51,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "inky", marker = "extra == 'panel'", specifier = ">=1.5" },
+    { name = "inky", marker = "extra == 'panel'", specifier = ">=2.2" },
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "pillow", specifier = ">=10.0" },
 ]
