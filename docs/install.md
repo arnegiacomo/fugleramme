@@ -64,6 +64,7 @@ sudo apt update && sudo apt install git
 git clone https://github.com/arnegiacomo/fugleramme.git ~/fugleramme
 cd ~/fugleramme
 ./setup.sh          # add -y to auto-accept dependency installs
+                    # add --skip-mic-check to bootstrap without the mic plugged in
 ```
 
 This installs missing deps, brings up BirdNET-Go, and enables the frame as a

@@ -37,31 +37,22 @@ See issue #7 for the full rationale.
 
 ## Deploy
 
-Pull the repo on the Pi and run one command:
+`setup.sh` brings the detector up as part of the appliance bootstrap - see the
+[install guide](../docs/install.md). Follow the logs with:
 
 ```bash
-./setup.sh          # add -y to auto-accept dependency installs
-```
-
-It installs anything missing (uv, docker, alsa-utils - prompting first), runs
-`uv sync`, generates the per-Pi `config.yaml` and prompts you to pick the ALSA
-capture device (auto-selected if there's only one), creates the persistent
-`detector/data` dir, brings up BirdNET-Go, and enables the `fugleramme-frame`
-systemd service (which reads BirdNET-Go's DB directly). To re-pick the mic later,
-run `./setup.sh --mic`. Follow the logs with:
-
-```bash
-journalctl -u fugleramme-frame -f            # frame
 docker logs -f birdnet-go                     # detector
+journalctl -u fugleramme-frame -f            # frame
 ```
 
 ## Deployment notes
 
 - **Image pin:** BirdNET-Go ships only nightlies; the compose pins a dated tag.
   Bump it deliberately after testing rather than tracking `nightly`.
-- **Mic device:** `setup.sh` picks the ALSA capture device from `arecord -l` and
-  writes a `plughw:CARD=<name>,DEV=<n>` entry into `config.yaml` (by card name, so
-  it survives reboots/replugs). Re-pick with `./setup.sh --mic`.
+- **Mic device:** `setup.sh` writes the first card from `arecord -l` into
+  `detector/.env` as `ALSA_CARD` (by card name, so it survives reboots/replugs),
+  making the USB mic ALSA's default - HDMI takes cards 0/1 and has no capture
+  stream. Which mic BirdNET-Go actually opens is picked in its own UI on `:8090`.
 - **Container user:** BirdNET-Go's entrypoint chowns `/config` and `/data`, so
   `setup.sh` runs it as the host user (`BIRDNET_UID`/`BIRDNET_GID` = `id -u`/`id -g`)
   to avoid leaving the bind-mounted `config`/`data` files owned by a foreign uid.

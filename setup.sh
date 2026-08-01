@@ -9,9 +9,12 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG="$REPO_ROOT/detector/config/config.yaml"
 ASSUME_YES=0
+SKIP_MIC_CHECK=0
 for arg in "$@"; do
   case "$arg" in
     -y|--yes) ASSUME_YES=1 ;;
+    --skip-mic-check) SKIP_MIC_CHECK=1 ;;
+    *) echo "unknown argument: $arg (accepts -y/--yes, --skip-mic-check)" >&2; exit 1 ;;
   esac
 done
 
@@ -131,8 +134,12 @@ ensure_deps() {
 }
 
 converge_detector() {
-  echo "==> mic pre-flight"
-  "$REPO_ROOT/detector/preflight.sh"
+  if [[ $SKIP_MIC_CHECK == 1 ]]; then
+    echo "==> mic pre-flight (skipped)"
+  else
+    echo "==> mic pre-flight"
+    "$REPO_ROOT/detector/preflight.sh"
+  fi
 
   echo "==> config"
   ensure_config

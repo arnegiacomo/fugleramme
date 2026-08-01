@@ -44,7 +44,7 @@ Clone the repo on the Pi and run the idempotent one-command bootstrap:
 
 It installs any missing deps, brings up BirdNET-Go (container + mic), and enables
 the frame as a systemd service that pushes to the Inky panel and serves the kiosk
-on `:8080`. Details: [`detector/README.md`](detector/README.md). 
+on `:8080`. From a blank SD card, start at the [install guide](docs/install.md).
 
 Want to update? Just pull and run ./setup.sh again
 

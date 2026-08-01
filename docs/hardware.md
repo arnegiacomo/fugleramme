@@ -29,7 +29,7 @@ The build this project runs on.
 - **Pi 4** should work but is untested.
 - **Other USB mics** are fine, as long as they go in a USB-A port - the USB-C
   port is the power input. `setup.sh` picks the capture device from `arecord -l`,
-  so anything ALSA sees will do. Re-pick later with `./setup.sh --mic`.
+  so anything ALSA sees will do; re-run it after swapping mics.
 - **NVMe instead of microSD** works and spares the card BirdNET-Go's constant
   writes, but we don't recommend it here: the HAT adds cost, height and heat for
   a workload that is mostly idle - and at the time of writing NVMe drives are
