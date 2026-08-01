@@ -25,6 +25,20 @@ in `/boot/firmware/config.txt` fighting the package - there should be one at mos
 resolves to the Wi-Fi address. Disable any VPN - they tend to swallow local
 subnets.
 
+## apt can't resolve deb.debian.org
+
+The Pi has no route out. The USB link only joins your laptop and the Pi, so share
+the laptop's connection over it:
+
+- **macOS**: System Settings → General → Sharing → Internet Sharing. Share from
+  your active connection, to **Raspberry Pi USB Gadget**.
+- **Windows**: enable ICS, per the
+  [rpi-usb-gadget README](https://github.com/raspberrypi/rpi-usb-gadget?tab=readme-ov-file#windows-setup--troubleshooting-ics--rndis).
+
+**SSH dies the moment sharing is enabled.** Its DHCP replaces `10.12.194.1` with
+a leased address. Reconnect as `<host>.local`, or find the address on macOS with
+`cat /var/db/dhcpd_leases`.
+
 ## Laptop loses internet with the cable plugged in
 
 The Pi hands out a default route over USB and the laptop prefers it over Wi-Fi.
