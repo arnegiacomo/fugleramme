@@ -32,7 +32,7 @@ See issue #7 for the full rationale.
 | File | Purpose |
 | --- | --- |
 | `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db bind-mounted from `./data` (persistent), web UI on `:8090` |
-| `config/config.yaml.template` | Tracked template; `setup.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, clips off, SQLite at `/data/birdnet.db` |
+| `config/config.yaml.template` | Tracked template; `setup.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, clips off, SQLite at `/data/birdnet.db`, log levels pinned to `info` |
 | `preflight.sh` | Fatal check that an ALSA capture device exists |
 
 ## Deploy
@@ -70,3 +70,7 @@ docker logs -f birdnet-go                     # detector
   `getent group audio`.
 - **Location:** lat/lon is hardcoded to Bergen here; the admin panel (#2) will
   own it later.
+- **Logs are in RAM (`tmpfs`), and go on restart.** BirdNET-Go defaults all 23
+  modules to `debug`, rotating at 100MB and keeping 10 - a ~26GB ceiling that
+  kills an SD card. The template pins them to `info`; the compose keeps
+  `/data/logs` and the HLS segments off the disk.

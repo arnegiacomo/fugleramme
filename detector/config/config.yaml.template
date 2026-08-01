@@ -22,3 +22,38 @@ output:
   sqlite:
     enabled: true
     path: /data/birdnet.db
+
+# BirdNET-Go defaults every module to debug, which cost ~82MB/day. default_level
+# alone will not do it - the per-module defaults outrank it, so each is named.
+# Flip one back to debug to troubleshoot that module.
+logging:
+  default_level: info
+  file_output:
+    max_size: 10             # MB before rotation; modules inherit these caps
+    max_age: 7
+    max_rotated_files: 2
+    compress: true
+  modules:
+    access: {level: info}
+    analysis: {level: info}
+    api: {level: info}
+    audio: {level: info}
+    auth: {level: info}
+    backup: {level: info}
+    birdnet: {level: info}
+    birdweather: {level: info}
+    config: {level: info}
+    datastore: {level: info}
+    diskmanager: {level: info}
+    ebird: {level: info}
+    events: {level: info}
+    imageprovider: {level: info}
+    monitor: {level: info}
+    mqtt: {level: info}
+    notifications: {level: info}
+    securefs: {level: info}
+    security: {level: info}
+    spectrogram: {level: info}
+    support: {level: info}
+    telemetry: {level: info}
+    weather: {level: info}
