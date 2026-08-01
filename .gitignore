@@ -24,3 +24,6 @@ detector/config/config.yaml
 
 # Per-Pi container env (UID/GID/ALSA card), written by setup.sh
 detector/.env
+
+# Built docs site
+site/

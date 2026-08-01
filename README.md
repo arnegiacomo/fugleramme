@@ -5,6 +5,8 @@ Built on top of [BirdNET-Go](https://github.com/tphakala/birdnet-go), which runs
 the mic and the BirdNET classifier and owns all detection config. Fugleramme reads
 its detections and renders the recently-seen birds as a collage on an [Inky-Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel, and serves the same view as a web kiosk.
 
+Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://arnegiacomo.dev/fugleramme/)**
+
 ## Art
 
 The birds are cut-outs from historic, public-domain natural-history drawings,

@@ -34,3 +34,8 @@ dev = [
     "pytest>=8.0",
     "watchfiles>=0.24",
 ]
+# Not in the default groups, so `uv sync` on the Pi stays lean. CI and
+# `uv run --group docs mkdocs serve` pull it in explicitly.
+docs = [
+    "mkdocs-material>=9.5",
+]

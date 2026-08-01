@@ -1,0 +1,34 @@
+site_name: Fugleramme
+site_description: E-ink bird frame for Raspberry Pi
+site_url: https://arnegiacomo.dev/fugleramme/
+repo_url: https://github.com/arnegiacomo/fugleramme
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+  features:
+    - navigation.sections
+    - content.code.copy
+
+markdown_extensions:
+  - tables
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Hardware: hardware.md
+  - Install: install.md
+  - Operations: operations.md
+  - Troubleshooting: troubleshooting.md
