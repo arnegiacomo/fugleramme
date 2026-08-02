@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.8.0 (2026-08-02)
+
+### Features
+
+- #16 bind the panel buttons to presentation settings
+  ([`a5dda4c`](https://github.com/arnegiacomo/fugleramme/commit/a5dda4c4e2deca19ddb41c38f228e27597351d7e))
+
+
 ## v0.7.0 (2026-08-02)
 
 ### Features
