@@ -18,6 +18,9 @@ for arg in "$@"; do
   esac
 done
 
+# From the source, not the venv - this runs before uv sync.
+VERSION=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' "$REPO_ROOT/src/fugleramme/__init__.py")
+
 have() { command -v "$1" >/dev/null 2>&1; }
 
 confirm() {
@@ -195,6 +198,7 @@ converge_frame() {
 }
 
 require_linux
+echo "==> fugleramme v$VERSION"
 ensure_deps
 converge_detector
 converge_frame

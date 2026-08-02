@@ -19,6 +19,7 @@ import signal
 import threading
 import time
 
+from . import __version__
 from .collage import gather_entries, render_collage, render_rng
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
@@ -38,6 +39,8 @@ def run(config: Config) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     # `kill -USR1 <pid>` dumps every thread's stack to the journal - for when it wedges.
     faulthandler.register(signal.SIGUSR1, all_threads=True)
+
+    log.info("Fugleramme v%s", __version__)
 
     panel = init_panel()
     store = SettingsStore(config.config_path)

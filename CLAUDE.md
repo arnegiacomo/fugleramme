@@ -49,6 +49,7 @@ The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own norm
 - Commit directly to `main` - single-person appliance, no branches or PRs
 - Conventional commits, short messages, reference the issue as `#1` (not `#gh-1`): e.g. `feat: #1 add render`
 - English for code, comments, and commits, even though the UI strings are Norwegian
+- Commit types drive releases: python-semantic-release tags every push to `main` where a `feat` (minor) or `fix`/`perf` (patch) landed, bumps `pyproject.toml` + `__init__.py`, and writes `CHANGELOG.md`. Version shows in the admin corner, the startup log, and `setup.sh`
 
 ## Docs
 
