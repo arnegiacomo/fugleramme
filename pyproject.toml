@@ -1,6 +1,6 @@
 [project]
 name = "fugleramme"
-version = "0.2.0"
+version = "0.3.0"
 description = "E-ink bird frame: renders the latest BirdNET detection to an Inky panel and serves a stats dashboard."
 readme = "README.md"
 requires-python = ">=3.11"

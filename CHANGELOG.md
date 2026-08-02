@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.0 (2026-08-02)
+
+### Features
+
+- #15 pin analysis defaults in the detector config template
+  ([`90dbe6d`](https://github.com/arnegiacomo/fugleramme/commit/90dbe6d43c9db97db34473316bc0ebdaf2d6a715))
+
+
 ## v0.2.0 (2026-08-02)
 
 ### Features
