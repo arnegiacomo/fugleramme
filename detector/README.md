@@ -2,10 +2,12 @@
 
 The detector half of the appliance: a USB mic feeds **BirdNET-Go**, which
 classifies bird sounds and logs them to its own SQLite. The frame reads that DB
-directly (issue #7); the two halves meet only at the DB file.
+directly (issue #7); the halves meet at the DB file, plus BirdNET-Go's API for
+species names.
 
 ```
 USB mic --> BirdNET-Go (container) --> birdnet.db (disk/NVMe, bind mount) --> frame (#1, read-only)
+                                   --> :8090 /api/v2 (species names) ----------^
 ```
 
 ## The frame reads BirdNET-Go's DB directly
@@ -26,6 +28,16 @@ Two decisions make the direct read work:
   *host* and reads the same file; named volumes aren't cleanly host-accessible.
 
 See issue #7 for the full rationale.
+
+## Species names come over the API, not the DB
+
+BirdNET-Go's `labels` table holds the scientific name alone - no common names, no
+locale table - so the frame's language settings read them from the container's
+own API on `:8090` instead: `/api/v2/settings/locales` for the list,
+`/api/v2/species/dictionary/<code>` for `{scientific name: common name}`. Only
+some locales have a dictionary, so the admin offers the ones a `HEAD` confirms.
+Dictionaries are cached under `data/names/` and revalidated by ETag; with the
+container stopped and nothing cached, names fall back to the scientific name.
 
 ## Layout
 

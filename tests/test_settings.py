@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 
 from fugleramme.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
+from fugleramme.languages import NONE, SCIENTIFIC
 from fugleramme.settings import Settings, SettingsStore
 
 
@@ -81,6 +82,24 @@ def test_label_font_and_size_fall_back_to_defaults(tmp_path):
     assert settings.label_font == DEFAULT_FONT
     assert settings.label_size == DEFAULT_LABEL_SIZE
     assert settings.show_names is False
+
+
+def test_language_codes_are_kept_by_shape_not_by_availability(tmp_path):
+    path = tmp_path / "s.json"
+    # Any locale-code shape is kept: which ones BirdNET-Go serves is a render-time
+    # question (like `sources`), so a container that is down can't reset the setting.
+    path.write_text(json.dumps({"primary_language": "NB", "secondary_language": "pt-br"}))
+    settings = SettingsStore(path).get()
+    assert settings.primary_language == "nb"
+    assert settings.secondary_language == "pt-br"
+
+
+def test_bad_languages_fall_back_and_a_primary_is_always_set(tmp_path):
+    path = tmp_path / "s.json"
+    path.write_text(json.dumps({"primary_language": "", "secondary_language": "norwegian"}))
+    settings = SettingsStore(path).get()
+    assert settings.primary_language == SCIENTIFIC  # required; empty means scientific
+    assert settings.secondary_language == NONE
 
 
 def test_oriented_swaps_only_for_quarter_turns():

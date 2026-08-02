@@ -1,8 +1,10 @@
-"""Seed a BirdNET-Go-shaped fixture DB for a hardware-free dev loop.
+"""Seed BirdNET-Go-shaped fixtures for a hardware-free dev loop.
 
 Writes the minimal slice the read adapter joins on (`label_types`, `labels`,
-`detections`) with fake detections, standing in for BirdNET-Go on the Mac.
-Re-runnable: appends detections, reusing the reference rows.
+`detections`) with fake detections, plus the species-name cache the language
+settings read - together, everything the frame would otherwise need a
+running BirdNET-Go for. Re-runnable: appends detections, reusing the reference
+rows, and leaves an existing names cache alone.
 
 Usage:
     python -m fugleramme.seed --count 20      # writes to detector/data/birdnet.db
@@ -11,12 +13,14 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import random
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .config import DEFAULT_DB_PATH
+from .config import DEFAULT_CONFIG_PATH, DEFAULT_DB_PATH
+from .languages import cache_path
 
 # Common Norwegian species; some without artwork (Cyanistes, Erithacus), which the collage omits.
 SPECIES = [
@@ -29,6 +33,31 @@ SPECIES = [
     "Erithacus rubecula",
     "Corvus cornix",
 ]
+
+# Two languages for those species, as BirdNET-Go's own dictionaries give them:
+# lowercase in Norwegian, titled in English. code -> (display name, {species: name})
+NAMES: dict[str, tuple[str, dict[str, str]]] = {
+    "nb": ("Norwegian", {
+        "Turdus merula": "svarttrost",
+        "Parus major": "kjøttmeis",
+        "Fringilla coelebs": "bokfink",
+        "Pica pica": "skjære",
+        "Passer domesticus": "gråspurv",
+        "Cyanistes caeruleus": "blåmeis",
+        "Erithacus rubecula": "rødstrupe",
+        "Corvus cornix": "kråke",
+    }),
+    "en": ("English", {
+        "Turdus merula": "Eurasian Blackbird",
+        "Parus major": "Great Tit",
+        "Fringilla coelebs": "Common Chaffinch",
+        "Pica pica": "Eurasian Magpie",
+        "Passer domesticus": "House Sparrow",
+        "Cyanistes caeruleus": "Eurasian Blue Tit",
+        "Erithacus rubecula": "European Robin",
+        "Corvus cornix": "Hooded Crow",
+    }),
+}
 
 # Minimal slice of BirdNET-Go's normalized schema - only the columns db.py reads.
 _SCHEMA = """
@@ -95,14 +124,52 @@ def seed(path: Path, count: int) -> int:
         conn.close()
 
 
+def seed_names(cache_dir: Path, force: bool = False) -> list[str]:
+    """Write the names cache languages.py reads, so a container-less loop still
+    has languages. Returns the files written.
+
+    The blank ETag is deliberate: languages.py refetches unconditionally, so the
+    first real BirdNET-Go to answer replaces the fixture with its own 6.5k names.
+    Existing files are kept unless forced - a fetched cache is the better copy.
+    """
+    written = []
+    files = {"languages": {"languages": {code: display for code, (display, _) in NAMES.items()}}}
+    files |= {code: {"etag": "", "names": names} for code, (_, names) in NAMES.items()}
+    for name, payload in files.items():
+        path = cache_path(cache_dir, name)
+        if path.exists() and not force:
+            continue
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+        written.append(name)
+    return written
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
     parser.add_argument("--count", type=int, default=20)
+    parser.add_argument(
+        "--names", action=argparse.BooleanOptionalAction, default=True,
+        help="also seed the species-name cache",
+    )
+    parser.add_argument(
+        "--names-dir", type=Path, default=DEFAULT_CONFIG_PATH.parent,
+        help="where the names cache goes: the settings file's directory, as the frame reads it",
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="replace an existing names cache"
+    )
     args = parser.parse_args()
 
     n = seed(args.db, args.count)
     print(f"seeded {n} detections into {args.db}")
+    if args.names:
+        written = seed_names(args.names_dir, args.force)
+        print(
+            f"seeded names ({', '.join(written)}) under {args.names_dir}" if written
+            else f"names cache already present under {args.names_dir}"
+        )
 
 
 if __name__ == "__main__":

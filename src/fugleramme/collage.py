@@ -9,9 +9,9 @@ the centre, so big birds land in the middle; the whole set is then scaled to
 fill the canvas.
 
 Species with no artwork are omitted (there is nothing to draw for them once
-names are off). The scientific-name label is an admin toggle, on by default;
-it packs as part of its bird, tucked up under the silhouette, so a name can
-never land on a neighbour or clip.
+names are off). The name label is an admin toggle, on by default, and reads in
+the admin's chosen language(s); it packs as part of its bird, tucked up under
+the silhouette, so a name can never land on a neighbour or clip.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import logging
 import math
 import random
 import threading
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -32,6 +32,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from . import fonts
 from .config import REPO_ROOT
 from .db import Database
+from .languages import Namer
 from .names import image_for
 from .paper import PAD, TARGET_PAPER, paper_texture, process_sprite
 from .sizes import SIZE_EXPONENT, mass_of
@@ -51,6 +52,7 @@ _STEP = 6
 
 _LABEL_MIN_PX = 11
 _LABEL_CUTOFF = 110    # alpha threshold when flattening a label for the panel
+_LINE_SPACING = 0.1    # extra leading between a label's two lines, em
 _ATTEMPTS = 20
 
 
@@ -101,10 +103,19 @@ class _Sprite:
 
 def _label(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:
     """The name as an "L" alpha mask, +1px so the italic's overhang is not shaved.
-    Flat drops the antialiasing, which would otherwise dither into colour speckle."""
-    x0, y0, x1, y1 = font.getbbox(text)
-    mask = Image.new("L", (x1 - x0 + 2, y1 - y0 + 2), 0)
-    ImageDraw.Draw(mask).text((1 - x0, 1 - y0), text, font=font, fill=255)
+    Newlines stack centred (a second language) on the text layout's own
+    baselines - separately trimmed masks would sit unevenly. Flat drops the
+    antialiasing, which would otherwise dither into colour speckle."""
+    spacing = round(font.size * _LINE_SPACING)
+    measure = ImageDraw.Draw(Image.new("L", (1, 1)))
+    x0, y0, x1, y1 = measure.multiline_textbbox(
+        (0, 0), text, font=font, spacing=spacing, align="center"
+    )
+    # Ceil: a multi-line bbox is fractional, and a short box shaves the text.
+    mask = Image.new("L", (math.ceil(x1 - x0) + 2, math.ceil(y1 - y0) + 2), 0)
+    ImageDraw.Draw(mask).multiline_text(
+        (1 - x0, 1 - y0), text, font=font, fill=255, spacing=spacing, align="center"
+    )
     return mask.point(lambda v: 255 if v > _LABEL_CUTOFF else 0) if flat else mask
 
 
@@ -203,6 +214,7 @@ def _layout(
     font_key: str | None,
     label_px: int,
     flat: bool,
+    label_text: Callable[[str], str] = str,
 ):
     """Shrink the set to the first size where every bird, name included, fits.
     Names have to shrink too: a fixed-size name never yields, so a full page of
@@ -215,7 +227,7 @@ def _layout(
             px = max(_LABEL_MIN_PX, round(label_px * shrink))
             if px != last_px:
                 font = fonts.load(font_key, px)
-                labels = [_label(arts[i][0], font, flat) for i in order]
+                labels = [_label(label_text(arts[i][0]), font, flat) for i in order]
                 last_px, gap = px, round(px * 0.35)
         sprites = []
         for n, i in enumerate(order):
@@ -239,11 +251,13 @@ def render_collage(
     textured: bool = True,
     font_key: str = fonts.DEFAULT_FONT,
     label_size: str = fonts.DEFAULT_LABEL_SIZE,
+    label_text: Callable[[str], str] = str,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
     textured: paper grain for the web, flat paper for the panel, whose dither
     would otherwise turn the grain into noise. It also picks the label ink.
+    label_text: scientific name -> what the label reads; str leaves it alone.
     """
     width, height = resolution
     canvas = paper_texture(width, height) if textured else Image.new("RGB", (width, height), TARGET_PAPER)
@@ -266,7 +280,10 @@ def render_collage(
     )
     args = (arts, order, weights, flips, base, width, height)
     label_px = _label_px(width, height, label_size)
-    placed = _layout(*args, font_key if show_names else None, label_px, flat=not textured)
+    placed = _layout(
+        *args, font_key if show_names else None, label_px,
+        flat=not textured, label_text=label_text,
+    )
     if placed is None and show_names:
         log.warning("No layout fits %d species with names at %dx%d", len(arts), width, height)
         placed = _layout(*args, None, label_px, flat=not textured)  # birds beat blank paper
@@ -343,10 +360,14 @@ def collage_key(
     lookback_hours: int = 24,
     font_key: str = fonts.DEFAULT_FONT,
     label_size: str = fonts.DEFAULT_LABEL_SIZE,
+    namer: Namer | None = None,
 ) -> tuple:
     """Everything the collage is a function of: the cache key, and what the kiosk polls."""
     species = tuple(name for name, _ in db.species_since(lookback_hours))
-    return (species or _EMPTY, tuple(sources), resolution, show_names, font_key, label_size)
+    return (
+        species or _EMPTY, tuple(sources), resolution, show_names, font_key, label_size,
+        namer.key if namer else (),
+    )
 
 
 def collage_token(key: tuple) -> str:
@@ -364,6 +385,7 @@ def collage_png_bytes(
     lookback_hours: int = 24,
     font_key: str = fonts.DEFAULT_FONT,
     label_size: str = fonts.DEFAULT_LABEL_SIZE,
+    namer: Namer | None = None,
 ) -> bytes:
     """Render the current collage to PNG bytes for the HTTP endpoint.
 
@@ -378,7 +400,9 @@ def collage_png_bytes(
     """
     global _cache
     with _cache_lock:
-        key = collage_key(db, sources, resolution, show_names, lookback_hours, font_key, label_size)
+        key = collage_key(
+            db, sources, resolution, show_names, lookback_hours, font_key, label_size, namer
+        )
         if _cache is not None and _cache[0] == key:
             return _cache[1]
 
@@ -390,6 +414,7 @@ def collage_png_bytes(
             image = render_collage(
                 gather_entries(db, images_dir, sources, rng, lookback_hours),
                 resolution, show_names, rng, font_key=font_key, label_size=label_size,
+                label_text=namer.label if namer else str,
             )
 
         buffer = io.BytesIO()

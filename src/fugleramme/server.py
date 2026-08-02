@@ -32,6 +32,7 @@ from .collage import collage_key, collage_png_bytes, collage_token, render_rng
 from .config import BIRDNET_PORT, DOCS_URL, WEB_RESOLUTIONS
 from .db import Database, Detection
 from .fonts import FONTS, LABEL_SIZES
+from .languages import NONE, Namer, catalog, namer, ordered
 from .names import available_sources, image_for, resolve, variants_for
 from .panel import Panel
 from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, SettingsStore, merged
@@ -158,6 +159,21 @@ def _species_li(name: str, pick: Path | None, candidates: list[Path]) -> str:
     return f'<li>{name} <small>{note}</small></li>'
 
 
+def _language_select(
+    field: str, languages: list[tuple[str, str]], selected: str, optional: bool = False
+) -> str:
+    """A language dropdown, BirdNET-Go's offering in preference order. A saved code
+    it is not serving stays selectable, so an outage cannot quietly reset the
+    frame's language on the next Save."""
+    items = [(NONE, "None")] if optional else []
+    items += [(code, name) for code, name in languages if code != NONE]
+    if selected not in dict(items):
+        items.append((selected, f"{selected} (unavailable)"))
+    labels = dict(items)
+    codes = [code for code, _ in items]
+    return f'<select name="{field}">{_options(codes, selected, labels.get)}</select>'
+
+
 def _lan_address() -> str:
     host = socket.gethostname()
     if "." not in host:
@@ -230,6 +246,8 @@ def _admin_html(
     active: list[str],
     status: Status,
     data_dir: Path,
+    languages: list[tuple[str, str]],
+    name_of: Namer,
 ) -> str:
     resolutions = _options(
         WEB_RESOLUTIONS,
@@ -253,7 +271,11 @@ def _admin_html(
     names_field = (
         f'<div class="field"><span>Species names</span>'
         f'<label class="src"><input type="checkbox" name="show_names"'
-        f'{" checked" if settings.show_names else ""}> Show scientific names</label>'
+        f'{" checked" if settings.show_names else ""}> Show names on the collage</label>'
+        f'<label class="sub"><small>Language</small>'
+        f'{_language_select("primary_language", languages, settings.primary_language)}</label>'
+        f'<label class="sub"><small>Second language (optional)</small>'
+        f'{_language_select("secondary_language", languages, settings.secondary_language, optional=True)}</label>'
         f'<label class="sub"><small>Typeface</small><select name="label_font">'
         f'{_options(FONTS, settings.label_font, lambda k: FONTS[k][0])}</select></label>'
         f'<label class="sub"><small>Text size</small><select name="label_size">'
@@ -265,11 +287,16 @@ def _admin_html(
         f"detected · {panel_size[0]}×{panel_size[1]}" if panel_size
         else "not detected (web-only)"
     )
-    last = f"{latest.scientific_name} · {_stamp(latest.detected_at)}" if latest else "none yet"
+    last = (
+        f"{name_of.inline(latest.scientific_name)} · {_stamp(latest.detected_at)}"
+        if latest else "none yet"
+    )
     rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
     if status.push_error:
         rendered += f" · panel push failing ({status.push_error})"
-    rows = "".join(_species_li(*s) for s in species) or '<li class="empty">none yet</li>'
+    rows = "".join(
+        _species_li(name_of.inline(name), pick, candidates) for name, pick, candidates in species
+    ) or '<li class="empty">none yet</li>'
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -513,6 +540,11 @@ def make_handler(
             self.end_headers()
             self.wfile.write(png)
 
+        def _namer(self, settings: Settings) -> Namer:
+            return namer(
+                settings.primary_language, settings.secondary_language, store.path.parent
+            )
+
         def do_GET(self):
             route = urlparse(self.path).path
             settings = store.get()
@@ -527,6 +559,7 @@ def make_handler(
                 png = collage_png_bytes(
                     db, images_dir, sources, settings.web_size(), settings.show_names,
                     settings.lookback_hours, settings.label_font, settings.label_size,
+                    self._namer(settings),
                 )
                 self._send_png(png)
             elif route == "/state":
@@ -534,7 +567,7 @@ def make_handler(
                 key = collage_key(
                     db, resolve(settings.sources, images_dir), settings.web_size(),
                     settings.show_names, settings.lookback_hours, settings.label_font,
-                    settings.label_size,
+                    settings.label_size, self._namer(settings),
                 )
                 body = json.dumps(
                     {"token": collage_token(key), "refresh": settings.kiosk_refresh_seconds}
@@ -555,6 +588,7 @@ def make_handler(
                     settings, species, db.latest(),
                     panel.resolution if panel else None, available, sources,
                     status, db.path.parent,
+                    ordered(catalog(store.path.parent)), self._namer(settings),
                 )
                 self._send(200, html.encode(), "text/html; charset=utf-8")
             elif route == "/update":

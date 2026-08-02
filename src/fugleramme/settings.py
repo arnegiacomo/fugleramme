@@ -12,12 +12,14 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .config import DEFAULT_WEB_RESOLUTION, WEB_RESOLUTIONS
 from .fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
+from .languages import NONE, SCIENTIFIC
 
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
 ROTATIONS = (0, 90, 180, 270)
@@ -46,6 +48,10 @@ class Settings:
     sources: tuple[str, ...] = ()
     auto_update: bool = False
     show_names: bool = True
+    # Species-name languages: BirdNET-Go dictionary locales, resolved
+    # against its API at render time like `sources`.
+    primary_language: str = SCIENTIFIC
+    secondary_language: str = NONE
     label_font: str = DEFAULT_FONT
     label_size: str = DEFAULT_LABEL_SIZE
 
@@ -89,6 +95,18 @@ def _sources(value) -> tuple[str, ...]:
     return tuple(dict.fromkeys(s for s in value if isinstance(s, str) and s))
 
 
+_LOCALE_RE = re.compile(r"[a-z]{2,3}(-[a-z]{2})?")
+
+
+def _language(value, default: str) -> str:
+    """A locale-code shape, SCIENTIFIC, or NONE; availability is settled at
+    render time, not here."""
+    if not isinstance(value, str):
+        return default
+    value = value.strip().lower()
+    return value if value in (NONE, SCIENTIFIC) or _LOCALE_RE.fullmatch(value) else default
+
+
 def _coerce(raw: dict) -> Settings:
     """Build validated Settings from an untrusted dict, filling defaults and
     clamping out-of-range values. Unknown keys are ignored."""
@@ -109,6 +127,9 @@ def _coerce(raw: dict) -> Settings:
         sources=_sources(raw.get("sources")),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
         show_names=_as_bool(raw.get("show_names"), d.show_names),
+        # A primary language is required: an empty pick means the scientific name.
+        primary_language=_language(raw.get("primary_language"), d.primary_language) or SCIENTIFIC,
+        secondary_language=_language(raw.get("secondary_language"), d.secondary_language),
         label_font=_one_of(str(raw.get("label_font", d.label_font)), FONTS, d.label_font),
         label_size=_one_of(str(raw.get("label_size", d.label_size)), LABEL_SIZES, d.label_size),
     )

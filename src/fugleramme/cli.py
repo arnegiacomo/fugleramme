@@ -22,6 +22,7 @@ from .config import (
     Config,
 )
 from .db import Database
+from .languages import namer
 from .names import resolve
 from .service import run
 from .settings import SettingsStore
@@ -63,9 +64,13 @@ def main(argv: list[str] | None = None) -> None:
         sources = resolve(settings.sources, config.images_dir)
         rng = render_rng([name for name, _ in db.species_since(settings.lookback_hours)])
         entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
+        name_of = namer(
+            settings.primary_language, settings.secondary_language, config.config_path.parent
+        )
         render_collage(
             entries, settings.web_size(), settings.show_names, rng,
             font_key=settings.label_font, label_size=settings.label_size,
+            label_text=name_of.label,
         ).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")

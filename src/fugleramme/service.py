@@ -23,6 +23,7 @@ from . import __version__, updates
 from .collage import gather_entries, render_collage, render_rng
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
+from .languages import namer
 from .names import resolve
 from .panel import init_panel
 from .render import dither
@@ -87,9 +88,12 @@ def run(config: Config) -> None:
         species = db.species_since(settings.lookback_hours)
         sources = resolve(settings.sources, config.images_dir)
         size = settings.oriented(panel.resolution if panel else FALLBACK_PANEL_RESOLUTION)
+        name_of = namer(
+            settings.primary_language, settings.secondary_language, config.config_path.parent
+        )
         key = (
             tuple(species), size, tuple(sources), settings.rotation,
-            settings.show_names, settings.label_font, settings.label_size,
+            settings.show_names, settings.label_font, settings.label_size, name_of.key,
         )
         if key != last_key:
             rng = render_rng([name for name, _ in species])
@@ -97,7 +101,7 @@ def run(config: Config) -> None:
             collage = render_collage(
                 entries, size, settings.show_names, rng,
                 textured=False, font_key=settings.label_font,
-                label_size=settings.label_size,
+                label_size=settings.label_size, label_text=name_of.label,
             )
             panel_image = dither(collage)
             panel_image.save(config.output_path)

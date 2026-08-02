@@ -68,6 +68,20 @@ def test_panel_names_are_stamped_in_exact_palette_black():
         assert canvas.getpixel((2, 3)) == expected
 
 
+def test_a_second_language_stacks_centred_under_the_first():
+    font = fonts.load(fonts.DEFAULT_FONT, 26)
+    one = _label("Svarttrost", font, flat=True)
+    two = _label("Svarttrost\n(Turdus merula)", font, flat=True)
+
+    assert two.height > one.height * 2  # two lines plus the leading between them
+    assert two.width > one.width       # the wider line sets the box
+
+    rows = np.asarray(two).any(axis=1)
+    inked = rows.nonzero()[0]
+    assert not rows[inked.min():inked.max()].all()  # blank rows separate the lines
+    assert np.asarray(two).nonzero()[1].mean() == pytest.approx(two.width / 2, abs=2)
+
+
 def test_label_size_scales_with_the_short_side():
     assert _label_px(1600, 1200, "small") < _label_px(1600, 1200, "xlarge")
     assert _label_px(1600, 1200, "medium") == _label_px(1200, 1600, "medium")
