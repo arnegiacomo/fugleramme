@@ -1,3 +1,28 @@
 # Operations
 
-Services, logs and updates. To be written.
+Services and logs. To be written.
+
+## Updates
+
+The frame checks GitHub hourly for new releases and shows it in the admin
+page's System box. Press **Install** to update, or toggle on *Install new releases automatically* so that the frame updates itself.
+
+Installing takes a minute. The frame restarts itself and comes back on the new
+version. If an update fails, the
+reason shows in place of the version and the frame keeps running as it was.
+
+The frame has to be online to check for or install updates, whichever way you do
+it. The System box tells you whether it is.
+
+### Over SSH
+
+To update by hand, using the version shown in the admin page:
+
+```bash
+ssh <user>@<host>.local
+cd ~/fugleramme
+git fetch --tags
+git checkout <version>
+uv sync
+sudo systemctl restart fugleramme-frame
+```

@@ -33,6 +33,10 @@ BIRDNET_PORT = 8090
 # Published docs site (mkdocs.yml site_url).
 DOCS_URL = "https://arnegiacomo.dev/fugleramme/"
 
+# Self-update source. HTTPS, not the ssh origin: a service fetch has no agent.
+REPO_HTTPS_URL = "https://github.com/arnegiacomo/fugleramme.git"
+RELEASES_API = "https://api.github.com/repos/arnegiacomo/fugleramme/releases/latest"
+
 # Repo root: src/fugleramme/config.py -> repo root is three parents up.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 

@@ -27,7 +27,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import __version__
+from . import __version__, updates
 from .collage import collage_key, collage_png_bytes, collage_token, render_rng
 from .config import BIRDNET_PORT, DOCS_URL, WEB_RESOLUTIONS
 from .db import Database, Detection
@@ -179,6 +179,27 @@ def _source_label(name: str) -> str:
     return _SOURCE_LABELS.get(name, name.replace("-", " ").title())
 
 
+def _action(action: str, label: str) -> str:
+    return (
+        f'<form class="inline" method="post" action="/admin">'
+        f'<input type="hidden" name="action" value="{action}">'
+        f'<button type="submit">{label}</button></form>'
+    )
+
+
+def _update_dd(status: Status) -> str:
+    if status.updating:
+        return "installing…"
+    if status.update_error:
+        return f'<span class="bad">{status.update_error}</span>{_action("check", "Retry")}'
+    if status.update_available:
+        return (
+            f'<span class="warn">{status.update_available} available</span>'
+            f'{_action("update", "Install")}'
+        )
+    return f'up to date{_action("check", "Check")}'
+
+
 def _checkboxes(available: list[str], active: list[str]) -> str:
     return "".join(
         f'<label class="src"><input type="checkbox" name="sources" value="{s}"'
@@ -210,6 +231,11 @@ def _admin_html(
     sources_field = (
         f'<div class="field"><span>Artwork sources</span>'
         f"{_checkboxes(available, active)}</div>"
+    )
+    auto_update_field = (
+        f'<div class="field"><span>Updates</span>'
+        f'<label class="src"><input type="checkbox" name="auto_update"'
+        f'{" checked" if settings.auto_update else ""}> Install new releases automatically</label></div>'
     )
     w, h = settings.web_size()
     panel_status = (
@@ -252,9 +278,12 @@ def _admin_html(
   dl.status dt {{ color: #666; }}
   dl.status dd {{ margin: 0; }}
   time {{ border-bottom: 1px dotted #bbb; cursor: help; }}
-  .ok, .bad {{ display: inline; font-weight: inherit; margin: 0; }}
+  .ok, .bad, .warn {{ display: inline; font-weight: inherit; margin: 0; }}
   .ok {{ color: #3a7d44; }}
   .bad {{ color: #a4392f; }}
+  .warn {{ color: #8a6d1f; }}
+  form.inline {{ display: inline; }}
+  form.inline button {{ font-size: 0.8rem; padding: 0.1rem 0.5rem; margin: 0 0 0 0.5rem; }}
   ul.species {{ list-style: none; padding: 0; margin: 0 0 1.75rem;
                display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, max-content));
                justify-content: start; gap: 0.15rem 2.5rem; }}
@@ -289,12 +318,14 @@ def _admin_html(
     <label><span>Kiosk poll <small>(seconds between checks)</small></span>
       <input type="number" name="kiosk_refresh_seconds" min="1" max="3600" value="{settings.kiosk_refresh_seconds}"></label>
     {sources_field}
+    {auto_update_field}
     <button type="submit">Save</button>
   </form>
   <aside class="side">
     <h2>System</h2>
     <dl class="status">
       <dt>Version</dt><dd>v{__version__}</dd>
+      <dt>Update</dt><dd>{_update_dd(status)}</dd>
       <dt>Inky panel</dt><dd>{panel_status}</dd>
       <dt>BirdNET-Go</dt><dd>{_state(_reachable("127.0.0.1", BIRDNET_PORT), "running", "unreachable")}</dd>
       <dt>Host</dt><dd>{_lan_address()}</dd>
@@ -409,11 +440,20 @@ def make_handler(
                 return
             length = int(self.headers.get("Content-Length", 0))
             form = parse_qs(self.rfile.read(length).decode())
-            # `sources` is a multi-value checkbox group (absent when all unchecked);
-            # the rest are single values. _coerce validates + clamps.
-            changes = {k: v[0] for k, v in form.items() if k != "sources"}
-            changes["sources"] = form.get("sources", [])
-            store.update(**changes)
+            action = form.get("action", [""])[0]
+            if action == "check":
+                status.update_error = None
+                status.update_available = updates.available(force=True)
+            elif action == "update" and status.update_available:
+                # The loop installs it: exiting mid-render or mid-push is not safe here.
+                status.update_requested = status.update_available
+            else:
+                # `sources` is a multi-value checkbox group (absent when all unchecked);
+                # an unchecked `auto_update` is absent too. _coerce validates + clamps.
+                changes = {k: v[0] for k, v in form.items() if k != "sources"}
+                changes["sources"] = form.get("sources", [])
+                changes["auto_update"] = "auto_update" in form
+                store.update(**changes)
             self.send_response(303)
             self.send_header("Location", "/admin")
             self.end_headers()

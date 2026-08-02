@@ -19,7 +19,7 @@ uv run pytest -q                            # run tests
 uv run pytest tests/test_artwork_names.py   # run a single test file
 ```
 
-Kiosk resolution, rotation, lookback window, and kiosk refresh are runtime settings in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The panel's own size is never a setting - it comes from the attached Inky. CLI flags are launch-only: `--db`, `--images`, `--config`, `--output`, `--host`, `--port`.
+Kiosk resolution, rotation, lookback window, kiosk refresh, and auto-update are runtime settings in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The panel's own size is never a setting - it comes from the attached Inky. CLI flags are launch-only: `--db`, `--images`, `--config`, `--output`, `--host`, `--port`.
 
 ## Architecture
 

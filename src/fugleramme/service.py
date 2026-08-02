@@ -19,7 +19,7 @@ import signal
 import threading
 import time
 
-from . import __version__
+from . import __version__, updates
 from .collage import gather_entries, render_collage, render_rng
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
@@ -34,6 +34,26 @@ log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 5  # one query per tick; re-renders only on change, so e-ink stays the bottleneck
 SHOW_NAMES = False  # bird names + language are #5
+
+
+def _update(status: Status, auto: bool) -> bool:
+    """Refresh the release check and install if asked. True once the tag is checked out."""
+    status.update_available = updates.available()
+    if auto and status.update_available and not status.update_error:
+        status.update_requested = status.update_available
+    if not status.update_requested:
+        return False
+    tag, status.update_requested = status.update_requested, None
+    status.updating = True
+    try:
+        updates.apply(tag)
+        log.info("Updated to %s, exiting for systemd to restart", tag)
+        return True
+    except Exception as exc:
+        log.exception("Update to %s failed", tag)
+        status.update_error = str(exc)
+        status.updating = False
+        return False
 
 
 def run(config: Config) -> None:
@@ -62,6 +82,8 @@ def run(config: Config) -> None:
     pending = None  # rendered but not yet on the glass; survives a failed push
     while True:
         settings = store.get()
+        if _update(status, settings.auto_update):
+            return  # new code is checked out; systemd restarts us into it
         species = db.species_since(settings.lookback_hours)
         sources = resolve(settings.sources, config.images_dir)
         size = settings.oriented(panel.resolution if panel else FALLBACK_PANEL_RESOLUTION)

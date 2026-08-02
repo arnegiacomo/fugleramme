@@ -19,6 +19,11 @@ class Status:
     started_at: datetime = field(default_factory=_now)
     rendered_at: datetime | None = None
     push_error: str | None = None
+    # Update state: the admin view writes `requested`, the loop does the work.
+    update_available: str | None = None
+    update_requested: str | None = None
+    updating: bool = False
+    update_error: str | None = None
 
     def rendered(self) -> None:
         self.rendered_at = _now()

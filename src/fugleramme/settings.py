@@ -44,6 +44,7 @@ class Settings:
     # Active artwork source folders; empty means "all present" (resolved against
     # the filesystem at render time, so it survives added/removed sources).
     sources: tuple[str, ...] = ()
+    auto_update: bool = False
 
     def oriented(self, resolution: tuple[int, int]) -> tuple[int, int]:
         """Apply the rotation's aspect to a landscape-native (w, h)."""
@@ -60,6 +61,14 @@ def _as_int(value, default: int, lo: int, hi: int) -> int:
         return max(lo, min(hi, int(value)))
     except (TypeError, ValueError):
         return default
+
+
+def _as_bool(value, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.lower() in ("1", "true", "on", "yes")
+    return default
 
 
 def _sources(value) -> tuple[str, ...]:
@@ -93,6 +102,7 @@ def _coerce(raw: dict) -> Settings:
             raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 1, 3600
         ),
         sources=_sources(raw.get("sources")),
+        auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
     )
 
 
