@@ -113,6 +113,16 @@ def _state(ok: bool, good: str, bad: str) -> str:
     return f'<span class="{"ok" if ok else "bad"}">{good if ok else bad}</span>'
 
 
+def _default_iface() -> str:
+    """Interface holding the default route. Linux only; the Mac dev loop gets nothing."""
+    try:
+        rows = Path("/proc/net/route").read_text().splitlines()[1:]
+    except OSError:
+        return ""
+    # Columns are Iface, Destination (hex, all-zero for the default route).
+    return next((f[0] for r in rows if len(f := r.split()) > 1 and f[1] == "00000000"), "")
+
+
 def _online() -> str:
     """Cached, so a page load never waits out a dead link twice in a minute."""
     global _online_cache
@@ -121,7 +131,8 @@ def _online() -> str:
         # Cloudflare DNS over TCP, by IP: no name lookup to hang on.
         ok = _reachable("1.1.1.1", 53)
         _online_cache = (time.monotonic(), ok)
-    return _state(ok, "online", "offline")
+    iface = _default_iface()
+    return _state(ok, "online", "offline") + (f" · {iface}" if iface else "")
 
 
 def _stamp(dt: datetime) -> str:
