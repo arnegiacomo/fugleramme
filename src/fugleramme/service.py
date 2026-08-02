@@ -42,8 +42,9 @@ def _update(status: Status, auto: bool) -> bool:
         status.update_requested = status.update_available
     if not status.update_requested:
         return False
-    tag, status.update_requested = status.update_requested, None
+    # updating first: the admin poll must never see a gap between the two flags.
     status.updating = True
+    tag, status.update_requested = status.update_requested, None
     try:
         updates.apply(tag)
         log.info("Updated to %s, exiting for systemd to restart", tag)

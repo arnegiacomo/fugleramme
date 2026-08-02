@@ -189,8 +189,9 @@ def _action(action: str, label: str) -> str:
 
 
 def _update_dd(status: Status) -> str:
-    if status.updating:
-        return "installing…"
+    # `requested` counts as installing: the loop only picks it up a tick later.
+    if status.updating or status.update_requested:
+        return '<span class="spinner inline"></span> installing…'
     if status.update_error:
         return f'<span class="bad">{status.update_error}</span>{_action("check", "Retry")}'
     if status.update_available:
@@ -317,6 +318,7 @@ def _admin_html(
   /* margin: undoes the page-wide `span` rule, which offsets it from the caption. */
   .spinner {{ width: 1.1rem; height: 1.1rem; margin: 0; border: 2px solid #ddd;
              border-top-color: #888; border-radius: 50%; animation: spin 0.8s linear infinite; }}
+  .spinner.inline {{ display: inline-block; vertical-align: -0.15rem; }}
   @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
   @media (prefers-reduced-motion: reduce) {{ .spinner {{ animation: none; }} }}
   @media (max-width: 40rem) {{
@@ -386,6 +388,22 @@ def _admin_html(
     if (y === null) return;
     sessionStorage.removeItem("scroll");
     window.scrollTo(0, Number(y));
+  }}
+
+  // An install ends with systemd restarting us, so the poll rides out a dead
+  // server and reloads once one answers with the work done - or failed.
+  if (document.querySelector(".spinner.inline")) {{
+    (function poll() {{
+      setTimeout(async () => {{
+        try {{
+          if (!(await (await fetch("/update", {{cache: "no-store"}})).json()).updating) {{
+            location.reload();
+            return;
+          }}
+        }} catch (e) {{}}
+        poll();
+      }}, 2000);
+    }})();
   }}
 
   const preview = document.getElementById("preview");
@@ -496,6 +514,12 @@ def make_handler(
                     status, db.path.parent,
                 )
                 self._send(200, html.encode(), "text/html; charset=utf-8")
+            elif route == "/update":
+                body = json.dumps(
+                    {"updating": bool(status.updating or status.update_requested),
+                     "version": __version__}
+                )
+                self._send(200, body.encode(), "application/json")
             elif route == "/health":
                 self._send(200, b"ok", "text/plain")
             else:

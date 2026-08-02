@@ -108,12 +108,26 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
         assert status.update_requested == "v0.2.0"
         assert status.updating is False  # the loop owns the install, not the handler
 
+        # What the admin page polls: requested counts as busy, so the page keeps
+        # saying "installing…" until the loop is done and it can reload.
+        state = f"http://127.0.0.1:{httpd.server_address[1]}/update"
+        assert _get(state)["updating"] is True
+        status.update_requested, status.updating = None, True
+        assert _get(state)["updating"] is True
+        status.updating = False
+        assert _get(state)["updating"] is False
+
         _post(url, "rotation=90&auto_update=on")
         assert SettingsStore(tmp_path / "s.json").get().auto_update is True
         _post(url, "rotation=90")  # unchecked box is simply absent from the form
         assert SettingsStore(tmp_path / "s.json").get().auto_update is False
     finally:
         httpd.shutdown()
+
+
+def _get(url: str):
+    with urllib.request.urlopen(url, timeout=5) as response:
+        return json.load(response)
 
 
 def _post(url: str, body: str):
