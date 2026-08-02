@@ -4,7 +4,7 @@ The build this project runs on.
 
 ## Parts
 
-| Part | What we used |
+| Part | What I recommend |
 | --- | --- |
 | Board | Raspberry Pi 5, 2 GB |
 | Storage | microSD card (32 GB or more) |
