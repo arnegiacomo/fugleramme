@@ -62,7 +62,9 @@ def available(force: bool = False) -> str | None:
 def apply(tag: str) -> None:
     """Move the checkout onto `tag`. Raises on failure; the caller exits on success."""
     _run(["git", "fetch", REPO_HTTPS_URL, "--tags", "--force"])
-    _run(["git", "checkout", "--detach", tag])
+    # --force: `uv sync` rewrites uv.lock in place, and a plain checkout refuses to
+    # run against that. Only tracked files are discarded; data/ and config are ignored.
+    _run(["git", "checkout", "--force", "--detach", tag])
     try:
         _run([_uv(), "sync", "--extra", "panel"])
     except RuntimeError:

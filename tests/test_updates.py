@@ -136,6 +136,15 @@ def _post(url: str, body: str):
         return response.status
 
 
+def test_checkout_is_forced_past_a_dirty_tree():
+    """`uv sync` rewrites uv.lock on every run, so the Pi's checkout is always
+    dirty; a plain checkout would abort and strand the frame on its old version."""
+    with patch.object(updates, "_run") as run:
+        updates.apply("v0.2.0")
+    checkout = next(c.args[0] for c in run.call_args_list if c.args[0][:2] == ["git", "checkout"])
+    assert checkout == ["git", "checkout", "--force", "--detach", "v0.2.0"]
+
+
 def test_a_failed_install_does_not_retry_every_tick():
     with patch.object(service.updates, "available", return_value="v0.2.0"), \
          patch.object(service.updates, "apply", side_effect=RuntimeError("dirty tree")) as apply:
