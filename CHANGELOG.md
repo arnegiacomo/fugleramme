@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.6.0 (2026-08-02)
+
+### Features
+
+- #2 preview unsaved settings and guard against losing them
+  ([`52071a1`](https://github.com/arnegiacomo/fugleramme/commit/52071a12d17ccf284e2a5399064627198962bea6))
+
+
 ## v0.5.0 (2026-08-02)
 
 ### Bug Fixes
