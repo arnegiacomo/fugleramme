@@ -30,6 +30,8 @@ class Panel:
     def __init__(self, device):
         self._device = device
         self.resolution: tuple[int, int] = tuple(device.resolution)
+        # Every driver class is named Inky; the module is what identifies the board.
+        self.driver: str = type(device).__module__
 
     def push(self, image: Image.Image, rotation: int = 0) -> None:
         if rotation:
@@ -52,6 +54,6 @@ def init_panel() -> Panel | None:
     except Exception as exc:  # library present but no panel wired up
         log.warning("No Inky panel detected (%s); running web-only", exc)
         return None
-    # Every driver class is named Inky; the module is what identifies the board.
-    log.info("Inky panel initialised: %s %sx%s", type(device).__module__, *device.resolution)
-    return Panel(device)
+    panel = Panel(device)
+    log.info("Inky panel initialised: %s %sx%s", panel.driver, *panel.resolution)
+    return panel

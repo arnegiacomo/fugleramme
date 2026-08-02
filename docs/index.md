@@ -21,7 +21,7 @@ centre, sized by real body mass.
 
 - **[Hardware](hardware.md)** - the parts, and what's swappable
 - **[Install](install.md)** - from a blank SD card to a running frame
-- **[Operations](operations.md)** - services, logs and updates
+- **[Operations](operations.md)** - buttons, services, logs and updates
 - **[Troubleshooting](troubleshooting.md)** - symptom to cause
 
 Source: [github.com/arnegiacomo/fugleramme](https://github.com/arnegiacomo/fugleramme)

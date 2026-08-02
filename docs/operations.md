@@ -2,6 +2,20 @@
 
 Services and logs. To be written.
 
+## Buttons
+
+Four buttons down the back edge of the panel:
+
+| Button | What it does |
+| --- | --- |
+| A | Nothing yet |
+| B | Show species names on/off |
+| C | Rotate the display 90° clockwise |
+| D | Next artwork style |
+
+These settings are saved and will override any settings set in the admin panel.
+Give the panel up to a minute to catch up - it redraws slowly.
+
 ## Updates
 
 The frame checks GitHub hourly for new releases and shows it in the admin

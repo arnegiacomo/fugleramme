@@ -19,7 +19,7 @@ import signal
 import threading
 import time
 
-from . import __version__, updates
+from . import __version__, buttons, updates
 from .collage import gather_entries, render_collage, render_rng
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
@@ -74,6 +74,12 @@ def run(config: Config) -> None:
         daemon=True,
     )
     server_thread.start()
+    if panel is not None:  # the buttons are on the panel board
+        threading.Thread(
+            target=buttons.watch,
+            args=(panel.driver, store, config.images_dir),
+            daemon=True,
+        ).start()
     log.info("Serving kiosk on http://%s:%s", config.host, config.port)
     log.info("Kiosk admin on http://%s:%s/admin", config.host, config.port)
     log.info("BirdNET-Go UI on http://%s:%s", config.host, BIRDNET_PORT)

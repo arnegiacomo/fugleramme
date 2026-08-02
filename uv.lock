@@ -157,6 +157,8 @@ dependencies = [
 
 [package.optional-dependencies]
 panel = [
+    { name = "gpiod" },
+    { name = "gpiodevice" },
     { name = "inky" },
 ]
 
@@ -171,6 +173,8 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "gpiod", marker = "extra == 'panel'", specifier = ">=2.1" },
+    { name = "gpiodevice", marker = "extra == 'panel'", specifier = ">=0.0.5" },
     { name = "inky", marker = "extra == 'panel'", specifier = ">=2.2" },
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "pillow", specifier = ">=10.0" },

@@ -15,11 +15,14 @@ fugleramme-frame = "fugleramme.cli:main"
 fugleramme-dev = "fugleramme.dev:main"
 
 [project.optional-dependencies]
-# Pi-only hardware driver. Not installed on the Mac dev loop; the frame
-# service degrades to web-only when it is absent. 2.2 is the floor for the
-# Spectra 6 boards: 2.1 added the 13.3" and 2.2 fixed its palette handling.
+# Pi-only hardware. Not installed on the Mac dev loop; the frame service
+# degrades to web-only when it is absent. 2.2 is the floor for the Spectra 6
+# boards: 2.1 added the 13.3" and 2.2 fixed its palette handling. gpiod is
+# inky's own dependency, but the buttons are ours to read - it has no API for them.
 panel = [
     "inky>=2.2",
+    "gpiod>=2.1",
+    "gpiodevice>=0.0.5",
 ]
 
 # Both fields stay in step: the service reads __version__ from the checkout, which
