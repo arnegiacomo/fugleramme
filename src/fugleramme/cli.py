@@ -63,7 +63,10 @@ def main(argv: list[str] | None = None) -> None:
         sources = resolve(settings.sources, config.images_dir)
         rng = render_rng([name for name, _ in db.species_since(settings.lookback_hours)])
         entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
-        render_collage(entries, settings.web_size(), False, rng).save(args.preview)
+        render_collage(
+            entries, settings.web_size(), settings.show_names, rng,
+            font_key=settings.label_font, label_size=settings.label_size,
+        ).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")
         return

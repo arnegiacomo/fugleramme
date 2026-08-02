@@ -67,6 +67,8 @@ the web kiosk's only. Rotation (0/90/180/270) applies to both. If it still reads
 - Code (`wikimedia-scrape/`, application code): MIT - see [`LICENSE`](LICENSE).
 - Bird images (`assets/birds/`): CC BY-SA 4.0 - see
   [`assets/birds/ATTRIBUTION.md`](assets/birds/ATTRIBUTION.md).
+- Label fonts (`assets/fonts/`): SIL OFL 1.1 - see
+  [`assets/fonts/ATTRIBUTION.md`](assets/fonts/ATTRIBUTION.md).
 - Bird sizes (`assets/bird_sizes.csv`): body mass from AVONET (Tobias et al.
   2022, Ecology Letters, [doi:10.1111/ele.13898](https://doi.org/10.1111/ele.13898)),
   CC BY 4.0.

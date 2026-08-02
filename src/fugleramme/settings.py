@@ -5,8 +5,7 @@ and the HTTP server in one process. The file is the source of truth: it is
 reloaded when its mtime changes, so hand edits and admin-form writes are both
 picked up live without a restart. Writes are atomic (temp + os.replace).
 
-Presentation only - detector config lives in BirdNET-Go's own UI, and bird-name
-display / language is #5.
+Presentation only - detector config lives in BirdNET-Go's own UI.
 """
 
 from __future__ import annotations
@@ -18,6 +17,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .config import DEFAULT_WEB_RESOLUTION, WEB_RESOLUTIONS
+from .fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
 
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
 ROTATIONS = (0, 90, 180, 270)
@@ -45,6 +45,9 @@ class Settings:
     # the filesystem at render time, so it survives added/removed sources).
     sources: tuple[str, ...] = ()
     auto_update: bool = False
+    show_names: bool = True
+    label_font: str = DEFAULT_FONT
+    label_size: str = DEFAULT_LABEL_SIZE
 
     def oriented(self, resolution: tuple[int, int]) -> tuple[int, int]:
         """Apply the rotation's aspect to a landscape-native (w, h)."""
@@ -71,6 +74,11 @@ def _as_bool(value, default: bool) -> bool:
     return default
 
 
+def _one_of(value, options, default):
+    """The value if it is one of the offered options, else the default."""
+    return value if value in options else default
+
+
 def _sources(value) -> tuple[str, ...]:
     """A deduped tuple of source names, order preserved. Existence isn't checked
     here (settings has no filesystem view) - names.resolve does that at use."""
@@ -85,24 +93,24 @@ def _coerce(raw: dict) -> Settings:
     """Build validated Settings from an untrusted dict, filling defaults and
     clamping out-of-range values. Unknown keys are ignored."""
     d = Settings()
-    web_resolution = str(raw.get("web_resolution", d.web_resolution))
-    if web_resolution not in WEB_RESOLUTIONS:
-        web_resolution = d.web_resolution
     try:
         rotation = int(raw.get("rotation", d.rotation))
     except (TypeError, ValueError):
         rotation = d.rotation
-    if rotation not in ROTATIONS:
-        rotation = d.rotation
     return Settings(
-        web_resolution=web_resolution,
-        rotation=rotation,
+        web_resolution=_one_of(
+            str(raw.get("web_resolution", d.web_resolution)), WEB_RESOLUTIONS, d.web_resolution
+        ),
+        rotation=_one_of(rotation, ROTATIONS, d.rotation),
         lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, 1, 24 * 30),
         kiosk_refresh_seconds=_as_int(
             raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 1, 3600
         ),
         sources=_sources(raw.get("sources")),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
+        show_names=_as_bool(raw.get("show_names"), d.show_names),
+        label_font=_one_of(str(raw.get("label_font", d.label_font)), FONTS, d.label_font),
+        label_size=_one_of(str(raw.get("label_size", d.label_size)), LABEL_SIZES, d.label_size),
     )
 
 

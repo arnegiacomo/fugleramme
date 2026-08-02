@@ -19,7 +19,7 @@ uv run pytest -q                            # run tests
 uv run pytest tests/test_artwork_names.py   # run a single test file
 ```
 
-Kiosk resolution, rotation, lookback window, kiosk refresh, and auto-update are runtime settings in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The panel's own size is never a setting - it comes from the attached Inky. CLI flags are launch-only: `--db`, `--images`, `--config`, `--output`, `--host`, `--port`.
+Kiosk resolution, rotation, lookback window, kiosk refresh, species names (on/off, typeface, size) and auto-update are runtime settings in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The panel's own size is never a setting - it comes from the attached Inky. CLI flags are launch-only: `--db`, `--images`, `--config`, `--output`, `--host`, `--port`.
 
 ## Architecture
 
@@ -32,6 +32,8 @@ The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own norm
 **The panel sizes itself** (`panel.py`, #4): the loop renders at the attached Inky's own resolution (`FALLBACK_PANEL_RESOLUTION`, the 13.3", when none is attached), so the admin resolution setting only ever governs the kiosk. `settings.rotation` (0/90/180/270, counter-clockwise) shapes both, but only `push` turns pixels: the render is sized as the viewer sees it and the driver takes native landscape only. Color reduction is ours, not the driver's: `inky.set_image` re-dithers anything that is not already a 6-color "P" image, so `render.dither` hands it one whose palette maps 1:1 onto the driver's, which `tests/test_panel.py` pins. The palette is a blend of the driver's desaturated and saturated sets, so the saved frame and the glass agree.
 
 **The collage is the product** (`collage.py` + `paper.py`), not a single-detection frame or a dashboard (stats/config are #2). Birds are packed by their alpha silhouette so opaque pixels never overlap and nothing clips; the von Wright cut-outs' paper "halos" are normalized to one tone and feathered onto a textured paper page at render time (assets untouched). No-artwork species are omitted.
+
+**Names pack with their bird** (`collage.py` + `fonts.py`, #5): the scientific name is on by default and the label's box joins its bird's collision mask, centred on the silhouette's centroid and raised until it just clears the outline - so it tucks under the body and can never land on a neighbour. Six OFL italics are vendored in `assets/fonts/` (variable ones instantiated at weight 400) and picked in the admin along with a size. On the panel the label is hard-thresholded and stamped in pure black: antialiased grey would dither into colour speckle. Common names / language are the rest of #5, still open.
 
 **Name to artwork** (`names.py`): normalize the detector's scientific name ("Turdus merula") to the filename shape ("turdus-merula.png") and exact-match, random-picking among numbered variants. Artwork is grouped by provenance into per-source subfolders of `assets/birds/` (`vonwright/`, `gould/`, a user's `custom/`, ...); the admin UI (#2) picks which sources are active (`settings.sources`; empty = all present, resolved by `names.resolve` at render time), and a lookup unions the variants across the active sources. There is no runtime alias map because the assets were renamed from 1800s taxonomy to modern eBird / BirdNET v2.4 names (`scripts/rename_artwork.py`). `tests/test_artwork_names.py` enforces the invariant: every filename (any source folder) must be a BirdNET label (from `assets/birdnet_labels_v2.4.txt`), a hybrid (`-x-`), or a listed exception.
 
@@ -56,4 +58,5 @@ The two halves meet only at the DB file. BirdNET-Go (Docker) writes its own norm
 - [`README.md`](README.md) - project summary and licensing split
 - [`detector/README.md`](detector/README.md) - BirdNET-Go container, the direct-read DB, and Pi deployment
 - [`assets/birds/ATTRIBUTION.md`](assets/birds/ATTRIBUTION.md) - artwork provenance and CC BY-SA 4.0 terms
+- [`assets/fonts/ATTRIBUTION.md`](assets/fonts/ATTRIBUTION.md) - label typefaces and SIL OFL 1.1 terms
 - [`wikimedia-scrape/README.md`](wikimedia-scrape/README.md) - how the cut-outs are scraped and background-removed from the Wikimedia Commons plate sources (von Wright, Gould)

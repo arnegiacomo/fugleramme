@@ -31,6 +31,7 @@ from . import __version__, updates
 from .collage import collage_key, collage_png_bytes, collage_token, render_rng
 from .config import BIRDNET_PORT, DOCS_URL, WEB_RESOLUTIONS
 from .db import Database, Detection
+from .fonts import FONTS, LABEL_SIZES
 from .names import available_sources, image_for, resolve, variants_for
 from .panel import Panel
 from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, SettingsStore
@@ -237,6 +238,16 @@ def _admin_html(
         f'<label class="src"><input type="checkbox" name="auto_update"'
         f'{" checked" if settings.auto_update else ""}> Install new releases automatically</label></div>'
     )
+    names_field = (
+        f'<div class="field"><span>Species names</span>'
+        f'<label class="src"><input type="checkbox" name="show_names"'
+        f'{" checked" if settings.show_names else ""}> Show scientific names</label>'
+        f'<label class="sub"><small>Typeface</small><select name="label_font">'
+        f'{_options(FONTS, settings.label_font, lambda k: FONTS[k][0])}</select></label>'
+        f'<label class="sub"><small>Text size</small><select name="label_size">'
+        f'{_options(LABEL_SIZES, settings.label_size, lambda k: LABEL_SIZES[k][0])}</select></label>'
+        f"</div>"
+    )
     w, h = settings.web_size()
     panel_status = (
         f"detected · {panel_size[0]}×{panel_size[1]}" if panel_size
@@ -269,6 +280,9 @@ def _admin_html(
   select {{ font-size: 1rem; padding: 0.4rem; }}
   input {{ font-size: 1rem; padding: 0.4rem; width: 8rem; }}
   .field {{ margin: 0 0 1.25rem; }}
+  label.sub {{ display: block; margin: 0.6rem 0 0; font-weight: 400; }}
+  label.sub small {{ display: block; margin-bottom: 0.15rem; }}
+  label.sub select {{ width: 100%; }}
   label.src {{ display: flex; align-items: center; gap: 0.4rem; font-weight: 400; margin: 0 0 0.3rem; }}
   label.src input {{ width: auto; padding: 0; }}
   button {{ font-size: 1rem; padding: 0.5rem 1.25rem; margin-top: 0.5rem; }}
@@ -295,6 +309,16 @@ def _admin_html(
   details.preview summary {{ font-size: 1.05rem; font-weight: 600; cursor: pointer; }}
   details.preview img {{ display: block; max-width: 100%; max-height: 75vh; margin: 1rem auto 0;
                         border: 1px solid #ddd; border-radius: 6px; }}
+  .rendering {{ display: none; align-items: center; justify-content: center; gap: 0.6rem;
+               min-height: 12rem; color: #666; }}
+  .loading .rendering {{ display: flex; }}
+  /* Two classes: outweighs `details.preview img`, so a src-less img shows nothing. */
+  details.preview.loading img {{ display: none; }}
+  /* margin: undoes the page-wide `span` rule, which offsets it from the caption. */
+  .spinner {{ width: 1.1rem; height: 1.1rem; margin: 0; border: 2px solid #ddd;
+             border-top-color: #888; border-radius: 50%; animation: spin 0.8s linear infinite; }}
+  @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
+  @media (prefers-reduced-motion: reduce) {{ .spinner {{ animation: none; }} }}
   @media (max-width: 40rem) {{
     .cols {{ flex-direction: column; }}
     form.settings {{ flex: none; }}
@@ -313,10 +337,11 @@ def _admin_html(
       <select name="web_resolution">{resolutions}</select></label>
     <label><span>Rotation <small>(how the frame hangs)</small></span>
       <select name="rotation">{rotations}</select></label>
-    <label><span>Lookback window</span>
+    <label><span>Lookback window <small>(how far back the frame looks)</small></span>
       <select name="lookback_hours">{lookbacks}</select></label>
     <label><span>Kiosk poll <small>(seconds between checks)</small></span>
       <input type="number" name="kiosk_refresh_seconds" min="1" max="3600" value="{settings.kiosk_refresh_seconds}"></label>
+    {names_field}
     {sources_field}
     {auto_update_field}
     <button type="submit">Save</button>
@@ -343,12 +368,52 @@ def _admin_html(
     <ul class="species">{rows}</ul>
   </aside>
 </div>
-<details class="preview">
+<details class="preview loading" id="preview">
   <summary>Preview</summary>
-  <img src="/collage.png" alt="Current collage" loading="lazy">
+  <p class="rendering"><span class="spinner"></span> Rendering…</p>
+  <img id="shot" alt="Current collage">
 </details><script>
   // Same host as this page, BirdNET-Go's own port - the bind host (0.0.0.0) is not reachable.
   document.getElementById("birdnet").href = location.protocol + "//" + location.hostname + ":{BIRDNET_PORT}/";
+
+  // Every button posts and redirects, so a save reloads: the open preview and the
+  // scroll position have to be carried across by hand.
+  for (const form of document.querySelectorAll("form")) {{
+    form.addEventListener("submit", () => sessionStorage.setItem("scroll", String(window.scrollY)));
+  }}
+  function restoreScroll() {{
+    const y = sessionStorage.getItem("scroll");
+    if (y === null) return;
+    sessionStorage.removeItem("scroll");
+    window.scrollTo(0, Number(y));
+  }}
+
+  const preview = document.getElementById("preview");
+  const shot = document.getElementById("shot");
+  const caption = document.querySelector(".rendering");
+  let fetched = false;
+  function fetchShot() {{
+    if (!preview.open || fetched) return;
+    fetched = true;
+    const next = new Image();  // decode off-screen, so the img is never stale or broken
+    next.onload = () => {{
+      shot.src = next.src;
+      preview.classList.remove("loading");
+      restoreScroll();  // only now is the page tall enough not to clamp it
+    }};
+    next.onerror = () => {{
+      caption.textContent = "Preview unavailable";
+      restoreScroll();
+    }};
+    next.src = "/collage.png";
+  }}
+  preview.addEventListener("toggle", () => {{
+    localStorage.setItem("preview", preview.open ? "1" : "0");
+    fetchShot();
+  }});
+  preview.open = localStorage.getItem("preview") === "1";
+  fetchShot();
+  if (!fetched) restoreScroll();  // closed preview: already at full height
 </script>
 </body>
 </html>
@@ -399,14 +464,16 @@ def make_handler(
             elif route == "/collage.png":
                 sources = resolve(settings.sources, images_dir)
                 png = collage_png_bytes(
-                    db, images_dir, sources, settings.web_size(), False, settings.lookback_hours
+                    db, images_dir, sources, settings.web_size(), settings.show_names,
+                    settings.lookback_hours, settings.label_font, settings.label_size,
                 )
                 self._send_png(png)
             elif route == "/state":
                 # Cheap enough to poll every second: one grouped query, no render.
                 key = collage_key(
                     db, resolve(settings.sources, images_dir), settings.web_size(),
-                    False, settings.lookback_hours,
+                    settings.show_names, settings.lookback_hours, settings.label_font,
+                    settings.label_size,
                 )
                 body = json.dumps(
                     {"token": collage_token(key), "refresh": settings.kiosk_refresh_seconds}
@@ -449,10 +516,11 @@ def make_handler(
                 status.update_requested = status.update_available
             else:
                 # `sources` is a multi-value checkbox group (absent when all unchecked);
-                # an unchecked `auto_update` is absent too. _coerce validates + clamps.
+                # unchecked checkboxes are absent too. _coerce validates + clamps.
                 changes = {k: v[0] for k, v in form.items() if k != "sources"}
                 changes["sources"] = form.get("sources", [])
                 changes["auto_update"] = "auto_update" in form
+                changes["show_names"] = "show_names" in form
                 store.update(**changes)
             self.send_response(303)
             self.send_header("Location", "/admin")

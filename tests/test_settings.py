@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 
+from fugleramme.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
 from fugleramme.settings import Settings, SettingsStore
 
 
@@ -69,6 +70,17 @@ def test_sources_invalid_falls_back_to_empty(tmp_path):
     path.write_text(json.dumps({"sources": [1, "gould", None, ""]}))
     # Non-string / empty entries are dropped, not coerced.
     assert SettingsStore(path).get().sources == ("gould",)
+
+
+def test_label_font_and_size_fall_back_to_defaults(tmp_path):
+    path = tmp_path / "s.json"
+    path.write_text(
+        json.dumps({"label_font": "comic-sans", "label_size": "huge", "show_names": "off"})
+    )
+    settings = SettingsStore(path).get()
+    assert settings.label_font == DEFAULT_FONT
+    assert settings.label_size == DEFAULT_LABEL_SIZE
+    assert settings.show_names is False
 
 
 def test_oriented_swaps_only_for_quarter_turns():

@@ -33,7 +33,6 @@ from .status import Status
 log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 5  # one query per tick; re-renders only on change, so e-ink stays the bottleneck
-SHOW_NAMES = False  # bird names + language are #5
 
 
 def _update(status: Status, auto: bool) -> bool:
@@ -87,11 +86,18 @@ def run(config: Config) -> None:
         species = db.species_since(settings.lookback_hours)
         sources = resolve(settings.sources, config.images_dir)
         size = settings.oriented(panel.resolution if panel else FALLBACK_PANEL_RESOLUTION)
-        key = (tuple(species), size, tuple(sources), settings.rotation)
+        key = (
+            tuple(species), size, tuple(sources), settings.rotation,
+            settings.show_names, settings.label_font, settings.label_size,
+        )
         if key != last_key:
             rng = render_rng([name for name, _ in species])
             entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
-            collage = render_collage(entries, size, SHOW_NAMES, rng, textured=False)
+            collage = render_collage(
+                entries, size, settings.show_names, rng,
+                textured=False, font_key=settings.label_font,
+                label_size=settings.label_size,
+            )
             panel_image = dither(collage)
             panel_image.save(config.output_path)
             log.info("Rendered panel collage: %d species at %dx%d", len(species), *size)

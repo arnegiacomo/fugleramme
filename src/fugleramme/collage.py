@@ -9,37 +9,54 @@ the centre, so big birds land in the middle; the whole set is then scaled to
 fill the canvas.
 
 Species with no artwork are omitted (there is nothing to draw for them once
-names are off). Names are off by default; they will become an admin toggle.
+names are off). The scientific-name label is an admin toggle, on by default;
+it packs as part of its bird, tucked up under the silhouette, so a name can
+never land on a neighbour or clip.
 """
 
 from __future__ import annotations
 
 import hashlib
 import io
+import logging
 import math
 import random
 import threading
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from . import fonts
 from .config import REPO_ROOT
 from .db import Database
 from .names import image_for
 from .paper import PAD, TARGET_PAPER, paper_texture, process_sprite
 from .sizes import SIZE_EXPONENT, mass_of
 
+log = logging.getLogger(__name__)
+
 DEFAULT_RESOLUTION = (1280, 800)
 PERCHES_DIR = REPO_ROOT / "assets" / "perches"
 _INK = (30, 30, 30)
+_PANEL_INK = (0, 0, 0)   # exact palette black: the dither leaves it alone
 _MAX_BIRDS = 40
 _ALPHA_CUTOFF = 24
 _OVERLAP_PX = 2        # erode the collision mask slightly so birds nestle into
                        # each other's (invisible on paper) halos. No rotation:
                        # it tilts the ground/water on birds drawn with terrain.
 _STEP = 6
+
+_LABEL_MIN_PX = 11
+_LABEL_CUTOFF = 110    # alpha threshold when flattening a label for the panel
+_ATTEMPTS = 20
+
+
+def _label_px(width: int, height: int, size_key: str) -> int:
+    _name, scale = fonts.LABEL_SIZES.get(size_key, fonts.LABEL_SIZES[fonts.DEFAULT_LABEL_SIZE])
+    return max(_LABEL_MIN_PX, round(min(width, height) * scale))
 
 
 def _trim(path: Path) -> Image.Image:
@@ -70,6 +87,27 @@ def _scaled_sprite(
     return img, np.asarray(mask, dtype=bool)
 
 
+@dataclass(frozen=True, eq=False)  # eq: a generated __eq__ would raise on the ndarray
+class _Sprite:
+    """A bird, and optionally its name, as one packable unit: `mask` is the whole
+    footprint, `art_at` and `label_at` locate the two inside it."""
+
+    art: Image.Image
+    mask: np.ndarray
+    art_at: tuple[int, int] = (0, 0)
+    label: Image.Image | None = None
+    label_at: tuple[int, int] = (0, 0)
+
+
+def _label(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:
+    """The name as an "L" alpha mask, +1px so the italic's overhang is not shaved.
+    Flat drops the antialiasing, which would otherwise dither into colour speckle."""
+    x0, y0, x1, y1 = font.getbbox(text)
+    mask = Image.new("L", (x1 - x0 + 2, y1 - y0 + 2), 0)
+    ImageDraw.Draw(mask).text((1 - x0, 1 - y0), text, font=font, fill=255)
+    return mask.point(lambda v: 255 if v > _LABEL_CUTOFF else 0) if flat else mask
+
+
 def _spiral(cx: float, cy: float, max_r: float):
     yield cx, cy
     r = _STEP
@@ -81,27 +119,27 @@ def _spiral(cx: float, cy: float, max_r: float):
         r += _STEP
 
 
-def _pack(sprites: list[tuple[Image.Image, np.ndarray]], width: int, height: int):
+def _pack(sprites: list[_Sprite], width: int, height: int):
     """Place every sprite with no opaque overlap and fully on-screen, or return
     None if one does not fit. Sprites should be pre-sorted largest-first."""
     occ = np.zeros((height, width), dtype=bool)
     placed = []
     max_r = math.hypot(width, height)
-    for img, mask in sprites:
-        h, w = mask.shape
+    for sprite in sprites:
+        h, w = sprite.mask.shape
         spot = None
         for px, py in _spiral(width / 2, height / 2, max_r):
             x, y = int(px - w / 2), int(py - h / 2)
             if x < 0 or y < 0 or x + w > width or y + h > height:
                 continue
-            if not (occ[y:y + h, x:x + w] & mask).any():
+            if not (occ[y:y + h, x:x + w] & sprite.mask).any():
                 spot = (x, y)
                 break
         if spot is None:
             return None
         x, y = spot
-        occ[y:y + h, x:x + w] |= mask
-        placed.append((img, x, y))
+        occ[y:y + h, x:x + w] |= sprite.mask
+        placed.append((sprite, x, y))
     return placed
 
 
@@ -109,11 +147,41 @@ def _center(placed, width: int, height: int):
     """Shift the packed cluster so its bounding box is centred on the canvas."""
     xs0 = min(x for _, x, _ in placed)
     ys0 = min(y for _, _, y in placed)
-    xs1 = max(x + img.width for img, x, _ in placed)
-    ys1 = max(y + img.height for img, _, y in placed)
+    xs1 = max(x + s.mask.shape[1] for s, x, _ in placed)
+    ys1 = max(y + s.mask.shape[0] for s, _, y in placed)
     dx = (width - (xs1 - xs0)) // 2 - xs0
     dy = (height - (ys1 - ys0)) // 2 - ys0
-    return [(img, x + dx, y + dy) for img, x, y in placed]
+    return [(sprite, x + dx, y + dy) for sprite, x, y in placed]
+
+
+def _with_label(art: Image.Image, art_mask: np.ndarray, label: Image.Image, gap: int) -> _Sprite:
+    """Join a bird and its name into one packable footprint.
+
+    Reserving the name with the bird is what guarantees it a place at all: the
+    packer leaves no free paper between birds, so a name placed afterwards could
+    only sit outside the cluster and interior birds would get none.
+    """
+    ah, aw = art_mask.shape
+    lw, lh = label.size
+    cols = art_mask.nonzero()[1]
+    centre = cols.mean() if cols.size else aw / 2  # centroid: under the body, not the tail
+
+    # Both bounds off one rounded edge; rounding them apart clips the box a column short.
+    offset = round(centre - lw / 2)
+    left = min(0, offset)
+    width = max(aw, offset + lw) - left
+    ax, lx = -left, offset - left
+
+    # Raise it until it clears the outline, into the gap beside a leg or under a perch.
+    under = art_mask[:, max(0, lx - ax):min(aw, lx - ax + lw)]
+    bottom = np.nonzero(under.any(axis=1))[0]
+    top = (bottom[-1] + 1 if bottom.size else ah) + gap
+
+    height = max(ah, top + lh)
+    mask = np.zeros((height, width), dtype=bool)
+    mask[:ah, ax:ax + aw] = art_mask
+    mask[top:top + lh, lx:lx + lw] = True
+    return _Sprite(art, mask, (ax, 0), label, (lx, top))
 
 
 def _size_weights(names: list[str]) -> list[float]:
@@ -124,17 +192,58 @@ def _size_weights(names: list[str]) -> list[float]:
     return [(m / geo) ** SIZE_EXPONENT for m in masses]
 
 
+def _layout(
+    arts: list[tuple[str, Image.Image]],
+    order: list[int],
+    weights: list[float],
+    flips: list[bool],
+    base: float,
+    width: int,
+    height: int,
+    font_key: str | None,
+    label_px: int,
+    flat: bool,
+):
+    """Shrink the set to the first size where every bird, name included, fits.
+    Names have to shrink too: a fixed-size name never yields, so a full page of
+    them cannot converge at all."""
+    labels: list[Image.Image] = []
+    last_px = gap = 0
+    for attempt in range(_ATTEMPTS):
+        shrink = 0.9 ** attempt
+        if font_key:
+            px = max(_LABEL_MIN_PX, round(label_px * shrink))
+            if px != last_px:
+                font = fonts.load(font_key, px)
+                labels = [_label(arts[i][0], font, flat) for i in order]
+                last_px, gap = px, round(px * 0.35)
+        sprites = []
+        for n, i in enumerate(order):
+            art, mask = _scaled_sprite(
+                arts[i][1], max(24, int(base * shrink * weights[i])), flips[i]
+            )
+            sprites.append(
+                _with_label(art, mask, labels[n], gap) if font_key else _Sprite(art, mask)
+            )
+        placed = _pack(sprites, width, height)
+        if placed is not None:
+            return _center(placed, width, height)
+    return None
+
+
 def render_collage(
     entries: list[tuple[str, Path | None]],
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
-    show_names: bool = False,
+    show_names: bool = True,
     rng: random.Random | None = None,
     textured: bool = True,
+    font_key: str = fonts.DEFAULT_FONT,
+    label_size: str = fonts.DEFAULT_LABEL_SIZE,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
-    textured: paper grain for the web; flat paper for the panel, whose dither
-    would otherwise turn the grain into noise.
+    textured: paper grain for the web, flat paper for the panel, whose dither
+    would otherwise turn the grain into noise. It also picks the label ink.
     """
     width, height = resolution
     canvas = paper_texture(width, height) if textured else Image.new("RGB", (width, height), TARGET_PAPER)
@@ -155,21 +264,19 @@ def render_collage(
         math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
         min(width, height) * 0.7 / max(weights),
     )
-    placed = None
-    for _ in range(20):
-        sprites = [_scaled_sprite(arts[i][1], max(24, int(base * weights[i])), flips[i]) for i in order]
-        placed = _pack(sprites, width, height)
-        if placed is not None:
-            break
-        base *= 0.9
+    args = (arts, order, weights, flips, base, width, height)
+    label_px = _label_px(width, height, label_size)
+    placed = _layout(*args, font_key if show_names else None, label_px, flat=not textured)
+    if placed is None and show_names:
+        log.warning("No layout fits %d species with names at %dx%d", len(arts), width, height)
+        placed = _layout(*args, None, label_px, flat=not textured)  # birds beat blank paper
 
     if placed:
-        centered = _center(placed, width, height)
-        for img, x, y in centered:
-            proc = process_sprite(img, textured=textured)
-            canvas.paste(proc, (x - PAD, y - PAD), proc)
-        if show_names:
-            _draw_names(canvas, [arts[i][0] for i in order], centered)
+        for sprite, x, y in placed:
+            ax, ay = sprite.art_at
+            proc = process_sprite(sprite.art, textured=textured)
+            canvas.paste(proc, (x + ax - PAD, y + ay - PAD), proc)
+        _draw_names(canvas, placed, textured)
 
     return canvas
 
@@ -192,11 +299,15 @@ def _draw_empty(canvas, width: int, height: int, rng: random.Random, textured: b
     canvas.paste(proc, ((width - proc.width) // 2, (height - proc.height) // 2), proc)
 
 
-def _draw_names(canvas, names, placed):
-    draw = ImageDraw.Draw(canvas)
-    font = ImageFont.load_default(size=16)
-    for name, (img, x, y) in zip(names, placed):
-        draw.text((x, y + img.height - 4), name, font=font, fill=_INK)
+def _draw_names(canvas, placed, textured: bool) -> None:
+    """A second pass: halos feather past the collision mask, so a name drawn
+    inline with the birds would be washed over by the next neighbour."""
+    ink = _INK if textured else _PANEL_INK
+    for sprite, x, y in placed:
+        if sprite.label is None:
+            continue
+        lx, ly = sprite.label_at
+        canvas.paste(Image.new("RGB", sprite.label.size, ink), (x + lx, y + ly), sprite.label)
 
 
 def render_rng(species: Sequence[str]) -> random.Random:
@@ -228,12 +339,14 @@ def collage_key(
     db: Database,
     sources: Sequence[str],
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
-    show_names: bool = False,
+    show_names: bool = True,
     lookback_hours: int = 24,
+    font_key: str = fonts.DEFAULT_FONT,
+    label_size: str = fonts.DEFAULT_LABEL_SIZE,
 ) -> tuple:
     """Everything the collage is a function of: the cache key, and what the kiosk polls."""
     species = tuple(name for name, _ in db.species_since(lookback_hours))
-    return (species or _EMPTY, tuple(sources), resolution, show_names)
+    return (species or _EMPTY, tuple(sources), resolution, show_names, font_key, label_size)
 
 
 def collage_token(key: tuple) -> str:
@@ -247,8 +360,10 @@ def collage_png_bytes(
     images_dir: Path,
     sources: Sequence[str],
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
-    show_names: bool = False,
+    show_names: bool = True,
     lookback_hours: int = 24,
+    font_key: str = fonts.DEFAULT_FONT,
+    label_size: str = fonts.DEFAULT_LABEL_SIZE,
 ) -> bytes:
     """Render the current collage to PNG bytes for the HTTP endpoint.
 
@@ -263,7 +378,7 @@ def collage_png_bytes(
     """
     global _cache
     with _cache_lock:
-        key = collage_key(db, sources, resolution, show_names, lookback_hours)
+        key = collage_key(db, sources, resolution, show_names, lookback_hours, font_key, label_size)
         if _cache is not None and _cache[0] == key:
             return _cache[1]
 
@@ -274,7 +389,7 @@ def collage_png_bytes(
             rng = render_rng(species)
             image = render_collage(
                 gather_entries(db, images_dir, sources, rng, lookback_hours),
-                resolution, show_names, rng,
+                resolution, show_names, rng, font_key=font_key, label_size=label_size,
             )
 
         buffer = io.BytesIO()
