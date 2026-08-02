@@ -29,7 +29,11 @@ tag_format = "v{version}"
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["src/fugleramme/__init__.py:__version__"]
 commit_message = "chore: release v{version}"
-build_command = ""  # nothing is published; the Pi runs from the checkout
+# Nothing is published; the Pi runs from the checkout. The build step exists only
+# to re-lock: uv.lock records the project's own version, and a stale one is rewritten
+# by the next `uv sync`, leaving a dirty file where the self-update checks out a tag.
+build_command = "uv lock"
+assets = ["uv.lock"]
 allow_zero_version = true
 major_on_zero = false  # a feat on 0.x bumps the minor, not to 1.0
 

@@ -23,6 +23,9 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
       - run: uv run pytest -q
-      - uses: python-semantic-release/python-semantic-release@v10
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      # Run through uv, not the official action: that one is a Docker action whose
+      # image has no uv, and `build_command = "uv lock"` needs it. `version` commits,
+      # tags, pushes and cuts the GitHub release on its own.
+      - run: uv run --with "python-semantic-release>=10,<11" semantic-release version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
