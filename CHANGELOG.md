@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.7.0 (2026-08-02)
+
+### Features
+
+- #5 species names in the reader's language, from BirdNET-Go
+  ([`37ec1bf`](https://github.com/arnegiacomo/fugleramme/commit/37ec1bf77bcafe57077310d76b764833d6599833))
+
+
 ## v0.6.0 (2026-08-02)
 
 ### Features
