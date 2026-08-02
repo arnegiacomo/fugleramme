@@ -19,17 +19,22 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import shutil
+import socket
+import time
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from . import __version__
 from .collage import collage_key, collage_png_bytes, collage_token, render_rng
-from .config import BIRDNET_PORT, WEB_RESOLUTIONS
+from .config import BIRDNET_PORT, DOCS_URL, WEB_RESOLUTIONS
 from .db import Database, Detection
 from .names import available_sources, image_for, resolve, variants_for
 from .panel import Panel
 from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, SettingsStore
+from .status import Status
 
 log = logging.getLogger(__name__)
 
@@ -81,12 +86,53 @@ def _options(values, selected, label=str) -> str:
     )
 
 
-def _ago(dt: datetime) -> str:
-    s = int((datetime.now(timezone.utc) - dt).total_seconds())
+def _duration(seconds: int) -> str:
     for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
-        if s >= size:
-            return f"{s // size}{unit} ago"
-    return f"{s}s ago"
+        if seconds >= size:
+            return f"{seconds // size}{unit}"
+    return f"{seconds}s"
+
+
+def _ago(dt: datetime) -> str:
+    return f"{_duration(int((datetime.now(timezone.utc) - dt).total_seconds()))} ago"
+
+
+_ONLINE_TTL = 60
+_online_cache: tuple[float, bool] = (0.0, False)
+
+
+def _reachable(host: str, port: int) -> bool:
+    try:
+        socket.create_connection((host, port), timeout=1).close()
+        return True
+    except OSError:
+        return False
+
+
+def _state(ok: bool, good: str, bad: str) -> str:
+    return f'<span class="{"ok" if ok else "bad"}">{good if ok else bad}</span>'
+
+
+def _online() -> str:
+    """Cached, so a page load never waits out a dead link twice in a minute."""
+    global _online_cache
+    checked, ok = _online_cache
+    if time.monotonic() - checked >= _ONLINE_TTL:
+        # Cloudflare DNS over TCP, by IP: no name lookup to hang on.
+        ok = _reachable("1.1.1.1", 53)
+        _online_cache = (time.monotonic(), ok)
+    return _state(ok, "online", "offline")
+
+
+def _stamp(dt: datetime) -> str:
+    local = dt.astimezone()
+    fmt = "%H:%M" if local.date() == datetime.now().astimezone().date() else "%-d %b %H:%M"
+    return f'<time title="{_ago(dt)}">{local.strftime(fmt)}</time>'
+
+
+def _disk_free(path: Path) -> str:
+    usage = shutil.disk_usage(path)
+    return f"{usage.free / 1e9:.0f} GB free of {usage.total / 1e9:.0f} GB"
 
 
 def _species_li(name: str, pick: Path | None, candidates: list[Path]) -> str:
@@ -98,6 +144,17 @@ def _species_li(name: str, pick: Path | None, candidates: list[Path]) -> str:
     if len(candidates) > 1:
         note += f" ({candidates.index(pick) + 1})"
     return f'<li>{name} <small>{note}</small></li>'
+
+
+def _lan_address() -> str:
+    host = socket.gethostname()
+    try:
+        # Connecting a UDP socket sends nothing; it just picks the outbound interface.
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("192.0.2.1", 1))
+            return f"{host} · {s.getsockname()[0]}"
+    except OSError:
+        return host
 
 
 _ASPECT = {0: "(landscape)", 90: "(portrait)"}
@@ -124,6 +181,8 @@ def _admin_html(
     panel_size: tuple[int, int] | None,
     available: list[str],
     active: list[str],
+    status: Status,
+    data_dir: Path,
 ) -> str:
     resolutions = _options(
         WEB_RESOLUTIONS,
@@ -144,7 +203,10 @@ def _admin_html(
         f"detected · {panel_size[0]}×{panel_size[1]}" if panel_size
         else "not detected (web-only)"
     )
-    last = f"{latest.scientific_name} · {_ago(latest.detected_at)}" if latest else "none yet"
+    last = f"{latest.scientific_name} · {_stamp(latest.detected_at)}" if latest else "none yet"
+    rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
+    if status.push_error:
+        rendered += f" · panel push failing ({status.push_error})"
     rows = "".join(_species_li(*s) for s in species) or '<li class="empty">none yet</li>'
     return f"""<!doctype html>
 <html lang="en">
@@ -176,6 +238,10 @@ def _admin_html(
               background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }}
   dl.status dt {{ color: #666; }}
   dl.status dd {{ margin: 0; }}
+  time {{ border-bottom: 1px dotted #bbb; cursor: help; }}
+  .ok, .bad {{ display: inline; font-weight: inherit; margin: 0; }}
+  .ok {{ color: #3a7d44; }}
+  .bad {{ color: #a4392f; }}
   ul.species {{ list-style: none; padding: 0; margin: 0 0 1.75rem;
                display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, max-content));
                justify-content: start; gap: 0.15rem 2.5rem; }}
@@ -195,11 +261,12 @@ def _admin_html(
 </head>
 <body>
 <header>
-  <h1>Display settings</h1>
-  <nav><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a></nav>
+  <h1>Fugleramme</h1>
+  <nav><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a><a href="{DOCS_URL}" target="_blank" rel="noopener">Docs</a></nav>
 </header>
 <div class="cols">
   <form class="settings" method="post" action="/admin">
+    <h2>Display settings</h2>
     <label><span>Kiosk resolution <small>(web view only)</small></span>
       <select name="web_resolution">{resolutions}</select></label>
     <label><span>Rotation <small>(how the frame hangs)</small></span>
@@ -212,10 +279,21 @@ def _admin_html(
     <button type="submit">Save</button>
   </form>
   <aside class="side">
+    <h2>System</h2>
     <dl class="status">
-      <dt>Last detection</dt><dd>{last}</dd>
+      <dt>Version</dt><dd>v{__version__}</dd>
       <dt>Inky panel</dt><dd>{panel_status}</dd>
+      <dt>BirdNET-Go</dt><dd>{_state(_reachable("127.0.0.1", BIRDNET_PORT), "running", "unreachable")}</dd>
+      <dt>Host</dt><dd>{_lan_address()}</dd>
+      <dt>Internet</dt><dd>{_online()}</dd>
+      <dt>Disk</dt><dd>{_disk_free(data_dir)}</dd>
+      <dt>Started</dt><dd>{_stamp(status.started_at)}</dd>
       <dt>Kiosk render</dt><dd>{w}×{h}</dd>
+    </dl>
+    <h2>Activity</h2>
+    <dl class="status">
+      <dt>Last render</dt><dd>{rendered}</dd>
+      <dt>Last detection</dt><dd>{last}</dd>
     </dl>
     <h2>Species in window ({len(species)})</h2>
     <ul class="species">{rows}</ul>
@@ -224,8 +302,7 @@ def _admin_html(
 <details class="preview">
   <summary>Preview</summary>
   <img src="/collage.png" alt="Current collage" loading="lazy">
-</details>
-<script>
+</details><script>
   // Same host as this page, BirdNET-Go's own port - the bind host (0.0.0.0) is not reachable.
   document.getElementById("birdnet").href = location.protocol + "//" + location.hostname + ":{BIRDNET_PORT}/";
 </script>
@@ -234,7 +311,9 @@ def _admin_html(
 """
 
 
-def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel: Panel | None):
+def make_handler(
+    db: Database, images_dir: Path, store: SettingsStore, panel: Panel | None, status: Status
+):
     class Handler(BaseHTTPRequestHandler):
         timeout = REQUEST_TIMEOUT
 
@@ -303,6 +382,7 @@ def make_handler(db: Database, images_dir: Path, store: SettingsStore, panel: Pa
                 html = _admin_html(
                     settings, species, db.latest(),
                     panel.resolution if panel else None, available, sources,
+                    status, db.path.parent,
                 )
                 self._send(200, html.encode(), "text/html; charset=utf-8")
             elif route == "/health":
@@ -335,8 +415,10 @@ def serve(
     port: int,
     store: SettingsStore,
     panel: Panel | None = None,
+    status: Status | None = None,
 ) -> None:
     """Blocking server loop. Opens its own DB connection."""
     db = Database(db_path)
-    httpd = ThreadingHTTPServer((host, port), make_handler(db, images_dir, store, panel))
+    handler = make_handler(db, images_dir, store, panel, status or Status())
+    httpd = ThreadingHTTPServer((host, port), handler)
     httpd.serve_forever()

@@ -30,6 +30,9 @@ DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 8080
 BIRDNET_PORT = 8090
 
+# Published docs site (mkdocs.yml site_url).
+DOCS_URL = "https://arnegiacomo.dev/fugleramme/"
+
 # Repo root: src/fugleramme/config.py -> repo root is three parents up.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 

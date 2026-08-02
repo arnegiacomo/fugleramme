@@ -28,6 +28,7 @@ from .panel import init_panel
 from .render import dither
 from .server import serve
 from .settings import SettingsStore
+from .status import Status
 
 log = logging.getLogger(__name__)
 
@@ -44,10 +45,11 @@ def run(config: Config) -> None:
 
     panel = init_panel()
     store = SettingsStore(config.config_path)
+    status = Status()
 
     server_thread = threading.Thread(
         target=serve,
-        args=(config.db_path, config.images_dir, config.host, config.port, store, panel),
+        args=(config.db_path, config.images_dir, config.host, config.port, store, panel, status),
         daemon=True,
     )
     server_thread.start()
@@ -71,13 +73,16 @@ def run(config: Config) -> None:
             panel_image = dither(collage)
             panel_image.save(config.output_path)
             log.info("Rendered panel collage: %d species at %dx%d", len(species), *size)
+            status.rendered()
             last_key = key
             pending = (panel_image, settings.rotation) if panel is not None else None
         if pending is not None:
             try:
                 panel.push(*pending)
                 pending = None
-            except Exception:
+                status.push_error = None
+            except Exception as exc:
                 # Retry next tick from the same image rather than re-rendering.
                 log.exception("Panel push failed")
+                status.push_error = str(exc) or type(exc).__name__
         time.sleep(_POLL_SECONDS)
