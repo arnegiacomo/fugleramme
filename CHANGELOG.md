@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.5.0 (2026-08-02)
+
+### Bug Fixes
+
+- #2 force the update checkout so a re-locked uv.lock cannot block it
+  ([`ef0d512`](https://github.com/arnegiacomo/fugleramme/commit/ef0d51233bd85c2ec2dfac3a58184b219796a514))
+
+### Chores
+
+- Re-lock uv.lock in the release commit
+  ([`c12f717`](https://github.com/arnegiacomo/fugleramme/commit/c12f7173c20a3f29e5a523e7d360d5932f39d28a))
+
+### Features
+
+- #2 show install progress and reload the admin page when the update lands
+  ([`91a25c8`](https://github.com/arnegiacomo/fugleramme/commit/91a25c8bc2620e96873bf58aa27ee1fc7b6d9353))
+
+
 ## v0.4.0 (2026-08-02)
 
 ### Chores
