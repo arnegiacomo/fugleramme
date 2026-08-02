@@ -98,7 +98,7 @@ def _ago(dt: datetime) -> str:
 
 
 _ONLINE_TTL = 60
-_online_cache: tuple[float, bool] = (0.0, False)
+_online_cache: tuple[float, bool] | None = None
 
 
 def _reachable(host: str, port: int) -> bool:
@@ -126,11 +126,11 @@ def _default_iface() -> str:
 def _online() -> str:
     """Cached, so a page load never waits out a dead link twice in a minute."""
     global _online_cache
-    checked, ok = _online_cache
-    if time.monotonic() - checked >= _ONLINE_TTL:
-        # Cloudflare DNS over TCP, by IP: no name lookup to hang on.
-        ok = _reachable("1.1.1.1", 53)
-        _online_cache = (time.monotonic(), ok)
+    now = time.monotonic()
+    if _online_cache is None or now - _online_cache[0] >= _ONLINE_TTL:
+        # Cloudflare by IP - no name lookup to hang on; 443 since some networks filter 53.
+        _online_cache = (now, _reachable("1.1.1.1", 443))
+    ok = _online_cache[1]
     iface = _default_iface()
     return _state(ok, "online", "offline") + (f" · {iface}" if iface else "")
 
@@ -159,6 +159,8 @@ def _species_li(name: str, pick: Path | None, candidates: list[Path]) -> str:
 
 def _lan_address() -> str:
     host = socket.gethostname()
+    if "." not in host:
+        host += ".local"  # avahi publishes it; the Pi's bare hostname does not resolve off-box
     try:
         # Connecting a UDP socket sends nothing; it just picks the outbound interface.
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
