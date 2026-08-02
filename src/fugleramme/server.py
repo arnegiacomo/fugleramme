@@ -34,7 +34,7 @@ from .db import Database, Detection
 from .fonts import FONTS, LABEL_SIZES
 from .names import available_sources, image_for, resolve, variants_for
 from .panel import Panel
-from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, SettingsStore
+from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, SettingsStore, merged
 from .status import Status
 
 log = logging.getLogger(__name__)
@@ -210,6 +210,17 @@ def _checkboxes(available: list[str], active: list[str]) -> str:
     )
 
 
+def _form_changes(form: dict[str, list[str]]) -> dict:
+    """Admin form to settings overrides. `sources` is a multi-value checkbox group
+    (absent when all unchecked), and unchecked checkboxes are absent too; _coerce
+    validates and clamps the rest."""
+    changes = {k: v[0] for k, v in form.items() if k != "sources"}
+    changes["sources"] = form.get("sources", [])
+    changes["auto_update"] = "auto_update" in form
+    changes["show_names"] = "show_names" in form
+    return changes
+
+
 def _admin_html(
     settings: Settings,
     species: list[tuple[str, Path | None, list[Path]]],
@@ -287,6 +298,7 @@ def _admin_html(
   label.src {{ display: flex; align-items: center; gap: 0.4rem; font-weight: 400; margin: 0 0 0.3rem; }}
   label.src input {{ width: auto; padding: 0; }}
   button {{ font-size: 1rem; padding: 0.5rem 1.25rem; margin-top: 0.5rem; }}
+  button:disabled {{ opacity: 0.45; }}
   a {{ color: #446; }}
   dl.status {{ display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
               background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }}
@@ -380,8 +392,8 @@ def _admin_html(
 
   // Every button posts and redirects, so a save reloads: the open preview and the
   // scroll position have to be carried across by hand.
-  for (const form of document.querySelectorAll("form")) {{
-    form.addEventListener("submit", () => sessionStorage.setItem("scroll", String(window.scrollY)));
+  for (const f of document.querySelectorAll("form")) {{
+    f.addEventListener("submit", () => sessionStorage.setItem("scroll", String(window.scrollY)));
   }}
   function restoreScroll() {{
     const y = sessionStorage.getItem("scroll");
@@ -409,29 +421,56 @@ def _admin_html(
   const preview = document.getElementById("preview");
   const shot = document.getElementById("shot");
   const caption = document.querySelector(".rendering");
-  let fetched = false;
-  function fetchShot() {{
-    if (!preview.open || fetched) return;
-    fetched = true;
+  const captionHTML = caption.innerHTML;
+  const form = document.querySelector("form.settings");
+  const save = form.querySelector("button[type=submit]");
+  const serialize = () => new URLSearchParams(new FormData(form)).toString();
+  const saved = serialize();
+  const dirty = () => serialize() !== saved;
+  let saving = false, shown = null, seq = 0, timer = null;
+
+  function loadPreview() {{
+    const query = serialize();
+    if (!preview.open || query === shown) return;
+    const id = ++seq;
+    preview.classList.add("loading");
+    caption.innerHTML = captionHTML;
     const next = new Image();  // decode off-screen, so the img is never stale or broken
     next.onload = () => {{
+      if (id !== seq) return;  // a later edit already superseded this render
+      shown = query;
       shot.src = next.src;
       preview.classList.remove("loading");
       restoreScroll();  // only now is the page tall enough not to clamp it
     }};
     next.onerror = () => {{
+      if (id !== seq) return;
       caption.textContent = "Preview unavailable";
       restoreScroll();
     }};
-    next.src = "/collage.png";
+    next.src = "/preview.png?" + query;
   }}
+
+  form.addEventListener("input", () => {{
+    save.disabled = !dirty();
+    clearTimeout(timer);  // debounced: a render is expensive on the Pi
+    timer = setTimeout(loadPreview, 500);
+  }});
+  form.addEventListener("submit", () => {{ saving = true; }});
+  window.addEventListener("beforeunload", (e) => {{
+    if (saving || !dirty()) return;
+    e.preventDefault();
+    e.returnValue = "";
+  }});
+
   preview.addEventListener("toggle", () => {{
     localStorage.setItem("preview", preview.open ? "1" : "0");
-    fetchShot();
+    loadPreview();
   }});
   preview.open = localStorage.getItem("preview") === "1";
-  fetchShot();
-  if (!fetched) restoreScroll();  // closed preview: already at full height
+  save.disabled = true;
+  loadPreview();
+  if (!preview.open) restoreScroll();  // closed preview: already at full height
 </script>
 </body>
 </html>
@@ -479,7 +518,11 @@ def make_handler(
             settings = store.get()
             if route in ("/", "/index.html"):
                 self._send(200, _kiosk_html(settings.kiosk_refresh_seconds).encode(), "text/html; charset=utf-8")
-            elif route == "/collage.png":
+            elif route in ("/collage.png", "/preview.png"):
+                if route == "/preview.png":
+                    # The admin's unsaved form state, so Preview shows it before Save.
+                    query = parse_qs(urlparse(self.path).query)
+                    settings = merged(settings, **_form_changes(query))
                 sources = resolve(settings.sources, images_dir)
                 png = collage_png_bytes(
                     db, images_dir, sources, settings.web_size(), settings.show_names,
@@ -539,13 +582,7 @@ def make_handler(
                 # The loop installs it: exiting mid-render or mid-push is not safe here.
                 status.update_requested = status.update_available
             else:
-                # `sources` is a multi-value checkbox group (absent when all unchecked);
-                # unchecked checkboxes are absent too. _coerce validates + clamps.
-                changes = {k: v[0] for k, v in form.items() if k != "sources"}
-                changes["sources"] = form.get("sources", [])
-                changes["auto_update"] = "auto_update" in form
-                changes["show_names"] = "show_names" in form
-                store.update(**changes)
+                store.update(**_form_changes(form))
             self.send_response(303)
             self.send_header("Location", "/admin")
             self.end_headers()

@@ -114,6 +114,11 @@ def _coerce(raw: dict) -> Settings:
     )
 
 
+def merged(base: Settings, **changes) -> Settings:
+    """Validated Settings from a base plus overrides, without persisting."""
+    return _coerce({**asdict(base), **changes})
+
+
 class SettingsStore:
     """Thread-safe view of the settings file for the render loop + HTTP server."""
 
@@ -132,7 +137,7 @@ class SettingsStore:
     def update(self, **changes) -> Settings:
         with self._lock:
             self._reload_if_changed()
-            new = _coerce({**asdict(self._settings), **changes})
+            new = merged(self._settings, **changes)
             self._write(new)
             self._settings = new
             return new
