@@ -32,7 +32,7 @@ See issue #7 for the full rationale.
 | File | Purpose |
 | --- | --- |
 | `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db bind-mounted from `./data` (persistent), web UI on `:8090` |
-| `config/config.yaml.template` | Tracked template; `setup.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, clips off, SQLite at `/data/birdnet.db`, log levels pinned to `info` |
+| `config/config.yaml.template` | Tracked template; `setup.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, analysis defaults (#15), clips on, SQLite at `/data/birdnet.db`, log levels pinned to `info` |
 | `preflight.sh` | Fatal check that an ALSA capture device exists |
 
 ## Deploy

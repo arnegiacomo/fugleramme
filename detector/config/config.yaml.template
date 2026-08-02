@@ -8,15 +8,19 @@ birdnet:
   threshold: 0.8
   latitude: 60.39
   longitude: 5.32
-  overlap: 1.5               # deep detection "lenient": require 2 confirmations in 15s, drops one-off false positives
+  overlap: 2.2               # 0.8s stride over the 3s window, ~4 looks at each sound; upstream default 0 looks once
   rangefilter:
     threshold: 0.05          # up from the 0.01 default: cut species unlikely at this lat/lon + week
 
 realtime:
   interval: 15               # min seconds between repeat detections of a species
+  falsepositivefilter:
+    level: 2                 # 0 off, 1 lenient, 2 moderate, 3 balanced, 4 strict, 5 max (4+ need an RPi 4)
+  dynamicthreshold:
+    enabled: false           # defaults to true upstream: lets a confident hit lower the bar to 0.2 for 24h
   audio:
     export:
-      enabled: false
+      enabled: true          # 15s mp3 per detection; path/bitrate/retention stay at upstream defaults (usage policy, 80% disk)
 
 output:
   sqlite:
