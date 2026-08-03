@@ -29,6 +29,22 @@ def test_available_styles_lists_only_folders(tmp_path):
     assert available_styles(tmp_path) == ["classic", "custom"]
 
 
+def test_an_empty_style_is_not_offered(tmp_path):
+    # A `custom/` waiting to be filled must not be selectable - it would blank the frame.
+    _make(tmp_path, "classic", "turdus-merula")
+    (tmp_path / "custom").mkdir()
+    (tmp_path / "custom" / "README.md").write_text("drop art here")
+    assert available_styles(tmp_path) == ["classic"]
+
+    # Perches alone are not a style either: there would be no birds to draw.
+    (tmp_path / "custom" / PERCHES).mkdir()
+    (tmp_path / "custom" / PERCHES / "birch-twig.png").write_bytes(b"x")
+    assert available_styles(tmp_path) == ["classic"]
+
+    _make(tmp_path, "custom", "corvus-corax")
+    assert available_styles(tmp_path) == ["classic", "custom"]
+
+
 def test_resolve_empty_or_stale_falls_back_to_the_first_present(tmp_path):
     _make(tmp_path, "classic", "turdus-merula")
     _make(tmp_path, "custom", "turdus-merula")

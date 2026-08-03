@@ -13,6 +13,7 @@ from fugleramme.settings import Settings, SettingsStore
 def images_dir(tmp_path):
     for style in ("classic", "custom", "modern"):
         (tmp_path / style).mkdir()
+        (tmp_path / style / "turdus-merula.png").write_bytes(b"x")  # an empty style is not offered
     return tmp_path
 
 

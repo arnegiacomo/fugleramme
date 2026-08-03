@@ -4,11 +4,14 @@ name loses the names rather than the birds."""
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import numpy as np
 import pytest
 from PIL import Image, ImageFont
 
-from fugleramme import fonts
+from fugleramme import collage, fonts
+from fugleramme.paper import TARGET_PAPER
 from fugleramme.collage import (
     _INK,
     _PANEL_INK,
@@ -186,3 +189,50 @@ def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog)
     )
     assert (np.asarray(page) == _PANEL_INK).all(axis=2).any()  # names made it onto the page
     assert "No layout fits" not in caplog.text
+
+
+def _perches(tmp_path, count=5):
+    """Asymmetric, distinctly-shaded stand-in branches: the shade says which one
+    was drawn, the notch says whether it was mirrored."""
+    paths = []
+    for n in range(count):
+        # Kept dark: process_sprite snaps anything pale enough to read as paper
+        # to the page tone, which would make two stand-ins indistinguishable.
+        shade = 10 + n * 30
+        img = Image.new("RGBA", (60, 90), (shade, shade, shade, 255))
+        img.paste((255, 255, 255, 0), (0, 0, 20, 20))  # notch one corner only
+        path = tmp_path / f"perch{n}.png"
+        img.save(path)
+        paths.append(path)
+    return paths
+
+
+def _branch(perches, textured):
+    """Which branch is on the page, by its shade - tolerant of paper grain."""
+    page = np.asarray(
+        render_collage([], (300, 220), textured=textured, perches=perches).convert("L")
+    )
+    return round(float(np.median(page[page < 200])) / 10)
+
+
+def test_the_empty_page_shows_one_branch_that_both_outputs_agree_on(tmp_path):
+    # The perch used to be rolled per render, so the panel froze on whichever it
+    # drew and the kiosk showed a different one.
+    perches = _perches(tmp_path)
+    assert len({_branch(perches, textured=True) for _ in range(4)}) == 1
+    assert _branch(perches, textured=True) == _branch(perches, textured=False)
+
+
+def test_the_branch_turns_over_with_the_day(tmp_path):
+    perches = _perches(tmp_path)
+    seen = set()
+    for day in range(10):
+        with patch.object(collage, "perch_day", return_value=day):
+            page = render_collage([], (300, 220), textured=False, perches=perches)
+            seen.add(np.asarray(page).tobytes())
+    assert len(seen) == 10  # five branches, each also mirrored
+
+
+def test_an_empty_page_with_no_perches_is_bare_paper(tmp_path):
+    page = render_collage([], (200, 150), textured=False, perches=[])
+    assert (np.asarray(page) == TARGET_PAPER).all()

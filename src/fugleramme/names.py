@@ -36,9 +36,14 @@ def normalize(scientific_name: str) -> str:
 
 
 def available_styles(images_dir: Path) -> list[str]:
-    """Style folder names present under `images_dir`, sorted."""
+    """Style folders under `images_dir` that actually hold artwork, sorted.
+
+    A folder with no birds in it is not a style you can pick: an empty `custom/`
+    waiting to be filled would otherwise sit in the admin radio and blank the
+    frame when selected. Perches alone do not count - there would be no birds.
+    """
     try:
-        return sorted(d.name for d in images_dir.iterdir() if d.is_dir())
+        return sorted(d.name for d in images_dir.iterdir() if d.is_dir() and any(d.glob("*.png")))
     except OSError:
         return []
 

@@ -24,10 +24,10 @@ import hashlib
 import io
 import logging
 import math
-import random
 import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 import numpy as np
@@ -198,6 +198,19 @@ def _with_label(art: Image.Image, art_mask: np.ndarray, label: Image.Image, gap:
     return _Sprite(art, mask, (ax, 0), label, (lx, top))
 
 
+def perch_day() -> int:
+    """Which branch an empty page shows, as a number that turns over daily.
+
+    The panel and the kiosk each render their own copy, so anything rolled at
+    render time would leave them showing different branches - and the panel,
+    which only re-renders when its key changes, would then hold its one branch
+    for as long as the frame stayed quiet. Deriving it from the date instead
+    makes both agree by construction and gives a silent frame something that
+    still moves. Both keys carry it, so the render actually happens.
+    """
+    return date.today().toordinal()
+
+
 def _flip(name: str) -> bool:
     """Mirror a bird or not, decided by its name alone: variety without churn,
     since a set-wide rng would re-roll every bird whenever one arrives."""
@@ -274,7 +287,7 @@ def render_collage(
 
     arts = [(name, _trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
     if not arts:
-        _draw_empty(canvas, width, height, perches, random.Random(), textured)
+        _draw_empty(canvas, width, height, perches, textured)
         return canvas
 
     # Each bird's target size scales with its real mass (compressed); the whole
@@ -308,14 +321,14 @@ def render_collage(
 
 
 def _draw_empty(
-    canvas, width: int, height: int, perches: Sequence[Path],
-    rng: random.Random, textured: bool = True,
+    canvas, width: int, height: int, perches: Sequence[Path], textured: bool = True
 ) -> None:
     """No detections: a single empty perch, centered on the paper page."""
     if not perches:
         return
-    perch = _trim(rng.choice(list(perches)))
-    if rng.random() < 0.5:
+    day = perch_day()
+    perch = _trim(perches[day % len(perches)])
+    if (day // len(perches)) % 2:  # mirrored on the second lap, so it cycles twice as far
         perch = perch.transpose(Image.FLIP_LEFT_RIGHT)
     target = int(min(width, height) * 0.7)
     scale = target / max(perch.width, perch.height)
@@ -354,7 +367,6 @@ def gather_entries(
 
 _cache: tuple[tuple, bytes] | None = None
 _cache_lock = threading.Lock()
-_EMPTY = None  # cache-key marker for the no-species perch
 
 
 def collage_key(
@@ -370,8 +382,8 @@ def collage_key(
     """Everything the collage is a function of: the cache key, and what the kiosk polls."""
     species = tuple(name for name, _ in db.species_since(lookback_hours))
     return (
-        species or _EMPTY, style, resolution, show_names, font_key, label_size,
-        namer.key if namer else (),
+        species, perch_day() if not species else None, style, resolution,
+        show_names, font_key, label_size, namer.key if namer else (),
     )
 
 
@@ -398,9 +410,8 @@ def collage_png_bytes(
     Both states share the single _cache slot, keyed by the species set. Birds:
     the layout is a pure function of the set, re-packed only when it changes -
     and so are the artwork picks, which is why the key needs nothing for them.
-    Empty: the perch is held for the whole empty period and re-rolled only when
-    a new one begins (the cache still holds a bird key), so refreshes don't
-    restlessly swap it.
+    Empty: the branch is a function of the day (perch_day), so the kiosk and
+    the panel show the same one and a refresh never swaps it.
 
     The lock is held across the render so concurrent kiosk requests wait for one
     render instead of each doing their own.
@@ -413,7 +424,7 @@ def collage_png_bytes(
         if _cache is not None and _cache[0] == key:
             return _cache[1]
 
-        species = key[0] or ()  # _EMPTY back to an empty tuple
+        species = key[0]
         if not species:
             image = render_collage(
                 [], resolution, show_names, perches=perches_for(images_dir, style)

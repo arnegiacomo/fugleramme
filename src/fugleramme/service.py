@@ -20,7 +20,7 @@ import threading
 import time
 
 from . import __version__, buttons, updates
-from .collage import gather_entries, render_collage
+from .collage import gather_entries, perch_day, render_collage
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
 from .languages import namer
@@ -101,8 +101,9 @@ def run(config: Config) -> None:
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
         key = (
-            tuple(species), size, style, settings.rotation,
-            settings.show_names, settings.label_font, settings.label_size, name_of.key,
+            tuple(species), perch_day() if not species else None, size, style,
+            settings.rotation, settings.show_names, settings.label_font,
+            settings.label_size, name_of.key,
         )
         if key != last_key:
             # The loop owns the window, so it is the only caller that may forget
