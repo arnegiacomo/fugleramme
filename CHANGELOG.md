@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.9.0 (2026-08-03)
+
+### Bug Fixes
+
+- #13 hold one perch per day, shared by panel and kiosk
+  ([`1637b56`](https://github.com/arnegiacomo/fugleramme/commit/1637b5601a5d0806e1a606f427b02dcafdd87702))
+
+### Chores
+
+- #13 untrack the workstation-only artwork pipeline
+  ([`aa78507`](https://github.com/arnegiacomo/fugleramme/commit/aa78507b314c18bfeadd05f9cf295fc81b524548))
+
+### Features
+
+- #13 curate one artwork style, held per species while a bird is in the window
+  ([`98fc248`](https://github.com/arnegiacomo/fugleramme/commit/98fc248f42f75b2a3567d6a3d610940983e72e0b))
+
+
 ## v0.8.0 (2026-08-02)
 
 ### Features
