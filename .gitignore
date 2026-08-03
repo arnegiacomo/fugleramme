@@ -8,9 +8,11 @@ __pycache__/
 .venv-rembg/
 venv/
 
-# Wikimedia scans + keyed-out cut-outs for review - kept locally, regenerated
-wikimedia-scrape/originals/
-wikimedia-scrape/staging/
+# Artwork pipeline: scraping, background removal, curation into a style, and the
+# scans and cut-outs they work on. All of it runs on the workstation only, never
+# on the Pi, and nothing the frame runs depends on it - so it stays local.
+scripts/
+wikimedia-scrape/
 
 # Runtime artifacts: BirdNET-Go's DB (detector/data) and the frame's rendered output
 data/
