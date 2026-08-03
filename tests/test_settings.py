@@ -53,24 +53,33 @@ def test_reload_picks_up_external_edit(tmp_path):
     assert store.get().lookback_hours == 48
 
 
-def test_sources_default_empty_means_all(tmp_path):
-    # Empty is the "all present" sentinel; names.resolve expands it at render time.
-    assert SettingsStore(tmp_path / "s.json").get().sources == ()
+def test_style_default_empty_means_whichever_is_present(tmp_path):
+    # Empty is the "unset" sentinel; names.resolve settles it at render time.
+    assert SettingsStore(tmp_path / "s.json").get().style == ""
 
 
-def test_sources_persist_and_dedupe(tmp_path):
+def test_style_persists(tmp_path):
     path = tmp_path / "s.json"
-    saved = SettingsStore(path).update(sources=["gould", "vonwright", "gould"])
-    assert saved.sources == ("gould", "vonwright")
-    assert json.loads(path.read_text())["sources"] == ["gould", "vonwright"]
+    saved = SettingsStore(path).update(style="classic")
+    assert saved.style == "classic"
+    assert json.loads(path.read_text())["style"] == "classic"
     assert SettingsStore(path).get() == saved
 
 
-def test_sources_invalid_falls_back_to_empty(tmp_path):
+def test_style_migrates_from_the_old_sources_list(tmp_path):
     path = tmp_path / "s.json"
-    path.write_text(json.dumps({"sources": [1, "gould", None, ""]}))
-    # Non-string / empty entries are dropped, not coerced.
-    assert SettingsStore(path).get().sources == ("gould",)
+    path.write_text(json.dumps({"sources": ["gould", "vonwright"]}))
+    store = SettingsStore(path)
+    assert store.get().style == "gould"
+    # The write drops `sources` for good; a stale name is names.resolve's problem.
+    store.update(style="classic")
+    assert "sources" not in json.loads(path.read_text())
+
+
+def test_style_invalid_falls_back_to_empty(tmp_path):
+    path = tmp_path / "s.json"
+    path.write_text(json.dumps({"style": 7}))
+    assert SettingsStore(path).get().style == ""
 
 
 def test_label_font_and_size_fall_back_to_defaults(tmp_path):
@@ -87,7 +96,7 @@ def test_label_font_and_size_fall_back_to_defaults(tmp_path):
 def test_language_codes_are_kept_by_shape_not_by_availability(tmp_path):
     path = tmp_path / "s.json"
     # Any locale-code shape is kept: which ones BirdNET-Go serves is a render-time
-    # question (like `sources`), so a container that is down can't reset the setting.
+    # question (like `style`), so a container that is down can't reset the setting.
     path.write_text(json.dumps({"primary_language": "NB", "secondary_language": "pt-br"}))
     settings = SettingsStore(path).get()
     assert settings.primary_language == "nb"

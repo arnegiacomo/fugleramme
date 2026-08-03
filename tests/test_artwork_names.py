@@ -11,9 +11,15 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
+
+from fugleramme.names import PERCHES
+
 REPO = Path(__file__).resolve().parents[1]
 IMAGES = REPO / "assets" / "birds"
 LABELS = REPO / "assets" / "birdnet_labels_v2.4.txt"
+# Curation priority list: workstation-only tooling, so absent from a clone.
+PRIORITY = REPO / "scripts" / "bergen_species.txt"
 
 # Modern scientific names with no BirdNET v2.4 label - the artwork is kept but
 # can never be triggered, so it is exempt from the label check.
@@ -53,6 +59,8 @@ def test_every_artwork_name_is_a_birdnet_label_or_exception():
     labels = _labels()
     unknown = []
     for png in sorted(IMAGES.rglob("*.png")):
+        if png.parent.name == PERCHES:  # bare branches, named for the plant
+            continue
         stem = _base(png.stem)
         if "-x-" in stem:  # hybrids: BirdNET never emits these
             continue
@@ -63,3 +71,16 @@ def test_every_artwork_name_is_a_birdnet_label_or_exception():
         "artwork filenames not matching a BirdNET label or exception:\n"
         + "\n".join(unknown)
     )
+
+
+@pytest.mark.skipif(not PRIORITY.exists(), reason="curation tooling is workstation-only")
+def test_curation_priority_names_are_birdnet_labels():
+    # A typo here would silently sink a common bird to the bottom of the sheet.
+    labels = _labels()
+    listed = [
+        line.strip().lower().replace(" ", "-")
+        for line in PRIORITY.read_text().splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
+    assert len(listed) == len(set(listed)), "duplicate species in the priority list"
+    assert not [key for key in listed if key not in labels]

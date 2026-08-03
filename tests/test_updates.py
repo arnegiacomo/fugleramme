@@ -16,6 +16,7 @@ import pytest
 
 from fugleramme import server, service, updates
 from fugleramme.db import Database
+from fugleramme.picks import Picks
 from fugleramme.settings import SettingsStore
 from fugleramme.status import Status
 
@@ -93,7 +94,7 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
     status = Status()
     handler = server.make_handler(
         Database(tmp_path / "absent.db"), tmp_path, SettingsStore(tmp_path / "s.json"),
-        None, status,
+        Picks(tmp_path / "artwork.json"), None, status,
     )
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()

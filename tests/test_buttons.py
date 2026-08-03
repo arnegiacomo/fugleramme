@@ -11,8 +11,8 @@ from fugleramme.settings import Settings, SettingsStore
 
 @pytest.fixture
 def images_dir(tmp_path):
-    for source in ("vonwright", "gould", "custom"):
-        (tmp_path / source).mkdir()
+    for style in ("classic", "custom", "modern"):
+        (tmp_path / style).mkdir()
     return tmp_path
 
 
@@ -40,18 +40,17 @@ def test_c_turns_the_picture_clockwise(images_dir):
     assert seen == [270, 180, 90, 0]
 
 
-def test_d_walks_the_sources_and_wraps(images_dir):
-    settings = Settings()  # the default is every source, which is not a step in the cycle
+def test_d_walks_the_styles_and_wraps(images_dir):
+    settings = Settings()  # unset, so the first press starts the cycle
     seen = []
     for _ in range(4):
-        settings = Settings(sources=changes_for("D", settings, images_dir)["sources"])
-        seen.append(settings.sources)
-    assert seen == [("custom",), ("gould",), ("vonwright",), ("custom",)]
+        settings = Settings(style=changes_for("D", settings, images_dir)["style"])
+        seen.append(settings.style)
+    assert seen == ["classic", "custom", "modern", "classic"]
 
 
-def test_d_restarts_the_cycle_from_a_multi_source_selection(images_dir):
-    settings = Settings(sources=("gould", "vonwright"))
-    assert changes_for("D", settings, images_dir) == {"sources": ("custom",)}
+def test_d_restarts_the_cycle_from_a_stale_style(images_dir):
+    assert changes_for("D", Settings(style="gould"), images_dir) == {"style": "classic"}
 
 
 def test_d_does_nothing_with_no_artwork(tmp_path):

@@ -3,7 +3,7 @@
 One collage, two outputs (issue #1 "render once, fan out"): the web/kiosk view
 serves it full-color on request; the Inky panel gets the same collage dithered
 to 6 colors. The loop re-renders the panel image only when its inputs change -
-the species in the lookback window, the rotation, the artwork sources - a
+the species in the lookback window, the rotation, the artwork style - a
 natural debounce for the slow e-ink refresh. The web view renders fresh per
 request, at its own resolution setting.
 
@@ -20,12 +20,13 @@ import threading
 import time
 
 from . import __version__, buttons, updates
-from .collage import gather_entries, render_collage, render_rng
+from .collage import gather_entries, render_collage
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
 from .languages import namer
-from .names import resolve
+from .names import perches_for, resolve
 from .panel import init_panel
+from .picks import FILENAME as PICKS_FILE, Picks
 from .render import dither
 from .server import serve
 from .settings import SettingsStore
@@ -66,11 +67,13 @@ def run(config: Config) -> None:
 
     panel = init_panel()
     store = SettingsStore(config.config_path)
+    picks = Picks(config.config_path.parent / PICKS_FILE)
     status = Status()
 
     server_thread = threading.Thread(
         target=serve,
-        args=(config.db_path, config.images_dir, config.host, config.port, store, panel, status),
+        args=(config.db_path, config.images_dir, config.host, config.port, store,
+              picks, panel, status),
         daemon=True,
     )
     server_thread.start()
@@ -92,22 +95,27 @@ def run(config: Config) -> None:
         if _update(status, settings.auto_update):
             return  # new code is checked out; systemd restarts us into it
         species = db.species_since(settings.lookback_hours)
-        sources = resolve(settings.sources, config.images_dir)
+        style = resolve(settings.style, config.images_dir)
         size = settings.oriented(panel.resolution if panel else FALLBACK_PANEL_RESOLUTION)
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
         key = (
-            tuple(species), size, tuple(sources), settings.rotation,
+            tuple(species), size, style, settings.rotation,
             settings.show_names, settings.label_font, settings.label_size, name_of.key,
         )
         if key != last_key:
-            rng = render_rng([name for name, _ in species])
-            entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
+            # The loop owns the window, so it is the only caller that may forget
+            # a departed bird's artwork - the kiosk may be previewing another one.
+            picks.retain(name for name, _ in species)
+            entries = gather_entries(
+                db, config.images_dir, style, picks, settings.lookback_hours
+            )
             collage = render_collage(
-                entries, size, settings.show_names, rng,
+                entries, size, settings.show_names,
                 textured=False, font_key=settings.label_font,
                 label_size=settings.label_size, label_text=name_of.label,
+                perches=perches_for(config.images_dir, style),
             )
             panel_image = dither(collage)
             panel_image.save(config.output_path)

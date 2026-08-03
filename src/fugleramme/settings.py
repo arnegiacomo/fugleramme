@@ -43,9 +43,9 @@ class Settings:
     lookback_hours: int = 24
     # How often the kiosk asks /state whether the collage changed; a check, not a render.
     kiosk_refresh_seconds: int = 3
-    # Active artwork source folders; empty means "all present" (resolved against
-    # the filesystem at render time, so it survives added/removed sources).
-    sources: tuple[str, ...] = ()
+    # Active artwork style folder; empty means "whichever is present" (resolved
+    # against the filesystem at render time, so it survives a renamed style).
+    style: str = ""
     auto_update: bool = False
     show_names: bool = True
     # Species-name languages: BirdNET-Go dictionary locales, resolved
@@ -85,14 +85,15 @@ def _one_of(value, options, default):
     return value if value in options else default
 
 
-def _sources(value) -> tuple[str, ...]:
-    """A deduped tuple of source names, order preserved. Existence isn't checked
-    here (settings has no filesystem view) - names.resolve does that at use."""
-    if isinstance(value, str):
-        value = [value]
-    if not isinstance(value, (list, tuple)):
-        return ()
-    return tuple(dict.fromkeys(s for s in value if isinstance(s, str) and s))
+def _style(raw: dict, default: str) -> str:
+    """The active style name. Falls back to the first entry of the older
+    multi-source `sources` list, so an existing settings.json migrates in place;
+    a name that no longer exists is settled by names.resolve, not here."""
+    value = raw.get("style")
+    if not isinstance(value, str):
+        legacy = raw.get("sources")
+        value = legacy[0] if isinstance(legacy, (list, tuple)) and legacy else None
+    return value.strip() if isinstance(value, str) else default
 
 
 _LOCALE_RE = re.compile(r"[a-z]{2,3}(-[a-z]{2})?")
@@ -124,7 +125,7 @@ def _coerce(raw: dict) -> Settings:
         kiosk_refresh_seconds=_as_int(
             raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 1, 3600
         ),
-        sources=_sources(raw.get("sources")),
+        style=_style(raw, d.style),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
         show_names=_as_bool(raw.get("show_names"), d.show_names),
         # A primary language is required: an empty pick means the scientific name.

@@ -12,7 +12,7 @@ import logging
 from datetime import timedelta
 from pathlib import Path
 
-from .names import available_sources
+from .names import available_styles
 from .settings import Settings, SettingsStore
 
 log = logging.getLogger(__name__)
@@ -39,13 +39,12 @@ def changes_for(label: str, settings: Settings, images_dir: Path) -> dict | None
         # settings.rotation is counter-clockwise; a press turns the picture clockwise.
         return {"rotation": (settings.rotation - 90) % 360}
     if label == "D":
-        available = available_sources(images_dir)
+        available = available_styles(images_dir)
         if not available:
             return None
-        # One source at a time, so any other selection restarts the cycle.
-        current = settings.sources[0] if len(settings.sources) == 1 else None
-        index = available.index(current) + 1 if current in available else 0
-        return {"sources": (available[index % len(available)],)}
+        # An unset or stale style starts the cycle at the first one.
+        index = available.index(settings.style) + 1 if settings.style in available else 0
+        return {"style": available[index % len(available)]}
     return None
 
 

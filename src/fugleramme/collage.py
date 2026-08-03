@@ -1,4 +1,4 @@
-"""Kiosk collage: full-color composite of the species seen in the last 24h.
+"""Kiosk collage: full-color composite of the species seen in the lookback window.
 
 This is the web/kiosk view (also dithered onto the panel). It uses the source
 PNGs at full color and packs them by their silhouettes: opaque pixels never
@@ -12,6 +12,10 @@ Species with no artwork are omitted (there is nothing to draw for them once
 names are off). The name label is an admin toggle, on by default, and reads in
 the admin's chosen language(s); it packs as part of its bird, tucked up under
 the silhouette, so a name can never land on a neighbour or clip.
+
+Nothing here rolls dice per render: a species holds its artwork for as long as
+it is in the window (picks.py) and the mirror is a hash of the name, so a bird
+is unaffected by which other birds are on the page, or by a restart.
 """
 
 from __future__ import annotations
@@ -30,17 +34,16 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from . import fonts
-from .config import REPO_ROOT
 from .db import Database
 from .languages import Namer
-from .names import image_for
+from .names import image_for, perches_for
 from .paper import PAD, TARGET_PAPER, paper_texture, process_sprite
+from .picks import Picks
 from .sizes import SIZE_EXPONENT, mass_of
 
 log = logging.getLogger(__name__)
 
 DEFAULT_RESOLUTION = (1280, 800)
-PERCHES_DIR = REPO_ROOT / "assets" / "perches"
 _INK = (30, 30, 30)
 _PANEL_INK = (0, 0, 0)   # exact palette black: the dither leaves it alone
 _MAX_BIRDS = 40
@@ -195,6 +198,12 @@ def _with_label(art: Image.Image, art_mask: np.ndarray, label: Image.Image, gap:
     return _Sprite(art, mask, (ax, 0), label, (lx, top))
 
 
+def _flip(name: str) -> bool:
+    """Mirror a bird or not, decided by its name alone: variety without churn,
+    since a set-wide rng would re-roll every bird whenever one arrives."""
+    return hashlib.blake2b(name.encode(), digest_size=1).digest()[0] < 128
+
+
 def _size_weights(names: list[str]) -> list[float]:
     """Per-bird display weight from real mass, centered on the present set's
     geometric mean and compressed by SIZE_EXPONENT."""
@@ -247,25 +256,25 @@ def render_collage(
     entries: list[tuple[str, Path | None]],
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
     show_names: bool = True,
-    rng: random.Random | None = None,
     textured: bool = True,
     font_key: str = fonts.DEFAULT_FONT,
     label_size: str = fonts.DEFAULT_LABEL_SIZE,
     label_text: Callable[[str], str] = str,
+    perches: Sequence[Path] = (),
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
     textured: paper grain for the web, flat paper for the panel, whose dither
     would otherwise turn the grain into noise. It also picks the label ink.
     label_text: scientific name -> what the label reads; str leaves it alone.
+    perches: the active style's bare branches, for a page with no birds on it.
     """
     width, height = resolution
     canvas = paper_texture(width, height) if textured else Image.new("RGB", (width, height), TARGET_PAPER)
-    rng = rng or random.Random()
 
     arts = [(name, _trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
     if not arts:
-        _draw_empty(canvas, width, height, rng, textured)
+        _draw_empty(canvas, width, height, perches, random.Random(), textured)
         return canvas
 
     # Each bird's target size scales with its real mass (compressed); the whole
@@ -273,7 +282,7 @@ def render_collage(
     # Placing biggest-first on the center-out spiral keeps large birds central.
     weights = _size_weights([name for name, _ in arts])
     order = sorted(range(len(arts)), key=lambda i: -weights[i])
-    flips = [rng.random() < 0.5 for _ in arts]
+    flips = [_flip(name) for name, _ in arts]
     base = min(
         math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
         min(width, height) * 0.7 / max(weights),
@@ -298,12 +307,14 @@ def render_collage(
     return canvas
 
 
-def _draw_empty(canvas, width: int, height: int, rng: random.Random, textured: bool = True) -> None:
+def _draw_empty(
+    canvas, width: int, height: int, perches: Sequence[Path],
+    rng: random.Random, textured: bool = True,
+) -> None:
     """No detections: a single empty perch, centered on the paper page."""
-    perches = sorted(PERCHES_DIR.glob("*.png"))
     if not perches:
         return
-    perch = _trim(rng.choice(perches))
+    perch = _trim(rng.choice(list(perches)))
     if rng.random() < 0.5:
         perch = perch.transpose(Image.FLIP_LEFT_RIGHT)
     target = int(min(width, height) * 0.7)
@@ -327,22 +338,16 @@ def _draw_names(canvas, placed, textured: bool) -> None:
         canvas.paste(Image.new("RGB", sprite.label.size, ink), (x + lx, y + ly), sprite.label)
 
 
-def render_rng(species: Sequence[str]) -> random.Random:
-    """The per-render rng, seeded by the species set so the panel, the kiosk and
-    the admin listing all draw (and report) the same artwork for a given set."""
-    return random.Random(hash(tuple(species)))
-
-
 def gather_entries(
     db: Database,
     images_dir: Path,
-    sources: Sequence[str],
-    rng: random.Random,
+    style: str,
+    picks: Picks,
     hours: int = 24,
 ) -> list[tuple[str, Path | None]]:
-    """Recent-window species paired with a (random) artwork path, or None if absent."""
+    """Recent-window species paired with the artwork each is wearing, or None."""
     return [
-        (name, image_for(name, images_dir, sources, rng))
+        (name, image_for(name, images_dir, style, picks))
         for name, _count in db.species_since(hours)
     ]
 
@@ -354,7 +359,7 @@ _EMPTY = None  # cache-key marker for the no-species perch
 
 def collage_key(
     db: Database,
-    sources: Sequence[str],
+    style: str,
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
     show_names: bool = True,
     lookback_hours: int = 24,
@@ -365,7 +370,7 @@ def collage_key(
     """Everything the collage is a function of: the cache key, and what the kiosk polls."""
     species = tuple(name for name, _ in db.species_since(lookback_hours))
     return (
-        species or _EMPTY, tuple(sources), resolution, show_names, font_key, label_size,
+        species or _EMPTY, style, resolution, show_names, font_key, label_size,
         namer.key if namer else (),
     )
 
@@ -379,7 +384,8 @@ def collage_token(key: tuple) -> str:
 def collage_png_bytes(
     db: Database,
     images_dir: Path,
-    sources: Sequence[str],
+    style: str,
+    picks: Picks,
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
     show_names: bool = True,
     lookback_hours: int = 24,
@@ -390,7 +396,8 @@ def collage_png_bytes(
     """Render the current collage to PNG bytes for the HTTP endpoint.
 
     Both states share the single _cache slot, keyed by the species set. Birds:
-    the layout is a pure function of the set, re-packed only when it changes.
+    the layout is a pure function of the set, re-packed only when it changes -
+    and so are the artwork picks, which is why the key needs nothing for them.
     Empty: the perch is held for the whole empty period and re-rolled only when
     a new one begins (the cache still holds a bird key), so refreshes don't
     restlessly swap it.
@@ -401,19 +408,20 @@ def collage_png_bytes(
     global _cache
     with _cache_lock:
         key = collage_key(
-            db, sources, resolution, show_names, lookback_hours, font_key, label_size, namer
+            db, style, resolution, show_names, lookback_hours, font_key, label_size, namer
         )
         if _cache is not None and _cache[0] == key:
             return _cache[1]
 
         species = key[0] or ()  # _EMPTY back to an empty tuple
         if not species:
-            image = render_collage([], resolution, show_names, random.Random())
-        else:
-            rng = render_rng(species)
             image = render_collage(
-                gather_entries(db, images_dir, sources, rng, lookback_hours),
-                resolution, show_names, rng, font_key=font_key, label_size=label_size,
+                [], resolution, show_names, perches=perches_for(images_dir, style)
+            )
+        else:
+            image = render_collage(
+                gather_entries(db, images_dir, style, picks, lookback_hours),
+                resolution, show_names, font_key=font_key, label_size=label_size,
                 label_text=namer.label if namer else str,
             )
 

@@ -28,13 +28,14 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import __version__, updates
-from .collage import collage_key, collage_png_bytes, collage_token, render_rng
+from .collage import collage_key, collage_png_bytes, collage_token
 from .config import BIRDNET_PORT, DOCS_URL, WEB_RESOLUTIONS
 from .db import Database, Detection
 from .fonts import FONTS, LABEL_SIZES
 from .languages import NONE, Namer, catalog, namer, ordered
-from .names import available_sources, image_for, resolve, variants_for
+from .names import available_styles, image_for, resolve, source_of
 from .panel import Panel
+from .picks import Picks
 from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, SettingsStore, merged
 from .status import Status
 
@@ -45,7 +46,7 @@ REQUEST_TIMEOUT = 15
 
 def _kiosk_html(refresh_seconds: int) -> str:
     return f"""<!doctype html>
-<html lang="no">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -57,7 +58,7 @@ def _kiosk_html(refresh_seconds: int) -> str:
 </style>
 </head>
 <body>
-<img id="collage" src="/collage.png" alt="Fugler sett nylig">
+<img id="collage" src="/collage.png" alt="Birds seen recently">
 <script>
   // The interval comes from /state: without a reload, nothing else picks up an admin change.
   let token = null, delay = {refresh_seconds};
@@ -148,15 +149,12 @@ def _disk_free(path: Path) -> str:
     return f"{usage.free / 1e9:.0f} GB free of {usage.total / 1e9:.0f} GB"
 
 
-def _species_li(name: str, pick: Path | None, candidates: list[Path]) -> str:
+def _species_li(name: str, source: str | None) -> str:
     # Marks species counted in the window but omitted from the collage (#9); else
-    # names the source of the artwork actually on the frame, plus which candidate.
-    if pick is None:
+    # names the plate the artwork was cut from, read from the file's own metadata.
+    if source is None:
         return f'<li class="noart">{name} <small>no art</small></li>'
-    note = _source_label(pick.parent.name)
-    if len(candidates) > 1:
-        note += f" ({candidates.index(pick) + 1})"
-    return f'<li>{name} <small>{note}</small></li>'
+    return f'<li>{name} <small>{_display_name(source)}</small></li>'
 
 
 def _language_select(
@@ -189,11 +187,12 @@ def _lan_address() -> str:
 
 _ASPECT = {0: "(landscape)", 90: "(portrait)"}
 
-_SOURCE_LABELS = {"vonwright": "von Wright", "gould": "Gould"}
+# Style and plate names that don't title-case into something readable.
+_NAMES = {"vonwright": "von Wright", "gould": "Gould"}
 
 
-def _source_label(name: str) -> str:
-    return _SOURCE_LABELS.get(name, name.replace("-", " ").title())
+def _display_name(name: str) -> str:
+    return _NAMES.get(name, name.replace("-", " ").title())
 
 
 def _action(action: str, label: str) -> str:
@@ -218,20 +217,18 @@ def _update_dd(status: Status) -> str:
     return f'up to date{_action("check", "Check")}'
 
 
-def _checkboxes(available: list[str], active: list[str]) -> str:
+def _radios(available: list[str], active: str) -> str:
     return "".join(
-        f'<label class="src"><input type="checkbox" name="sources" value="{s}"'
-        f'{" checked" if s in active else ""}> {_source_label(s)}</label>'
+        f'<label class="src"><input type="radio" name="style" value="{s}"'
+        f'{" checked" if s == active else ""}> {_display_name(s)}</label>'
         for s in available
     )
 
 
 def _form_changes(form: dict[str, list[str]]) -> dict:
-    """Admin form to settings overrides. `sources` is a multi-value checkbox group
-    (absent when all unchecked), and unchecked checkboxes are absent too; _coerce
-    validates and clamps the rest."""
-    changes = {k: v[0] for k, v in form.items() if k != "sources"}
-    changes["sources"] = form.get("sources", [])
+    """Admin form to settings overrides. Unchecked checkboxes are absent from a
+    form post, so they are read as presence; _coerce validates the rest."""
+    changes = {k: v[0] for k, v in form.items()}
     changes["auto_update"] = "auto_update" in form
     changes["show_names"] = "show_names" in form
     return changes
@@ -239,11 +236,11 @@ def _form_changes(form: dict[str, list[str]]) -> dict:
 
 def _admin_html(
     settings: Settings,
-    species: list[tuple[str, Path | None, list[Path]]],
+    species: list[tuple[str, str | None]],
     latest: Detection | None,
     panel_size: tuple[int, int] | None,
     available: list[str],
-    active: list[str],
+    active: str,
     status: Status,
     data_dir: Path,
     languages: list[tuple[str, str]],
@@ -259,9 +256,9 @@ def _admin_html(
     labels = dict(LOOKBACK_OPTIONS)
     labels.setdefault(settings.lookback_hours, f"{settings.lookback_hours} hours")
     lookbacks = _options(sorted(labels), settings.lookback_hours, labels.get)
-    sources_field = (
-        f'<div class="field"><span>Artwork sources</span>'
-        f"{_checkboxes(available, active)}</div>"
+    style_field = (
+        f'<div class="field"><span>Artwork style</span>'
+        f"{_radios(available, active)}</div>"
     )
     auto_update_field = (
         f'<div class="field"><span>Updates</span>'
@@ -295,7 +292,7 @@ def _admin_html(
     if status.push_error:
         rendered += f" · panel push failing ({status.push_error})"
     rows = "".join(
-        _species_li(name_of.inline(name), pick, candidates) for name, pick, candidates in species
+        _species_li(name_of.inline(name), source) for name, source in species
     ) or '<li class="empty">none yet</li>'
     return f"""<!doctype html>
 <html lang="en">
@@ -383,7 +380,7 @@ def _admin_html(
     <label><span>Kiosk poll <small>(seconds between checks)</small></span>
       <input type="number" name="kiosk_refresh_seconds" min="1" max="3600" value="{settings.kiosk_refresh_seconds}"></label>
     {names_field}
-    {sources_field}
+    {style_field}
     {auto_update_field}
     <button type="submit">Save</button>
   </form>
@@ -505,7 +502,8 @@ def _admin_html(
 
 
 def make_handler(
-    db: Database, images_dir: Path, store: SettingsStore, panel: Panel | None, status: Status
+    db: Database, images_dir: Path, store: SettingsStore, picks: Picks,
+    panel: Panel | None, status: Status,
 ):
     class Handler(BaseHTTPRequestHandler):
         timeout = REQUEST_TIMEOUT
@@ -555,9 +553,9 @@ def make_handler(
                     # The admin's unsaved form state, so Preview shows it before Save.
                     query = parse_qs(urlparse(self.path).query)
                     settings = merged(settings, **_form_changes(query))
-                sources = resolve(settings.sources, images_dir)
+                style = resolve(settings.style, images_dir)
                 png = collage_png_bytes(
-                    db, images_dir, sources, settings.web_size(), settings.show_names,
+                    db, images_dir, style, picks, settings.web_size(), settings.show_names,
                     settings.lookback_hours, settings.label_font, settings.label_size,
                     self._namer(settings),
                 )
@@ -565,7 +563,7 @@ def make_handler(
             elif route == "/state":
                 # Cheap enough to poll every second: one grouped query, no render.
                 key = collage_key(
-                    db, resolve(settings.sources, images_dir), settings.web_size(),
+                    db, resolve(settings.style, images_dir), settings.web_size(),
                     settings.show_names, settings.lookback_hours, settings.label_font,
                     settings.label_size, self._namer(settings),
                 )
@@ -574,19 +572,16 @@ def make_handler(
                 )
                 self._send(200, body.encode(), "application/json")
             elif route == "/admin":
-                available = available_sources(images_dir)
-                sources = resolve(settings.sources, images_dir)
-                # Same seed as the render, so the picks listed are the ones on the frame.
-                names = [n for n, _c in db.species_since(settings.lookback_hours)]
-                rng = render_rng(names)
-                species = [
-                    (name, image_for(name, images_dir, sources, rng),
-                     variants_for(name, images_dir, sources))
-                    for name in names
-                ]
+                available = available_styles(images_dir)
+                style = resolve(settings.style, images_dir)
+                species = []
+                for name, _count in db.species_since(settings.lookback_hours):
+                    pick = image_for(name, images_dir, style, picks)
+                    # Unstamped (a hand-filled style): name the style itself.
+                    species.append((name, source_of(pick) or style if pick else None))
                 html = _admin_html(
                     settings, species, db.latest(),
-                    panel.resolution if panel else None, available, sources,
+                    panel.resolution if panel else None, available, style,
                     status, db.path.parent,
                     ordered(catalog(store.path.parent)), self._namer(settings),
                 )
@@ -630,11 +625,12 @@ def serve(
     host: str,
     port: int,
     store: SettingsStore,
+    picks: Picks,
     panel: Panel | None = None,
     status: Status | None = None,
 ) -> None:
     """Blocking server loop. Opens its own DB connection."""
     db = Database(db_path)
-    handler = make_handler(db, images_dir, store, panel, status or Status())
+    handler = make_handler(db, images_dir, store, picks, panel, status or Status())
     httpd = ThreadingHTTPServer((host, port), handler)
     httpd.serve_forever()

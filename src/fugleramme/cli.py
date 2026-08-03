@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .collage import gather_entries, render_collage, render_rng
+from .collage import gather_entries, render_collage
 from .config import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_DB_PATH,
@@ -23,7 +23,8 @@ from .config import (
 )
 from .db import Database
 from .languages import namer
-from .names import resolve
+from .names import perches_for, resolve
+from .picks import FILENAME as PICKS_FILE, Picks
 from .service import run
 from .settings import SettingsStore
 
@@ -61,16 +62,18 @@ def main(argv: list[str] | None = None) -> None:
     if args.preview:
         settings = SettingsStore(config.config_path).get()
         db = Database(config.db_path)
-        sources = resolve(settings.sources, config.images_dir)
-        rng = render_rng([name for name, _ in db.species_since(settings.lookback_hours)])
-        entries = gather_entries(db, config.images_dir, sources, rng, settings.lookback_hours)
+        style = resolve(settings.style, config.images_dir)
+        picks = Picks(config.config_path.parent / PICKS_FILE)
+        entries = gather_entries(
+            db, config.images_dir, style, picks, settings.lookback_hours
+        )
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
         render_collage(
-            entries, settings.web_size(), settings.show_names, rng,
+            entries, settings.web_size(), settings.show_names,
             font_key=settings.label_font, label_size=settings.label_size,
-            label_text=name_of.label,
+            label_text=name_of.label, perches=perches_for(config.images_dir, style),
         ).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")
