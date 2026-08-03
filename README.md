@@ -1,13 +1,19 @@
 # fugleramme
 E-ink bird frame for Raspberry Pi - real-time bird detection by audio.
 
-Built on top of [BirdNET-Go](https://github.com/tphakala/birdnet-go), which runs
-the mic and the BirdNET classifier and owns all detection config. Fugleramme reads
-its detections and renders the recently-seen birds as a collage on an [Inky-Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel, and serves the same view as a web kiosk.
+Built on top of [BirdNET-Go](https://github.com/tphakala/birdnet-go), which handles
+the mic, the BirdNET classifier and the detection settings. Fugleramme reads
+the detections and renders recently-seen birds on an [Inky-Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel, and also serves the same view as a web kiosk.
+
+> [!TIP]
+> The e-ink panel is not required, although its recommended for the inteded experience. Without one, Fugleramme runs web-only - show the
+> kiosk on a display over HDMI, or open it from any device on the network.
 
 Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://arnegiacomo.dev/fugleramme/)**
 
 ## Art
+
+(WIP)
 
 The birds are cut-outs from historic, public-domain natural-history drawings,
 hand-curated for this project. Each detected species is matched to its
@@ -24,8 +30,7 @@ are currently left off, and an empty window shows a bare perch.
 ```bash
 uv sync                                       # set up venv
 uv run python -m fugleramme.seed --count 40   # seed db (no BirdNET-Go in dev)
-uv run fugleramme-frame                       # start service on :8080
-uv run fugleramme-dev                         # same as above with hot-reload
+uv run fugleramme-dev                         # start service on :8080 with hot-reload
 ```
 
 Open the kiosk (no SPI-panel needed):
@@ -44,23 +49,11 @@ Clone the repo on the Pi and run the idempotent one-command bootstrap:
 
 It installs any missing deps, brings up BirdNET-Go (container + mic), and enables
 the frame as a systemd service that pushes to the Inky panel and serves the kiosk
-on `:8080`. From a blank SD card, start at the [install guide](docs/install.md).
+on `:8080`. It also enables SPI and I2C, so the first run needs a **reboot**
+before the panel will drive - if it stays blank after that, see
+[Troubleshooting](docs/troubleshooting.md#panel-stays-blank).
 
-Want to update? Just pull and run ./setup.sh again
-
-### The panel
-
-Setup enables SPI and I2C and adds the overlays the `inky` driver needs, so the
-first run needs a **reboot** before the panel will drive. After that:
-
-```bash
-journalctl -u fugleramme-frame -f    # "Inky panel initialised: inky.inky_el133uf1 1600x1200"
-```
-
-The panel's size comes from the panel itself - the admin resolution setting is
-the web kiosk's only. Rotation (0/90/180/270) applies to both. If it still reads
-"not detected", check `ls /dev/spidev*` and that your login has picked up the
-`spi`/`i2c`/`gpio` groups (`id`); the frame serves the kiosk either way.
+From a blank SD card, start at the [install guide](docs/install.md).
 
 ## License
 

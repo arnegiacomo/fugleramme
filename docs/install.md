@@ -4,19 +4,26 @@ From a blank SD card to a running frame.
 
 ## 1. Flash the OS
 
-**Raspberry Pi OS Lite (64-bit)**, Trixie or newer. Lite because the frame is
-headless. Trixie because USB gadget mode needs it.
+**Raspberry Pi OS Lite (64-bit)**, Trixie or newer (to support gadget mode).
+
+I recommend Lite to save memory by dropping the desktop environment.
 
 In Raspberry Pi Imager, set the hostname (e.g. `fugleramme`) and username (e.g.
-`admin`), enable SSH, and configure Wi-Fi if you want it.
+`admin`), enable SSH, and configure Wi-Fi.
 
 ## 2. USB gadget mode (optional)
 
 Lets you SSH in over a single USB-C cable, no network needed. Recommended - it
-saves you when Wi-Fi isn't around. The install itself still needs internet, so
-enable Internet Sharing over the gadget interface on your computer - without it
-`apt` on the Pi resolves nothing. Its DHCP replaces `10.12.194.1` with a leased
-address, so connect as `<host>.local` once sharing is on.
+saves you when Wi-Fi isn't around (e.g. when moving house or setting up a new place without access to ethernet). 
+
+The install itself still needs internet, so
+enable Internet Sharing over the gadget interface on your computer so that you can share it with the pi.
+
+Over wifi or ethernet:
+
+```bash
+ssh <user>@<host>.local
+```
 
 ```bash
 sudo apt update && sudo apt install rpi-usb-gadget
@@ -37,19 +44,16 @@ sudo reboot
 the same cable. The tradeoff: it will now brown out on a weak charger instead of
 warning you.
 
+Now plug the the USB-C on the pi into your computer, approve the device prompt if your computer shows one,
+
+Nice! Now your pi has gadget mode enabled, letting you control it fully from the USB-C port. You 
+
 ## 3. SSH in
 
-Over the network:
+Over the network (WiFi, Ethernet or gadget mode with internet sharing):
 
 ```bash
 ssh <user>@<host>.local
-```
-
-Over the USB cable, if you did step 2 (and not sharing internet). Use the Pi's **USB-C port** - the USB-A
-ports can't act as a USB device. Approve the device prompt if your OS shows one:
-
-```bash
-ssh <user>@10.12.194.1
 ```
 
 ## 4. Install the frame
@@ -71,8 +75,14 @@ This installs missing deps, brings up BirdNET-Go, and enables the frame as a
 systemd service serving the kiosk on `:8080`. It also enables SPI and I2C, so
 the first run needs a **reboot** before the panel will drive.
 
+```bash
+sudo reboot
+```
+
 `setup.sh` bakes the repo path into the systemd unit - re-run it if you move the
 repo.
 
-Detector detail: [`detector/README.md`](https://github.com/arnegiacomo/fugleramme/blob/main/detector/README.md).
-If something doesn't come up, see [Troubleshooting](troubleshooting.md).
+---
+Congrats, you've now successfully set up your frame; happy birding! 🦤 🎶
+
+If something doesn't come up on the screen, see [Troubleshooting](troubleshooting.md).
