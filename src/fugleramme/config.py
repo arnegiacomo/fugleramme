@@ -21,7 +21,7 @@ WEB_RESOLUTIONS: dict[str, tuple[int, int]] = {
 
 DEFAULT_WEB_RESOLUTION = "1080p"
 
-# Panel render size when no Inky is attached (Mac dev loop): Impression 13.3".
+# Panel render size when no Inky is attached (dev loop): Impression 13.3".
 FALLBACK_PANEL_RESOLUTION = (1600, 1200)
 
 # Network defaults, single source for the app. The kiosk + admin bind here; the

@@ -11,13 +11,7 @@ I recommend Lite to save memory by dropping the desktop environment.
 In Raspberry Pi Imager, set the hostname (e.g. `fugleramme`) and username (e.g.
 `admin`), enable SSH, and configure Wi-Fi.
 
-## 2. USB gadget mode (optional)
-
-Lets you SSH in over a single USB-C cable, no network needed. Recommended - it
-saves you when Wi-Fi isn't around (e.g. when moving house or setting up a new place without access to ethernet). 
-
-The install itself still needs internet, so
-enable Internet Sharing over the gadget interface on your computer so that you can share it with the pi.
+## 2. SSH in
 
 Over wifi or ethernet:
 
@@ -25,14 +19,36 @@ Over wifi or ethernet:
 ssh <user>@<host>.local
 ```
 
+## 3. Install the frame
+
+One command:
+
 ```bash
-sudo apt update && sudo apt install rpi-usb-gadget
-sudo rpi-usb-gadget on
-sudo reboot
+curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install.sh | bash
 ```
 
-On a Pi 5, also update the bootloader. Early Pi 5 EEPROMs had the USB-C data
-path disabled, and reflashing the SD card doesn't touch it:
+It asks before installing anything, including whether to turn on USB gadget
+mode - recommended, see step 4. Two flags, if you'd rather it didn't ask:
+
+```bash
+... | bash -s -- -y                 # accept every prompt
+... | bash -s -- --skip-mic-check   # install before mic is plugged in
+```
+
+This clones the repo, installs missing deps, brings up BirdNET-Go, and enables
+the frame as a systemd service serving the kiosk on `:8080`. It also enables SPI
+and I2C, so it ends by asking for a **reboot** before the panel will drive. Say
+yes - everything comes back on its own.
+
+## 4. USB gadget mode (optional)
+
+Lets you SSH in over a USB-C cable from your computer (**Strongly recommended**). It lets you interface with the frame without Wi-Fi or Ethernet (e.g. when installing in a new location or when changing Wi-Fi).
+
+The installer turns it on if you accepted it in step 3.
+
+> [!IMPORTANT]
+> (Anecdotal) On a Pi 5 you still have to update the bootloader by hand, and
+> reflashing the SD card doesn't help:
 
 ```bash
 sudo rpi-eeprom-update -a
@@ -41,46 +57,14 @@ sudo reboot
 ```
 
 `PSU_MAX_CURRENT=3000` lets the Pi run properly when your laptop powers it over
-the same cable. The tradeoff: it will now brown out on a weak charger instead of
-warning you.
+the same cable.
 
-Now plug the the USB-C on the pi into your computer, approve the device prompt if your computer shows one,
+> [!WARNING]
+> Tradeoff: it will now brown out on a weak charger instead of warning you.
 
-Nice! Now your pi has gadget mode enabled, letting you control it fully from the USB-C port. You 
-
-## 3. SSH in
-
-Over the network (WiFi, Ethernet or gadget mode with internet sharing):
-
-```bash
-ssh <user>@<host>.local
-```
-
-## 4. Install the frame
-
-Install git if not present
-
-```bash
-sudo apt update && sudo apt install git
-```
-
-```bash
-git clone https://github.com/arnegiacomo/fugleramme.git ~/fugleramme
-cd ~/fugleramme
-./setup.sh          # add -y to auto-accept dependency installs
-                    # add --skip-mic-check to bootstrap without the mic plugged in
-```
-
-This installs missing deps, brings up BirdNET-Go, and enables the frame as a
-systemd service serving the kiosk on `:8080`. It also enables SPI and I2C, so
-the first run needs a **reboot** before the panel will drive.
-
-```bash
-sudo reboot
-```
-
-`setup.sh` bakes the repo path into the systemd unit - re-run it if you move the
-repo.
+Now plug the USB-C on the pi into your computer and approve the device prompt if
+your computer shows one. For the pi to reach the internet through the cable,
+enable Internet Sharing over the gadget interface on your computer.
 
 ---
 Congrats, you've now successfully set up your frame; happy birding! 🦤 🎶

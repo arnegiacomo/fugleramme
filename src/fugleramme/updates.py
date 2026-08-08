@@ -68,7 +68,7 @@ def apply(tag: str) -> None:
     try:
         _run([_uv(), "sync", "--extra", "panel"])
     except RuntimeError:
-        # Same fallback as setup.sh: no panel driver still leaves a working kiosk.
+        # Same fallback as run.sh: no panel driver still leaves a working kiosk.
         _run([_uv(), "sync"])
 
 

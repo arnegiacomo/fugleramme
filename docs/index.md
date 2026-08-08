@@ -24,4 +24,10 @@ centre, sized by real body mass.
 - **[Operations](operations.md)** - buttons, services, logs and updates
 - **[Troubleshooting](troubleshooting.md)** - symptom to cause
 
+> [!NOTE]
+> These docs are written from macOS. Everything on the Pi itself is the same
+> whatever you drive it from - it's the host-side steps, like Internet Sharing
+> over the USB cable, that differ. If you set yours up from Linux or Windows, a
+> PR extending them is very welcome.
+
 Source: [github.com/arnegiacomo/fugleramme](https://github.com/arnegiacomo/fugleramme)

@@ -1,7 +1,7 @@
 """Inky panel init and push, with graceful degrade.
 
 The frame service owns the panel and treats it as optional: if the Inky library
-or the physical device is absent (as on the Mac), we log a warning and return
+or the physical device is absent (as off-Pi), we log a warning and return
 None so the caller runs web-only.
 
 The attached panel's own resolution is authoritative for the panel render - the
@@ -46,7 +46,7 @@ def init_panel() -> Panel | None:
     """Return a Panel, or None if no Inky is available (web-only mode)."""
     try:
         from inky.auto import auto
-    except Exception as exc:  # library not installed (Mac dev loop)
+    except Exception as exc:  # library not installed (dev loop)
         log.warning("Inky library unavailable (%s); running web-only", exc)
         return None
     try:

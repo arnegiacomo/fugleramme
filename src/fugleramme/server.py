@@ -117,7 +117,7 @@ def _state(ok: bool, good: str, bad: str) -> str:
 
 
 def _default_iface() -> str:
-    """Interface holding the default route. Linux only; the Mac dev loop gets nothing."""
+    """Interface holding the default route. Linux only; other dev hosts get nothing."""
     try:
         rows = Path("/proc/net/route").read_text().splitlines()[1:]
     except OSError:

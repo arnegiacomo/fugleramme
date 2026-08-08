@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds into its own SQLite; the frame reads that DB read-only and renders the recently seen birds as a collage on a Pimoroni Inky Impression (Spectra 6) panel, serving the same view over HTTP. Python managed with `uv`: Pillow + numpy for rendering, stdlib `sqlite3` and `http.server`, and the Pi-only `inky` driver. It runs on a Pi in production and on a Mac for development - live mic capture and the panel push are Pi-only.
+Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds into its own SQLite; the frame reads that DB read-only and renders the recently seen birds as a collage on a Pimoroni Inky Impression (Spectra 6) panel, serving the same view over HTTP. Python managed with `uv`: Pillow + numpy for rendering, stdlib `sqlite3` and `http.server`, and the Pi-only `inky` driver. It runs on a Pi in production and on a workstation for development - live mic capture and the panel push are Pi-only.
 
 ## Commands
 
@@ -15,7 +15,8 @@ uv run fugleramme-dev                       # same, auto-restart on source chang
 uv run fugleramme-frame --preview out.png   # render the collage once and exit, no server/panel
 uv run python -m fugleramme.seed --count 40 # BirdNET-Go-shaped fixtures: detections + names cache
 uv run python scripts/curate.py             # workstation only: contact sheet on :8081
-./setup.sh                                  # Pi only: bootstrap (deps + BirdNET-Go + services)
+./install.sh                                # Pi only: one-time bootstrap (curl'able; deps, clone, gadget, reboot)
+./run.sh                                    # Pi only: converge an existing checkout (BirdNET-Go + services)
 uv run pytest -q                            # run tests
 uv run pytest tests/test_artwork_names.py   # run a single test file
 ```
@@ -59,7 +60,7 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 
 - The frame keys everything on the scientific name and asks the API for the rest - BirdNET-Go's SQLite has no common names at all.
 - `GET /api/v2/settings/locales` lists locales, `HEAD /api/v2/species/dictionary/<code>` says which have one. The two disagree on codes (the list's `no` answers as `nb`), so a language's code is its dictionary's.
-- Dictionaries cache in `detector/data/names/`, revalidated by ETag. With nothing cached the only language is `sci` - the Mac dev loop's normal state.
+- Dictionaries cache in `detector/data/names/`, revalidated by ETag. With nothing cached the only language is `sci` - the dev loop's normal state.
 - Norwegian names arrive lowercase and English titled, so a label capitalizes the first letter only.
 
 **Name to artwork** (`names.py`, `picks.py`).
@@ -74,6 +75,13 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 - The whole artwork pipeline (scraping, background removal, contact sheet, plates) is gitignored and workstation-only: the frame doesn't depend on it and plates are re-scrapeable.
 - The sheet writes kept candidates as `<key>.png`, `<key>-2.png`, ... and rewrites a species whole on every change, so dropping one renumbers the rest rather than leaving a gap `variants_for` would never look for.
 - Shipped PNGs carry `Source` / `Origin` tEXt chunks spliced in after IHDR, so provenance can't drift from the file and there is no manifest. `names.origin_of` hand-parses the header - Pillow opens the whole plate (18s over a folder against 0.02s).
+
+**The install splits at the reboot** (`install.sh`, `run.sh`).
+
+- `install.sh` is the curl'able one-time bootstrap: deps, clone, groups, SPI/I2C overlays, gadget mode. Everything in it only takes effect on boot, so it is the only script that prompts a reboot - and only if something actually changed. It must stay self-contained; it is fetched before the checkout exists.
+- `run.sh` is the idempotent converge: `uv sync`, config, compose up, systemd unit. Re-run after a pull or a repo move - it bakes `$REPO_ROOT` into the unit.
+- With a reboot pending, `--no-start` leaves the frame enabled but stopped, since there is no SPI and no group membership yet. The container starts either way: `restart: unless-stopped` only revives a container that was already running.
+- Prompts read `/dev/tty`, not stdin - under `curl | bash` stdin is the script itself. Same reason the body is wrapped in `main`, called on the last line.
 
 ## Workflow
 

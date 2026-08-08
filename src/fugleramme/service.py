@@ -8,7 +8,7 @@ natural debounce for the slow e-ink refresh. The web view renders fresh per
 request, at its own resolution setting.
 
 Panel-absent is not a special case: init_panel returns None and we skip the
-push, the same path as the Mac preview.
+push, the same path as the preview.
 """
 
 from __future__ import annotations

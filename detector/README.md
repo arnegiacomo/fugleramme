@@ -44,12 +44,12 @@ container stopped and nothing cached, names fall back to the scientific name.
 | File | Purpose |
 | --- | --- |
 | `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db bind-mounted from `./data` (persistent), web UI on `:8090` |
-| `config/config.yaml.template` | Tracked template; `setup.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, analysis defaults (#15), clips on, SQLite at `/data/birdnet.db`, log levels pinned to `info` |
+| `config/config.yaml.template` | Tracked template; `run.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, analysis defaults (#15), clips on, SQLite at `/data/birdnet.db`, log levels pinned to `info` |
 | `preflight.sh` | Fatal check that an ALSA capture device exists |
 
 ## Deploy
 
-`setup.sh` brings the detector up as part of the appliance bootstrap - see the
+`run.sh` brings the detector up as part of the appliance bootstrap - see the
 [install guide](../docs/install.md). Follow the logs with:
 
 ```bash
@@ -61,12 +61,12 @@ journalctl -u fugleramme-frame -f            # frame
 
 - **Image pin:** BirdNET-Go ships only nightlies; the compose pins a dated tag.
   Bump it deliberately after testing rather than tracking `nightly`.
-- **Mic device:** `setup.sh` writes the first card from `arecord -l` into
+- **Mic device:** `run.sh` writes the first card from `arecord -l` into
   `detector/.env` as `ALSA_CARD` (by card name, so it survives reboots/replugs),
   making the USB mic ALSA's default - HDMI takes cards 0/1 and has no capture
   stream. Which mic BirdNET-Go actually opens is picked in its own UI on `:8090`.
 - **Container user:** BirdNET-Go's entrypoint chowns `/config` and `/data`, so
-  `setup.sh` runs it as the host user (`BIRDNET_UID`/`BIRDNET_GID` = `id -u`/`id -g`)
+  `run.sh` runs it as the host user (`BIRDNET_UID`/`BIRDNET_GID` = `id -u`/`id -g`)
   to avoid leaving the bind-mounted `config`/`data` files owned by a foreign uid.
 - **Audio group:** the container needs the host `audio` group to read `/dev/snd`.
   If `group_add: audio` fails, substitute the numeric GID from

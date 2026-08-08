@@ -2,7 +2,7 @@
 
 Two modes:
   --preview OUT.png   render the latest detection once and exit (no server,
-                      no panel) - the hardware-free Mac layout loop.
+                      no panel) - the hardware-free layout loop.
   (default)           run the service: render loop + HTTP server, pushing to
                       the Inky panel if one is present.
 """

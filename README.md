@@ -3,7 +3,7 @@ E-ink bird frame for Raspberry Pi - real-time bird detection by audio.
 
 Built on top of [BirdNET-Go](https://github.com/tphakala/birdnet-go), which handles
 the mic, the BirdNET classifier and the detection settings. Fugleramme reads
-the detections and renders recently-seen birds on an [Inky-Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel, and also serves the same view as a web kiosk.
+the detections and renders recently-seen birds on an [Inky-Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel.
 
 > [!TIP]
 > The e-ink panel is not required, although its recommended for the inteded experience. Without one, Fugleramme runs web-only - show the
@@ -25,7 +25,7 @@ are currently left off, and an empty window shows a bare perch.
 | :---: | :---: | :---: |
 | ![No birds detected](docs/samples/empty.png) | ![A few garden birds](docs/samples/few.png) | ![Many garden birds](docs/samples/many.png) |
 
-## Run locally
+## Run locally (for development)
 
 ```bash
 uv sync                                       # set up venv
@@ -33,27 +33,21 @@ uv run python -m fugleramme.seed --count 40   # seed db (no BirdNET-Go in dev)
 uv run fugleramme-dev                         # start service on :8080 with hot-reload
 ```
 
-Open the kiosk (no SPI-panel needed):
+## Install on a Raspberry Pi
+
+From the pi (assuming you have the hardware up and running):
 
 ```bash
-open -na "Google Chrome" --args --kiosk --app=http://localhost:8080/
+curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install.sh | bash
 ```
 
-## Run on a Raspberry Pi
+Clones the repo, installs the required deps, starts BirdNET-Go and starts the frame as a systemd service. **NB!** Will probably require a reboot on a fresh system.
 
-Clone the repo on the Pi and run the idempotent one-command bootstrap:
-
-```bash
-./setup.sh          # add -y to auto-accept dependency installs (uv, docker, etc...)
-```
-
-It installs any missing deps, brings up BirdNET-Go (container + mic), and enables
-the frame as a systemd service that pushes to the Inky panel and serves the kiosk
-on `:8080`. It also enables SPI and I2C, so the first run needs a **reboot**
-before the panel will drive - if it stays blank after that, see
+If the display
+stays blank after that, see
 [Troubleshooting](docs/troubleshooting.md#panel-stays-blank).
 
-From a blank SD card, start at the [install guide](docs/install.md).
+From a blank SD card, see the full [install guide](docs/install.md).
 
 ## License
 

@@ -40,3 +40,44 @@ git checkout <version>
 uv sync
 sudo systemctl restart fugleramme-frame
 ```
+
+## Re-running the install
+
+`./run.sh` re-applies everything the installer did, minus the initial machine setup:
+
+```bash
+ssh <user>@<host>.local
+cd ~/fugleramme
+./run.sh
+```
+
+Run it if you move the repo, swap the mic, or a release changes BirdNET-Go's
+container.
+
+## Changing Wi-Fi in gadget mode (USB-C)
+
+For moving the frame to a new network, or onto one you can't reach it over yet.
+
+> [!IMPORTANT]
+> Will only be possible if gadget mode has been enabled.
+
+```bash
+ssh <user>@10.12.194.1 # or <user>@<host>.local if you've enabled internet sharing on your computer 
+nmcli device wifi list
+sudo nmcli --ask device wifi connect "<SSID>"
+```
+
+## Kiosk mode without the e-ink panel
+
+The frame serves the same collage over HTTP, so an HDMI display does the job
+instead of the panel:
+
+```bash
+chromium-browser --kiosk --app=http://localhost:8080/
+```
+
+> [!NOTE]
+> Raspberry Pi OS Lite ships no browser, so this needs the desktop image or
+> `sudo apt install chromium-browser`.
+
+From any other machine on the network, open `http://<host>.local:8080/`.
