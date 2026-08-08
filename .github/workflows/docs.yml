@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - docs/**
+      - hooks/**
       - mkdocs.yml
       - .github/workflows/docs.yml
   workflow_dispatch:

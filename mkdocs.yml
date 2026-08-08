@@ -21,8 +21,14 @@ theme:
     - navigation.sections
     - content.code.copy
 
+# Rewrites GitHub's `> [!NOTE]` alerts into admonitions, so docs and README
+# share one callout syntax.
+hooks:
+  - hooks/callouts.py
+
 markdown_extensions:
   - tables
+  - admonition
   - pymdownx.highlight
   - pymdownx.superfences
 
