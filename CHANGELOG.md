@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v0.10.0 (2026-08-08)
+
+### Chores
+
+- "humanize" docs
+  ([`62fd9b9`](https://github.com/arnegiacomo/fugleramme/commit/62fd9b96f731824c3d8fbde574c281b51a8e184a))
+
+### Documentation
+
+- Condense CLAUDE.md, bullets over prose
+  ([`2c02ea9`](https://github.com/arnegiacomo/fugleramme/commit/2c02ea935f65a59d09eb67fed5682783bfe761bd))
+
+- Render GitHub callouts as admonitions
+  ([`ab2cf6e`](https://github.com/arnegiacomo/fugleramme/commit/ab2cf6ec9569de3266acb13a5075207e01a54b61))
+
+### Features
+
+- Curl-able install.sh, setup.sh becomes run.sh
+  ([`6aabd97`](https://github.com/arnegiacomo/fugleramme/commit/6aabd972af87fd2c3087e31652d3c0ff880614ee))
+
+
 ## v0.9.0 (2026-08-03)
 
 ### Bug Fixes
