@@ -7,7 +7,13 @@ import json
 
 from fugleramme.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
 from fugleramme.languages import NONE, SCIENTIFIC
-from fugleramme.settings import Settings, SettingsStore
+from fugleramme.settings import (
+    ALL_TIME,
+    LOOKBACK_OPTIONS,
+    Settings,
+    SettingsStore,
+    lookback_order,
+)
 
 
 def test_defaults_when_file_absent(tmp_path):
@@ -124,3 +130,21 @@ def test_web_size_from_resolution_and_rotation():
     assert Settings(web_resolution="1080p").web_size() == (1920, 1080)
     assert Settings(web_resolution="720p").web_size() == (1280, 720)
     assert Settings(web_resolution="1080p", rotation=90).web_size() == (1080, 1920)
+
+
+def test_all_time_is_a_lookback_the_admin_offers(tmp_path):
+    assert (ALL_TIME, "All time") in LOOKBACK_OPTIONS
+    path = tmp_path / "settings.json"
+    path.write_text(json.dumps({"lookback_hours": ALL_TIME}))
+    assert SettingsStore(path).get().lookback_hours == ALL_TIME
+
+
+def test_all_time_sorts_as_the_longest_window():
+    hours = [h for h, _ in LOOKBACK_OPTIONS]
+    assert sorted(hours, key=lookback_order) == sorted(h for h in hours if h) + [ALL_TIME]
+
+
+def test_a_negative_lookback_clamps_to_all_time(tmp_path):
+    path = tmp_path / "settings.json"
+    path.write_text(json.dumps({"lookback_hours": -5}))
+    assert SettingsStore(path).get().lookback_hours == ALL_TIME

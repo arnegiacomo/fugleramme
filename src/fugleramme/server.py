@@ -37,7 +37,14 @@ from .modes import MODES
 from .names import available_styles, image_for, resolve, source_of
 from .panel import Panel
 from .picks import Picks
-from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, SettingsStore, merged
+from .settings import (
+    LOOKBACK_OPTIONS,
+    ROTATIONS,
+    Settings,
+    SettingsStore,
+    lookback_order,
+    merged,
+)
 from .status import Status
 
 log = logging.getLogger(__name__)
@@ -275,7 +282,7 @@ def _admin_html(
     # A hand-edited non-preset value stays selectable so Save doesn't drop it.
     labels = dict(LOOKBACK_OPTIONS)
     labels.setdefault(settings.lookback_hours, f"{settings.lookback_hours} hours")
-    lookbacks = _options(sorted(labels), settings.lookback_hours, labels.get)
+    lookbacks = _options(sorted(labels, key=lookback_order), settings.lookback_hours, labels.get)
     windowed = MODES[settings.mode].windowed if settings.mode in MODES else True
     windowed_modes = json.dumps([k for k, m in MODES.items() if m.windowed])
     mode_field = (

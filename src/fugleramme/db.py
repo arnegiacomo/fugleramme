@@ -112,12 +112,14 @@ class Database:
 
     def species_since(self, hours: int = 24) -> list[tuple[str, int]]:
         """Distinct species seen in the last `hours` with their detection count,
-        most frequent first. Drives the kiosk collage; window is the #2 setting."""
+        most frequent first. Drives the kiosk collage; window is the #2 setting.
+        `hours` of 0 or less is not a window: every species ever heard."""
+        windowed = hours > 0
         rows = self._rows(
             f"SELECT l.scientific_name AS scientific_name, COUNT(*) AS n {_FROM} "
-            "AND d.detected_at >= ? "
+            f"{'AND d.detected_at >= ? ' if windowed else ''}"
             "GROUP BY l.scientific_name ORDER BY n DESC, l.scientific_name",
-            (_epoch_hours_ago(hours),),
+            (_epoch_hours_ago(hours),) if windowed else (),
         )
         return [(r["scientific_name"], r["n"]) for r in rows]
 

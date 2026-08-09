@@ -25,6 +25,10 @@ from .modes import DEFAULT_MODE, MODES
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
 ROTATIONS = (0, 90, 180, 270)
 
+# Not a window at all: every species the detector has ever heard, so the collage
+# keeps growing. Sorts last despite being the smallest number - see `lookback_order`.
+ALL_TIME = 0
+
 # Lookback windows offered in the admin UI, as (hours, label), shortest-first.
 LOOKBACK_OPTIONS = (
     (6, "Last 6 hours"),
@@ -33,7 +37,13 @@ LOOKBACK_OPTIONS = (
     (72, "Last 3 days"),
     (168, "Last week"),
     (720, "Last 30 days"),
+    (ALL_TIME, "All time"),
 )
+
+
+def lookback_order(hours: int) -> float:
+    """Sort key: ALL_TIME is the longest window, not the shortest."""
+    return float("inf") if hours == ALL_TIME else hours
 
 
 @dataclass(frozen=True)
@@ -125,7 +135,7 @@ def _coerce(raw: dict) -> Settings:
             str(raw.get("web_resolution", d.web_resolution)), WEB_RESOLUTIONS, d.web_resolution
         ),
         rotation=_one_of(rotation, ROTATIONS, d.rotation),
-        lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, 1, 24 * 30),
+        lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, ALL_TIME, 24 * 30),
         kiosk_refresh_seconds=_as_int(
             raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 1, 3600
         ),

@@ -104,3 +104,19 @@ def test_missing_db_reads_empty(tmp_path):
     assert db.recent() == []
     assert db.latest() is None
     assert db.stats()["total"] == 0
+
+
+def test_all_time_is_not_a_window(tmp_path):
+    """lookback_hours 0 drops the time predicate entirely, so the collage keeps
+    every species the detector has ever heard."""
+    now = datetime.now(timezone.utc)
+    db_path = tmp_path / "birdnet.db"
+    _birdnet_db(db_path, [
+        (1, 10, int((now - timedelta(hours=1)).timestamp()), 0.9, None),
+        (2, 11, int((now - timedelta(days=400)).timestamp()), 0.7, None),
+    ])
+    db = Database(db_path)
+
+    assert db.species_since() == [("Turdus merula", 1)]
+    assert db.species_since(hours=0) == [("Parus major", 1), ("Turdus merula", 1)]
+    db.close()
