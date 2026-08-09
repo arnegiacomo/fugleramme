@@ -17,10 +17,13 @@ hand-curated for this project. Each detected species is matched to its
 illustration and packed onto a textured paper page - larger birds toward the
 centre, sized by real body mass.
 
+For more display options see [Display](display.md).
+
 ## Docs
 
 - **[Hardware](hardware.md)** - the parts, and what's swappable
 - **[Install](install.md)** - from a blank SD card to a running frame
+- **[Display](display.md)** - modes, settings and names
 - **[Operations](operations.md)** - buttons, services, logs and updates
 - **[Troubleshooting](troubleshooting.md)** - symptom to cause
 

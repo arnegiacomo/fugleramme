@@ -36,5 +36,6 @@ nav:
   - Home: index.md
   - Hardware: hardware.md
   - Install: install.md
+  - Display: display.md
   - Operations: operations.md
   - Troubleshooting: troubleshooting.md

@@ -8,7 +8,7 @@ Four buttons down the back edge of the panel:
 
 | Button | What it does |
 | --- | --- |
-| A | Nothing yet |
+| A | Next display mode |
 | B | Show species names on/off |
 | C | Rotate the display 90° clockwise |
 | D | Next artwork style |
@@ -18,15 +18,15 @@ Give the panel up to a minute to catch up - it redraws slowly.
 
 ## Updates
 
-The frame checks GitHub hourly for new releases and shows it in the admin
-page's System box. Press **Install** to update, or toggle on *Install new releases automatically* so that the frame updates itself.
+The frame checks GitHub hourly for new releases and shows it on the admin
+page's System tab. Press **Install** to update, or toggle on *Install new releases automatically* so that the frame updates itself.
 
 Installing takes a minute. The frame restarts itself and comes back on the new
 version. If an update fails, the
 reason shows in place of the version and the frame keeps running as it was.
 
 The frame has to be online to check for or install updates, whichever way you do
-it. The System box tells you whether it is.
+it. The System tab tells you whether it is.
 
 ### Over SSH
 
