@@ -28,7 +28,7 @@ from .collage import gather_entries, render_collage
 from .db import Database, Species
 from .featured import Featured
 from .languages import Namer
-from .names import drawable_keys, image_for, normalize, perches_for, resolve
+from .names import drawable_keys, image_for, normalize, perches_for, resolve, variants_for
 from .page import day_ordinal
 from .picks import Picks
 from .plate import render_plate
@@ -111,8 +111,11 @@ class Mode:
     windowed: bool = False
 
 
-def _plate(ctx: Context, name: str | None, note: str = "") -> Image.Image:
-    art = image_for(name, ctx.images_dir, ctx.style, ctx.picks) if name else None
+def _plate(
+    ctx: Context, name: str | None, note: str = "", art: Path | None = None
+) -> Image.Image:
+    if name and art is None:
+        art = image_for(name, ctx.images_dir, ctx.style, ctx.picks)
     return render_plate(
         art, ctx.namer.label(name) if name else "", note, ctx.resolution,
         ctx.show_names, ctx.textured, ctx.font_key, ctx.label_size, ctx.perches(),
@@ -163,28 +166,39 @@ def _latest_page(ctx: Context) -> Image.Image:
     return _plate(ctx, latest.scientific_name, _date(latest.detected_at))
 
 
-def _of_the_day(ctx: Context) -> Species | None:
-    """Today's bird, drawn from the record as it stood at midnight so its tally
-    is fixed for the day."""
+def _of_the_day(ctx: Context) -> tuple[Species, int] | None:
+    """Today's bird and its lap of the walk, drawn from the record as it stood at
+    midnight so its tally is fixed for the day."""
     keys = ctx.drawable()
     entries = [s for s in ctx.db.life_list(until=_midnight()) if normalize(s.scientific_name) in keys]
-    name = ctx.featured.choose(
+    chosen = ctx.featured.choose(
         day_ordinal(), [s.scientific_name for s in entries], commit=ctx.commit
     )
-    return next((s for s in entries if s.scientific_name == name), None)
+    if chosen is None:
+        return None
+    name, lap = chosen
+    species = next((s for s in entries if s.scientific_name == name), None)
+    return (species, lap) if species else None
 
 
 def _daily_key(ctx: Context) -> tuple:
-    species = _of_the_day(ctx)
-    return (day_ordinal(), species.scientific_name if species else None)
+    today = _of_the_day(ctx)
+    return (day_ordinal(), today[0].scientific_name if today else None)
 
 
 def _daily_page(ctx: Context) -> Image.Image:
-    species = _of_the_day(ctx)
-    if species is None:
+    today = _of_the_day(ctx)
+    if today is None:
         return _plate(ctx, None)
+    species, lap = today
+    # By lap, not picks.choose: a bird the walk never forgets would otherwise
+    # wear the plate it first rolled every time round.
+    variants = variants_for(species.scientific_name, ctx.images_dir, ctx.style)
     heard = "Heard once" if species.count == 1 else f"Heard {species.count} times"
-    return _plate(ctx, species.scientific_name, f"{heard} · first {_date(species.first_seen)}")
+    return _plate(
+        ctx, species.scientific_name, f"{heard} · first {_date(species.first_seen)}",
+        art=variants[lap % len(variants)],
+    )
 
 
 def _arrival(ctx: Context) -> Species | None:
@@ -227,7 +241,10 @@ MODES: dict[str, Mode] = {
         "Latest bird", _latest_page, _latest_key,
         lambda ctx: [d.scientific_name] if (d := _latest(ctx)) else [],
     ),
-    "daily": Mode("Bird of the day", _daily_page, _daily_key, lambda ctx: _one(_of_the_day(ctx))),
+    "daily": Mode(
+        "Bird of the day", _daily_page, _daily_key,
+        lambda ctx: _one(today[0] if (today := _of_the_day(ctx)) else None),
+    ),
     "arrival": Mode("Newest arrival", _arrival_page, _arrival_key, lambda ctx: _one(_arrival(ctx))),
 }
 
