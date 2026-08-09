@@ -50,7 +50,7 @@ from .sizes import SIZE_EXPONENT, mass_of
 log = logging.getLogger(__name__)
 
 DEFAULT_RESOLUTION = (1280, 800)
-_MAX_BIRDS = 40
+_MAX_BIRDS = 40  # keeps the render quick, not the page tidy
 _ALPHA_CUTOFF = 24
 _OVERLAP_PX = 2        # erode the collision mask slightly so birds nestle into
                        # each other's (invisible on paper) halos. No rotation:
