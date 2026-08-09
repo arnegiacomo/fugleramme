@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v0.11.0 (2026-08-09)
+
+### Documentation
+
+- #17 say what the bird cap is actually for
+  ([`7476383`](https://github.com/arnegiacomo/fugleramme/commit/7476383628fbbf5006583ebc064958d6cd511842))
+
+- #17 update documentation
+  ([`bfed17e`](https://github.com/arnegiacomo/fugleramme/commit/bfed17e4212ee2109f6183871ac6f2a5718cfa52))
+
+### Features
+
+- #17 all-time lookback, so the collage keeps growing
+  ([`b12deae`](https://github.com/arnegiacomo/fugleramme/commit/b12deae43b179851751cd38c16370ff59e87f384))
+
+- #17 Cormorant Garamond for the plate pages
+  ([`5be7402`](https://github.com/arnegiacomo/fugleramme/commit/5be74023621e49591ce2608921d2542f341b2ca2))
+
+- #17 display modes, walked by button A
+  ([`45544f6`](https://github.com/arnegiacomo/fugleramme/commit/45544f691dc2421bd87453342dcaab7ca60c8127))
+
+- #17 rotate the bird of the day's plate each lap
+  ([`3e20417`](https://github.com/arnegiacomo/fugleramme/commit/3e2041729e3ba7d39390f0f6c3c075f15990ff21))
+
+
 ## v0.10.0 (2026-08-08)
 
 ### Chores
