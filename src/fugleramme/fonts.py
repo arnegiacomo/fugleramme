@@ -1,9 +1,12 @@
-"""Vendored typefaces for the species labels on the collage.
+"""Vendored typefaces for the species names on the page.
 
-Six italics - scientific names are conventionally italic - spanning old-style,
+Seven italics - scientific names are conventionally italic - spanning old-style,
 Didone, calligraphic, transitional and slab, picked for how they survive the
 panel's six colors: at label size a hairline thin speckles or drops out
-entirely. All SIL OFL, vendored under assets/fonts/ with their licences.
+entirely. Cormorant Garamond is the exception, an engraved display face for the
+plate modes, where the name is set large enough to carry its hairlines; on a
+crowded collage it is the first to break up. All SIL OFL, vendored under
+assets/fonts/ with their licences.
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ FONTS_DIR = REPO_ROOT / "assets" / "fonts"
 FONTS: dict[str, tuple[str, str]] = {
     "gentium": ("Gentium Book Plus", "gentiumbookplus/GentiumBookPlus-Italic.ttf"),
     "garamond": ("EB Garamond", "ebgaramond/EBGaramond-Italic.ttf"),
+    "cormorant": ("Cormorant Garamond", "cormorantgaramond/CormorantGaramond-Italic.ttf"),
     "baskerville": ("Libre Baskerville", "librebaskerville/LibreBaskerville-Italic.ttf"),
     "playfair": ("Playfair Display", "playfairdisplay/PlayfairDisplay-Italic.ttf"),
     "alegreya": ("Alegreya", "alegreya/Alegreya-Italic.ttf"),

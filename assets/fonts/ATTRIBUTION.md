@@ -1,7 +1,7 @@
 # Attribution and licensing
 
-The species labels on the collage are set in one of six italics, chosen in the
-admin interface. All six are under the **SIL Open Font License 1.1**; each
+The species names on the page are set in one of seven italics, chosen in the
+admin interface. All seven are under the **SIL Open Font License 1.1**; each
 family ships with its own `OFL.txt` in this directory, which is the copyright
 notice the licence requires be distributed with the font.
 
