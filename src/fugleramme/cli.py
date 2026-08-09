@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .collage import gather_entries, render_collage
+from . import modes
 from .config import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_DB_PATH,
@@ -22,8 +22,8 @@ from .config import (
     Config,
 )
 from .db import Database
+from .featured import FILENAME as FEATURED_FILE, Featured
 from .languages import namer
-from .names import perches_for, resolve
 from .picks import FILENAME as PICKS_FILE, Picks
 from .service import run
 from .settings import SettingsStore
@@ -62,19 +62,14 @@ def main(argv: list[str] | None = None) -> None:
     if args.preview:
         settings = SettingsStore(config.config_path).get()
         db = Database(config.db_path)
-        style = resolve(settings.style, config.images_dir)
-        picks = Picks(config.config_path.parent / PICKS_FILE)
-        entries = gather_entries(
-            db, config.images_dir, style, picks, settings.lookback_hours
-        )
+        data_dir = config.config_path.parent
         name_of = namer(
-            settings.primary_language, settings.secondary_language, config.config_path.parent
+            settings.primary_language, settings.secondary_language, data_dir
         )
-        render_collage(
-            entries, settings.web_size(), settings.show_names,
-            font_key=settings.label_font, label_size=settings.label_size,
-            label_text=name_of.label, perches=perches_for(config.images_dir, style),
-        ).save(args.preview)
+        modes.render(modes.context(
+            db, config.images_dir, Picks(data_dir / PICKS_FILE),
+            Featured(data_dir / FEATURED_FILE), settings, name_of, settings.web_size(),
+        )).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")
         return

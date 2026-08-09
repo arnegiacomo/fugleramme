@@ -1,11 +1,10 @@
 """Frame service main loop.
 
-One collage, two outputs (issue #1 "render once, fan out"): the web/kiosk view
-serves it full-color on request; the Inky panel gets the same collage dithered
-to 6 colors. The loop re-renders the panel image only when its inputs change -
-the species in the lookback window, the rotation, the artwork style - a
-natural debounce for the slow e-ink refresh. The web view renders fresh per
-request, at its own resolution setting.
+One page, two outputs (issue #1 "render once, fan out"): the web/kiosk view
+serves it full-color on request; the Inky panel gets the same page dithered to 6
+colors. The loop re-renders the panel image only when the mode's own key changes
+- see modes.py - a natural debounce for the slow e-ink refresh. The web view
+renders fresh per request, at its own resolution setting.
 
 Panel-absent is not a special case: init_panel returns None and we skip the
 push, the same path as the preview.
@@ -19,12 +18,11 @@ import signal
 import threading
 import time
 
-from . import __version__, buttons, updates
-from .collage import gather_entries, perch_day, render_collage
+from . import __version__, buttons, modes, updates
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
+from .featured import FILENAME as FEATURED_FILE, Featured
 from .languages import namer
-from .names import perches_for, resolve
 from .panel import init_panel
 from .picks import FILENAME as PICKS_FILE, Picks
 from .render import dither
@@ -68,12 +66,13 @@ def run(config: Config) -> None:
     panel = init_panel()
     store = SettingsStore(config.config_path)
     picks = Picks(config.config_path.parent / PICKS_FILE)
+    featured = Featured(config.config_path.parent / FEATURED_FILE)
     status = Status()
 
     server_thread = threading.Thread(
         target=serve,
         args=(config.db_path, config.images_dir, config.host, config.port, store,
-              picks, panel, status),
+              picks, featured, panel, status),
         daemon=True,
     )
     server_thread.start()
@@ -94,33 +93,23 @@ def run(config: Config) -> None:
         settings = store.get()
         if _update(status, settings.auto_update):
             return  # new code is checked out; systemd restarts us into it
-        species = db.species_since(settings.lookback_hours)
-        style = resolve(settings.style, config.images_dir)
         size = settings.oriented(panel.resolution if panel else FALLBACK_PANEL_RESOLUTION)
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
-        key = (
-            tuple(species), perch_day() if not species else None, size, style,
-            settings.rotation, settings.show_names, settings.label_font,
-            settings.label_size, name_of.key,
+        ctx = modes.context(
+            db, config.images_dir, picks, featured, settings, name_of, size,
+            textured=False, commit=True,
         )
+        key = (modes.state_key(ctx), settings.rotation)
         if key != last_key:
-            # The loop owns the window, so it is the only caller that may forget
-            # a departed bird's artwork - the kiosk may be previewing another one.
-            picks.retain(name for name, _ in species)
-            entries = gather_entries(
-                db, config.images_dir, style, picks, settings.lookback_hours
-            )
-            collage = render_collage(
-                entries, size, settings.show_names,
-                textured=False, font_key=settings.label_font,
-                label_size=settings.label_size, label_text=name_of.label,
-                perches=perches_for(config.images_dir, style),
-            )
-            panel_image = dither(collage)
+            if modes.mode_of(ctx.mode).windowed:
+                # The loop owns the window, so it is the only caller that may forget
+                # a departed bird's artwork - the kiosk may be previewing another one.
+                picks.retain(name for name, _ in db.species_since(settings.lookback_hours))
+            panel_image = dither(modes.render(ctx))
             panel_image.save(config.output_path)
-            log.info("Rendered panel collage: %d species at %dx%d", len(species), *size)
+            log.info("Rendered %s page at %dx%d", ctx.mode, *size)
             status.rendered()
             last_key = key
             pending = (panel_image, settings.rotation) if panel is not None else None

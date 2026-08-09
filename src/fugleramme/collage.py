@@ -21,53 +21,42 @@ is unaffected by which other birds are on the page, or by a restart.
 from __future__ import annotations
 
 import hashlib
-import io
 import logging
 import math
-import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import date
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageFilter
 
 from . import fonts
 from .db import Database
-from .languages import Namer
-from .names import image_for, perches_for
-from .paper import PAD, TARGET_PAPER, paper_texture, process_sprite
+from .names import image_for
+from .page import (
+    MIN_LABEL_PX,
+    blank,
+    day_ordinal,
+    draw_perch,
+    label_px,
+    stamp,
+    text_mask,
+    trim,
+)
+from .paper import PAD, process_sprite
 from .picks import Picks
 from .sizes import SIZE_EXPONENT, mass_of
 
 log = logging.getLogger(__name__)
 
 DEFAULT_RESOLUTION = (1280, 800)
-_INK = (30, 30, 30)
-_PANEL_INK = (0, 0, 0)   # exact palette black: the dither leaves it alone
 _MAX_BIRDS = 40
 _ALPHA_CUTOFF = 24
 _OVERLAP_PX = 2        # erode the collision mask slightly so birds nestle into
                        # each other's (invisible on paper) halos. No rotation:
                        # it tilts the ground/water on birds drawn with terrain.
 _STEP = 6
-
-_LABEL_MIN_PX = 11
-_LABEL_CUTOFF = 110    # alpha threshold when flattening a label for the panel
-_LINE_SPACING = 0.1    # extra leading between a label's two lines, em
 _ATTEMPTS = 20
-
-
-def _label_px(width: int, height: int, size_key: str) -> int:
-    _name, scale = fonts.LABEL_SIZES.get(size_key, fonts.LABEL_SIZES[fonts.DEFAULT_LABEL_SIZE])
-    return max(_LABEL_MIN_PX, round(min(width, height) * scale))
-
-
-def _trim(path: Path) -> Image.Image:
-    img = Image.open(path).convert("RGBA")
-    bbox = img.getchannel("A").getbbox()  # trim by alpha, not by RGB
-    return img.crop(bbox) if bbox else img
 
 
 def _scaled_sprite(
@@ -102,24 +91,6 @@ class _Sprite:
     art_at: tuple[int, int] = (0, 0)
     label: Image.Image | None = None
     label_at: tuple[int, int] = (0, 0)
-
-
-def _label(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:
-    """The name as an "L" alpha mask, +1px so the italic's overhang is not shaved.
-    Newlines stack centred (a second language) on the text layout's own
-    baselines - separately trimmed masks would sit unevenly. Flat drops the
-    antialiasing, which would otherwise dither into colour speckle."""
-    spacing = round(font.size * _LINE_SPACING)
-    measure = ImageDraw.Draw(Image.new("L", (1, 1)))
-    x0, y0, x1, y1 = measure.multiline_textbbox(
-        (0, 0), text, font=font, spacing=spacing, align="center"
-    )
-    # Ceil: a multi-line bbox is fractional, and a short box shaves the text.
-    mask = Image.new("L", (math.ceil(x1 - x0) + 2, math.ceil(y1 - y0) + 2), 0)
-    ImageDraw.Draw(mask).multiline_text(
-        (1 - x0, 1 - y0), text, font=font, fill=255, spacing=spacing, align="center"
-    )
-    return mask.point(lambda v: 255 if v > _LABEL_CUTOFF else 0) if flat else mask
 
 
 def _spiral(cx: float, cy: float, max_r: float):
@@ -198,19 +169,6 @@ def _with_label(art: Image.Image, art_mask: np.ndarray, label: Image.Image, gap:
     return _Sprite(art, mask, (ax, 0), label, (lx, top))
 
 
-def perch_day() -> int:
-    """Which branch an empty page shows, as a number that turns over daily.
-
-    The panel and the kiosk each render their own copy, so anything rolled at
-    render time would leave them showing different branches - and the panel,
-    which only re-renders when its key changes, would then hold its one branch
-    for as long as the frame stayed quiet. Deriving it from the date instead
-    makes both agree by construction and gives a silent frame something that
-    still moves. Both keys carry it, so the render actually happens.
-    """
-    return date.today().toordinal()
-
-
 def _flip(name: str) -> bool:
     """Mirror a bird or not, decided by its name alone: variety without churn,
     since a set-wide rng would re-roll every bird whenever one arrives."""
@@ -234,7 +192,7 @@ def _layout(
     width: int,
     height: int,
     font_key: str | None,
-    label_px: int,
+    name_px: int,
     flat: bool,
     label_text: Callable[[str], str] = str,
 ):
@@ -246,10 +204,10 @@ def _layout(
     for attempt in range(_ATTEMPTS):
         shrink = 0.9 ** attempt
         if font_key:
-            px = max(_LABEL_MIN_PX, round(label_px * shrink))
+            px = max(MIN_LABEL_PX, round(name_px * shrink))
             if px != last_px:
                 font = fonts.load(font_key, px)
-                labels = [_label(label_text(arts[i][0]), font, flat) for i in order]
+                labels = [text_mask(label_text(arts[i][0]), font, flat) for i in order]
                 last_px, gap = px, round(px * 0.35)
         sprites = []
         for n, i in enumerate(order):
@@ -283,11 +241,11 @@ def render_collage(
     perches: the active style's bare branches, for a page with no birds on it.
     """
     width, height = resolution
-    canvas = paper_texture(width, height) if textured else Image.new("RGB", (width, height), TARGET_PAPER)
+    canvas = blank(resolution, textured)
 
-    arts = [(name, _trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
+    arts = [(name, trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
     if not arts:
-        _draw_empty(canvas, width, height, perches, textured)
+        draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
 
     # Each bird's target size scales with its real mass (compressed); the whole
@@ -301,14 +259,14 @@ def render_collage(
         min(width, height) * 0.7 / max(weights),
     )
     args = (arts, order, weights, flips, base, width, height)
-    label_px = _label_px(width, height, label_size)
+    name_px = label_px(width, height, label_size)
     placed = _layout(
-        *args, font_key if show_names else None, label_px,
+        *args, font_key if show_names else None, name_px,
         flat=not textured, label_text=label_text,
     )
     if placed is None and show_names:
         log.warning("No layout fits %d species with names at %dx%d", len(arts), width, height)
-        placed = _layout(*args, None, label_px, flat=not textured)  # birds beat blank paper
+        placed = _layout(*args, None, name_px, flat=not textured)  # birds beat blank paper
 
     if placed:
         for sprite, x, y in placed:
@@ -320,35 +278,14 @@ def render_collage(
     return canvas
 
 
-def _draw_empty(
-    canvas, width: int, height: int, perches: Sequence[Path], textured: bool = True
-) -> None:
-    """No detections: a single empty perch, centered on the paper page."""
-    if not perches:
-        return
-    day = perch_day()
-    perch = _trim(perches[day % len(perches)])
-    if (day // len(perches)) % 2:  # mirrored on the second lap, so it cycles twice as far
-        perch = perch.transpose(Image.FLIP_LEFT_RIGHT)
-    target = int(min(width, height) * 0.7)
-    scale = target / max(perch.width, perch.height)
-    perch = perch.resize(
-        (max(1, round(perch.width * scale)), max(1, round(perch.height * scale))),
-        Image.LANCZOS,
-    )
-    proc = process_sprite(perch, textured=textured)
-    canvas.paste(proc, ((width - proc.width) // 2, (height - proc.height) // 2), proc)
-
-
 def _draw_names(canvas, placed, textured: bool) -> None:
     """A second pass: halos feather past the collision mask, so a name drawn
     inline with the birds would be washed over by the next neighbour."""
-    ink = _INK if textured else _PANEL_INK
     for sprite, x, y in placed:
         if sprite.label is None:
             continue
         lx, ly = sprite.label_at
-        canvas.paste(Image.new("RGB", sprite.label.size, ink), (x + lx, y + ly), sprite.label)
+        stamp(canvas, sprite.label, (x + lx, y + ly), textured)
 
 
 def gather_entries(
@@ -365,78 +302,3 @@ def gather_entries(
     ]
 
 
-_cache: tuple[tuple, bytes] | None = None
-_cache_lock = threading.Lock()
-
-
-def collage_key(
-    db: Database,
-    style: str,
-    resolution: tuple[int, int] = DEFAULT_RESOLUTION,
-    show_names: bool = True,
-    lookback_hours: int = 24,
-    font_key: str = fonts.DEFAULT_FONT,
-    label_size: str = fonts.DEFAULT_LABEL_SIZE,
-    namer: Namer | None = None,
-) -> tuple:
-    """Everything the collage is a function of: the cache key, and what the kiosk polls."""
-    species = tuple(name for name, _ in db.species_since(lookback_hours))
-    return (
-        species, perch_day() if not species else None, style, resolution,
-        show_names, font_key, label_size, namer.key if namer else (),
-    )
-
-
-def collage_token(key: tuple) -> str:
-    """Short digest of a collage key. blake2b, not hash(): hash() is salted per
-    process and would fire a spurious swap on every restart."""
-    return hashlib.blake2b(repr(key).encode(), digest_size=8).hexdigest()
-
-
-def collage_png_bytes(
-    db: Database,
-    images_dir: Path,
-    style: str,
-    picks: Picks,
-    resolution: tuple[int, int] = DEFAULT_RESOLUTION,
-    show_names: bool = True,
-    lookback_hours: int = 24,
-    font_key: str = fonts.DEFAULT_FONT,
-    label_size: str = fonts.DEFAULT_LABEL_SIZE,
-    namer: Namer | None = None,
-) -> bytes:
-    """Render the current collage to PNG bytes for the HTTP endpoint.
-
-    Both states share the single _cache slot, keyed by the species set. Birds:
-    the layout is a pure function of the set, re-packed only when it changes -
-    and so are the artwork picks, which is why the key needs nothing for them.
-    Empty: the branch is a function of the day (perch_day), so the kiosk and
-    the panel show the same one and a refresh never swaps it.
-
-    The lock is held across the render so concurrent kiosk requests wait for one
-    render instead of each doing their own.
-    """
-    global _cache
-    with _cache_lock:
-        key = collage_key(
-            db, style, resolution, show_names, lookback_hours, font_key, label_size, namer
-        )
-        if _cache is not None and _cache[0] == key:
-            return _cache[1]
-
-        species = key[0]
-        if not species:
-            image = render_collage(
-                [], resolution, show_names, perches=perches_for(images_dir, style)
-            )
-        else:
-            image = render_collage(
-                gather_entries(db, images_dir, style, picks, lookback_hours),
-                resolution, show_names, font_key=font_key, label_size=label_size,
-                label_text=namer.label if namer else str,
-            )
-
-        buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
-        _cache = (key, buffer.getvalue())
-        return _cache[1]

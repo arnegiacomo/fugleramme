@@ -6,6 +6,7 @@ from __future__ import annotations
 import pytest
 
 from fugleramme.buttons import changes_for, pins_for, press
+from fugleramme.modes import MODES
 from fugleramme.settings import Settings, SettingsStore
 
 
@@ -22,8 +23,17 @@ def test_the_13_3_moves_button_c():
     assert pins_for("inky.inky_ac073tc1a") == (5, 6, 16, 24)
 
 
-def test_a_is_unbound(images_dir):
-    assert changes_for("A", Settings(), images_dir) is None
+def test_a_walks_the_modes_and_wraps(images_dir):
+    settings = Settings()
+    seen = []
+    for _ in range(len(MODES) + 1):
+        settings = Settings(mode=changes_for("A", settings, images_dir)["mode"])
+        seen.append(settings.mode)
+    assert seen == list(MODES)[1:] + list(MODES)[:2]
+
+
+def test_a_restarts_the_walk_from_an_unknown_mode(images_dir):
+    assert changes_for("A", Settings(mode="gone"), images_dir) == {"mode": list(MODES)[0]}
 
 
 def test_b_toggles_names(images_dir):

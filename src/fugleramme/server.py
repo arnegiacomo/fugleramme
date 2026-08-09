@@ -27,12 +27,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import __version__, updates
-from .collage import collage_key, collage_png_bytes, collage_token
+from . import __version__, modes, updates
 from .config import BIRDNET_PORT, DOCS_URL, WEB_RESOLUTIONS
 from .db import Database, Detection
+from .featured import Featured
 from .fonts import FONTS, LABEL_SIZES
 from .languages import NONE, Namer, catalog, namer, ordered
+from .modes import MODES
 from .names import available_styles, image_for, resolve, source_of
 from .panel import Panel
 from .picks import Picks
@@ -157,6 +158,12 @@ def _species_li(name: str, source: str | None) -> str:
     return f'<li>{name} <small>{_display_name(source)}</small></li>'
 
 
+def _species_html(species: list[tuple[str, str | None]], name_of: Namer) -> str:
+    return "".join(
+        _species_li(name_of.inline(name), source) for name, source in species
+    ) or '<li class="empty">none yet</li>'
+
+
 def _language_select(
     field: str, languages: list[tuple[str, str]], selected: str, optional: bool = False
 ) -> str:
@@ -217,20 +224,33 @@ def _update_dd(status: Status) -> str:
     return f'up to date{_action("check", "Check")}'
 
 
-def _radios(available: list[str], active: str) -> str:
+def _radios(field: str, options: list[tuple[str, str]], active: str) -> str:
     return "".join(
-        f'<label class="src"><input type="radio" name="style" value="{s}"'
-        f'{" checked" if s == active else ""}> {_display_name(s)}</label>'
-        for s in available
+        f'<label class="src"><input type="radio" name="{field}" value="{value}"'
+        f'{" checked" if value == active else ""}> {label}</label>'
+        for value, label in options
+    )
+
+
+CHECKBOXES = "checkboxes"  # hidden field naming the checkboxes a form carries
+
+
+def _checkbox(field: str, label: str, checked: bool) -> str:
+    return (
+        f'<label class="src"><input type="checkbox" name="{field}"'
+        f'{" checked" if checked else ""}> {label}</label>'
     )
 
 
 def _form_changes(form: dict[str, list[str]]) -> dict:
-    """Admin form to settings overrides. Unchecked checkboxes are absent from a
-    form post, so they are read as presence; _coerce validates the rest."""
-    changes = {k: v[0] for k, v in form.items()}
-    changes["auto_update"] = "auto_update" in form
-    changes["show_names"] = "show_names" in form
+    """Admin form to settings overrides. Unchecked checkboxes and disabled
+    fields are both absent from a post, so a form declares its own checkboxes
+    and everything else missing keeps its saved value. Without that declaration
+    the System form, which has no `show_names`, would read as switching names
+    off. _coerce validates the rest."""
+    changes = {k: v[0] for k, v in form.items() if k != CHECKBOXES}
+    for field in form.get(CHECKBOXES, [""])[0].split():
+        changes[field] = field in form
     return changes
 
 
@@ -256,19 +276,19 @@ def _admin_html(
     labels = dict(LOOKBACK_OPTIONS)
     labels.setdefault(settings.lookback_hours, f"{settings.lookback_hours} hours")
     lookbacks = _options(sorted(labels), settings.lookback_hours, labels.get)
+    windowed = MODES[settings.mode].windowed if settings.mode in MODES else True
+    windowed_modes = json.dumps([k for k, m in MODES.items() if m.windowed])
+    mode_field = (
+        f'<div class="field"><span>Mode</span>'
+        f'{_radios("mode", [(k, m.label) for k, m in MODES.items()], settings.mode)}</div>'
+    )
     style_field = (
         f'<div class="field"><span>Artwork style</span>'
-        f"{_radios(available, active)}</div>"
-    )
-    auto_update_field = (
-        f'<div class="field"><span>Updates</span>'
-        f'<label class="src"><input type="checkbox" name="auto_update"'
-        f'{" checked" if settings.auto_update else ""}> Install new releases automatically</label></div>'
+        f'{_radios("style", [(s, _display_name(s)) for s in available], active)}</div>'
     )
     names_field = (
         f'<div class="field"><span>Species names</span>'
-        f'<label class="src"><input type="checkbox" name="show_names"'
-        f'{" checked" if settings.show_names else ""}> Show names on the collage</label>'
+        f'{_checkbox("show_names", "Display bird names", settings.show_names)}'
         f'<label class="sub"><small>Language</small>'
         f'{_language_select("primary_language", languages, settings.primary_language)}</label>'
         f'<label class="sub"><small>Second language (optional)</small>'
@@ -291,9 +311,7 @@ def _admin_html(
     rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
     if status.push_error:
         rendered += f" · panel push failing ({status.push_error})"
-    rows = "".join(
-        _species_li(name_of.inline(name), source) for name, source in species
-    ) or '<li class="empty">none yet</li>'
+    rows = _species_html(species, name_of)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -307,6 +325,13 @@ def _admin_html(
   header h1 {{ margin: 0; }}
   header nav a {{ margin-left: 1.25rem; }}
   h2 {{ font-size: 1.05rem; margin: 0 0 0.5rem; }}
+  /* Undoes the page-wide block `span`, which would break a heading over three lines. */
+  h2 span {{ display: inline; font-weight: inherit; margin: 0; }}
+  nav.tabs {{ display: flex; gap: 0.5rem; margin: -1rem 0 1.75rem; }}
+  nav.tabs button {{ font-size: 0.95rem; padding: 0.4rem 1rem; margin: 0; cursor: pointer;
+                    background: none; border: 0; border-bottom: 2px solid transparent; color: #446; }}
+  nav.tabs button[aria-selected="true"] {{ border-bottom-color: #446; font-weight: 600; color: inherit; }}
+  section[hidden] {{ display: none; }}
   .cols {{ display: flex; gap: 2.5rem; align-items: flex-start; }}
   form.settings {{ flex: 0 0 15rem; }}
   aside.side {{ flex: 1; min-width: 0; }}
@@ -323,6 +348,8 @@ def _admin_html(
   label.src input {{ width: auto; padding: 0; }}
   button {{ font-size: 1rem; padding: 0.5rem 1.25rem; margin-top: 0.5rem; }}
   button:disabled {{ opacity: 0.45; }}
+  /* A setting the chosen mode does not read: shown, so its value is not a surprise on the way back. */
+  label.off {{ opacity: 0.45; }}
   a {{ color: #446; }}
   dl.status {{ display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
               background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }}
@@ -333,6 +360,7 @@ def _admin_html(
   .ok {{ color: #3a7d44; }}
   .bad {{ color: #a4392f; }}
   .warn {{ color: #8a6d1f; }}
+  form.block {{ margin: 0 0 1.75rem; }}  /* the Save button carries no bottom margin of its own */
   form.inline {{ display: inline; }}
   form.inline button {{ font-size: 0.8rem; padding: 0.1rem 0.5rem; margin: 0 0 0 0.5rem; }}
   ul.species {{ list-style: none; padding: 0; margin: 0 0 1.75rem;
@@ -342,15 +370,19 @@ def _admin_html(
   ul.species li.noart {{ color: #aaa; }}
   ul.species li.noart small {{ color: #aaa; }}
   ul.species li.empty {{ color: #999; }}
-  details.preview {{ margin-top: 2rem; border-top: 1px solid #e5e2dc; padding-top: 1rem; }}
-  details.preview summary {{ font-size: 1.05rem; font-weight: 600; cursor: pointer; }}
-  details.preview img {{ display: block; max-width: 100%; max-height: 75vh; margin: 1rem auto 0;
-                        border: 1px solid #ddd; border-radius: 6px; }}
+  /* Sized to the image, not the column: a portrait page in a 100%-wide box would
+     draw its border around the letterboxing. */
+  .preview img {{ display: block; max-width: 100%; max-height: 60vh;
+                 border: 1px solid #ddd; border-radius: 6px; }}
   .rendering {{ display: none; align-items: center; justify-content: center; gap: 0.6rem;
-               min-height: 12rem; color: #666; }}
-  .loading .rendering {{ display: flex; }}
-  /* Two classes: outweighs `details.preview img`, so a src-less img shows nothing. */
-  details.preview.loading img {{ display: none; }}
+               color: #666; }}
+  /* The box holds its height across a re-render, so the page does not jump.
+     Left-aligned: a portrait page centred in the column leaves it lopsided
+     against the species list under it. */
+  .preview {{ min-height: 14rem; display: flex; align-items: center; justify-content: flex-start;
+             margin: 0 0 1.75rem; }}
+  .preview.loading .rendering {{ display: flex; }}
+  .preview.loading img {{ display: none; }}
   /* margin: undoes the page-wide `span` rule, which offsets it from the caption. */
   .spinner {{ width: 1.1rem; height: 1.1rem; margin: 0; border: 2px solid #ddd;
              border-top-color: #888; border-radius: 50%; animation: spin 0.8s linear infinite; }}
@@ -368,63 +400,87 @@ def _admin_html(
   <h1>Fugleramme</h1>
   <nav><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a><a href="{DOCS_URL}" target="_blank" rel="noopener">Docs</a></nav>
 </header>
-<div class="cols">
+<nav class="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="settings">Display</button>
+  <button type="button" role="tab" data-tab="system">System</button>
+</nav>
+<section id="tab-settings" class="cols">
   <form class="settings" method="post" action="/admin">
-    <h2>Display settings</h2>
-    <label><span>Kiosk resolution <small>(web view only)</small></span>
+    <input type="hidden" name="{CHECKBOXES}" value="show_names">
+    {mode_field}
+    <label><span>Resolution <small>(web view only)</small></span>
       <select name="web_resolution">{resolutions}</select></label>
     <label><span>Rotation <small>(how the frame hangs)</small></span>
       <select name="rotation">{rotations}</select></label>
-    <label><span>Lookback window <small>(how far back the frame looks)</small></span>
-      <select name="lookback_hours">{lookbacks}</select></label>
-    <label><span>Kiosk poll <small>(seconds between checks)</small></span>
+    <label id="lookback"{"" if windowed else ' class="off"'}>
+      <span>Lookback window <small>(how far back the frame looks)</small></span>
+      <select name="lookback_hours"{"" if windowed else " disabled"}>{lookbacks}</select></label>
+    <label><span>Polling interval <small>(seconds between checks)</small></span>
       <input type="number" name="kiosk_refresh_seconds" min="1" max="3600" value="{settings.kiosk_refresh_seconds}"></label>
     {names_field}
     {style_field}
-    {auto_update_field}
     <button type="submit">Save</button>
   </form>
   <aside class="side">
-    <h2>System</h2>
-    <dl class="status">
-      <dt>Version</dt><dd>v{__version__}</dd>
-      <dt>Update</dt><dd>{_update_dd(status)}</dd>
-      <dt>Inky panel</dt><dd>{panel_status}</dd>
-      <dt>BirdNET-Go</dt><dd>{_state(_reachable("127.0.0.1", BIRDNET_PORT), "running", "unreachable")}</dd>
-      <dt>Host</dt><dd>{_lan_address()}</dd>
-      <dt>Internet</dt><dd>{_online()}</dd>
-      <dt>Disk</dt><dd>{_disk_free(data_dir)}</dd>
-      <dt>Started</dt><dd>{_stamp(status.started_at)}</dd>
-      <dt>Kiosk render</dt><dd>{w}×{h}</dd>
-    </dl>
-    <h2>Activity</h2>
-    <dl class="status">
-      <dt>Last render</dt><dd>{rendered}</dd>
-      <dt>Last detection</dt><dd>{last}</dd>
-    </dl>
-    <h2>Species in window ({len(species)})</h2>
-    <ul class="species">{rows}</ul>
+    <h2>Preview</h2>
+    <div class="preview loading" id="preview">
+      <p class="rendering"><span class="spinner"></span> Rendering…</p>
+      <img id="shot" alt="Current page">
+    </div>
+    <h2>On the page (<span id="count">{len(species)}</span>)</h2>
+    <ul class="species" id="species">{rows}</ul>
   </aside>
-</div>
-<details class="preview loading" id="preview">
-  <summary>Preview</summary>
-  <p class="rendering"><span class="spinner"></span> Rendering…</p>
-  <img id="shot" alt="Current collage">
-</details><script>
+</section>
+<section id="tab-system" hidden>
+  <h2>Updates</h2>
+  <dl class="status">
+    <dt>Version</dt><dd>v{__version__}</dd>
+    <dt>Update</dt><dd>{_update_dd(status)}</dd>
+  </dl>
+  <form class="block" method="post" action="/admin">
+    <input type="hidden" name="{CHECKBOXES}" value="auto_update">
+    {_checkbox("auto_update", "Install new releases automatically", settings.auto_update)}
+    <button type="submit">Save</button>
+  </form>
+  <h2>System</h2>
+  <dl class="status">
+    <dt>Inky panel</dt><dd>{panel_status}</dd>
+    <dt>BirdNET-Go</dt><dd>{_state(_reachable("127.0.0.1", BIRDNET_PORT), "running", "unreachable")}</dd>
+    <dt>Host</dt><dd>{_lan_address()}</dd>
+    <dt>Internet</dt><dd>{_online()}</dd>
+    <dt>Disk</dt><dd>{_disk_free(data_dir)}</dd>
+    <dt>Started</dt><dd>{_stamp(status.started_at)}</dd>
+    <dt>Kiosk render</dt><dd>{w}×{h}</dd>
+  </dl>
+  <h2>Activity</h2>
+  <dl class="status">
+    <dt>Last render</dt><dd>{rendered}</dd>
+    <dt>Last detection</dt><dd>{last}</dd>
+  </dl>
+</section>
+<script>
   // Same host as this page, BirdNET-Go's own port - the bind host (0.0.0.0) is not reachable.
   document.getElementById("birdnet").href = location.protocol + "//" + location.hostname + ":{BIRDNET_PORT}/";
 
-  // Every button posts and redirects, so a save reloads: the open preview and the
-  // scroll position have to be carried across by hand.
+  // Every button posts and redirects, so a save reloads: the tab and the scroll
+  // position have to be carried across by hand.
   for (const f of document.querySelectorAll("form")) {{
     f.addEventListener("submit", () => sessionStorage.setItem("scroll", String(window.scrollY)));
   }}
-  function restoreScroll() {{
-    const y = sessionStorage.getItem("scroll");
-    if (y === null) return;
-    sessionStorage.removeItem("scroll");
-    window.scrollTo(0, Number(y));
+  const scrolled = sessionStorage.getItem("scroll");
+  sessionStorage.removeItem("scroll");
+
+  const tabs = document.querySelectorAll("nav.tabs button");
+  function showTab(name) {{
+    for (const tab of tabs) {{
+      const on = tab.dataset.tab === name;
+      tab.setAttribute("aria-selected", on);
+      document.getElementById("tab-" + tab.dataset.tab).hidden = !on;
+    }}
+    localStorage.setItem("tab", name);
   }}
+  for (const tab of tabs) tab.addEventListener("click", () => showTab(tab.dataset.tab));
+  showTab(localStorage.getItem("tab") === "system" ? "system" : "settings");
 
   // An install ends with systemd restarting us, so the poll rides out a dead
   // server and reloads once one answers with the work done - or failed.
@@ -455,7 +511,7 @@ def _admin_html(
 
   function loadPreview() {{
     const query = serialize();
-    if (!preview.open || query === shown) return;
+    if (query === shown) return;
     const id = ++seq;
     preview.classList.add("loading");
     caption.innerHTML = captionHTML;
@@ -465,17 +521,38 @@ def _admin_html(
       shown = query;
       shot.src = next.src;
       preview.classList.remove("loading");
-      restoreScroll();  // only now is the page tall enough not to clamp it
     }};
     next.onerror = () => {{
       if (id !== seq) return;
       caption.textContent = "Preview unavailable";
-      restoreScroll();
     }};
     next.src = "/preview.png?" + query;
+    loadSpecies(query, id);
+  }}
+
+  // The list under the preview is of the page being previewed, not the saved one.
+  async function loadSpecies(query, id) {{
+    try {{
+      const body = await (await fetch("/species?" + query, {{cache: "no-store"}})).json();
+      if (id !== seq) return;
+      document.getElementById("count").textContent = body.count;
+      document.getElementById("species").innerHTML = body.html;
+    }} catch (e) {{}}  // the preview alone is worth showing
+  }}
+
+  // Settings the chosen mode ignores go dim and stop being submitted, so the
+  // saved value survives a trip through a mode that has no use for it.
+  const windowedModes = {windowed_modes};
+  const lookback = document.getElementById("lookback");
+  function syncMode() {{
+    const mode = form.querySelector("input[name=mode]:checked");
+    const on = !mode || windowedModes.includes(mode.value);
+    lookback.querySelector("select").disabled = !on;
+    lookback.classList.toggle("off", !on);
   }}
 
   form.addEventListener("input", () => {{
+    syncMode();
     save.disabled = !dirty();
     clearTimeout(timer);  // debounced: a render is expensive on the Pi
     timer = setTimeout(loadPreview, 500);
@@ -487,14 +564,10 @@ def _admin_html(
     e.returnValue = "";
   }});
 
-  preview.addEventListener("toggle", () => {{
-    localStorage.setItem("preview", preview.open ? "1" : "0");
-    loadPreview();
-  }});
-  preview.open = localStorage.getItem("preview") === "1";
+  syncMode();
   save.disabled = true;
   loadPreview();
-  if (!preview.open) restoreScroll();  // closed preview: already at full height
+  if (scrolled !== null) window.scrollTo(0, Number(scrolled));
 </script>
 </body>
 </html>
@@ -503,7 +576,7 @@ def _admin_html(
 
 def make_handler(
     db: Database, images_dir: Path, store: SettingsStore, picks: Picks,
-    panel: Panel | None, status: Status,
+    featured: Featured, panel: Panel | None, status: Status,
 ):
     class Handler(BaseHTTPRequestHandler):
         timeout = REQUEST_TIMEOUT
@@ -543,6 +616,24 @@ def make_handler(
                 settings.primary_language, settings.secondary_language, store.path.parent
             )
 
+        def _subjects(self, settings: Settings) -> list[tuple[str, str | None]]:
+            """What the current mode's page is about, each with the plate its
+            artwork was cut from, or None when it has none to draw."""
+            style = resolve(settings.style, images_dir)
+            rows = []
+            for name in modes.subjects(self._context(settings)):
+                pick = image_for(name, images_dir, style, picks)
+                # Unstamped (a hand-filled style): name the style itself.
+                rows.append((name, source_of(pick) or style if pick else None))
+            return rows
+
+        def _context(self, settings: Settings) -> modes.Context:
+            # commit stays False: the kiosk must never advance the bird of the day.
+            return modes.context(
+                db, images_dir, picks, featured, settings, self._namer(settings),
+                settings.web_size(),
+            )
+
         def do_GET(self):
             route = urlparse(self.path).path
             settings = store.get()
@@ -553,34 +644,27 @@ def make_handler(
                     # The admin's unsaved form state, so Preview shows it before Save.
                     query = parse_qs(urlparse(self.path).query)
                     settings = merged(settings, **_form_changes(query))
-                style = resolve(settings.style, images_dir)
-                png = collage_png_bytes(
-                    db, images_dir, style, picks, settings.web_size(), settings.show_names,
-                    settings.lookback_hours, settings.label_font, settings.label_size,
-                    self._namer(settings),
-                )
-                self._send_png(png)
+                self._send_png(modes.png_bytes(self._context(settings)))
             elif route == "/state":
                 # Cheap enough to poll every second: one grouped query, no render.
-                key = collage_key(
-                    db, resolve(settings.style, images_dir), settings.web_size(),
-                    settings.show_names, settings.lookback_hours, settings.label_font,
-                    settings.label_size, self._namer(settings),
-                )
+                body = json.dumps({
+                    "token": modes.token(modes.state_key(self._context(settings))),
+                    "refresh": settings.kiosk_refresh_seconds,
+                })
+                self._send(200, body.encode(), "application/json")
+            elif route == "/species":
+                # The admin's unsaved form state, like /preview.png.
+                settings = merged(settings, **_form_changes(parse_qs(urlparse(self.path).query)))
+                rows = self._subjects(settings)
                 body = json.dumps(
-                    {"token": collage_token(key), "refresh": settings.kiosk_refresh_seconds}
+                    {"count": len(rows), "html": _species_html(rows, self._namer(settings))}
                 )
                 self._send(200, body.encode(), "application/json")
             elif route == "/admin":
                 available = available_styles(images_dir)
                 style = resolve(settings.style, images_dir)
-                species = []
-                for name, _count in db.species_since(settings.lookback_hours):
-                    pick = image_for(name, images_dir, style, picks)
-                    # Unstamped (a hand-filled style): name the style itself.
-                    species.append((name, source_of(pick) or style if pick else None))
                 html = _admin_html(
-                    settings, species, db.latest(),
+                    settings, self._subjects(settings), db.latest(),
                     panel.resolution if panel else None, available, style,
                     status, db.path.parent,
                     ordered(catalog(store.path.parent)), self._namer(settings),
@@ -626,11 +710,12 @@ def serve(
     port: int,
     store: SettingsStore,
     picks: Picks,
+    featured: Featured,
     panel: Panel | None = None,
     status: Status | None = None,
 ) -> None:
     """Blocking server loop. Opens its own DB connection."""
     db = Database(db_path)
-    handler = make_handler(db, images_dir, store, picks, panel, status or Status())
+    handler = make_handler(db, images_dir, store, picks, featured, panel, status or Status())
     httpd = ThreadingHTTPServer((host, port), handler)
     httpd.serve_forever()

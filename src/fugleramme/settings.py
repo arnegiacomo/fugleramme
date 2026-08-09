@@ -20,6 +20,7 @@ from pathlib import Path
 from .config import DEFAULT_WEB_RESOLUTION, WEB_RESOLUTIONS
 from .fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
 from .languages import NONE, SCIENTIFIC
+from .modes import DEFAULT_MODE, MODES
 
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
 ROTATIONS = (0, 90, 180, 270)
@@ -37,6 +38,8 @@ LOOKBACK_OPTIONS = (
 
 @dataclass(frozen=True)
 class Settings:
+    # Which page the frame shows; only the collage reads lookback_hours.
+    mode: str = DEFAULT_MODE
     web_resolution: str = DEFAULT_WEB_RESOLUTION
     # Shapes both outputs; only the panel actually turns the pixels.
     rotation: int = 0
@@ -117,6 +120,7 @@ def _coerce(raw: dict) -> Settings:
     except (TypeError, ValueError):
         rotation = d.rotation
     return Settings(
+        mode=_one_of(str(raw.get("mode", d.mode)), MODES, d.mode),
         web_resolution=_one_of(
             str(raw.get("web_resolution", d.web_resolution)), WEB_RESOLUTIONS, d.web_resolution
         ),

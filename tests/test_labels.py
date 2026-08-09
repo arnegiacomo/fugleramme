@@ -12,13 +12,10 @@ from PIL import Image, ImageFont
 
 from fugleramme import collage, fonts
 from fugleramme.paper import TARGET_PAPER
+from fugleramme.page import INK, PANEL_INK, label_px, text_mask
 from fugleramme.collage import (
-    _INK,
-    _PANEL_INK,
     _Sprite,
     _draw_names,
-    _label,
-    _label_px,
     _pack,
     _with_label,
     render_collage,
@@ -26,7 +23,7 @@ from fugleramme.collage import (
 
 
 def _ink(font, text="Turdus merula") -> float:
-    return float(np.asarray(_label(text, font, flat=True)).mean())
+    return float(np.asarray(text_mask(text, font, flat=True)).mean())
 
 
 @pytest.mark.parametrize("key", sorted(fonts.FONTS))
@@ -53,8 +50,8 @@ def test_unknown_font_falls_back_to_the_default_file():
 
 def test_flat_label_has_no_intermediate_alpha():
     font = fonts.load(fonts.DEFAULT_FONT, 26)
-    flat = set(np.unique(np.asarray(_label("Pica pica", font, flat=True))))
-    smooth = set(np.unique(np.asarray(_label("Pica pica", font, flat=False))))
+    flat = set(np.unique(np.asarray(text_mask("Pica pica", font, flat=True))))
+    smooth = set(np.unique(np.asarray(text_mask("Pica pica", font, flat=False))))
     assert flat <= {0, 255}
     assert not smooth <= {0, 255}  # the screen keeps its antialiasing
 
@@ -65,7 +62,7 @@ def test_panel_names_are_stamped_in_exact_palette_black():
         Image.new("RGBA", (10, 10)), np.ones((10, 10), dtype=bool),
         label=Image.new("L", (6, 4), 255), label_at=(2, 3),
     )
-    for textured, expected in ((False, _PANEL_INK), (True, _INK)):
+    for textured, expected in ((False, PANEL_INK), (True, INK)):
         canvas = Image.new("RGB", (20, 20), (255, 255, 255))
         _draw_names(canvas, [(sprite, 0, 0)], textured)
         assert canvas.getpixel((2, 3)) == expected
@@ -73,8 +70,8 @@ def test_panel_names_are_stamped_in_exact_palette_black():
 
 def test_a_second_language_stacks_centred_under_the_first():
     font = fonts.load(fonts.DEFAULT_FONT, 26)
-    one = _label("Svarttrost", font, flat=True)
-    two = _label("Svarttrost\n(Turdus merula)", font, flat=True)
+    one = text_mask("Svarttrost", font, flat=True)
+    two = text_mask("Svarttrost\n(Turdus merula)", font, flat=True)
 
     assert two.height > one.height * 2  # two lines plus the leading between them
     assert two.width > one.width       # the wider line sets the box
@@ -86,9 +83,9 @@ def test_a_second_language_stacks_centred_under_the_first():
 
 
 def test_label_size_scales_with_the_short_side():
-    assert _label_px(1600, 1200, "small") < _label_px(1600, 1200, "xlarge")
-    assert _label_px(1600, 1200, "medium") == _label_px(1200, 1600, "medium")
-    assert _label_px(400, 300, "nonsense") == _label_px(400, 300, fonts.DEFAULT_LABEL_SIZE)
+    assert label_px(1600, 1200, "small") < label_px(1600, 1200, "xlarge")
+    assert label_px(1600, 1200, "medium") == label_px(1200, 1600, "medium")
+    assert label_px(400, 300, "nonsense") == label_px(400, 300, fonts.DEFAULT_LABEL_SIZE)
 
 
 def test_label_reserves_space_in_the_footprint():
@@ -187,7 +184,7 @@ def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog)
         _crowded(tmp_path, count=12), (700, 500), show_names=True, label_size="large",
         textured=False,
     )
-    assert (np.asarray(page) == _PANEL_INK).all(axis=2).any()  # names made it onto the page
+    assert (np.asarray(page) == PANEL_INK).all(axis=2).any()  # names made it onto the page
     assert "No layout fits" not in caplog.text
 
 
@@ -227,7 +224,7 @@ def test_the_branch_turns_over_with_the_day(tmp_path):
     perches = _perches(tmp_path)
     seen = set()
     for day in range(10):
-        with patch.object(collage, "perch_day", return_value=day):
+        with patch.object(collage, "day_ordinal", return_value=day):
             page = render_collage([], (300, 220), textured=False, perches=perches)
             seen.add(np.asarray(page).tobytes())
     assert len(seen) == 10  # five branches, each also mirrored

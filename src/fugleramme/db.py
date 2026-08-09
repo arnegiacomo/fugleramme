@@ -36,6 +36,13 @@ class Detection:
     clip_path: str | None
 
 
+@dataclass(frozen=True)
+class Species:
+    scientific_name: str
+    count: int
+    first_seen: datetime
+
+
 def _row_to_detection(row: sqlite3.Row) -> Detection:
     return Detection(
         id=row["id"],
@@ -113,6 +120,27 @@ class Database:
             (_epoch_hours_ago(hours),),
         )
         return [(r["scientific_name"], r["n"]) for r in rows]
+
+    def life_list(self, until: int | None = None) -> list[Species]:
+        """Every species ever recorded, with its count and the date it was first
+        heard, earliest first. `until` cuts the tally off at an epoch: the bird
+        of the day counts only what was already true this morning, so its page
+        does not re-render every time the bird calls again."""
+        where = " AND d.detected_at < ?" if until is not None else ""
+        rows = self._rows(
+            f"SELECT l.scientific_name AS scientific_name, COUNT(*) AS n, "
+            f"MIN(d.detected_at) AS first {_FROM}{where} "
+            "GROUP BY l.scientific_name ORDER BY first, l.scientific_name",
+            (until,) if until is not None else (),
+        )
+        return [
+            Species(
+                scientific_name=r["scientific_name"],
+                count=r["n"],
+                first_seen=datetime.fromtimestamp(r["first"], tz=timezone.utc),
+            )
+            for r in rows
+        ]
 
     def stats(self) -> dict:
         """Aggregate figures for the dashboard."""

@@ -16,6 +16,7 @@ import pytest
 
 from fugleramme import server, service, updates
 from fugleramme.db import Database
+from fugleramme.featured import Featured
 from fugleramme.picks import Picks
 from fugleramme.settings import SettingsStore
 from fugleramme.status import Status
@@ -94,7 +95,7 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
     status = Status()
     handler = server.make_handler(
         Database(tmp_path / "absent.db"), tmp_path, SettingsStore(tmp_path / "s.json"),
-        Picks(tmp_path / "artwork.json"), None, status,
+        Picks(tmp_path / "artwork.json"), Featured(tmp_path / "featured.json"), None, status,
     )
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
@@ -118,10 +119,16 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
         status.updating = False
         assert _get(state)["updating"] is False
 
-        _post(url, "rotation=90&auto_update=on")
+        _post(url, "checkboxes=auto_update&auto_update=on")
         assert SettingsStore(tmp_path / "s.json").get().auto_update is True
-        _post(url, "rotation=90")  # unchecked box is simply absent from the form
+        # Unchecked is simply absent, so only the form declaring the box clears it.
+        _post(url, "checkboxes=auto_update")
         assert SettingsStore(tmp_path / "s.json").get().auto_update is False
+
+        _post(url, "checkboxes=auto_update&auto_update=on")
+        _post(url, "checkboxes=show_names&rotation=90")  # the Display form: not its box
+        saved = SettingsStore(tmp_path / "s.json").get()
+        assert saved.auto_update is True and saved.show_names is False
     finally:
         httpd.shutdown()
 

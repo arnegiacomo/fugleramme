@@ -75,6 +75,23 @@ def variants_for(scientific_name: str, images_dir: Path, style: str) -> list[Pat
     return base + [p for _m, p in sorted(rest, key=lambda mp: int(mp[0].group(1)))]
 
 
+_NUMBERED = re.compile(r"-\d+$")
+
+
+def drawable_keys(images_dir: Path, style: str) -> set[str]:
+    """Every species key the style can draw, from one directory listing.
+
+    The plate modes ask this of the whole life list on every poll, and
+    variants_for costs a glob per species - a hundred of them several times a
+    minute is real work on an SD card.
+    """
+    if not style:
+        return set()
+    return {
+        _NUMBERED.sub("", path.stem) for path in (images_dir / style).glob("*.png")
+    }
+
+
 def image_for(
     scientific_name: str, images_dir: Path, style: str, picks: Picks
 ) -> Path | None:

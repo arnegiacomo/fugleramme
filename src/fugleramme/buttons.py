@@ -12,6 +12,7 @@ import logging
 from datetime import timedelta
 from pathlib import Path
 
+from .modes import MODES
 from .names import available_styles
 from .settings import Settings, SettingsStore
 
@@ -31,8 +32,16 @@ def pins_for(driver: str) -> tuple[int, ...]:
     return _PINS_13_3 if "el133uf1" in driver else _PINS
 
 
+def _next(current: str, options: list[str]) -> str:
+    """The one after `current`, wrapping. An unset or stale value starts over."""
+    index = options.index(current) + 1 if current in options else 0
+    return options[index % len(options)]
+
+
 def changes_for(label: str, settings: Settings, images_dir: Path) -> dict | None:
     """The settings a press writes, or None if the button does nothing."""
+    if label == "A":
+        return {"mode": _next(settings.mode, list(MODES))}
     if label == "B":
         return {"show_names": not settings.show_names}
     if label == "C":
@@ -40,11 +49,7 @@ def changes_for(label: str, settings: Settings, images_dir: Path) -> dict | None
         return {"rotation": (settings.rotation - 90) % 360}
     if label == "D":
         available = available_styles(images_dir)
-        if not available:
-            return None
-        # An unset or stale style starts the cycle at the first one.
-        index = available.index(settings.style) + 1 if settings.style in available else 0
-        return {"style": available[index % len(available)]}
+        return {"style": _next(settings.style, available)} if available else None
     return None
 
 
