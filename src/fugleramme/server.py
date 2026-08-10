@@ -220,7 +220,15 @@ def _action(action: str, label: str) -> str:
 def _update_dd(status: Status) -> str:
     # `requested` counts as installing: the loop only picks it up a tick later.
     if status.updating or status.update_requested:
-        return '<span class="spinner inline"></span> installing…'
+        # A phase with no percent leaves the bar valueless, which renders indeterminate.
+        label, value = status.update_phase or "installing…", ""
+        if status.update_percent is not None:
+            label, value = f"{label} {status.update_percent}%", f' value="{status.update_percent}"'
+        return (
+            '<span class="spinner inline"></span> '
+            f'<span id="phase">{label}</span>'
+            f'<progress id="bar" max="100"{value}></progress>'
+        )
     if status.update_error:
         return f'<span class="bad">{status.update_error}</span>{_action("check", "Retry")}'
     if status.update_available:
@@ -394,6 +402,8 @@ def _admin_html(
   .spinner {{ width: 1.1rem; height: 1.1rem; margin: 0; border: 2px solid #ddd;
              border-top-color: #888; border-radius: 50%; animation: spin 0.8s linear infinite; }}
   .spinner.inline {{ display: inline-block; vertical-align: -0.15rem; }}
+  #phase {{ display: inline; font-weight: 400; margin: 0; }}
+  #bar {{ display: block; width: 12rem; margin-top: 0.4rem; }}
   @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
   @media (prefers-reduced-motion: reduce) {{ .spinner {{ animation: none; }} }}
   @media (max-width: 40rem) {{
@@ -492,16 +502,24 @@ def _admin_html(
   // An install ends with systemd restarting us, so the poll rides out a dead
   // server and reloads once one answers with the work done - or failed.
   if (document.querySelector(".spinner.inline")) {{
+    const phase = document.getElementById("phase");
+    const bar = document.getElementById("bar");
     (function poll() {{
       setTimeout(async () => {{
         try {{
-          if (!(await (await fetch("/update", {{cache: "no-store"}})).json()).updating) {{
+          const state = await (await fetch("/update", {{cache: "no-store"}})).json();
+          if (!state.updating) {{
             location.reload();
             return;
           }}
+          if (state.phase) {{
+            phase.textContent = state.phase + (state.percent === null ? "" : " " + state.percent + "%");
+          }}
+          if (state.percent === null) bar.removeAttribute("value");
+          else bar.value = state.percent;
         }} catch (e) {{}}
         poll();
-      }}, 2000);
+      }}, 1000);
     }})();
   }}
 
@@ -680,7 +698,9 @@ def make_handler(
             elif route == "/update":
                 body = json.dumps(
                     {"updating": bool(status.updating or status.update_requested),
-                     "version": __version__}
+                     "version": __version__,
+                     "phase": status.update_phase,
+                     "percent": status.update_percent}
                 )
                 self._send(200, body.encode(), "application/json")
             elif route == "/health":

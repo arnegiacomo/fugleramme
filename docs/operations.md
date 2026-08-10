@@ -21,7 +21,8 @@ Give the panel up to a minute to catch up - it redraws slowly.
 The frame checks GitHub hourly for new releases and shows it on the admin
 page's System tab. Press **Install** to update, or toggle on *Install new releases automatically* so that the frame updates itself.
 
-Installing takes a minute. The frame restarts itself and comes back on the new
+Installing takes a minute or two, and the page shows how far it has got. The
+frame restarts itself and comes back on the new
 version. If an update fails, the
 reason shows in place of the version and the frame keeps running as it was.
 

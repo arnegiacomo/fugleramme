@@ -24,6 +24,8 @@ class Status:
     update_requested: str | None = None
     updating: bool = False
     update_error: str | None = None
+    update_phase: str | None = None
+    update_percent: int | None = None
 
     def rendered(self) -> None:
         self.rendered_at = _now()

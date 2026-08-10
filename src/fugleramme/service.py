@@ -45,14 +45,19 @@ def _update(status: Status, auto: bool) -> bool:
     # updating first: the admin poll must never see a gap between the two flags.
     status.updating = True
     tag, status.update_requested = status.update_requested, None
+
+    def progress(phase: str, percent: int | None) -> None:
+        status.update_phase, status.update_percent = phase, percent
+
     try:
-        updates.apply(tag)
+        updates.apply(tag, progress)
         log.info("Updated to %s, exiting for systemd to restart", tag)
         return True
     except Exception as exc:
         log.exception("Update to %s failed", tag)
         status.update_error = str(exc)
         status.updating = False
+        status.update_phase = status.update_percent = None
         return False
 
 

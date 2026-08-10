@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import io
 import json
+import sys
 import threading
 import urllib.request
 from http.server import ThreadingHTTPServer
@@ -86,7 +87,7 @@ def test_auto_update_installs_and_signals_a_restart():
         assert not apply.called
 
         assert service._update(status, auto=True) is True
-        apply.assert_called_once_with("v0.2.0")
+        assert apply.call_args.args[0] == "v0.2.0"
 
 
 def test_admin_buttons_drive_the_status_object(tmp_path):
@@ -147,10 +148,39 @@ def _post(url: str, body: str):
 def test_checkout_is_forced_past_a_dirty_tree():
     """`uv sync` rewrites uv.lock on every run, so the Pi's checkout is always
     dirty; a plain checkout would abort and strand the frame on its old version."""
+    checkout = next(c.args[0] for c in _apply_calls() if c.args[0][:2] == ["git", "checkout"])
+    assert "--force" in checkout and checkout[-2:] == ["--detach", "v0.2.0"]
+
+
+def test_git_progress_reaches_the_admin_page():
+    """git writes progress to stderr, \\r-separated and only under --progress."""
+    assert all(
+        "--progress" in c.args[0]
+        for c in _apply_calls()
+        if c.args[0][0] == "git"
+    )
+
+    seen = []
+    updates._run(
+        [sys.executable, "-c", r"import sys; sys.stderr.write("
+         r"'Receiving objects:  45% (450/1000), 12.35 MiB | 3.40 MiB/s\rdone\n')"],
+        "Downloading", lambda phase, percent: seen.append((phase, percent)),
+    )
+    assert ("Receiving objects", 45) in seen
+    assert seen[0] == ("Downloading", None)  # a phase is shown before any output
+    assert seen[-1] == ("Downloading", None)  # a line without a percent keeps the label
+
+
+def test_a_stalled_download_fails_but_a_slow_one_does_not(monkeypatch):
+    monkeypatch.setattr(updates, "_STALL_SECONDS", 0)
+    with pytest.raises(RuntimeError, match="no progress"):
+        updates._run([sys.executable, "-c", "import time; time.sleep(30)"], "Downloading")
+
+
+def _apply_calls():
     with patch.object(updates, "_run") as run:
         updates.apply("v0.2.0")
-    checkout = next(c.args[0] for c in run.call_args_list if c.args[0][:2] == ["git", "checkout"])
-    assert checkout == ["git", "checkout", "--force", "--detach", "v0.2.0"]
+    return run.call_args_list
 
 
 def test_a_failed_install_does_not_retry_every_tick():

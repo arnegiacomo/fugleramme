@@ -8,11 +8,15 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import re
 import shutil
 import subprocess
+import threading
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
 
 from . import __version__
@@ -24,6 +28,11 @@ _OK_TTL = 3600  # unauthenticated GitHub allows 60 requests/hour per IP
 _FAIL_TTL = 300
 _next_check = 0.0
 _result: str | None = None
+
+_STALL_SECONDS = 300  # a big release is slow, not stuck: every progress line resets it
+_PROGRESS = re.compile(r"^(?:remote: )?([A-Za-z][A-Za-z ]+):\s+(\d+)%")
+
+Progress = Callable[[str, int | None], None]
 
 
 def _version(tag: str) -> tuple[int, ...]:
@@ -59,23 +68,64 @@ def available(force: bool = False) -> str | None:
     return _result
 
 
-def apply(tag: str) -> None:
+def apply(tag: str, progress: Progress | None = None) -> None:
     """Move the checkout onto `tag`. Raises on failure; the caller exits on success."""
-    _run(["git", "fetch", REPO_HTTPS_URL, "--tags", "--force"])
+    _run(["git", "fetch", "--progress", REPO_HTTPS_URL, "--tags", "--force"],
+         "Downloading", progress)
     # --force: `uv sync` rewrites uv.lock in place, and a plain checkout refuses to
     # run against that. Only tracked files are discarded; data/ and config are ignored.
-    _run(["git", "checkout", "--force", "--detach", tag])
+    _run(["git", "checkout", "--progress", "--force", "--detach", tag],
+         "Checking out", progress)
     try:
-        _run([_uv(), "sync", "--extra", "panel"])
+        _run([_uv(), "sync", "--extra", "panel"], "Installing dependencies", progress)
     except RuntimeError:
         # Same fallback as run.sh: no panel driver still leaves a working kiosk.
-        _run([_uv(), "sync"])
+        _run([_uv(), "sync"], "Installing dependencies", progress)
 
 
-def _run(cmd: list[str]) -> None:
-    result = subprocess.run(
-        cmd, cwd=REPO_ROOT, capture_output=True, text=True, timeout=600
+def _run(cmd: list[str], phase: str, progress: Progress | None = None) -> None:
+    if progress:
+        progress(phase, None)
+    proc = subprocess.Popen(
+        cmd, cwd=REPO_ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+        text=True, env=_env(),
     )
-    if result.returncode:
-        tail = result.stderr.strip().splitlines()
-        raise RuntimeError(f"{cmd[0]} {cmd[1]}: {tail[-1] if tail else result.returncode}")
+    last, tail, fatal = time.monotonic(), "", ""
+
+    def pump() -> None:
+        nonlocal last, tail, fatal
+        for line in proc.stderr:  # git separates progress with \r, a line ending in text mode
+            last, line = time.monotonic(), line.strip()
+            if not line:
+                continue
+            tail = line
+            if not fatal and line.startswith(("fatal:", "error:")):
+                fatal = line
+            if progress:
+                match = _PROGRESS.match(line)
+                if match:
+                    progress(match.group(1), int(match.group(2)))
+                else:
+                    progress(phase, None)
+
+    reader = threading.Thread(target=pump, daemon=True)
+    reader.start()
+    while True:
+        try:
+            code = proc.wait(timeout=1)
+            break
+        except subprocess.TimeoutExpired:
+            if time.monotonic() - last > _STALL_SECONDS:
+                proc.kill()
+                raise RuntimeError(f"{cmd[0]} {cmd[1]}: no progress for {_STALL_SECONDS}s")
+    reader.join(timeout=5)
+    if code:
+        raise RuntimeError(f"{cmd[0]} {cmd[1]}: {fatal or tail or code}")
+
+
+def _env() -> dict[str, str]:
+    return {
+        **os.environ,
+        "UV_HTTP_TIMEOUT": str(_STALL_SECONDS),  # uv's own default is 30s per request
+        "GIT_TERMINAL_PROMPT": "0",
+    }
