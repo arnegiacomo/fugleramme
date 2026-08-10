@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.12.2 (2026-08-10)
+
+### Bug Fixes
+
+- #2 spinner for the check, bar for the install
+  ([`e4329cb`](https://github.com/arnegiacomo/fugleramme/commit/e4329cbee25a95068d20985fd05e963e82972098))
+
+
 ## v0.12.1 (2026-08-10)
 
 ### Bug Fixes
