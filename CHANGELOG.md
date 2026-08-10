@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.12.0 (2026-08-10)
+
+### Features
+
+- #2 show update progress, and let a slow download finish
+  ([`8acee13`](https://github.com/arnegiacomo/fugleramme/commit/8acee135aa856e58531ba1195a4ed42d34345f95))
+
+
 ## v0.11.0 (2026-08-09)
 
 ### Documentation
