@@ -225,7 +225,7 @@ def _update_dd(status: Status) -> str:
         if status.update_percent is not None:
             label, value = f"{label} {status.update_percent}%", f' value="{status.update_percent}"'
         return (
-            '<span class="spinner inline"></span> '
+            '<span class="spinner inline"></span>'
             f'<span id="phase">{label}</span>'
             f'<progress id="bar" max="100"{value}></progress>'
         )
@@ -236,7 +236,7 @@ def _update_dd(status: Status) -> str:
             f'<span class="warn">{status.update_available} available</span>'
             f'{_action("update", "Install")}'
         )
-    return f'up to date{_action("check", "Check")}'
+    return f'<span id="state">up to date</span>{_action("check", "Check")}'
 
 
 def _radios(field: str, options: list[tuple[str, str]], active: str) -> str:
@@ -370,6 +370,9 @@ def _admin_html(
               background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }}
   dl.status dt {{ color: #666; }}
   dl.status dd {{ margin: 0; }}
+  dl.status dd span {{ display: inline; font-weight: inherit; margin: 0; }}
+  dl.status dd.update {{ display: flex; align-items: center; gap: 0.5rem; }}
+  dl.status dd.update button {{ margin: 0; }}
   time {{ border-bottom: 1px dotted #bbb; cursor: help; }}
   .ok, .bad, .warn {{ display: inline; font-weight: inherit; margin: 0; }}
   .ok {{ color: #3a7d44; }}
@@ -402,8 +405,7 @@ def _admin_html(
   .spinner {{ width: 1.1rem; height: 1.1rem; margin: 0; border: 2px solid #ddd;
              border-top-color: #888; border-radius: 50%; animation: spin 0.8s linear infinite; }}
   .spinner.inline {{ display: inline-block; vertical-align: -0.15rem; }}
-  #phase {{ display: inline; font-weight: 400; margin: 0; }}
-  #bar {{ display: block; width: 12rem; margin-top: 0.4rem; }}
+  #bar {{ width: 7rem; height: 0.55rem; }}
   @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
   @media (prefers-reduced-motion: reduce) {{ .spinner {{ animation: none; }} }}
   @media (max-width: 40rem) {{
@@ -452,7 +454,7 @@ def _admin_html(
   <h2>Updates</h2>
   <dl class="status">
     <dt>Version</dt><dd>v{__version__}</dd>
-    <dt>Update</dt><dd>{_update_dd(status)}</dd>
+    <dt>Update</dt><dd class="update">{_update_dd(status)}</dd>
   </dl>
   <form class="block" method="post" action="/admin">
     <input type="hidden" name="{CHECKBOXES}" value="auto_update">
@@ -486,6 +488,13 @@ def _admin_html(
   }}
   const scrolled = sessionStorage.getItem("scroll");
   sessionStorage.removeItem("scroll");
+
+  // The install reloads the page as a new version, so the tab is what remembers
+  // the old one - long enough to say the update landed.
+  const was = sessionStorage.getItem("version");
+  const state = document.getElementById("state");
+  sessionStorage.setItem("version", "{__version__}");
+  if (state && was && was !== "{__version__}") state.textContent = "updated to v{__version__}";
 
   const tabs = document.querySelectorAll("nav.tabs button");
   function showTab(name) {{
