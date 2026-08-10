@@ -211,7 +211,7 @@ def _display_name(name: str) -> str:
 
 def _action(action: str, label: str) -> str:
     return (
-        f'<form class="inline" method="post" action="/admin">'
+        f'<form class="inline {action}" method="post" action="/admin">'
         f'<input type="hidden" name="action" value="{action}">'
         f'<button type="submit">{label}</button></form>'
     )
@@ -225,7 +225,6 @@ def _update_dd(status: Status) -> str:
         if status.update_percent is not None:
             label, value = f"{label} {status.update_percent}%", f' value="{status.update_percent}"'
         return (
-            '<span class="spinner inline"></span>'
             f'<span id="phase">{label}</span>'
             f'<progress id="bar" max="100"{value}></progress>'
         )
@@ -508,9 +507,18 @@ def _admin_html(
   for (const tab of tabs) tab.addEventListener("click", () => showTab(tab.dataset.tab));
   showTab(localStorage.getItem("tab") === "system" ? "system" : "settings");
 
+  // The check runs inside its own POST, so the spinner only has to outlive the navigation.
+  const check = document.querySelector("dd.update form.check");
+  if (check) {{
+    check.addEventListener("submit", () => {{
+      check.insertAdjacentHTML("beforebegin", '<span class="spinner inline"></span>');
+      check.querySelector("button").disabled = true;
+    }});
+  }}
+
   // An install ends with systemd restarting us, so the poll rides out a dead
   // server and reloads once one answers with the work done - or failed.
-  if (document.querySelector(".spinner.inline")) {{
+  if (document.getElementById("bar")) {{
     const phase = document.getElementById("phase");
     const bar = document.getElementById("bar");
     (function poll() {{
