@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.12.1 (2026-08-10)
+
+### Bug Fixes
+
+- #2 line up the update row, and say when a new version landed
+  ([`7487597`](https://github.com/arnegiacomo/fugleramme/commit/74875977ecead80e88ef219df2c15d572252cf1d))
+
+
 ## v0.12.0 (2026-08-10)
 
 ### Features
