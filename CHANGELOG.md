@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.12.3 (2026-08-11)
+
+### Bug Fixes
+
+- #25 add margin to account for passepartout
+  ([`e63d62b`](https://github.com/arnegiacomo/fugleramme/commit/e63d62bd49674891ba718d5da657db8019c08a98))
+
+### Documentation
+
+- #24 update hardware docs
+  ([`02cb785`](https://github.com/arnegiacomo/fugleramme/commit/02cb7850ce8750aa3e3c37010926a426d4d82bab))
+
+
 ## v0.12.2 (2026-08-10)
 
 ### Bug Fixes
