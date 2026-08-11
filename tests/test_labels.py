@@ -188,6 +188,16 @@ def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog)
     assert "No layout fits" not in caplog.text
 
 
+def test_nothing_is_drawn_against_the_page_edge(tmp_path):
+    page = render_collage(
+        _crowded(tmp_path, count=12), (700, 500), show_names=True, textured=False
+    )
+    margin = round(min(page.size) * collage._MARGIN)
+    band = np.asarray(page).copy()
+    band[margin:-margin, margin:-margin] = TARGET_PAPER
+    assert (band == TARGET_PAPER).all()
+
+
 def _perches(tmp_path, count=5):
     """Asymmetric, distinctly-shaded stand-in branches: the shade says which one
     was drawn, the notch says whether it was mirrored."""

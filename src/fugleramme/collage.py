@@ -50,6 +50,7 @@ from .sizes import SIZE_EXPONENT, mass_of
 log = logging.getLogger(__name__)
 
 DEFAULT_RESOLUTION = (1280, 800)
+_MARGIN = 0.03   # page edge to content on short side. Hardcoded now, maybe add configurability?
 _MAX_BIRDS = 40  # keeps the render quick, not the page tidy
 _ALPHA_CUTOFF = 24
 _OVERLAP_PX = 2        # erode the collision mask slightly so birds nestle into
@@ -258,17 +259,22 @@ def render_collage(
         math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
         min(width, height) * 0.7 / max(weights),
     )
-    args = (arts, order, weights, flips, base, width, height)
+    # Pack inside the margin but size off the whole page, so only a set that
+    # doesn't fit has to shrink.
+    margin = round(min(resolution) * _MARGIN)
+    box = (width - 2 * margin, height - 2 * margin)
+    args = (arts, order, weights, flips, base, *box)
     name_px = label_px(width, height, label_size)
     placed = _layout(
         *args, font_key if show_names else None, name_px,
         flat=not textured, label_text=label_text,
     )
     if placed is None and show_names:
-        log.warning("No layout fits %d species with names at %dx%d", len(arts), width, height)
+        log.warning("No layout fits %d species with names at %dx%d", len(arts), *box)
         placed = _layout(*args, None, name_px, flat=not textured)  # birds beat blank paper
 
     if placed:
+        placed = [(sprite, x + margin, y + margin) for sprite, x, y in placed]
         for sprite, x, y in placed:
             ax, ay = sprite.art_at
             proc = process_sprite(sprite.art, textured=textured)
