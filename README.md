@@ -49,6 +49,11 @@ stays blank after that, see
 
 From a blank SD card, see the full [install guide](docs/install.md).
 
+## Prebuilt frames
+
+I've built a few of these. If you'd like one rather than building it yourself,
+please [get in touch](https://arnegiacomo.dev/).
+
 ## License
 
 - Code: MIT - see [`LICENSE`](LICENSE).

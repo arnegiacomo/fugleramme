@@ -33,4 +33,11 @@ For more display options see [Display](display.md).
 > over the USB cable, that differ. If you set yours up from Linux or Windows, a
 > PR extending them is very welcome.
 
+## Prebuilt frames
+
+I've built a few of these. If you'd like one rather than building it yourself,
+please [get in touch](https://arnegiacomo.dev/).
+
+---
+
 Source: [github.com/arnegiacomo/fugleramme](https://github.com/arnegiacomo/fugleramme)
