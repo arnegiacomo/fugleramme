@@ -70,3 +70,5 @@ enable Internet Sharing over the gadget interface on your computer.
 Congrats, you've now successfully set up your frame; happy birding! 🦤 🎶
 
 If something doesn't come up on the screen, see [Troubleshooting](troubleshooting.md).
+
+Next up you should look at [setting up BirdNET-Go](birdnet-config.md), so that you can get your audio source connected.

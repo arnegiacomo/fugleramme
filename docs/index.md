@@ -10,7 +10,7 @@ panel, and serves the same view as a web kiosk.
 
 | No detections | A few visitors | A full garden |
 | :---: | :---: | :---: |
-| ![No birds detected](samples/empty.png) | ![A few garden birds](samples/few.png) | ![Many garden birds](samples/many.png) |
+| ![No birds detected](assets/empty.png) | ![A few garden birds](assets/few.png) | ![Many garden birds](assets/many.png) |
 
 The birds are cut-outs from historic, public-domain natural-history drawings,
 hand-curated for this project. Each detected species is matched to its
@@ -25,6 +25,7 @@ For more display options see [Display](display.md).
 - **[Install](install.md)** - from a blank SD card to a running frame
 - **[Display](display.md)** - modes, settings and names
 - **[Operations](operations.md)** - buttons, services, logs and updates
+- **[Configuring BirdNET-Go](birdnet-config.md)** - avoiding incorrect detections
 - **[Troubleshooting](troubleshooting.md)** - symptom to cause
 
 > [!NOTE]
