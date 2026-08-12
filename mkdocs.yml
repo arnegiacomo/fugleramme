@@ -38,4 +38,5 @@ nav:
   - Install: install.md
   - Display: display.md
   - Operations: operations.md
+  - Configuring BirdNET-Go: birdnetgo-config.md
   - Troubleshooting: troubleshooting.md

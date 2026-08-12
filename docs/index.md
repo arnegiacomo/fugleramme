@@ -25,7 +25,7 @@ For more display options see [Display](display.md).
 - **[Install](install.md)** - from a blank SD card to a running frame
 - **[Display](display.md)** - modes, settings and names
 - **[Operations](operations.md)** - buttons, services, logs and updates
-- **[Configuring BirdNET-Go](birdnet-config.md)** - avoiding incorrect detections
+- **[Configuring BirdNET-Go](birdnetgo-config.md)** - avoiding incorrect detections
 - **[Troubleshooting](troubleshooting.md)** - symptom to cause
 
 > [!NOTE]
