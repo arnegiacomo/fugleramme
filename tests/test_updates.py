@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import io
 import json
+import subprocess
 import sys
 import threading
 import urllib.request
@@ -157,7 +158,7 @@ def test_git_progress_reaches_the_admin_page():
     assert all(
         "--progress" in c.args[0]
         for c in _apply_calls()
-        if c.args[0][0] == "git"
+        if c.args[0][:2] in (["git", "fetch"], ["git", "checkout"])
     )
 
     seen = []
@@ -175,6 +176,17 @@ def test_a_stalled_download_fails_but_a_slow_one_does_not(monkeypatch):
     monkeypatch.setattr(updates, "_STALL_SECONDS", 0)
     with pytest.raises(RuntimeError, match="no progress"):
         updates._run([sys.executable, "-c", "import time; time.sleep(30)"], "Downloading")
+
+
+def test_stale_tags_are_pruned_through_the_patched_seam():
+    """Every git call in apply() must go through _run. A tag delete issued straight
+    to subprocess escapes this patch and deletes the tags of whoever runs the tests."""
+    listing = subprocess.CompletedProcess([], 0, stdout="v0.1.0\nv0.2.0\nv0.3.0\n")
+    with patch.object(updates, "_run") as run, \
+         patch.object(updates.subprocess, "run", return_value=listing):
+        updates.apply("v0.2.0")
+    deletes = [c.args[0] for c in run.call_args_list if c.args[0][:2] == ["git", "tag"]]
+    assert deletes == [["git", "tag", "--delete", "v0.1.0", "v0.3.0"]]
 
 
 def _apply_calls():

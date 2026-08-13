@@ -77,7 +77,7 @@ def apply(tag: str, progress: Progress | None = None) -> None:
     # run against that. Only tracked files are discarded; data/ and config are ignored.
     _run(["git", "checkout", "--progress", "--force", "--detach", tag],
          "Checking out", progress)
-    _drop_stale_tags(tag)
+    _drop_stale_tags(tag, progress)
     try:
         _run([_uv(), "sync", "--extra", "panel"], "Installing dependencies", progress)
     except RuntimeError:
@@ -85,23 +85,16 @@ def apply(tag: str, progress: Progress | None = None) -> None:
         _run([_uv(), "sync"], "Installing dependencies", progress)
 
 
-def _drop_stale_tags(keep: str) -> None:
+def _drop_stale_tags(keep: str, progress: Progress | None = None) -> None:
     """Delete every release tag but the one just checked out: each one pins a whole
-    copy of the artwork that `git gc` can never reclaim. Best effort - failing to
-    tidy still leaves a working checkout."""
-    try:
-        listed = subprocess.run(
-            ["git", "tag", "--list"], cwd=REPO_ROOT, capture_output=True, text=True,
-            check=True, env=_env(),
-        ).stdout.split()
-        stale = [t for t in listed if t != keep]
-        if stale:
-            subprocess.run(["git", "tag", "--delete", *stale], cwd=REPO_ROOT,
-                           capture_output=True, check=True, env=_env())
-        subprocess.run(["git", "gc", "--auto", "--quiet"], cwd=REPO_ROOT,
-                       capture_output=True, check=False, env=_env())
-    except (OSError, subprocess.CalledProcessError) as exc:
-        log.warning("Could not prune old tags: %s", exc)
+    copy of the artwork that `git gc` can never reclaim. The delete goes through
+    `_run` like every other git call here - reaching for subprocess directly puts
+    it outside the seam the tests patch, and it deletes the developer's own tags."""
+    listed = subprocess.run(
+        ["git", "tag", "--list"], cwd=REPO_ROOT, capture_output=True, text=True, env=_env(),
+    ).stdout.split()
+    if stale := [t for t in listed if t != keep]:
+        _run(["git", "tag", "--delete", *stale], "Tidying up", progress)
 
 
 def _run(cmd: list[str], phase: str, progress: Progress | None = None) -> None:
