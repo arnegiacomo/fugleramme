@@ -57,6 +57,10 @@ please [get in touch](https://arnegiacomo.dev/).
 ## License
 
 - Code: MIT - see [`LICENSE`](LICENSE).
+- Detection ([BirdNET-Go](https://github.com/tphakala/birdnet-go), installed
+  separately as a container): CC BY-NC-SA 4.0, non-commercial only. BirdNET model
+  by the Cornell Lab of Ornithology and Chemnitz University of Technology,
+  taxonomy data powered by eBird.org.
 - Bird images: each style folder carries its own terms and sources, and every
   file names the plate it was cut from in its PNG metadata. `classic` is
   CC BY-SA 4.0 - see

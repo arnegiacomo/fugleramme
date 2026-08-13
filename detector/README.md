@@ -61,6 +61,9 @@ journalctl -u fugleramme-frame -f            # frame
 
 - **Image pin:** BirdNET-Go ships only nightlies; the compose pins a dated tag.
   Bump it deliberately after testing rather than tracking `nightly`.
+- **Licence:** BirdNET-Go and the BirdNET model are CC BY-NC-SA 4.0. Nothing from
+  it is vendored - the compose pulls a prebuilt image and `db.py` only knows the
+  schema - which is what keeps this repo MIT. Don't fork it into the tree.
 - **Mic device:** `run.sh` writes the first card from `arecord -l` into
   `detector/.env` as `ALSA_CARD` (by card name, so it survives reboots/replugs),
   making the USB mic ALSA's default - HDMI takes cards 0/1 and has no capture
