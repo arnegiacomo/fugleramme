@@ -7,37 +7,37 @@
 ### Bug Fixes
 
 - Prune stale tags through _run, not subprocess
-  ([`be966fc`](https://github.com/arnegiacomo/fugleramme/commit/be966fcfb0a0a993b52fb9d5adafce6b50a8b47a))
+  ([`9886722`](https://github.com/arnegiacomo/fugleramme/commit/98867225c996005b06830e8859f56e833ed04578))
 
 - Shallow-clone the repo on the Pi
-  ([`4f77e9a`](https://github.com/arnegiacomo/fugleramme/commit/4f77e9ac0027f2955b7ea2f8896456a3eb3edc7e))
+  ([`4bb9e52`](https://github.com/arnegiacomo/fugleramme/commit/4bb9e5246adda06f37d52fe97a4ae2fc7f31c088))
 
 ### Chores
 
 - #24 add loc docs, fix broken link
-  ([`310e1bf`](https://github.com/arnegiacomo/fugleramme/commit/310e1bfab26e89b5fbb7ecc42f1b8a10458956f3))
+  ([`d8f4eeb`](https://github.com/arnegiacomo/fugleramme/commit/d8f4eeba72a352126373600a1cac69e5fa572e6e))
 
 - Add "get in touch" - plz buy comment
-  ([`6484c09`](https://github.com/arnegiacomo/fugleramme/commit/6484c09cd6b3b3414e56dc0766e4cf71d82580ac))
+  ([`890f431`](https://github.com/arnegiacomo/fugleramme/commit/890f43120bace4a64f665036ef499379250924f2))
 
 - Restore bird plates after history rewrite
-  ([`66824dc`](https://github.com/arnegiacomo/fugleramme/commit/66824dcea59dd1a71cc64eccce3d69db614603af))
+  ([`59760f7`](https://github.com/arnegiacomo/fugleramme/commit/59760f7e7394d8210ec96600841aaa384b2c75f9))
 
 ### Documentation
 
 - #24 add notes on birdnet config
-  ([`94c6ccb`](https://github.com/arnegiacomo/fugleramme/commit/94c6ccb553521e32570f6132aa5fe632c8e3ccf2))
+  ([`94fe609`](https://github.com/arnegiacomo/fugleramme/commit/94fe609c687a61c13ccb4789edf9b62e3dd9fce8))
 
 - Fix broken paths
-  ([`70b10b0`](https://github.com/arnegiacomo/fugleramme/commit/70b10b026b5196a74bfba7fe45e992d0489e5f87))
+  ([`40716c9`](https://github.com/arnegiacomo/fugleramme/commit/40716c904d5a1cecf2e52297e3ebe78430b83d8d))
 
 - Note BirdNET-Go licensing
-  ([`694338f`](https://github.com/arnegiacomo/fugleramme/commit/694338ffe280f8eb96ff74205959a1e018a1e1c6))
+  ([`36b82f5`](https://github.com/arnegiacomo/fugleramme/commit/36b82f57e457e59f5ae9ab7e8329811c989f773b))
 
 ### Performance Improvements
 
 - Crop and resample bird plates to 1200px
-  ([`ebb8392`](https://github.com/arnegiacomo/fugleramme/commit/ebb8392fb298883246d8105dfc8c201dba52549a))
+  ([`376318c`](https://github.com/arnegiacomo/fugleramme/commit/376318c388aa2f357a7f82adcfeea2a5dd09e61a))
 
 
 ## v0.12.3 (2026-08-11)
@@ -45,12 +45,12 @@
 ### Bug Fixes
 
 - #25 add margin to account for passepartout
-  ([`e63d62b`](https://github.com/arnegiacomo/fugleramme/commit/e63d62bd49674891ba718d5da657db8019c08a98))
+  ([`7628249`](https://github.com/arnegiacomo/fugleramme/commit/7628249059b34958a5f1fd517dadf3e04f534edd))
 
 ### Documentation
 
 - #24 update hardware docs
-  ([`02cb785`](https://github.com/arnegiacomo/fugleramme/commit/02cb7850ce8750aa3e3c37010926a426d4d82bab))
+  ([`e496b5b`](https://github.com/arnegiacomo/fugleramme/commit/e496b5bc740e3997535bb2b34b9003e8f58f98a3))
 
 
 ## v0.12.2 (2026-08-10)
@@ -58,7 +58,7 @@
 ### Bug Fixes
 
 - #2 spinner for the check, bar for the install
-  ([`e4329cb`](https://github.com/arnegiacomo/fugleramme/commit/e4329cbee25a95068d20985fd05e963e82972098))
+  ([`dc5a38d`](https://github.com/arnegiacomo/fugleramme/commit/dc5a38db4f0e2cc00763553c2e2bf0e95e497337))
 
 
 ## v0.12.1 (2026-08-10)
@@ -66,7 +66,7 @@
 ### Bug Fixes
 
 - #2 line up the update row, and say when a new version landed
-  ([`7487597`](https://github.com/arnegiacomo/fugleramme/commit/74875977ecead80e88ef219df2c15d572252cf1d))
+  ([`ec93109`](https://github.com/arnegiacomo/fugleramme/commit/ec931097b631839605faf6f04d448deb8db0eab4))
 
 
 ## v0.12.0 (2026-08-10)
@@ -74,7 +74,7 @@
 ### Features
 
 - #2 show update progress, and let a slow download finish
-  ([`8acee13`](https://github.com/arnegiacomo/fugleramme/commit/8acee135aa856e58531ba1195a4ed42d34345f95))
+  ([`0a392e0`](https://github.com/arnegiacomo/fugleramme/commit/0a392e094eebff61050343a88dc65d598be43433))
 
 
 ## v0.11.0 (2026-08-09)
@@ -82,24 +82,24 @@
 ### Documentation
 
 - #17 say what the bird cap is actually for
-  ([`7476383`](https://github.com/arnegiacomo/fugleramme/commit/7476383628fbbf5006583ebc064958d6cd511842))
+  ([`c5dc21c`](https://github.com/arnegiacomo/fugleramme/commit/c5dc21c72708cf8c40481042f6b9f4ee8351dcbb))
 
 - #17 update documentation
-  ([`bfed17e`](https://github.com/arnegiacomo/fugleramme/commit/bfed17e4212ee2109f6183871ac6f2a5718cfa52))
+  ([`cd77518`](https://github.com/arnegiacomo/fugleramme/commit/cd77518473714549aa676d889f9d01cf34700ff8))
 
 ### Features
 
 - #17 all-time lookback, so the collage keeps growing
-  ([`b12deae`](https://github.com/arnegiacomo/fugleramme/commit/b12deae43b179851751cd38c16370ff59e87f384))
+  ([`9ec57db`](https://github.com/arnegiacomo/fugleramme/commit/9ec57db6695bbfdf366fef3798e85027fc40b496))
 
 - #17 Cormorant Garamond for the plate pages
-  ([`5be7402`](https://github.com/arnegiacomo/fugleramme/commit/5be74023621e49591ce2608921d2542f341b2ca2))
+  ([`0c436cb`](https://github.com/arnegiacomo/fugleramme/commit/0c436cbcad541de48a72862894d909d910e9ac94))
 
 - #17 display modes, walked by button A
-  ([`45544f6`](https://github.com/arnegiacomo/fugleramme/commit/45544f691dc2421bd87453342dcaab7ca60c8127))
+  ([`ad390d7`](https://github.com/arnegiacomo/fugleramme/commit/ad390d71ea247b4deb40871424210b5007ce4b99))
 
 - #17 rotate the bird of the day's plate each lap
-  ([`3e20417`](https://github.com/arnegiacomo/fugleramme/commit/3e2041729e3ba7d39390f0f6c3c075f15990ff21))
+  ([`9dbff9c`](https://github.com/arnegiacomo/fugleramme/commit/9dbff9c214c0c72b274316c97c46fbc482ba8193))
 
 
 ## v0.10.0 (2026-08-08)
@@ -107,20 +107,20 @@
 ### Chores
 
 - "humanize" docs
-  ([`62fd9b9`](https://github.com/arnegiacomo/fugleramme/commit/62fd9b96f731824c3d8fbde574c281b51a8e184a))
+  ([`3fd728e`](https://github.com/arnegiacomo/fugleramme/commit/3fd728e2e454de83a4bdd03300a1c5e3181bc5d3))
 
 ### Documentation
 
 - Condense CLAUDE.md, bullets over prose
-  ([`2c02ea9`](https://github.com/arnegiacomo/fugleramme/commit/2c02ea935f65a59d09eb67fed5682783bfe761bd))
+  ([`e1860fe`](https://github.com/arnegiacomo/fugleramme/commit/e1860fe1689109f4dc188636ff6cd32e6957bc56))
 
 - Render GitHub callouts as admonitions
-  ([`ab2cf6e`](https://github.com/arnegiacomo/fugleramme/commit/ab2cf6ec9569de3266acb13a5075207e01a54b61))
+  ([`2596544`](https://github.com/arnegiacomo/fugleramme/commit/2596544782ec5077db0849a9ccbe71c9c0657dbb))
 
 ### Features
 
 - Curl-able install.sh, setup.sh becomes run.sh
-  ([`6aabd97`](https://github.com/arnegiacomo/fugleramme/commit/6aabd972af87fd2c3087e31652d3c0ff880614ee))
+  ([`11e4107`](https://github.com/arnegiacomo/fugleramme/commit/11e4107bbd85dc82dda5f97b30a0456fd70d06ec))
 
 
 ## v0.9.0 (2026-08-03)
@@ -128,17 +128,17 @@
 ### Bug Fixes
 
 - #13 hold one perch per day, shared by panel and kiosk
-  ([`1637b56`](https://github.com/arnegiacomo/fugleramme/commit/1637b5601a5d0806e1a606f427b02dcafdd87702))
+  ([`6504552`](https://github.com/arnegiacomo/fugleramme/commit/6504552899a2ba1100259bbdce5d2de642758299))
 
 ### Chores
 
 - #13 untrack the workstation-only artwork pipeline
-  ([`aa78507`](https://github.com/arnegiacomo/fugleramme/commit/aa78507b314c18bfeadd05f9cf295fc81b524548))
+  ([`8b90eb2`](https://github.com/arnegiacomo/fugleramme/commit/8b90eb29d6de93db7fa6aeaa5b3b180d01d9da26))
 
 ### Features
 
 - #13 curate one artwork style, held per species while a bird is in the window
-  ([`98fc248`](https://github.com/arnegiacomo/fugleramme/commit/98fc248f42f75b2a3567d6a3d610940983e72e0b))
+  ([`7568b80`](https://github.com/arnegiacomo/fugleramme/commit/7568b80e8f4488b495dce1c06046a5b4e7bd5019))
 
 
 ## v0.8.0 (2026-08-02)
@@ -146,7 +146,7 @@
 ### Features
 
 - #16 bind the panel buttons to presentation settings
-  ([`a5dda4c`](https://github.com/arnegiacomo/fugleramme/commit/a5dda4c4e2deca19ddb41c38f228e27597351d7e))
+  ([`2a2207c`](https://github.com/arnegiacomo/fugleramme/commit/2a2207ce3d4323e5e11d04fd936ee1a1dfefc4a8))
 
 
 ## v0.7.0 (2026-08-02)
@@ -154,7 +154,7 @@
 ### Features
 
 - #5 species names in the reader's language, from BirdNET-Go
-  ([`37ec1bf`](https://github.com/arnegiacomo/fugleramme/commit/37ec1bf77bcafe57077310d76b764833d6599833))
+  ([`47cb3d2`](https://github.com/arnegiacomo/fugleramme/commit/47cb3d2740417f88f5f6c254125ba54ccb8a42b4))
 
 
 ## v0.6.0 (2026-08-02)
@@ -162,7 +162,7 @@
 ### Features
 
 - #2 preview unsaved settings and guard against losing them
-  ([`52071a1`](https://github.com/arnegiacomo/fugleramme/commit/52071a12d17ccf284e2a5399064627198962bea6))
+  ([`e957d8b`](https://github.com/arnegiacomo/fugleramme/commit/e957d8bdd1c494792b89fbaffd7174d5cf1efa58))
 
 
 ## v0.5.0 (2026-08-02)
@@ -170,17 +170,17 @@
 ### Bug Fixes
 
 - #2 force the update checkout so a re-locked uv.lock cannot block it
-  ([`ef0d512`](https://github.com/arnegiacomo/fugleramme/commit/ef0d51233bd85c2ec2dfac3a58184b219796a514))
+  ([`e0b6949`](https://github.com/arnegiacomo/fugleramme/commit/e0b6949ab94168ee3cb69b7e74c2c64420bae7a6))
 
 ### Chores
 
 - Re-lock uv.lock in the release commit
-  ([`c12f717`](https://github.com/arnegiacomo/fugleramme/commit/c12f7173c20a3f29e5a523e7d360d5932f39d28a))
+  ([`0b38b4e`](https://github.com/arnegiacomo/fugleramme/commit/0b38b4e5638796f05d4f8f1a7215f2aab0f108ea))
 
 ### Features
 
 - #2 show install progress and reload the admin page when the update lands
-  ([`91a25c8`](https://github.com/arnegiacomo/fugleramme/commit/91a25c8bc2620e96873bf58aa27ee1fc7b6d9353))
+  ([`e0caba8`](https://github.com/arnegiacomo/fugleramme/commit/e0caba8e493e7ca29713f592c71e834a821dc40c))
 
 
 ## v0.4.0 (2026-08-02)
@@ -188,17 +188,17 @@
 ### Chores
 
 - Sync uv.lock to v0.3.0
-  ([`6617458`](https://github.com/arnegiacomo/fugleramme/commit/6617458005e0845a097f088746b106c9fcc2964d))
+  ([`7a2f87d`](https://github.com/arnegiacomo/fugleramme/commit/7a2f87ddb5fd686c780d2611839c10c6eb1fddd4))
 
 ### Documentation
 
 - Reword the hardware parts table header
-  ([`140481d`](https://github.com/arnegiacomo/fugleramme/commit/140481dbe2f5a7c7fa81a1c43dfaafe7657c1c52))
+  ([`03d5ea1`](https://github.com/arnegiacomo/fugleramme/commit/03d5ea1c9f342ccdfb5237c18f30b473248ec0c5))
 
 ### Features
 
 - #5 render species names on the collage
-  ([`1b60393`](https://github.com/arnegiacomo/fugleramme/commit/1b603930fee342f95ef498a2fd1fdf300aaf33db))
+  ([`48e597e`](https://github.com/arnegiacomo/fugleramme/commit/48e597e1439fe3787359504a159c591ef6cb7054))
 
 
 ## v0.3.0 (2026-08-02)
@@ -206,7 +206,7 @@
 ### Features
 
 - #15 pin analysis defaults in the detector config template
-  ([`90dbe6d`](https://github.com/arnegiacomo/fugleramme/commit/90dbe6d43c9db97db34473316bc0ebdaf2d6a715))
+  ([`eac6c42`](https://github.com/arnegiacomo/fugleramme/commit/eac6c42e1cc5818f0b217076090e0013f85e3742))
 
 
 ## v0.2.0 (2026-08-02)
@@ -214,7 +214,7 @@
 ### Features
 
 - #2 check for and install tagged releases from the admin page
-  ([`80be018`](https://github.com/arnegiacomo/fugleramme/commit/80be0189ab198b55609f3672b5bb85eeeb5f3fc6))
+  ([`9b08ea0`](https://github.com/arnegiacomo/fugleramme/commit/9b08ea093caa373cbc600b91e5753781d86ac94a))
 
 
 ## v0.1.1 (2026-08-02)
@@ -222,7 +222,7 @@
 ### Bug Fixes
 
 - #2 probe the internet on first load and show the mDNS hostname
-  ([`e2d525a`](https://github.com/arnegiacomo/fugleramme/commit/e2d525a911fa7a20710d13eaf6ffb98793633da4))
+  ([`6cc088a`](https://github.com/arnegiacomo/fugleramme/commit/6cc088a63ac52a8ebe7a01fd85b1e708b6b67fed))
 
 
 ## v0.1.0 (2026-08-02)
