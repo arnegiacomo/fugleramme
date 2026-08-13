@@ -70,17 +70,38 @@ def available(force: bool = False) -> str | None:
 
 def apply(tag: str, progress: Progress | None = None) -> None:
     """Move the checkout onto `tag`. Raises on failure; the caller exits on success."""
-    _run(["git", "fetch", "--progress", REPO_HTTPS_URL, "--tags", "--force"],
+    # One tag, shallow: a full fetch would pull every past version of the artwork.
+    _run(["git", "fetch", "--progress", "--depth", "1", REPO_HTTPS_URL, "tag", tag, "--force"],
          "Downloading", progress)
     # --force: `uv sync` rewrites uv.lock in place, and a plain checkout refuses to
     # run against that. Only tracked files are discarded; data/ and config are ignored.
     _run(["git", "checkout", "--progress", "--force", "--detach", tag],
          "Checking out", progress)
+    _drop_stale_tags(tag)
     try:
         _run([_uv(), "sync", "--extra", "panel"], "Installing dependencies", progress)
     except RuntimeError:
         # Same fallback as run.sh: no panel driver still leaves a working kiosk.
         _run([_uv(), "sync"], "Installing dependencies", progress)
+
+
+def _drop_stale_tags(keep: str) -> None:
+    """Delete every release tag but the one just checked out: each one pins a whole
+    copy of the artwork that `git gc` can never reclaim. Best effort - failing to
+    tidy still leaves a working checkout."""
+    try:
+        listed = subprocess.run(
+            ["git", "tag", "--list"], cwd=REPO_ROOT, capture_output=True, text=True,
+            check=True, env=_env(),
+        ).stdout.split()
+        stale = [t for t in listed if t != keep]
+        if stale:
+            subprocess.run(["git", "tag", "--delete", *stale], cwd=REPO_ROOT,
+                           capture_output=True, check=True, env=_env())
+        subprocess.run(["git", "gc", "--auto", "--quiet"], cwd=REPO_ROOT,
+                       capture_output=True, check=False, env=_env())
+    except (OSError, subprocess.CalledProcessError) as exc:
+        log.warning("Could not prune old tags: %s", exc)
 
 
 def _run(cmd: list[str], phase: str, progress: Progress | None = None) -> None:

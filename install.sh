@@ -85,7 +85,7 @@ ensure_docker() {
 
 ensure_repo() {
   if [[ -d "$REPO_DIR/.git" ]]; then
-    git -C "$REPO_DIR" fetch origin "$REPO_REF"
+    git -C "$REPO_DIR" fetch --depth 1 origin "$REPO_REF"
     # --force -B: a self-update leaves HEAD detached at a tag and uv sync rewrites
     # uv.lock, either of which a plain checkout refuses to cross. Only tracked
     # files are discarded, and everything the Pi owns is gitignored.
@@ -96,7 +96,8 @@ ensure_repo() {
     echo "$REPO_DIR exists but is not a git checkout - move it aside or set FUGLERAMME_DIR" >&2
     exit 1
   fi
-  git clone --branch "$REPO_REF" "$REPO_URL" "$REPO_DIR"
+  # Shallow: the Pi only needs the current tree, not every past version of the artwork.
+  git clone --depth 1 --branch "$REPO_REF" "$REPO_URL" "$REPO_DIR"
 }
 
 # Panel access needs spi/i2c/gpio; docker saves a sudo. New groups only reach new logins.
