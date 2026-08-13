@@ -2,6 +2,44 @@
 
 <!-- version list -->
 
+## v0.12.4 (2026-08-13)
+
+### Bug Fixes
+
+- Prune stale tags through _run, not subprocess
+  ([`be966fc`](https://github.com/arnegiacomo/fugleramme/commit/be966fcfb0a0a993b52fb9d5adafce6b50a8b47a))
+
+- Shallow-clone the repo on the Pi
+  ([`4f77e9a`](https://github.com/arnegiacomo/fugleramme/commit/4f77e9ac0027f2955b7ea2f8896456a3eb3edc7e))
+
+### Chores
+
+- #24 add loc docs, fix broken link
+  ([`310e1bf`](https://github.com/arnegiacomo/fugleramme/commit/310e1bfab26e89b5fbb7ecc42f1b8a10458956f3))
+
+- Add "get in touch" - plz buy comment
+  ([`6484c09`](https://github.com/arnegiacomo/fugleramme/commit/6484c09cd6b3b3414e56dc0766e4cf71d82580ac))
+
+- Restore bird plates after history rewrite
+  ([`66824dc`](https://github.com/arnegiacomo/fugleramme/commit/66824dcea59dd1a71cc64eccce3d69db614603af))
+
+### Documentation
+
+- #24 add notes on birdnet config
+  ([`94c6ccb`](https://github.com/arnegiacomo/fugleramme/commit/94c6ccb553521e32570f6132aa5fe632c8e3ccf2))
+
+- Fix broken paths
+  ([`70b10b0`](https://github.com/arnegiacomo/fugleramme/commit/70b10b026b5196a74bfba7fe45e992d0489e5f87))
+
+- Note BirdNET-Go licensing
+  ([`694338f`](https://github.com/arnegiacomo/fugleramme/commit/694338ffe280f8eb96ff74205959a1e018a1e1c6))
+
+### Performance Improvements
+
+- Crop and resample bird plates to 1200px
+  ([`ebb8392`](https://github.com/arnegiacomo/fugleramme/commit/ebb8392fb298883246d8105dfc8c201dba52549a))
+
+
 ## v0.12.3 (2026-08-11)
 
 ### Bug Fixes
