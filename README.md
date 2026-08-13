@@ -23,7 +23,7 @@ are currently left off, and an empty window shows a bare perch.
 
 | No detections | A few visitors | A full garden |
 | :---: | :---: | :---: |
-| ![No birds detected](docs/samples/empty.png) | ![A few garden birds](docs/samples/few.png) | ![Many garden birds](docs/samples/many.png) |
+| ![No birds detected](docs/assets/empty.png) | ![A few garden birds](docs/assets/few.png) | ![Many garden birds](docs/assets/many.png) |
 
 ## Run locally (for development)
 
