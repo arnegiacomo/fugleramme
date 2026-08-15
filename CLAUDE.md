@@ -43,6 +43,12 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 - `settings.rotation` (counter-clockwise) shapes both, but only `push` turns pixels - the driver takes native landscape only.
 - `inky.set_image` re-dithers anything that is not already a 6-color "P" image, so `render.dither` must hand it a palette mapping 1:1 onto the driver's. `tests/test_panel.py` pins this.
 
+**The web pages are files** (`static/`, `admin.py`, `server.py`).
+
+- `static/` holds the kiosk and admin markup, style and script. `admin.html` is a `string.Template`; the kiosk page needs no substitution at all.
+- `admin.js` is static and cached: it reads its server values from a JSON blob in the page rather than being built per request.
+- `server.py` is routing and transport only. `admin.py` builds the page from a `modes.Context`, `hostinfo.py` probes the machine.
+
 **The buttons are settings writes** (`buttons.py`).
 
 - Plain GPIO read with `gpiod` on a daemon thread; pins key off `Panel.driver` (the 13.3" moves C to line 25).
