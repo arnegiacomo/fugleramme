@@ -132,7 +132,8 @@ def _midnight() -> int:
 
 
 def _collage_key(ctx: Context) -> tuple:
-    species = tuple(name for name, _ in ctx.db.species_since(ctx.lookback_hours))
+    # Sorted to keep key constant for the same bird set (avoid re-renders on order change)
+    species = tuple(sorted(name for name, _ in ctx.db.species_since(ctx.lookback_hours)))
     return (species, day_ordinal() if not species else None)
 
 

@@ -115,6 +115,24 @@ def test_the_latest_bird_skips_a_species_it_cannot_draw(tmp_path, images):
     assert modes.state_key(_ctx(db, images, tmp_path, "latest"))[-1][0] == "Turdus merula"
 
 
+def test_the_collage_holds_the_page_when_a_bird_already_on_it_calls_again(tmp_path, images):
+    """species_since ranks by count, so re-hearing a bird can overtake another
+    and reorder the window. The set is the same, so the page must be too."""
+    db = _db(tmp_path / "b.db", [_row(1, 11, 2), _row(2, 11, 2), _row(3, 10, 1)])
+    before = modes.state_key(_ctx(db, images, tmp_path, "collage"))
+
+    conn = sqlite3.connect(tmp_path / "b.db")
+    conn.executemany(
+        "INSERT INTO detections VALUES (?, ?, ?, ?, ?)", [_row(n, 10, 0) for n in (4, 5)]
+    )
+    conn.commit()
+    conn.close()
+    db.close()
+
+    assert db.species_since()[0][0] == "Turdus merula"  # the ranking did flip
+    assert modes.state_key(_ctx(db, images, tmp_path, "collage")) == before
+
+
 def test_the_bird_of_the_day_ignores_todays_calls(tmp_path, images):
     """Its tally is the record as of midnight, so a bird calling all afternoon
     does not re-render its own page."""

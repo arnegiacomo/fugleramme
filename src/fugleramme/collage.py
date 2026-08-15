@@ -301,10 +301,14 @@ def gather_entries(
     picks: Picks,
     hours: int = 24,
 ) -> list[tuple[str, Path | None]]:
-    """Recent-window species paired with the artwork each is wearing, or None."""
+    """Recent-window species paired with the artwork each is wearing, or None.
+
+    In name order, matching the collage's cache key: the page is a function of
+    the species set alone, so a count moving must not reshuffle the layout.
+    """
     return [
         (name, image_for(name, images_dir, style, picks))
-        for name, _count in db.species_since(hours)
+        for name, _count in sorted(db.species_since(hours))
     ]
 
 
