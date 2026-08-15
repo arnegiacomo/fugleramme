@@ -37,26 +37,32 @@ SPECIES = [
 # Two languages for those species, as BirdNET-Go's own dictionaries give them:
 # lowercase in Norwegian, titled in English. code -> (display name, {species: name})
 NAMES: dict[str, tuple[str, dict[str, str]]] = {
-    "nb": ("Norwegian", {
-        "Turdus merula": "svarttrost",
-        "Parus major": "kjøttmeis",
-        "Fringilla coelebs": "bokfink",
-        "Pica pica": "skjære",
-        "Passer domesticus": "gråspurv",
-        "Cyanistes caeruleus": "blåmeis",
-        "Erithacus rubecula": "rødstrupe",
-        "Corvus cornix": "kråke",
-    }),
-    "en": ("English", {
-        "Turdus merula": "Eurasian Blackbird",
-        "Parus major": "Great Tit",
-        "Fringilla coelebs": "Common Chaffinch",
-        "Pica pica": "Eurasian Magpie",
-        "Passer domesticus": "House Sparrow",
-        "Cyanistes caeruleus": "Eurasian Blue Tit",
-        "Erithacus rubecula": "European Robin",
-        "Corvus cornix": "Hooded Crow",
-    }),
+    "nb": (
+        "Norwegian",
+        {
+            "Turdus merula": "svarttrost",
+            "Parus major": "kjøttmeis",
+            "Fringilla coelebs": "bokfink",
+            "Pica pica": "skjære",
+            "Passer domesticus": "gråspurv",
+            "Cyanistes caeruleus": "blåmeis",
+            "Erithacus rubecula": "rødstrupe",
+            "Corvus cornix": "kråke",
+        },
+    ),
+    "en": (
+        "English",
+        {
+            "Turdus merula": "Eurasian Blackbird",
+            "Parus major": "Great Tit",
+            "Fringilla coelebs": "Common Chaffinch",
+            "Pica pica": "Eurasian Magpie",
+            "Passer domesticus": "House Sparrow",
+            "Cyanistes caeruleus": "Eurasian Blue Tit",
+            "Erithacus rubecula": "European Robin",
+            "Corvus cornix": "Hooded Crow",
+        },
+    ),
 }
 
 # Minimal slice of BirdNET-Go's normalized schema - only the columns db.py reads.
@@ -152,16 +158,18 @@ def main() -> None:
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
     parser.add_argument("--count", type=int, default=20)
     parser.add_argument(
-        "--names", action=argparse.BooleanOptionalAction, default=True,
+        "--names",
+        action=argparse.BooleanOptionalAction,
+        default=True,
         help="also seed the species-name cache",
     )
     parser.add_argument(
-        "--names-dir", type=Path, default=DEFAULT_CONFIG_PATH.parent,
+        "--names-dir",
+        type=Path,
+        default=DEFAULT_CONFIG_PATH.parent,
         help="where the names cache goes: the settings file's directory, as the frame reads it",
     )
-    parser.add_argument(
-        "--force", action="store_true", help="replace an existing names cache"
-    )
+    parser.add_argument("--force", action="store_true", help="replace an existing names cache")
     args = parser.parse_args()
 
     n = seed(args.db, args.count)
@@ -169,7 +177,8 @@ def main() -> None:
     if args.names:
         written = seed_names(args.names_dir, args.force)
         print(
-            f"seeded names ({', '.join(written)}) under {args.names_dir}" if written
+            f"seeded names ({', '.join(written)}) under {args.names_dir}"
+            if written
             else f"names cache already present under {args.names_dir}"
         )
 

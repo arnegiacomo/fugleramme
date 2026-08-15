@@ -33,11 +33,14 @@ def _birdnet_db(path, detections, reviews=()):
 
 def test_join_epoch_and_species_filter(tmp_path):
     db_path = tmp_path / "birdnet.db"
-    _birdnet_db(db_path, [
-        (1, 10, 1_752_573_600, 0.9, None),        # Turdus merula, species
-        (2, 11, 1_752_573_630, 0.8, "clip.wav"),  # Parus major, species
-        (3, 12, 1_752_573_660, 0.7, None),        # Static, noise -> filtered out
-    ])
+    _birdnet_db(
+        db_path,
+        [
+            (1, 10, 1_752_573_600, 0.9, None),  # Turdus merula, species
+            (2, 11, 1_752_573_630, 0.8, "clip.wav"),  # Parus major, species
+            (3, 12, 1_752_573_660, 0.7, None),  # Static, noise -> filtered out
+        ],
+    )
     db = Database(db_path)
 
     recent = db.recent()
@@ -47,7 +50,7 @@ def test_join_epoch_and_species_filter(tmp_path):
     assert parus.detected_at == datetime.fromtimestamp(1_752_573_630, tz=UTC)
 
     stats = db.stats()
-    assert stats["total"] == 2          # noise excluded
+    assert stats["total"] == 2  # noise excluded
     assert stats["species"] == 2
     db.close()
 
@@ -57,17 +60,20 @@ def test_species_since_window(tmp_path):
     recent_epoch = int((now - timedelta(hours=1)).timestamp())
     stale_epoch = int((now - timedelta(hours=30)).timestamp())
     db_path = tmp_path / "birdnet.db"
-    _birdnet_db(db_path, [
-        (1, 10, recent_epoch, 0.9, None),   # inside default 24h window
-        (2, 10, recent_epoch, 0.8, None),   # inside window, same species
-        (3, 11, stale_epoch, 0.7, None),    # outside 24h, inside 48h
-    ])
+    _birdnet_db(
+        db_path,
+        [
+            (1, 10, recent_epoch, 0.9, None),  # inside default 24h window
+            (2, 10, recent_epoch, 0.8, None),  # inside window, same species
+            (3, 11, stale_epoch, 0.7, None),  # outside 24h, inside 48h
+        ],
+    )
     db = Database(db_path)
 
     assert db.species_since() == [("Turdus merula", 2)]
     assert db.species_since(hours=48) == [("Turdus merula", 2), ("Parus major", 1)]
     assert db.stats()["last_24h"] == 2
-    assert db.stats()["total"] == 3         # stale row still counts in totals
+    assert db.stats()["total"] == 3  # stale row still counts in totals
     db.close()
 
 
@@ -91,7 +97,7 @@ def test_false_positive_review_excluded(tmp_path):
     assert {d.scientific_name for d in db.recent()} == {"Turdus merula", "Parus major"}
     assert db.species_since() == [("Parus major", 1), ("Turdus merula", 1)]
     stats = db.stats()
-    assert stats["total"] == 2      # the false positive is not counted
+    assert stats["total"] == 2  # the false positive is not counted
     assert stats["last_24h"] == 2
     db.close()
 
@@ -111,10 +117,13 @@ def test_all_time_is_not_a_window(tmp_path):
     every species the detector has ever heard."""
     now = datetime.now(UTC)
     db_path = tmp_path / "birdnet.db"
-    _birdnet_db(db_path, [
-        (1, 10, int((now - timedelta(hours=1)).timestamp()), 0.9, None),
-        (2, 11, int((now - timedelta(days=400)).timestamp()), 0.7, None),
-    ])
+    _birdnet_db(
+        db_path,
+        [
+            (1, 10, int((now - timedelta(hours=1)).timestamp()), 0.9, None),
+            (2, 11, int((now - timedelta(days=400)).timestamp()), 0.7, None),
+        ],
+    )
     db = Database(db_path)
 
     assert db.species_since() == [("Turdus merula", 1)]

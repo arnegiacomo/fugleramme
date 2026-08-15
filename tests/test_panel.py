@@ -14,8 +14,13 @@ from fugleramme.render.dither import dither
 
 # inky.inky_el133uf1.DESATURATED_PALETTE - what the driver quantizes against.
 DESATURATED = [
-    [0, 0, 0], [255, 255, 255], [255, 255, 0], [255, 0, 0],
-    [0, 0, 255], [0, 255, 0], [255, 255, 255],
+    [0, 0, 0],
+    [255, 255, 255],
+    [255, 255, 0],
+    [255, 0, 0],
+    [0, 0, 255],
+    [0, 255, 0],
+    [255, 255, 255],
 ]
 
 
@@ -47,7 +52,9 @@ def test_unrotated_image_pushes_as_is():
     assert device.shown == 1
 
 
-@pytest.mark.parametrize("rotation,size", [(90, (1200, 1600)), (180, (1600, 1200)), (270, (1200, 1600))])
+@pytest.mark.parametrize(
+    "rotation,size", [(90, (1200, 1600)), (180, (1600, 1200)), (270, (1200, 1600))]
+)
 def test_every_rotation_lands_in_the_native_buffer(rotation, size):
     panel, device = _panel()
     panel.push(Image.new("RGB", size), rotation)

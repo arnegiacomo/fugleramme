@@ -35,9 +35,13 @@ def frame(tmp_path):
         Image.new("RGBA", (120, 90), (40, 40, 40, 255)).save(style / f"{key}.png")
 
     handler = server.make_handler(
-        Database(tmp_path / "birdnet.db"), tmp_path / "images",
-        SettingsStore(tmp_path / SETTINGS), Picks(tmp_path / "artwork.json"),
-        Featured(tmp_path / "featured.json"), None, Status(),
+        Database(tmp_path / "birdnet.db"),
+        tmp_path / "images",
+        SettingsStore(tmp_path / SETTINGS),
+        Picks(tmp_path / "artwork.json"),
+        Featured(tmp_path / "featured.json"),
+        None,
+        Status(),
     )
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()

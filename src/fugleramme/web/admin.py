@@ -66,7 +66,7 @@ def _options(values, selected, label=str) -> str:
 def _radios(field: str, options: list[tuple[str, str]], active: str) -> str:
     return "".join(
         f'<label class="src"><input type="radio" name="{field}" value="{value}"'
-        f'{" checked" if value == active else ""}> {label}</label>'
+        f"{' checked' if value == active else ''}> {label}</label>"
         for value, label in options
     )
 
@@ -74,7 +74,7 @@ def _radios(field: str, options: list[tuple[str, str]], active: str) -> str:
 def _checkbox(field: str, label: str, checked: bool) -> str:
     return (
         f'<label class="src"><input type="checkbox" name="{field}"'
-        f'{" checked" if checked else ""}> {label}</label>'
+        f"{' checked' if checked else ''}> {label}</label>"
     )
 
 
@@ -112,13 +112,14 @@ def _species_li(name: str, source: str | None) -> str:
     # names the plate the artwork was cut from, read from the file's own metadata.
     if source is None:
         return f'<li class="noart">{name} <small>no art</small></li>'
-    return f'<li>{name} <small>{_display_name(source)}</small></li>'
+    return f"<li>{name} <small>{_display_name(source)}</small></li>"
 
 
 def species_html(species: list[tuple[str, str | None]], name_of: Namer) -> str:
-    return "".join(
-        _species_li(name_of.inline(name), source) for name, source in species
-    ) or '<li class="empty">none yet</li>'
+    return (
+        "".join(_species_li(name_of.inline(name), source) for name, source in species)
+        or '<li class="empty">none yet</li>'
+    )
 
 
 def _language_select(
@@ -143,16 +144,13 @@ def _update(status: Status) -> str:
         label, value = status.update_phase or "installing…", ""
         if status.update_percent is not None:
             label, value = f"{label} {status.update_percent}%", f' value="{status.update_percent}"'
-        return (
-            f'<span id="phase">{label}</span>'
-            f'<progress id="bar" max="100"{value}></progress>'
-        )
+        return f'<span id="phase">{label}</span><progress id="bar" max="100"{value}></progress>'
     if status.update_error:
         return f'<span class="bad">{status.update_error}</span>{_action("check", "Retry")}'
     if status.update_available:
         return (
             f'<span class="warn">{status.update_available} available</span>'
-            f'{_action("update", "Install")}'
+            f"{_action('update', 'Install')}"
         )
     return f'<span id="state">up to date</span>{_action("check", "Check")}'
 
@@ -160,15 +158,15 @@ def _update(status: Status) -> str:
 def _names_field(settings: Settings, languages: list[tuple[str, str]]) -> str:
     return (
         f'<div class="field"><span>Species names</span>'
-        f'{_checkbox("show_names", "Display bird names", settings.show_names)}'
+        f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
         f'<label class="sub"><small>Language</small>'
-        f'{_language_select("primary_language", languages, settings.primary_language)}</label>'
+        f"{_language_select('primary_language', languages, settings.primary_language)}</label>"
         f'<label class="sub"><small>Second language (optional)</small>'
-        f'{_language_select("secondary_language", languages, settings.secondary_language, optional=True)}</label>'
+        f"{_language_select('secondary_language', languages, settings.secondary_language, optional=True)}</label>"
         f'<label class="sub"><small>Typeface</small><select name="label_font">'
-        f'{_options(FONTS, settings.label_font, lambda k: FONTS[k][0])}</select></label>'
+        f"{_options(FONTS, settings.label_font, lambda k: FONTS[k][0])}</select></label>"
         f'<label class="sub"><small>Text size</small><select name="label_size">'
-        f'{_options(LABEL_SIZES, settings.label_size, lambda k: LABEL_SIZES[k][0])}</select></label>'
+        f"{_options(LABEL_SIZES, settings.label_size, lambda k: LABEL_SIZES[k][0])}</select></label>"
         f"</div>"
     )
 
@@ -202,14 +200,16 @@ def page(
         version=__version__,
         docs_url=DOCS_URL,
         checkboxes=CHECKBOXES,
-        config=json.dumps({
-            "birdnetPort": BIRDNET_PORT,
-            "version": __version__,
-            "windowedModes": [k for k, m in MODES.items() if m.windowed],
-        }),
+        config=json.dumps(
+            {
+                "birdnetPort": BIRDNET_PORT,
+                "version": __version__,
+                "windowedModes": [k for k, m in MODES.items() if m.windowed],
+            }
+        ),
         mode_field=(
             f'<div class="field"><span>Mode</span>'
-            f'{_radios("mode", [(k, m.label) for k, m in MODES.items()], settings.mode)}</div>'
+            f"{_radios('mode', [(k, m.label) for k, m in MODES.items()], settings.mode)}</div>"
         ),
         resolutions=_options(
             WEB_RESOLUTIONS,
@@ -224,14 +224,17 @@ def page(
         names_field=_names_field(settings, languages),
         style_field=(
             f'<div class="field"><span>Artwork style</span>'
-            f'{_radios("style", [(s, _display_name(s)) for s in available_styles(ctx.images_dir)], ctx.style)}</div>'
+            f"{_radios('style', [(s, _display_name(s)) for s in available_styles(ctx.images_dir)], ctx.style)}</div>"
         ),
         species_count=len(rows),
         species_rows=species_html(rows, ctx.namer),
         update=_update(status),
-        auto_update=_checkbox("auto_update", "Install new releases automatically", settings.auto_update),
+        auto_update=_checkbox(
+            "auto_update", "Install new releases automatically", settings.auto_update
+        ),
         panel=(
-            f"detected · {panel_size[0]}×{panel_size[1]}" if panel_size
+            f"detected · {panel_size[0]}×{panel_size[1]}"
+            if panel_size
             else "not detected (web-only)"
         ),
         birdnet=_state(hostinfo.reachable("127.0.0.1", BIRDNET_PORT), "running", "unreachable"),
@@ -243,6 +246,7 @@ def page(
         rendered=rendered,
         latest=(
             f"{ctx.namer.inline(latest.scientific_name)} · {_stamp(latest.detected_at)}"
-            if latest else "none yet"
+            if latest
+            else "none yet"
         ),
     )

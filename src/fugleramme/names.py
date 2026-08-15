@@ -31,7 +31,7 @@ ORIGIN = "Origin"  # PNG tEXt key: "<source>/<file>.png" the image was curated f
 
 
 def normalize(scientific_name: str) -> str:
-    """"Turdus merula" -> "turdus-merula" (the file-key shape)."""
+    """ "Turdus merula" -> "turdus-merula" (the file-key shape)."""
     return scientific_name.strip().lower().replace(" ", "-")
 
 
@@ -87,14 +87,10 @@ def drawable_keys(images_dir: Path, style: str) -> set[str]:
     """
     if not style:
         return set()
-    return {
-        _NUMBERED.sub("", path.stem) for path in (images_dir / style).glob("*.png")
-    }
+    return {_NUMBERED.sub("", path.stem) for path in (images_dir / style).glob("*.png")}
 
 
-def image_for(
-    scientific_name: str, images_dir: Path, style: str, picks: Picks
-) -> Path | None:
+def image_for(scientific_name: str, images_dir: Path, style: str, picks: Picks) -> Path | None:
     """The artwork this species is currently wearing, or None if it has none."""
     return picks.choose(scientific_name, variants_for(scientific_name, images_dir, style))
 
@@ -121,10 +117,10 @@ def origin_of(path: Path) -> str:
         return ""
     at = 8  # past the PNG signature
     while at + 8 <= len(raw):
-        size, kind = struct.unpack(">I", raw[at:at + 4])[0], raw[at + 4:at + 8]
+        size, kind = struct.unpack(">I", raw[at : at + 4])[0], raw[at + 4 : at + 8]
         if kind == b"IDAT":
             break
-        body = raw[at + 8:at + 8 + size]
+        body = raw[at + 8 : at + 8 + size]
         if kind == b"tEXt" and body.split(b"\0", 1)[0] == ORIGIN.encode():
             return body.split(b"\0", 1)[1].decode("latin-1")
         at += 12 + size
@@ -134,4 +130,3 @@ def origin_of(path: Path) -> str:
 def source_of(path: Path) -> str:
     """The work an image was cut from ("gould"), or "" if unstamped."""
     return origin_of(path).split("/", 1)[0]
-

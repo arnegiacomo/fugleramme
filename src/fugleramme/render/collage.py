@@ -50,12 +50,12 @@ from .sizes import SIZE_EXPONENT, mass_of
 log = logging.getLogger(__name__)
 
 DEFAULT_RESOLUTION = (1280, 800)
-_MARGIN = 0.04   # page edge to content on short side. Hardcoded now, maybe add configurability?
+_MARGIN = 0.04  # page edge to content on short side. Hardcoded now, maybe add configurability?
 _MAX_BIRDS = 40  # keeps the render quick, not the page tidy
 _ALPHA_CUTOFF = 24
-_OVERLAP_PX = 2        # erode the collision mask slightly so birds nestle into
-                       # each other's (invisible on paper) halos. No rotation:
-                       # it tilts the ground/water on birds drawn with terrain.
+_OVERLAP_PX = 2  # erode the collision mask slightly so birds nestle into
+# each other's (invisible on paper) halos. No rotation:
+# it tilts the ground/water on birds drawn with terrain.
 _STEP = 6
 _ATTEMPTS = 20
 
@@ -118,13 +118,13 @@ def _pack(sprites: list[_Sprite], width: int, height: int):
             x, y = int(px - w / 2), int(py - h / 2)
             if x < 0 or y < 0 or x + w > width or y + h > height:
                 continue
-            if not (occ[y:y + h, x:x + w] & sprite.mask).any():
+            if not (occ[y : y + h, x : x + w] & sprite.mask).any():
                 spot = (x, y)
                 break
         if spot is None:
             return None
         x, y = spot
-        occ[y:y + h, x:x + w] |= sprite.mask
+        occ[y : y + h, x : x + w] |= sprite.mask
         placed.append((sprite, x, y))
     return placed
 
@@ -159,14 +159,14 @@ def _with_label(art: Image.Image, art_mask: np.ndarray, label: Image.Image, gap:
     ax, lx = -left, offset - left
 
     # Raise it until it clears the outline, into the gap beside a leg or under a perch.
-    under = art_mask[:, max(0, lx - ax):min(aw, lx - ax + lw)]
+    under = art_mask[:, max(0, lx - ax) : min(aw, lx - ax + lw)]
     bottom = np.nonzero(under.any(axis=1))[0]
     top = (bottom[-1] + 1 if bottom.size else ah) + gap
 
     height = max(ah, top + lh)
     mask = np.zeros((height, width), dtype=bool)
-    mask[:ah, ax:ax + aw] = art_mask
-    mask[top:top + lh, lx:lx + lw] = True
+    mask[:ah, ax : ax + aw] = art_mask
+    mask[top : top + lh, lx : lx + lw] = True
     return _Sprite(art, mask, (ax, 0), label, (lx, top))
 
 
@@ -203,7 +203,7 @@ def _layout(
     labels: list[Image.Image] = []
     last_px = gap = 0
     for attempt in range(_ATTEMPTS):
-        shrink = 0.9 ** attempt
+        shrink = 0.9**attempt
         if font_key:
             px = max(MIN_LABEL_PX, round(name_px * shrink))
             if px != last_px:
@@ -266,8 +266,11 @@ def render_collage(
     args = (arts, order, weights, flips, base, *box)
     name_px = label_px(width, height, label_size)
     placed = _layout(
-        *args, font_key if show_names else None, name_px,
-        flat=not textured, label_text=label_text,
+        *args,
+        font_key if show_names else None,
+        name_px,
+        flat=not textured,
+        label_text=label_text,
     )
     if placed is None and show_names:
         log.warning("No layout fits %d species with names at %dx%d", len(arts), *box)
@@ -310,5 +313,3 @@ def gather_entries(
         (name, image_for(name, images_dir, style, picks))
         for name, _count in sorted(db.species_since(hours))
     ]
-
-

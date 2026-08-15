@@ -57,8 +57,15 @@ def images(tmp_path):
 def _ctx(db, images, tmp_path, mode, commit=False, **overrides):
     settings = Settings(mode=mode, **overrides)
     return modes.context(
-        db, images, Picks(tmp_path / "artwork.json"), Featured(tmp_path / "featured.json"),
-        settings, namer("sci", "", tmp_path), (400, 300), textured=False, commit=commit,
+        db,
+        images,
+        Picks(tmp_path / "artwork.json"),
+        Featured(tmp_path / "featured.json"),
+        settings,
+        namer("sci", "", tmp_path),
+        (400, 300),
+        textured=False,
+        commit=commit,
     )
 
 
@@ -177,7 +184,9 @@ def test_the_key_carries_what_the_page_is_drawn_from(tmp_path, images):
     db = _db(tmp_path / "b.db", [_row(1, 10, 1)])
     base = _ctx(db, images, tmp_path, "latest")
     for change in ({"show_names": False}, {"label_font": "bitter"}, {"label_size": "large"}):
-        assert modes.state_key(_ctx(db, images, tmp_path, "latest", **change)) != modes.state_key(base)
+        assert modes.state_key(_ctx(db, images, tmp_path, "latest", **change)) != modes.state_key(
+            base
+        )
 
 
 def test_switching_mode_changes_the_page(tmp_path, images):

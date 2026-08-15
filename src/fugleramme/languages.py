@@ -181,7 +181,9 @@ def _capitalized(name: str) -> str:
 class Namer:
     """Renders a scientific name into the configured language(s). Built by `namer`."""
 
-    def __init__(self, primary: str, secondary: str, names: dict[str, dict[str, str]], version: tuple):
+    def __init__(
+        self, primary: str, secondary: str, names: dict[str, dict[str, str]], version: tuple
+    ):
         self.primary = primary
         self.secondary = secondary
         self._names = names

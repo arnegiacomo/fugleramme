@@ -98,9 +98,7 @@ class Database:
                 self.conn = None
 
     def latest(self) -> Detection | None:
-        rows = self._rows(
-            f"SELECT {_COLS} {_FROM} ORDER BY d.detected_at DESC, d.id DESC LIMIT 1"
-        )
+        rows = self._rows(f"SELECT {_COLS} {_FROM} ORDER BY d.detected_at DESC, d.id DESC LIMIT 1")
         return _row_to_detection(rows[0]) if rows else None
 
     def recent(self, limit: int = 20) -> list[Detection]:

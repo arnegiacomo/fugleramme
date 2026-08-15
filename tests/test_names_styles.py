@@ -48,9 +48,9 @@ def test_an_empty_style_is_not_offered(tmp_path):
 def test_resolve_empty_or_stale_falls_back_to_the_first_present(tmp_path):
     _make(tmp_path, "classic", "turdus-merula")
     _make(tmp_path, "custom", "turdus-merula")
-    assert resolve("", tmp_path) == "classic"        # unset -> first present
-    assert resolve("ghost", tmp_path) == "classic"   # renamed away -> first present
-    assert resolve("custom", tmp_path) == "custom"   # honoured
+    assert resolve("", tmp_path) == "classic"  # unset -> first present
+    assert resolve("ghost", tmp_path) == "classic"  # renamed away -> first present
+    assert resolve("custom", tmp_path) == "custom"  # honoured
 
 
 def test_resolve_is_empty_with_no_artwork_at_all(tmp_path):
@@ -61,12 +61,12 @@ def test_variants_are_the_styles_own_numbered_files(tmp_path):
     _make(tmp_path, "classic", "turdus-merula", "turdus-merula-2", "turdus-merula-3")
     _make(tmp_path, "custom", "turdus-merula")
     assert [p.stem for p in variants_for("Turdus merula", tmp_path, "classic")] == [
-        "turdus-merula", "turdus-merula-2", "turdus-merula-3",
+        "turdus-merula",
+        "turdus-merula-2",
+        "turdus-merula-3",
     ]
     # No union across styles: only the active one is drawn from.
-    assert [p.stem for p in variants_for("Turdus merula", tmp_path, "custom")] == [
-        "turdus-merula"
-    ]
+    assert [p.stem for p in variants_for("Turdus merula", tmp_path, "custom")] == ["turdus-merula"]
     assert variants_for("Turdus merula", tmp_path, "") == []
 
 

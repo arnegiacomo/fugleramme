@@ -46,8 +46,10 @@ def _release(tag: str):
     ],
 )
 def test_only_newer_tags_count(latest, installed, expected):
-    with patch.object(updates, "__version__", installed), \
-         patch("urllib.request.urlopen", return_value=_ctx(_release(latest))):
+    with (
+        patch.object(updates, "__version__", installed),
+        patch("urllib.request.urlopen", return_value=_ctx(_release(latest))),
+    ):
         assert updates.available() == expected
 
 
@@ -81,8 +83,10 @@ def test_failed_check_retries_sooner_than_a_good_one():
 
 
 def test_auto_update_installs_and_signals_a_restart():
-    with patch.object(service.updates, "available", return_value="v0.2.0"), \
-         patch.object(service.updates, "apply") as apply:
+    with (
+        patch.object(service.updates, "available", return_value="v0.2.0"),
+        patch.object(service.updates, "apply") as apply,
+    ):
         status = Status()
         assert service._update(status, auto=False) is False
         assert status.update_available == "v0.2.0"
@@ -97,8 +101,13 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
     never exits from inside a request."""
     status = Status()
     handler = server.make_handler(
-        Database(tmp_path / "absent.db"), tmp_path, SettingsStore(tmp_path / "s.json"),
-        Picks(tmp_path / "artwork.json"), Featured(tmp_path / "featured.json"), None, status,
+        Database(tmp_path / "absent.db"),
+        tmp_path,
+        SettingsStore(tmp_path / "s.json"),
+        Picks(tmp_path / "artwork.json"),
+        Featured(tmp_path / "featured.json"),
+        None,
+        status,
     )
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
@@ -164,9 +173,16 @@ def test_git_progress_reaches_the_admin_page():
 
     seen = []
     updates._run(
-        [sys.executable, "-c", (r"import sys; sys.stderr.write("
-                                r"'Receiving objects:  45% (450/1000), 12.35 MiB | 3.40 MiB/s\rdone\n')")],
-        "Downloading", lambda phase, percent: seen.append((phase, percent)),
+        [
+            sys.executable,
+            "-c",
+            (
+                r"import sys; sys.stderr.write("
+                r"'Receiving objects:  45% (450/1000), 12.35 MiB | 3.40 MiB/s\rdone\n')"
+            ),
+        ],
+        "Downloading",
+        lambda phase, percent: seen.append((phase, percent)),
     )
     assert ("Receiving objects", 45) in seen
     assert seen[0] == ("Downloading", None)  # a phase is shown before any output
@@ -183,8 +199,10 @@ def test_stale_tags_are_pruned_through_the_patched_seam():
     """Every git call in apply() must go through _run. A tag delete issued straight
     to subprocess escapes this patch and deletes the tags of whoever runs the tests."""
     listing = subprocess.CompletedProcess([], 0, stdout="v0.1.0\nv0.2.0\nv0.3.0\n")
-    with patch.object(updates, "_run") as run, \
-         patch.object(updates.subprocess, "run", return_value=listing):
+    with (
+        patch.object(updates, "_run") as run,
+        patch.object(updates.subprocess, "run", return_value=listing),
+    ):
         updates.apply("v0.2.0")
     deletes = [c.args[0] for c in run.call_args_list if c.args[0][:2] == ["git", "tag"]]
     assert deletes == [["git", "tag", "--delete", "v0.1.0", "v0.3.0"]]
@@ -197,8 +215,10 @@ def _apply_calls():
 
 
 def test_a_failed_install_does_not_retry_every_tick():
-    with patch.object(service.updates, "available", return_value="v0.2.0"), \
-         patch.object(service.updates, "apply", side_effect=RuntimeError("dirty tree")) as apply:
+    with (
+        patch.object(service.updates, "available", return_value="v0.2.0"),
+        patch.object(service.updates, "apply", side_effect=RuntimeError("dirty tree")) as apply,
+    ):
         status = Status()
         assert service._update(status, auto=True) is False
         assert status.update_error == "dirty tree"

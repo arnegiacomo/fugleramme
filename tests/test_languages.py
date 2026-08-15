@@ -7,9 +7,9 @@ from __future__ import annotations
 import pytest
 
 from fugleramme import languages
-from fugleramme.web.admin import _language_select
 from fugleramme.languages import NONE, SCIENTIFIC, Namer, catalog, dictionary, namer, ordered
 from fugleramme.seed import seed_names
+from fugleramme.web.admin import _language_select
 
 # A slice of the real /api/v2/settings/locales: region variants, and "no" for
 # the dictionary's "nb".
@@ -69,7 +69,11 @@ def test_the_frames_own_languages_are_offered_first(monkeypatch, tmp_path):
     _api(monkeypatch, names={"nb": {}, "sv": {}, "en": {}, "pt": {}})
 
     assert [code for code, _name in ordered(catalog(tmp_path))] == [
-        SCIENTIFIC, "en", "nb", "pt", "sv",  # then alphabetical by display name
+        SCIENTIFIC,
+        "en",
+        "nb",
+        "pt",
+        "sv",  # then alphabetical by display name
     ]
 
 
@@ -165,7 +169,9 @@ def test_a_language_birdnet_go_is_not_serving_stays_selectable():
     # A stopped container must not silently reset the frame's saved language.
     offered = [(SCIENTIFIC, "Scientific")]
 
-    assert 'value="nb" selected>nb (unavailable)' in _language_select("primary_language", offered, "nb")
+    assert 'value="nb" selected>nb (unavailable)' in _language_select(
+        "primary_language", offered, "nb"
+    )
     assert 'value=""' not in _language_select("primary_language", offered, SCIENTIFIC)
     assert '<option value="" selected>None' in _language_select(
         "secondary_language", offered, NONE, optional=True

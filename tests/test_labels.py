@@ -59,8 +59,10 @@ def test_flat_label_has_no_intermediate_alpha():
 def test_panel_names_are_stamped_in_exact_palette_black():
     # Anything but exact black would be re-dithered into colour speckle.
     sprite = _Sprite(
-        Image.new("RGBA", (10, 10)), np.ones((10, 10), dtype=bool),
-        label=Image.new("L", (6, 4), 255), label_at=(2, 3),
+        Image.new("RGBA", (10, 10)),
+        np.ones((10, 10), dtype=bool),
+        label=Image.new("L", (6, 4), 255),
+        label_at=(2, 3),
     )
     for textured, expected in ((False, PANEL_INK), (True, INK)):
         canvas = Image.new("RGB", (20, 20), (255, 255, 255))
@@ -74,11 +76,11 @@ def test_a_second_language_stacks_centred_under_the_first():
     two = text_mask("Svarttrost\n(Turdus merula)", font, flat=True)
 
     assert two.height > one.height * 2  # two lines plus the leading between them
-    assert two.width > one.width       # the wider line sets the box
+    assert two.width > one.width  # the wider line sets the box
 
     rows = np.asarray(two).any(axis=1)
     inked = rows.nonzero()[0]
-    assert not rows[inked.min():inked.max()].all()  # blank rows separate the lines
+    assert not rows[inked.min() : inked.max()].all()  # blank rows separate the lines
     assert np.asarray(two).nonzero()[1].mean() == pytest.approx(two.width / 2, abs=2)
 
 
@@ -105,12 +107,14 @@ def test_label_reserves_space_in_the_footprint():
 def test_reserved_box_always_covers_the_drawn_label(label_width):
     # Rounding the two edges separately used to leave the mask a column short.
     sprite = _with_label(
-        Image.new("RGBA", (57, 20)), np.ones((20, 57), dtype=bool),
-        Image.new("L", (label_width, 8), 255), gap=3,
+        Image.new("RGBA", (57, 20)),
+        np.ones((20, 57), dtype=bool),
+        Image.new("L", (label_width, 8), 255),
+        gap=3,
     )
     lx, top = sprite.label_at
     assert lx >= 0 and lx + label_width <= sprite.mask.shape[1]
-    assert sprite.mask[top:top + 8, lx:lx + label_width].all()
+    assert sprite.mask[top : top + 8, lx : lx + label_width].all()
 
 
 def test_label_tucks_up_under_the_silhouette():
@@ -131,7 +135,9 @@ def test_label_centres_on_the_silhouette_not_the_bounding_box():
     art_mask = np.zeros((20, 100), dtype=bool)
     art_mask[:, :20] = True
     art_mask[8:12, 20:] = True
-    sprite = _with_label(Image.new("RGBA", (100, 20)), art_mask, Image.new("L", (10, 6), 255), gap=1)
+    sprite = _with_label(
+        Image.new("RGBA", (100, 20)), art_mask, Image.new("L", (10, 6), 255), gap=1
+    )
 
     lx, _top = sprite.label_at
     ax, _ay = sprite.art_at
@@ -151,8 +157,8 @@ def test_packing_never_overlaps_a_label():
     occupied = np.zeros((400, 400), dtype=bool)
     for sprite, x, y in placed:
         h, w = sprite.mask.shape
-        assert not (occupied[y:y + h, x:x + w] & sprite.mask).any()
-        occupied[y:y + h, x:x + w] |= sprite.mask
+        assert not (occupied[y : y + h, x : x + w] & sprite.mask).any()
+        occupied[y : y + h, x : x + w] |= sprite.mask
 
 
 def test_sprite_without_a_label_is_just_the_bird():
@@ -181,7 +187,10 @@ def test_a_page_too_full_to_name_still_draws_the_birds(tmp_path, caplog):
 
 def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog):
     page = render_collage(
-        _crowded(tmp_path, count=12), (700, 500), show_names=True, label_size="large",
+        _crowded(tmp_path, count=12),
+        (700, 500),
+        show_names=True,
+        label_size="large",
         textured=False,
     )
     assert (np.asarray(page) == PANEL_INK).all(axis=2).any()  # names made it onto the page
@@ -189,9 +198,7 @@ def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog)
 
 
 def test_nothing_is_drawn_against_the_page_edge(tmp_path):
-    page = render_collage(
-        _crowded(tmp_path, count=12), (700, 500), show_names=True, textured=False
-    )
+    page = render_collage(_crowded(tmp_path, count=12), (700, 500), show_names=True, textured=False)
     margin = round(min(page.size) * collage._MARGIN)
     band = np.asarray(page).copy()
     band[margin:-margin, margin:-margin] = TARGET_PAPER

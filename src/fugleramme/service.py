@@ -21,12 +21,10 @@ import time
 from . import __version__, buttons, modes, updates
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
-from .featured import FILENAME as FEATURED_FILE
-from .featured import Featured
+from .featured import FILENAME as FEATURED_FILE, Featured
 from .languages import namer
 from .panel import init_panel
-from .picks import FILENAME as PICKS_FILE
-from .picks import Picks
+from .picks import FILENAME as PICKS_FILE, Picks
 from .render.dither import dither
 from .settings import SettingsStore
 from .status import Status
@@ -78,8 +76,17 @@ def run(config: Config) -> None:
 
     server_thread = threading.Thread(
         target=serve,
-        args=(config.db_path, config.images_dir, config.host, config.port, store,
-              picks, featured, panel, status),
+        args=(
+            config.db_path,
+            config.images_dir,
+            config.host,
+            config.port,
+            store,
+            picks,
+            featured,
+            panel,
+            status,
+        ),
         daemon=True,
     )
     server_thread.start()
@@ -105,8 +112,15 @@ def run(config: Config) -> None:
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
         ctx = modes.context(
-            db, config.images_dir, picks, featured, settings, name_of, size,
-            textured=False, commit=True,
+            db,
+            config.images_dir,
+            picks,
+            featured,
+            settings,
+            name_of,
+            size,
+            textured=False,
+            commit=True,
         )
         key = (modes.state_key(ctx), settings.rotation)
         if key != last_key:

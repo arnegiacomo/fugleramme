@@ -76,7 +76,9 @@ class Featured:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_name(self.path.name + ".tmp")
         payload = {
-            "day": self._day, "name": self._name, "lap": self._lap,
+            "day": self._day,
+            "name": self._name,
+            "lap": self._lap,
             "shown": dict(sorted(self._shown.items())),
             "laps": dict(sorted(self._laps.items())),
         }

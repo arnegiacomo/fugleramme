@@ -19,10 +19,10 @@ from .paper import PAD, process_sprite
 
 DEFAULT_RESOLUTION = (1600, 1200)
 
-_MARGIN = 0.08     # page edge to content, fraction of the short side
+_MARGIN = 0.08  # page edge to content, fraction of the short side
 _NAME_SCALE = 1.8  # the name carries this page, unlike a label lost in a collage
 _NOTE_SCALE = 0.5
-_NAME_GAP = 0.5    # bird to name, em of the name
+_NAME_GAP = 0.5  # bird to name, em of the name
 _NOTE_GAP = 0.3
 
 
@@ -49,11 +49,16 @@ def render_plate(
     lines: list[tuple[Image.Image, int]] = []  # mask, gap above it
     if show_names and name:
         flat = not textured
-        lines.append((text_mask(name, fonts.load(font_key, name_px), flat),
-                      round(name_px * _NAME_GAP)))
+        lines.append(
+            (text_mask(name, fonts.load(font_key, name_px), flat), round(name_px * _NAME_GAP))
+        )
         if note:
-            lines.append((text_mask(note, fonts.load(font_key, round(name_px * _NOTE_SCALE)), flat),
-                          round(name_px * _NOTE_GAP)))
+            lines.append(
+                (
+                    text_mask(note, fonts.load(font_key, round(name_px * _NOTE_SCALE)), flat),
+                    round(name_px * _NOTE_GAP),
+                )
+            )
     caption = sum(mask.height + gap for mask, gap in lines)
 
     margin = round(min(width, height) * _MARGIN)

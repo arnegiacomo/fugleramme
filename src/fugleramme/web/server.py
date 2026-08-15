@@ -53,8 +53,13 @@ FILES = {
 
 
 def make_handler(
-    db: Database, images_dir: Path, store: SettingsStore, picks: Picks,
-    featured: Featured, panel: Panel | None, status: Status,
+    db: Database,
+    images_dir: Path,
+    store: SettingsStore,
+    picks: Picks,
+    featured: Featured,
+    panel: Panel | None,
+    status: Status,
 ):
     class Handler(BaseHTTPRequestHandler):
         timeout = REQUEST_TIMEOUT
@@ -100,7 +105,11 @@ def make_handler(
         def _context(self, settings: Settings) -> modes.Context:
             # commit stays False: the kiosk must never advance the bird of the day.
             return modes.context(
-                db, images_dir, picks, featured, settings,
+                db,
+                images_dir,
+                picks,
+                featured,
+                settings,
                 namer(settings.primary_language, settings.secondary_language, store.path.parent),
                 settings.web_size(),
             )
@@ -119,33 +128,52 @@ def make_handler(
         def _state(self):
             # Cheap enough to poll every second: one grouped query, no render.
             settings = store.get()
-            self._send(200, json.dumps({
-                "token": modes.token(modes.state_key(self._context(settings))),
-                "refresh": settings.kiosk_refresh_seconds,
-            }).encode(), JSON)
+            self._send(
+                200,
+                json.dumps(
+                    {
+                        "token": modes.token(modes.state_key(self._context(settings))),
+                        "refresh": settings.kiosk_refresh_seconds,
+                    }
+                ).encode(),
+                JSON,
+            )
 
         def _species(self):
             ctx = self._context(self._edited())
             rows = admin.subjects(ctx)
-            self._send(200, json.dumps(
-                {"count": len(rows), "html": admin.species_html(rows, ctx.namer)}
-            ).encode(), JSON)
+            self._send(
+                200,
+                json.dumps(
+                    {"count": len(rows), "html": admin.species_html(rows, ctx.namer)}
+                ).encode(),
+                JSON,
+            )
 
         def _admin(self):
             settings = store.get()
             html = admin.page(
-                self._context(settings), settings, status,
-                panel.resolution if panel else None, store.path.parent,
+                self._context(settings),
+                settings,
+                status,
+                panel.resolution if panel else None,
+                store.path.parent,
             )
             self._send(200, html.encode(), HTML)
 
         def _update(self):
-            self._send(200, json.dumps({
-                "updating": bool(status.updating or status.update_requested),
-                "version": __version__,
-                "phase": status.update_phase,
-                "percent": status.update_percent,
-            }).encode(), JSON)
+            self._send(
+                200,
+                json.dumps(
+                    {
+                        "updating": bool(status.updating or status.update_requested),
+                        "version": __version__,
+                        "phase": status.update_phase,
+                        "percent": status.update_percent,
+                    }
+                ).encode(),
+                JSON,
+            )
 
         def _health(self):
             self._send(200, b"ok", "text/plain")

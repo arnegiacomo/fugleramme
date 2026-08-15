@@ -24,21 +24,21 @@ PRIORITY = REPO / "scripts" / "bergen_species.txt"
 # Modern scientific names with no BirdNET v2.4 label - the artwork is kept but
 # can never be triggered, so it is exempt from the label check.
 EXCEPTIONS = {
-    "alle-alle",              # Little Auk / Dovekie
-    "branta-ruficollis",      # Red-breasted Goose
-    "polysticta-stelleri",    # Steller's Eider
-    "pagophila-eburnea",      # Ivory Gull
-    "gulosus-aristotelis",    # European Shag
-    "aquila-fasciata",        # Bonelli's Eagle
-    "bubo-ascalaphus",        # Pharaoh Eagle-Owl
-    "curruca-ruppeli",        # Rüppell's Warbler
-    "falco-biarmicus",        # Lanner Falcon
-    "falco-concolor",         # Sooty Falcon
-    "gypaetus-barbatus",      # Bearded Vulture
+    "alle-alle",  # Little Auk / Dovekie
+    "branta-ruficollis",  # Red-breasted Goose
+    "polysticta-stelleri",  # Steller's Eider
+    "pagophila-eburnea",  # Ivory Gull
+    "gulosus-aristotelis",  # European Shag
+    "aquila-fasciata",  # Bonelli's Eagle
+    "bubo-ascalaphus",  # Pharaoh Eagle-Owl
+    "curruca-ruppeli",  # Rüppell's Warbler
+    "falco-biarmicus",  # Lanner Falcon
+    "falco-concolor",  # Sooty Falcon
+    "gypaetus-barbatus",  # Bearded Vulture
     "neophron-percnopterus",  # Egyptian Vulture
     "numenius-tenuirostris",  # Slender-billed Curlew
-    "pelecanus-crispus",      # Dalmatian Pelican
-    "pinguinus-impennis",     # Great Auk (extinct)
+    "pelecanus-crispus",  # Dalmatian Pelican
+    "pinguinus-impennis",  # Great Auk (extinct)
 }
 
 
@@ -68,8 +68,7 @@ def test_every_artwork_name_is_a_birdnet_label_or_exception():
             continue
         unknown.append(png.name)
     assert not unknown, (
-        "artwork filenames not matching a BirdNET label or exception:\n"
-        + "\n".join(unknown)
+        "artwork filenames not matching a BirdNET label or exception:\n" + "\n".join(unknown)
     )
 
 

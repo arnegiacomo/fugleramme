@@ -34,9 +34,7 @@ class Picks:
             raw = json.loads(self.path.read_text())
         except (OSError, json.JSONDecodeError):
             raw = {}
-        self._held = {
-            k: v for k, v in raw.items() if isinstance(k, str) and isinstance(v, str)
-        }
+        self._held = {k: v for k, v in raw.items() if isinstance(k, str) and isinstance(v, str)}
 
     def choose(self, name: str, variants: list[Path]) -> Path | None:
         """The image this species is wearing. Held if it is still one of the

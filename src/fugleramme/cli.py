@@ -32,11 +32,15 @@ from .settings import SettingsStore
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="fugleramme-frame", description=__doc__)
     parser.add_argument(
-        "--images", type=Path, default=REPO_ROOT / "assets" / "birds",
+        "--images",
+        type=Path,
+        default=REPO_ROOT / "assets" / "birds",
         help="bird artwork directory",
     )
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
-    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="settings file (#2)")
+    parser.add_argument(
+        "--config", type=Path, default=DEFAULT_CONFIG_PATH, help="settings file (#2)"
+    )
     parser.add_argument(
         "--output", type=Path, default=Path("frame.png"), help="rendered frame path"
     )
@@ -63,13 +67,18 @@ def main(argv: list[str] | None = None) -> None:
         settings = SettingsStore(config.config_path).get()
         db = Database(config.db_path)
         data_dir = config.config_path.parent
-        name_of = namer(
-            settings.primary_language, settings.secondary_language, data_dir
-        )
-        modes.render(modes.context(
-            db, config.images_dir, Picks(data_dir / PICKS_FILE),
-            Featured(data_dir / FEATURED_FILE), settings, name_of, settings.web_size(),
-        )).save(args.preview)
+        name_of = namer(settings.primary_language, settings.secondary_language, data_dir)
+        modes.render(
+            modes.context(
+                db,
+                config.images_dir,
+                Picks(data_dir / PICKS_FILE),
+                Featured(data_dir / FEATURED_FILE),
+                settings,
+                name_of,
+                settings.web_size(),
+            )
+        ).save(args.preview)
         db.close()
         print(f"preview written to {args.preview}")
         return

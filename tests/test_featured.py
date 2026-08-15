@@ -33,7 +33,9 @@ def test_a_new_species_jumps_the_queue(tmp_path):
     walk = Featured(tmp_path / "featured.json")
     for day, _ in enumerate(BIRDS):
         walk.choose(day, BIRDS, commit=True)
-    assert _name(walk.choose(99, BIRDS + ["Erithacus rubecula"], commit=True)) == "Erithacus rubecula"
+    assert (
+        _name(walk.choose(99, BIRDS + ["Erithacus rubecula"], commit=True)) == "Erithacus rubecula"
+    )
 
 
 def test_the_pick_holds_all_day(tmp_path):

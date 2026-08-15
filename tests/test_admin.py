@@ -22,8 +22,12 @@ from fugleramme.web import STATIC_DIR, admin, server
 def _page(tmp_path, **overrides) -> str:
     settings = Settings(**overrides)
     ctx = modes.context(
-        Database(tmp_path / "absent.db"), tmp_path, Picks(tmp_path / "artwork.json"),
-        Featured(tmp_path / "featured.json"), settings, namer("sci", "", tmp_path),
+        Database(tmp_path / "absent.db"),
+        tmp_path,
+        Picks(tmp_path / "artwork.json"),
+        Featured(tmp_path / "featured.json"),
+        settings,
+        namer("sci", "", tmp_path),
         settings.web_size(),
     )
     return admin.page(ctx, settings, Status(), None, tmp_path)
@@ -43,9 +47,9 @@ def test_every_asset_the_page_links_is_one_the_server_serves(tmp_path):
 
 def test_the_config_blob_carries_everything_admin_js_reads(tmp_path):
     """The script is static, so this blob is its only channel from the frame."""
-    blob = re.search(
-        r'<script id="config"[^>]*>(.*?)</script>', _page(tmp_path), re.DOTALL
-    ).group(1)
+    blob = re.search(r'<script id="config"[^>]*>(.*?)</script>', _page(tmp_path), re.DOTALL).group(
+        1
+    )
     used = set(re.findall(r"\bcfg\.(\w+)", (STATIC_DIR / "admin.js").read_text()))
     assert used and used <= set(json.loads(blob))
 

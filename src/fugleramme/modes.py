@@ -111,14 +111,19 @@ class Mode:
     windowed: bool = False
 
 
-def _plate(
-    ctx: Context, name: str | None, note: str = "", art: Path | None = None
-) -> Image.Image:
+def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = None) -> Image.Image:
     if name and art is None:
         art = image_for(name, ctx.images_dir, ctx.style, ctx.picks)
     return render_plate(
-        art, ctx.namer.label(name) if name else "", note, ctx.resolution,
-        ctx.show_names, ctx.textured, ctx.font_key, ctx.label_size, ctx.perches(),
+        art,
+        ctx.namer.label(name) if name else "",
+        note,
+        ctx.resolution,
+        ctx.show_names,
+        ctx.textured,
+        ctx.font_key,
+        ctx.label_size,
+        ctx.perches(),
     )
 
 
@@ -140,8 +145,13 @@ def _collage_key(ctx: Context) -> tuple:
 def _collage(ctx: Context) -> Image.Image:
     return render_collage(
         gather_entries(ctx.db, ctx.images_dir, ctx.style, ctx.picks, ctx.lookback_hours),
-        ctx.resolution, ctx.show_names, ctx.textured, ctx.font_key, ctx.label_size,
-        ctx.namer.label, ctx.perches(),
+        ctx.resolution,
+        ctx.show_names,
+        ctx.textured,
+        ctx.font_key,
+        ctx.label_size,
+        ctx.namer.label,
+        ctx.perches(),
     )
 
 
@@ -171,7 +181,9 @@ def _of_the_day(ctx: Context) -> tuple[Species, int] | None:
     """Today's bird and its lap of the walk, drawn from the record as it stood at
     midnight so its tally is fixed for the day."""
     keys = ctx.drawable()
-    entries = [s for s in ctx.db.life_list(until=_midnight()) if normalize(s.scientific_name) in keys]
+    entries = [
+        s for s in ctx.db.life_list(until=_midnight()) if normalize(s.scientific_name) in keys
+    ]
     chosen = ctx.featured.choose(
         day_ordinal(), [s.scientific_name for s in entries], commit=ctx.commit
     )
@@ -197,7 +209,9 @@ def _daily_page(ctx: Context) -> Image.Image:
     variants = variants_for(species.scientific_name, ctx.images_dir, ctx.style)
     heard = "Heard once" if species.count == 1 else f"Heard {species.count} times"
     return _plate(
-        ctx, species.scientific_name, f"{heard} · first {_date(species.first_seen)}",
+        ctx,
+        species.scientific_name,
+        f"{heard} · first {_date(species.first_seen)}",
         art=variants[lap % len(variants)],
     )
 
@@ -239,11 +253,15 @@ def _collage_subjects(ctx: Context) -> list[str]:
 MODES: dict[str, Mode] = {
     "collage": Mode("Collage (default)", _collage, _collage_key, _collage_subjects, windowed=True),
     "latest": Mode(
-        "Latest bird", _latest_page, _latest_key,
+        "Latest bird",
+        _latest_page,
+        _latest_key,
         lambda ctx: [d.scientific_name] if (d := _latest(ctx)) else [],
     ),
     "daily": Mode(
-        "Bird of the day", _daily_page, _daily_key,
+        "Bird of the day",
+        _daily_page,
+        _daily_key,
         lambda ctx: _one(today[0] if (today := _of_the_day(ctx)) else None),
     ),
     "arrival": Mode("Newest arrival", _arrival_page, _arrival_key, lambda ctx: _one(_arrival(ctx))),
@@ -261,8 +279,14 @@ def state_key(ctx: Context) -> tuple:
     kiosk polls to know the picture changed."""
     mode = mode_of(ctx.mode)
     return (
-        ctx.mode, ctx.style, ctx.resolution, ctx.show_names, ctx.font_key,
-        ctx.label_size, ctx.namer.key, mode.key(ctx),
+        ctx.mode,
+        ctx.style,
+        ctx.resolution,
+        ctx.show_names,
+        ctx.font_key,
+        ctx.label_size,
+        ctx.namer.key,
+        mode.key(ctx),
     )
 
 

@@ -63,6 +63,10 @@ def _pin_weight(font: ImageFont.FreeTypeFont) -> None:
     values = []
     for axis in axes:
         name = axis["name"]
-        want = 400 if (name.decode() if isinstance(name, bytes) else name) == "Weight" else axis["default"]
+        want = (
+            400
+            if (name.decode() if isinstance(name, bytes) else name) == "Weight"
+            else axis["default"]
+        )
         values.append(max(axis["minimum"], min(axis["maximum"], want)))
     font.set_variation_by_axes(values)

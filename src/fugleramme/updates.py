@@ -71,12 +71,14 @@ def available(force: bool = False) -> str | None:
 def apply(tag: str, progress: Progress | None = None) -> None:
     """Move the checkout onto `tag`. Raises on failure; the caller exits on success."""
     # One tag, shallow: a full fetch would pull every past version of the artwork.
-    _run(["git", "fetch", "--progress", "--depth", "1", REPO_HTTPS_URL, "tag", tag, "--force"],
-         "Downloading", progress)
+    _run(
+        ["git", "fetch", "--progress", "--depth", "1", REPO_HTTPS_URL, "tag", tag, "--force"],
+        "Downloading",
+        progress,
+    )
     # --force: `uv sync` rewrites uv.lock in place, and a plain checkout refuses to
     # run against that. Only tracked files are discarded; data/ and config are ignored.
-    _run(["git", "checkout", "--progress", "--force", "--detach", tag],
-         "Checking out", progress)
+    _run(["git", "checkout", "--progress", "--force", "--detach", tag], "Checking out", progress)
     _drop_stale_tags(tag, progress)
     try:
         _run([_uv(), "sync", "--extra", "panel"], "Installing dependencies", progress)
@@ -91,7 +93,12 @@ def _drop_stale_tags(keep: str, progress: Progress | None = None) -> None:
     `_run` like every other git call here - reaching for subprocess directly puts
     it outside the seam the tests patch, and it deletes the developer's own tags."""
     listed = subprocess.run(
-        ["git", "tag", "--list"], cwd=REPO_ROOT, capture_output=True, text=True, env=_env(), check=False,
+        ["git", "tag", "--list"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        env=_env(),
+        check=False,
     ).stdout.split()
     if stale := [t for t in listed if t != keep]:
         _run(["git", "tag", "--delete", *stale], "Tidying up", progress)
@@ -101,8 +108,12 @@ def _run(cmd: list[str], phase: str, progress: Progress | None = None) -> None:
     if progress:
         progress(phase, None)
     proc = subprocess.Popen(
-        cmd, cwd=REPO_ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
-        text=True, env=_env(),
+        cmd,
+        cwd=REPO_ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=_env(),
     )
     stderr = proc.stderr
     assert stderr is not None  # stderr=PIPE
@@ -133,7 +144,9 @@ def _run(cmd: list[str], phase: str, progress: Progress | None = None) -> None:
         except subprocess.TimeoutExpired:
             if time.monotonic() - last > _STALL_SECONDS:
                 proc.kill()
-                raise RuntimeError(f"{cmd[0]} {cmd[1]}: no progress for {_STALL_SECONDS}s") from None
+                raise RuntimeError(
+                    f"{cmd[0]} {cmd[1]}: no progress for {_STALL_SECONDS}s"
+                ) from None
     reader.join(timeout=5)
     if code:
         raise RuntimeError(f"{cmd[0]} {cmd[1]}: {fatal or tail or code}")

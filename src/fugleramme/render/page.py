@@ -17,12 +17,12 @@ from . import fonts
 from .paper import TARGET_PAPER, paper_texture, process_sprite
 
 INK = (30, 30, 30)
-PANEL_INK = (0, 0, 0)   # exact palette black: the dither leaves it alone
+PANEL_INK = (0, 0, 0)  # exact palette black: the dither leaves it alone
 
 MIN_LABEL_PX = 11
-_CUTOFF = 110        # alpha threshold when flattening text for the panel
+_CUTOFF = 110  # alpha threshold when flattening text for the panel
 _LINE_SPACING = 0.1  # extra leading between a label's two lines, em
-_PERCH_FILL = 0.7    # of the page's short side
+_PERCH_FILL = 0.7  # of the page's short side
 
 
 def label_px(width: int, height: int, size_key: str) -> int:
@@ -40,7 +40,8 @@ def fit(img: Image.Image, box: tuple[int, int]) -> Image.Image:
     """Scale to fit inside `box`, keeping the aspect."""
     scale = min(box[0] / img.width, box[1] / img.height)
     return img.resize(
-        (max(1, round(img.width * scale)), max(1, round(img.height * scale))), Image.Resampling.LANCZOS
+        (max(1, round(img.width * scale)), max(1, round(img.height * scale))),
+        Image.Resampling.LANCZOS,
     )
 
 
