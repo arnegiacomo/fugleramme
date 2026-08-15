@@ -8,6 +8,13 @@ on:
       - hooks/**
       - mkdocs.yml
       - .github/workflows/docs.yml
+  # Build on the PR too, so a broken link fails before it is deployed.
+  pull_request:
+    paths:
+      - docs/**
+      - hooks/**
+      - mkdocs.yml
+      - .github/workflows/docs.yml
   workflow_dispatch:
 
 permissions:
@@ -16,7 +23,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
 
 jobs:
   build:
@@ -32,6 +39,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'  # a PR proves the build, main publishes it
     runs-on: ubuntu-latest
     environment:
       name: github-pages

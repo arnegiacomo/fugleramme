@@ -46,6 +46,28 @@ match = "main"
 [tool.semantic_release.changelog]
 exclude_commit_patterns = ["^chore: release v"]
 
+[tool.ruff]
+line-length = 100  # what the code was already written to; 88 would rewrap a third of it
+extend-exclude = ["scripts"]  # gitignored, workstation-only
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B", "C4"]
+isort.combine-as-imports = true  # one line per module, aliases and all
+# A missing panel or button chip degrades to web-only rather than raising, and the
+# frame's day is the local one.
+ignore = ["BLE001", "DTZ011"]
+
+# Only the app and the docs hook: the tests would need a round of `assert x is not
+# None` to say what a failing assert already says.
+[tool.mypy]
+python_version = "3.12"
+files = ["src/fugleramme", "hooks"]
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["inky.*", "gpiod.*", "gpiodevice.*"]  # Pi-only, no stubs
+ignore_missing_imports = true
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -55,7 +77,9 @@ packages = ["src/fugleramme"]
 
 [dependency-groups]
 dev = [
+    "mypy>=1.15",
     "pytest>=8.0",
+    "ruff>=0.14",
     "watchfiles>=0.24",
 ]
 # Not in the default groups, so `uv sync` on the Pi stays lean. CI and

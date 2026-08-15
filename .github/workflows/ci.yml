@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      # --locked fails on a lock that has drifted from pyproject.toml. The next
+      # `uv sync` would rewrite it anyway, and the dirty file then blocks the
+      # self-update's checkout - better to hear about it here.
+      - run: uv sync --locked
+      # No paths: ruff reads its own excludes, mypy its own file list.
+      - run: uv run ruff format --check
+      - run: uv run ruff check
+      - run: uv run mypy
+      - run: uv run pytest -q
+      # The panel extra is Pi-only, so nothing here touches inky, gpiod or SPI.
+
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # install.sh is curl'able and neither script is reachable from pytest.
+      - run: shellcheck install.sh run.sh
