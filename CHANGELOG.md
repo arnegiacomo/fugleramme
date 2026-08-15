@@ -2,6 +2,43 @@
 
 <!-- version list -->
 
+## v0.12.5 (2026-08-15)
+
+### Bug Fixes
+
+- #1 hold the collage when a bird already on it calls again
+  ([`2c76e31`](https://github.com/arnegiacomo/fugleramme/commit/2c76e3115da9684191b455bb234c91a206f081af))
+
+- Increase margin 0.03 -> 0.04
+  ([`eb1ea66`](https://github.com/arnegiacomo/fugleramme/commit/eb1ea666dbea6a7b3775f4298355a3afe1079cf5))
+
+### Chores
+
+- Use the datetime.UTC alias throughout
+  ([`91b523f`](https://github.com/arnegiacomo/fugleramme/commit/91b523f71a05b1fbf1b0ac0a218d640e149a20d5))
+
+### Documentation
+
+- #2 note the web page split in CLAUDE.md
+  ([`cefb1c5`](https://github.com/arnegiacomo/fugleramme/commit/cefb1c5dd8bc4ff8f76ebe00d02b6599b8396962))
+
+- Repoint changelog links after the history rewrite
+  ([`474816f`](https://github.com/arnegiacomo/fugleramme/commit/474816fc3f1a6c5201d65c9ef904163e352518ac))
+
+### Refactoring
+
+- #1 split the render and web modules into packages
+  ([`c3a4eae`](https://github.com/arnegiacomo/fugleramme/commit/c3a4eaedbdddba8ff8b07f16afc0afdc1d045fcf))
+
+- #2 split the admin page out of the http server
+  ([`292b757`](https://github.com/arnegiacomo/fugleramme/commit/292b7578e96e8bb9b2c87d2c436350d84076347d))
+
+### Testing
+
+- #2 cover the admin page and the server's routes
+  ([`ee4a54c`](https://github.com/arnegiacomo/fugleramme/commit/ee4a54ce5ebeb1d7aee725fdde79db6f92c3904b))
+
+
 ## v0.12.4 (2026-08-13)
 
 ### Bug Fixes
