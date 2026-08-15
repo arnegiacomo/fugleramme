@@ -34,10 +34,10 @@ def paper_texture(width: int, height: int, base=TARGET_PAPER, seed: int = 0) -> 
     """
     rng = np.random.default_rng(seed)
     fine = _fine_grain((height, width), rng)
-    mottle = rng.normal(0, 1.4, (height // 16 + 1, width // 16 + 1))
+    coarse = rng.normal(0, 1.4, (height // 16 + 1, width // 16 + 1))
     mottle = np.asarray(
-        Image.fromarray((mottle + 128).clip(0, 255).astype(np.uint8))
-        .resize((width, height), Image.BICUBIC)
+        Image.fromarray((coarse + 128).clip(0, 255).astype(np.uint8))
+        .resize((width, height), Image.Resampling.BICUBIC)
     ).astype(np.float32) - 128
     noise = fine + mottle
     tex = np.clip(np.array(base)[None, None, :] + noise[..., None], 0, 255).astype(np.uint8)

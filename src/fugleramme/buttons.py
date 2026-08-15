@@ -91,7 +91,7 @@ def watch(driver: str, store: SettingsStore, images_dir: Path) -> None:
         log.warning("Buttons unavailable (%s); running without them", exc)
         return
 
-    log.info("Buttons ready: %s", dict(zip(LABELS, pins)))
+    log.info("Buttons ready: %s", dict(zip(LABELS, pins, strict=True)))
     while True:
         for event in request.read_edge_events():
             label = LABELS[offsets.index(event.line_offset)]

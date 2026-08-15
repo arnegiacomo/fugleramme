@@ -120,7 +120,7 @@ def run(config: Config) -> None:
             status.rendered()
             last_key = key
             pending = (panel_image, settings.rotation) if panel is not None else None
-        if pending is not None:
+        if panel is not None and pending is not None:
             try:
                 panel.push(*pending)
                 pending = None

@@ -35,7 +35,7 @@ def form_changes(form: dict[str, list[str]]) -> dict:
     and everything else missing keeps its saved value. Without that declaration
     the System form, which has no `show_names`, would read as switching names
     off. settings._coerce validates the rest."""
-    changes = {k: v[0] for k, v in form.items() if k != CHECKBOXES}
+    changes: dict[str, str | bool] = {k: v[0] for k, v in form.items() if k != CHECKBOXES}
     for field in form.get(CHECKBOXES, [""])[0].split():
         changes[field] = field in form
     return changes

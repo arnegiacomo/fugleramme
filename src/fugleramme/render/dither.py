@@ -27,8 +27,8 @@ _SATURATED = [(0, 0, 0), (161, 164, 165), (208, 190, 71), (156, 72, 75), (61, 59
 SATURATION = 0.5
 
 PALETTE_6 = [
-    tuple(int(s * SATURATION + d * (1.0 - SATURATION)) for s, d in zip(sat, desat))
-    for sat, desat in zip(_SATURATED, _DESATURATED)
+    tuple(int(s * SATURATION + d * (1.0 - SATURATION)) for s, d in zip(sat, desat, strict=True))
+    for sat, desat in zip(_SATURATED, _DESATURATED, strict=True)
 ]
 
 

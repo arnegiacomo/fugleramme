@@ -33,7 +33,7 @@ def test_a_walks_the_modes_and_wraps(images_dir):
 
 
 def test_a_restarts_the_walk_from_an_unknown_mode(images_dir):
-    assert changes_for("A", Settings(mode="gone"), images_dir) == {"mode": list(MODES)[0]}
+    assert changes_for("A", Settings(mode="gone"), images_dir) == {"mode": next(iter(MODES))}
 
 
 def test_b_toggles_names(images_dir):

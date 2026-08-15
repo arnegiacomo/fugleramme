@@ -91,7 +91,7 @@ def _drop_stale_tags(keep: str, progress: Progress | None = None) -> None:
     `_run` like every other git call here - reaching for subprocess directly puts
     it outside the seam the tests patch, and it deletes the developer's own tags."""
     listed = subprocess.run(
-        ["git", "tag", "--list"], cwd=REPO_ROOT, capture_output=True, text=True, env=_env(),
+        ["git", "tag", "--list"], cwd=REPO_ROOT, capture_output=True, text=True, env=_env(), check=False,
     ).stdout.split()
     if stale := [t for t in listed if t != keep]:
         _run(["git", "tag", "--delete", *stale], "Tidying up", progress)
@@ -104,11 +104,13 @@ def _run(cmd: list[str], phase: str, progress: Progress | None = None) -> None:
         cmd, cwd=REPO_ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
         text=True, env=_env(),
     )
+    stderr = proc.stderr
+    assert stderr is not None  # stderr=PIPE
     last, tail, fatal = time.monotonic(), "", ""
 
     def pump() -> None:
         nonlocal last, tail, fatal
-        for line in proc.stderr:  # git separates progress with \r, a line ending in text mode
+        for line in stderr:  # git separates progress with \r, a line ending in text mode
             last, line = time.monotonic(), line.strip()
             if not line:
                 continue
@@ -131,7 +133,7 @@ def _run(cmd: list[str], phase: str, progress: Progress | None = None) -> None:
         except subprocess.TimeoutExpired:
             if time.monotonic() - last > _STALL_SECONDS:
                 proc.kill()
-                raise RuntimeError(f"{cmd[0]} {cmd[1]}: no progress for {_STALL_SECONDS}s")
+                raise RuntimeError(f"{cmd[0]} {cmd[1]}: no progress for {_STALL_SECONDS}s") from None
     reader.join(timeout=5)
     if code:
         raise RuntimeError(f"{cmd[0]} {cmd[1]}: {fatal or tail or code}")

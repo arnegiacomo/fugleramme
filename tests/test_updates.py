@@ -164,8 +164,8 @@ def test_git_progress_reaches_the_admin_page():
 
     seen = []
     updates._run(
-        [sys.executable, "-c", r"import sys; sys.stderr.write("
-         r"'Receiving objects:  45% (450/1000), 12.35 MiB | 3.40 MiB/s\rdone\n')"],
+        [sys.executable, "-c", (r"import sys; sys.stderr.write("
+                                r"'Receiving objects:  45% (450/1000), 12.35 MiB | 3.40 MiB/s\rdone\n')")],
         "Downloading", lambda phase, percent: seen.append((phase, percent)),
     )
     assert ("Receiving objects", 45) in seen

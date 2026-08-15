@@ -40,7 +40,7 @@ def fit(img: Image.Image, box: tuple[int, int]) -> Image.Image:
     """Scale to fit inside `box`, keeping the aspect."""
     scale = min(box[0] / img.width, box[1] / img.height)
     return img.resize(
-        (max(1, round(img.width * scale)), max(1, round(img.height * scale))), Image.LANCZOS
+        (max(1, round(img.width * scale)), max(1, round(img.height * scale))), Image.Resampling.LANCZOS
     )
 
 
@@ -86,7 +86,7 @@ def draw_perch(
         return
     perch = trim(perches[day % len(perches)])
     if (day // len(perches)) % 2:  # mirrored on the second lap, so it cycles twice as far
-        perch = perch.transpose(Image.FLIP_LEFT_RIGHT)
+        perch = perch.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     target = int(min(canvas.width, canvas.height) * _PERCH_FILL)
     proc = process_sprite(fit(perch, (target, target)), textured=textured)
     canvas.paste(proc, ((canvas.width - proc.width) // 2, (canvas.height - proc.height) // 2), proc)

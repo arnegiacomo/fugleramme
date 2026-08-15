@@ -11,6 +11,8 @@ assets/fonts/ with their licences.
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 from PIL import ImageFont
 
 from ..config import REPO_ROOT
@@ -54,7 +56,8 @@ def _pin_weight(font: ImageFont.FreeTypeFont) -> None:
     """Pillow instantiates a variable font at each axis's minimum, which would
     draw Bitter as Thin."""
     try:
-        axes = font.get_variation_axes()
+        # Pillow's Axis marks every field optional; FreeType fills them.
+        axes = cast(list[dict[str, Any]], font.get_variation_axes())
     except OSError:
         return  # static font
     values = []

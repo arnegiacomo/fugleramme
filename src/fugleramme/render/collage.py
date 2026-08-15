@@ -72,10 +72,10 @@ def _scaled_sprite(
     if scale != 1.0:
         img = img.resize(
             (max(1, round(img.width * scale)), max(1, round(img.height * scale))),
-            Image.LANCZOS,
+            Image.Resampling.LANCZOS,
         )
     if flip:
-        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     mask = img.getchannel("A").point(lambda a: 255 if a > _ALPHA_CUTOFF else 0)
     if _OVERLAP_PX:
         mask = mask.filter(ImageFilter.MinFilter(_OVERLAP_PX * 2 + 1))

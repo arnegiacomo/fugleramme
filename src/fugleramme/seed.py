@@ -133,7 +133,9 @@ def seed_names(cache_dir: Path, force: bool = False) -> list[str]:
     Existing files are kept unless forced - a fetched cache is the better copy.
     """
     written = []
-    files = {"languages": {"languages": {code: display for code, (display, _) in NAMES.items()}}}
+    files: dict[str, dict] = {
+        "languages": {"languages": {code: display for code, (display, _) in NAMES.items()}}
+    }
     files |= {code: {"etag": "", "names": names} for code, (_, names) in NAMES.items()}
     for name, payload in files.items():
         path = cache_path(cache_dir, name)
