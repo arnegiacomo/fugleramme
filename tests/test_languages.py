@@ -9,7 +9,7 @@ import pytest
 from fugleramme import languages
 from fugleramme.languages import NONE, SCIENTIFIC, Namer, catalog, dictionary, namer, ordered
 from fugleramme.seed import seed_names
-from fugleramme.server import _language_select
+from fugleramme.admin import _language_select
 
 # A slice of the real /api/v2/settings/locales: region variants, and "no" for
 # the dictionary's "nb".

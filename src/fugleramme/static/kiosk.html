@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fugleramme</title>
+<!-- Inline: one page, no reuse, and no two extra round trips to come up. -->
+<style>
+  html, body { margin: 0; height: 100%; background: #faf9f6; }
+  body { display: flex; align-items: center; justify-content: center; }
+  img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+</style>
+</head>
+<body>
+<img id="collage" src="/collage.png" alt="Birds seen recently">
+<script>
+  // The interval comes from /state: without a reload, nothing else picks up an
+  // admin change. The seed only ever applies if that first fetch fails.
+  let token = null, delay = 3;
+  async function tick() {
+    try {
+      const state = await (await fetch("/state", {cache: "no-store"})).json();
+      delay = state.refresh;
+      if (state.token !== token) {
+        token = state.token;
+        const next = new Image();  // decode before swapping, so the frame never blanks
+        next.onload = () => { document.getElementById("collage").src = next.src; };
+        next.src = "/collage.png?v=" + encodeURIComponent(token);
+      }
+    } catch (e) {}  // transient: retry next tick
+    setTimeout(tick, delay * 1000);
+  }
+  tick();
+</script>
+</body>
+</html>
