@@ -21,6 +21,8 @@ illustration, background-removed, and packed onto a textured paper page - larger
 birds toward the centre, sized by real body mass. Species with no illustration
 are currently left off, and an empty window shows a bare perch.
 
+Half the point of this project is showing off some amazing public-domain natural-history illustrations: every bird is cut from a real plate, no art is AI-generated (though some has been retouched with AI).
+
 | No detections | A few visitors | A full garden |
 | :---: | :---: | :---: |
 | ![No birds detected](docs/assets/empty.png) | ![A few garden birds](docs/assets/few.png) | ![Many garden birds](docs/assets/many.png) |
