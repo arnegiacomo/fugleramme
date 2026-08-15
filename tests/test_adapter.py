@@ -4,7 +4,7 @@ epoch->UTC, joining species names, filtering non-species, and windowing to 24h."
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fugleramme.db import Database
 
@@ -44,7 +44,7 @@ def test_join_epoch_and_species_filter(tmp_path):
     assert {d.scientific_name for d in recent} == {"Turdus merula", "Parus major"}
     parus = next(d for d in recent if d.scientific_name == "Parus major")
     assert parus.clip_path == "clip.wav"
-    assert parus.detected_at == datetime.fromtimestamp(1_752_573_630, tz=timezone.utc)
+    assert parus.detected_at == datetime.fromtimestamp(1_752_573_630, tz=UTC)
 
     stats = db.stats()
     assert stats["total"] == 2          # noise excluded
@@ -53,7 +53,7 @@ def test_join_epoch_and_species_filter(tmp_path):
 
 
 def test_species_since_window(tmp_path):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     recent_epoch = int((now - timedelta(hours=1)).timestamp())
     stale_epoch = int((now - timedelta(hours=30)).timestamp())
     db_path = tmp_path / "birdnet.db"
@@ -74,7 +74,7 @@ def test_species_since_window(tmp_path):
 def test_false_positive_review_excluded(tmp_path):
     """A detection marked "incorrect" in BirdNET-Go (verified='false_positive')
     is dropped everywhere; 'correct' and unreviewed detections are kept."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     epoch = int((now - timedelta(hours=1)).timestamp())
     db_path = tmp_path / "birdnet.db"
     _birdnet_db(
@@ -109,7 +109,7 @@ def test_missing_db_reads_empty(tmp_path):
 def test_all_time_is_not_a_window(tmp_path):
     """lookback_hours 0 drops the time predicate entirely, so the collage keeps
     every species the detector has ever heard."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     db_path = tmp_path / "birdnet.db"
     _birdnet_db(db_path, [
         (1, 10, int((now - timedelta(hours=1)).timestamp()), 0.9, None),

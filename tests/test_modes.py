@@ -5,7 +5,7 @@ would freeze the frame."""
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import numpy as np
 import pytest
@@ -18,7 +18,7 @@ from fugleramme.languages import namer
 from fugleramme.picks import Picks
 from fugleramme.settings import Settings
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def _db(path, detections):

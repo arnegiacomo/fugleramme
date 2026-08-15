@@ -11,7 +11,7 @@ from __future__ import annotations
 import sqlite3
 import threading
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 # Keep real species only, and drop detections the user marked incorrect in
@@ -46,7 +46,7 @@ class Species:
 def _row_to_detection(row: sqlite3.Row) -> Detection:
     return Detection(
         id=row["id"],
-        detected_at=datetime.fromtimestamp(row["detected_at"], tz=timezone.utc),
+        detected_at=datetime.fromtimestamp(row["detected_at"], tz=UTC),
         scientific_name=row["scientific_name"],
         confidence=row["confidence"],
         clip_path=row["clip_name"] or None,
@@ -54,7 +54,7 @@ def _row_to_detection(row: sqlite3.Row) -> Detection:
 
 
 def _epoch_hours_ago(hours: int) -> int:
-    return int((datetime.now(timezone.utc) - timedelta(hours=hours)).timestamp())
+    return int((datetime.now(UTC) - timedelta(hours=hours)).timestamp())
 
 
 class Database:
@@ -139,7 +139,7 @@ class Database:
             Species(
                 scientific_name=r["scientific_name"],
                 count=r["n"],
-                first_seen=datetime.fromtimestamp(r["first"], tz=timezone.utc),
+                first_seen=datetime.fromtimestamp(r["first"], tz=UTC),
             )
             for r in rows
         ]

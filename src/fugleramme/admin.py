@@ -7,7 +7,7 @@ template's slots. Pure string builders, so none of it needs a server to test.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from string import Template
 
@@ -97,7 +97,7 @@ def _duration(seconds: int) -> str:
 
 
 def _ago(dt: datetime) -> str:
-    return f"{_duration(int((datetime.now(timezone.utc) - dt).total_seconds()))} ago"
+    return f"{_duration(int((datetime.now(UTC) - dt).total_seconds()))} ago"
 
 
 def _stamp(dt: datetime) -> str:

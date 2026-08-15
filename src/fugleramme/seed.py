@@ -16,7 +16,7 @@ import argparse
 import json
 import random
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .config import DEFAULT_CONFIG_PATH, DEFAULT_DB_PATH
@@ -100,7 +100,7 @@ def seed(path: Path, count: int) -> int:
                 (i, name),
             )
             label_id[name] = i
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for i in range(count):
             name = random.choice(SPECIES)
             when = int((now - timedelta(minutes=i * 7)).timestamp())
