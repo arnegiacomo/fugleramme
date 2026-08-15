@@ -1,0 +1,5 @@
+# Revisions to skip when reading blame: formatter output, no behaviour change.
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# chore: apply ruff format
+dc4cd59188e9164f7011d124f42706b944f68639
