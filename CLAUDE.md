@@ -9,7 +9,6 @@ Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-
 ## Commands
 
 ```bash
-uv sync                                     # create/refresh the venv from the lockfile
 uv run fugleramme-frame                     # run the service: render loop + kiosk on 0.0.0.0:8080
 uv run fugleramme-dev                       # same, auto-restart on source change
 uv run fugleramme-frame --preview out.png   # render the collage once and exit, no server/panel
@@ -17,8 +16,6 @@ uv run python -m fugleramme.seed --count 40 # BirdNET-Go-shaped fixtures: detect
 uv run python scripts/curate.py             # workstation only: contact sheet on :8081
 ./install.sh                                # Pi only: one-time bootstrap (curl'able; deps, clone, gadget, reboot)
 ./run.sh                                    # Pi only: converge an existing checkout (BirdNET-Go + services)
-uv run pytest -q                            # run tests
-uv run pytest tests/test_artwork_names.py   # run a single test file
 ```
 
 **Settings are runtime, flags are launch-only.** Kiosk resolution, rotation, lookback, kiosk refresh, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The flags are `--db`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`. The panel's own size is never a setting.
@@ -102,15 +99,6 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 - Commit types drive releases: python-semantic-release tags every push to `main` carrying a `feat` (minor) or `fix`/`perf` (patch), bumps `pyproject.toml` + `__init__.py`, and writes `CHANGELOG.md`
 - `uv.lock` carries the project's version, so the release commit must re-lock it - a stale lock gets rewritten by the next `uv sync`, and the dirty file then blocks the self-update's checkout
 - That's why `updates.apply` checks out with `--force`: it discards tracked files only, and everything the Pi owns (`detector/data`, `detector/config/config.yaml`, `detector/.env`, `frame.png`) is gitignored. Committing a currently-ignored per-Pi path would put it in the blast radius
-
-## Working style
-
-- When uncertain about the right approach, ask rather than assume
-- Prefer less code over more - simplicity is a feature
-- Comments are for non-trivial decisions or genuinely non-obvious logic, not for narrating what the code does
-- When reviewing, be strict and objective
-- Surface doubts rather than push through them
-- This is a learning project - briefly explain the reasoning behind non-obvious decisions, and go deeper when asked
 
 ## Docs
 
