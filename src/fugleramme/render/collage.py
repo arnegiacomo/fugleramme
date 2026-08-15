@@ -50,7 +50,7 @@ from .sizes import SIZE_EXPONENT, mass_of
 log = logging.getLogger(__name__)
 
 DEFAULT_RESOLUTION = (1280, 800)
-_MARGIN = 0.03   # page edge to content on short side. Hardcoded now, maybe add configurability?
+_MARGIN = 0.04   # page edge to content on short side. Hardcoded now, maybe add configurability?
 _MAX_BIRDS = 40  # keeps the render quick, not the page tidy
 _ALPHA_CUTOFF = 24
 _OVERLAP_PX = 2        # erode the collision mask slightly so birds nestle into
