@@ -11,14 +11,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from string import Template
 
-from . import __version__, hostinfo, modes
-from .config import BIRDNET_PORT, DOCS_URL, STATIC_DIR, WEB_RESOLUTIONS
-from .fonts import FONTS, LABEL_SIZES
-from .languages import NONE, Namer, catalog, ordered
-from .modes import MODES
-from .names import available_styles, image_for, source_of
-from .settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, lookback_order
-from .status import Status
+from .. import __version__, modes
+from ..config import BIRDNET_PORT, DOCS_URL, WEB_RESOLUTIONS
+from ..languages import NONE, Namer, catalog, ordered
+from ..modes import MODES
+from ..names import available_styles, image_for, source_of
+from ..render.fonts import FONTS, LABEL_SIZES
+from ..settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, lookback_order
+from ..status import Status
+from . import STATIC_DIR, hostinfo
 
 CHECKBOXES = "checkboxes"  # hidden field naming the checkboxes a form carries
 

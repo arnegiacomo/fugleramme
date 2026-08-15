@@ -26,15 +26,15 @@ from pathlib import Path
 from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 
-from . import __version__, admin, modes, updates
-from .config import STATIC_DIR
-from .db import Database
-from .featured import Featured
-from .languages import namer
-from .panel import Panel
-from .picks import Picks
-from .settings import Settings, SettingsStore, merged
-from .status import Status
+from .. import __version__, modes, updates
+from ..db import Database
+from ..featured import Featured
+from ..languages import namer
+from ..panel import Panel
+from ..picks import Picks
+from ..settings import Settings, SettingsStore, merged
+from ..status import Status
+from . import STATIC_DIR, admin
 
 log = logging.getLogger(__name__)
 

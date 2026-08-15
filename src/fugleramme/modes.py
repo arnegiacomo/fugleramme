@@ -24,14 +24,14 @@ from typing import TYPE_CHECKING
 
 from PIL import Image
 
-from .collage import gather_entries, render_collage
 from .db import Database, Species
 from .featured import Featured
 from .languages import Namer
 from .names import drawable_keys, image_for, normalize, perches_for, resolve, variants_for
-from .page import day_ordinal
 from .picks import Picks
-from .plate import render_plate
+from .render.collage import gather_entries, render_collage
+from .render.page import day_ordinal
+from .render.plate import render_plate
 
 if TYPE_CHECKING:
     from .settings import Settings

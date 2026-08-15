@@ -13,13 +13,13 @@ from http.server import ThreadingHTTPServer
 import pytest
 from PIL import Image
 
-from fugleramme import server
 from fugleramme.db import Database
 from fugleramme.featured import Featured
 from fugleramme.picks import Picks
 from fugleramme.seed import seed
 from fugleramme.settings import SettingsStore
 from fugleramme.status import Status
+from fugleramme.web import server
 
 SETTINGS = "s.json"
 

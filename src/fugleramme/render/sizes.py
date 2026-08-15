@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import csv
 
-from .config import REPO_ROOT
-from .names import normalize
+from ..config import REPO_ROOT
+from ..names import normalize
 
 # Display size scales as mass ** SIZE_EXPONENT. <1 is the "diminishing returns"
 # compression: 0 = all equal, 1 = proportional to mass. ~0.14 makes the

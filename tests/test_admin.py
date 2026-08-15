@@ -9,14 +9,14 @@ import re
 
 import pytest
 
-from fugleramme import admin, modes, server
-from fugleramme.config import STATIC_DIR
+from fugleramme import modes
 from fugleramme.db import Database
 from fugleramme.featured import Featured
 from fugleramme.languages import namer
 from fugleramme.picks import Picks
 from fugleramme.settings import Settings
 from fugleramme.status import Status
+from fugleramme.web import STATIC_DIR, admin, server
 
 
 def _page(tmp_path, **overrides) -> str:

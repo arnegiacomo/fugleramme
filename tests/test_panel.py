@@ -10,7 +10,7 @@ import pytest
 from PIL import Image
 
 from fugleramme.panel import Panel
-from fugleramme.render import dither
+from fugleramme.render.dither import dither
 
 # inky.inky_el133uf1.DESATURATED_PALETTE - what the driver quantizes against.
 DESATURATED = [

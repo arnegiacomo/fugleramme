@@ -40,8 +40,6 @@ RELEASES_API = "https://api.github.com/repos/arnegiacomo/fugleramme/releases/lat
 # Repo root: src/fugleramme/config.py -> repo root is three parents up.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-# Kiosk and admin markup, style and behaviour, shipped inside the package.
-STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 # BirdNET-Go's SQLite, bind-mounted to detector/data and read directly by the frame.
 DEFAULT_DB_PATH = REPO_ROOT / "detector" / "data" / "birdnet.db"

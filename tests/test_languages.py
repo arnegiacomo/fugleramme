@@ -7,7 +7,7 @@ from __future__ import annotations
 import pytest
 
 from fugleramme import languages
-from fugleramme.admin import _language_select
+from fugleramme.web.admin import _language_select
 from fugleramme.languages import NONE, SCIENTIFIC, Namer, catalog, dictionary, namer, ordered
 from fugleramme.seed import seed_names
 

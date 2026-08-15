@@ -18,9 +18,9 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .config import DEFAULT_WEB_RESOLUTION, WEB_RESOLUTIONS
-from .fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
 from .languages import NONE, SCIENTIFIC
 from .modes import DEFAULT_MODE, MODES
+from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
 
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
 ROTATIONS = (0, 90, 180, 270)

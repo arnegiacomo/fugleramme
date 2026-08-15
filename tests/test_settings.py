@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import json
 
-from fugleramme.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
 from fugleramme.languages import NONE, SCIENTIFIC
+from fugleramme.render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
 from fugleramme.settings import (
     ALL_TIME,
     LOOKBACK_OPTIONS,

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from PIL import ImageFont
 
-from .config import REPO_ROOT
+from ..config import REPO_ROOT
 
 FONTS_DIR = REPO_ROOT / "assets" / "fonts"
 

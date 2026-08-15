@@ -10,16 +10,16 @@ import numpy as np
 import pytest
 from PIL import Image, ImageFont
 
-from fugleramme import collage, fonts
-from fugleramme.paper import TARGET_PAPER
-from fugleramme.page import INK, PANEL_INK, label_px, text_mask
-from fugleramme.collage import (
-    _Sprite,
+from fugleramme.render import collage, fonts
+from fugleramme.render.collage import (
     _draw_names,
     _pack,
+    _Sprite,
     _with_label,
     render_collage,
 )
+from fugleramme.render.page import INK, PANEL_INK, label_px, text_mask
+from fugleramme.render.paper import TARGET_PAPER
 
 
 def _ink(font, text="Turdus merula") -> float:

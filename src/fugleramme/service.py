@@ -21,14 +21,16 @@ import time
 from . import __version__, buttons, modes, updates
 from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
 from .db import Database
-from .featured import FILENAME as FEATURED_FILE, Featured
+from .featured import FILENAME as FEATURED_FILE
+from .featured import Featured
 from .languages import namer
 from .panel import init_panel
-from .picks import FILENAME as PICKS_FILE, Picks
-from .render import dither
-from .server import serve
+from .picks import FILENAME as PICKS_FILE
+from .picks import Picks
+from .render.dither import dither
 from .settings import SettingsStore
 from .status import Status
+from .web.server import serve
 
 log = logging.getLogger(__name__)
 

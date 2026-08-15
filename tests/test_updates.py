@@ -16,12 +16,13 @@ from unittest.mock import patch
 
 import pytest
 
-from fugleramme import server, service, updates
+from fugleramme import service, updates
 from fugleramme.db import Database
 from fugleramme.featured import Featured
 from fugleramme.picks import Picks
 from fugleramme.settings import SettingsStore
 from fugleramme.status import Status
+from fugleramme.web import server
 
 
 @pytest.fixture(autouse=True)

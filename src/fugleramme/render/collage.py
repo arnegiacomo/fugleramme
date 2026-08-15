@@ -30,9 +30,10 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
 
+from ..db import Database
+from ..names import image_for
+from ..picks import Picks
 from . import fonts
-from .db import Database
-from .names import image_for
 from .page import (
     MIN_LABEL_PX,
     blank,
@@ -44,7 +45,6 @@ from .page import (
     trim,
 )
 from .paper import PAD, process_sprite
-from .picks import Picks
 from .sizes import SIZE_EXPONENT, mass_of
 
 log = logging.getLogger(__name__)
