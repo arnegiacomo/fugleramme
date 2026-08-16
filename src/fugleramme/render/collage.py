@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import math
+import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -233,6 +234,85 @@ def _layout(
     return None, 0
 
 
+@dataclass(frozen=True)
+class _Placed:
+    """Where one bird and its name go, in pack pixels. All the draw pass needs -
+    the collision masks stay inside the packer, so this is what gets cached."""
+
+    index: int
+    dim: int
+    at: tuple[int, int]
+    label_at: tuple[int, int] | None
+    label_w: int
+
+
+_layouts: dict[tuple, tuple[tuple[_Placed, ...], int]] = {}
+_layouts_lock = threading.Lock()
+_LAYOUTS_MAX = 8
+
+
+def _placements(
+    key: tuple,
+    arts: list[Image.Image],
+    names: list[str],
+    flips: list[bool],
+    width: int,
+    height: int,
+    font_key: str | None,
+    name_px: int,
+    label_text: Callable[[str], str],
+) -> tuple[tuple[_Placed, ...], int]:
+    """Pack the page, or return the cached packing. The panel and the kiosk pack
+    identically - only `scale` and the paper differ - so whichever renders first
+    pays for both. The lock is held across the pack for the same reason: the
+    second caller should wait for the first rather than pack its own copy."""
+    with _layouts_lock:
+        hit = _layouts.get(key)
+        if hit is not None:
+            return hit
+
+        # Each bird's target size scales with its real mass (compressed); the whole
+        # set then overshoots and shrinks to the first fit that fills the canvas.
+        # Placing biggest-first on the center-out spiral keeps large birds central.
+        weights = _size_weights(names)
+        order = sorted(range(len(names)), key=lambda i: -weights[i])
+        base = min(
+            math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
+            min(width, height) * 0.7 / max(weights),
+        )
+        # Pack inside the margin but size off the whole page, so only a set that
+        # doesn't fit has to shrink.
+        margin = round(min(width, height) * _MARGIN)
+        box = (width - 2 * margin, height - 2 * margin)
+        alphas = [img.getchannel("A") for img in arts]
+        args = (names, alphas, order, weights, flips, base, *box)
+
+        placed, used_px = _layout(*args, font_key, name_px, label_text=label_text)
+        if placed is None and font_key:
+            log.warning("No layout fits %d species with names at %dx%d", len(names), *box)
+            placed, used_px = _layout(*args, None, name_px)  # birds beat blank paper
+
+        result = (
+            tuple(
+                _Placed(
+                    s.index,
+                    s.dim,
+                    (x + margin + s.art_at[0], y + margin + s.art_at[1]),
+                    None
+                    if s.label_at is None
+                    else (x + margin + s.label_at[0], y + margin + s.label_at[1]),
+                    s.label_w,
+                )
+                for s, x, y in placed or ()
+            ),
+            used_px,
+        )
+        if len(_layouts) >= _LAYOUTS_MAX:
+            _layouts.clear()
+        _layouts[key] = result
+        return result
+
+
 def render_collage(
     entries: list[tuple[str, Path | None]],
     resolution: tuple[int, int] = DEFAULT_RESOLUTION,
@@ -252,63 +332,63 @@ def render_collage(
     """
     canvas = blank(resolution, textured)
 
-    arts = [(name, trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
-    if not arts:
+    kept = [(name, path) for name, path in entries if path is not None][:_MAX_BIRDS]
+    if not kept:
         draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
+    arts = [trim(path) for _, path in kept]
 
     # Pack pixels from here down; `scale` takes them to the output.
     scale = min(resolution) / _PACK_SHORT
     width, height = round(resolution[0] / scale), round(resolution[1] / scale)
 
-    names = [name for name, _ in arts]
-    alphas = [img.getchannel("A") for _, img in arts]
-    # Each bird's target size scales with its real mass (compressed); the whole
-    # set then overshoots and shrinks to the first fit that fills the canvas.
-    # Placing biggest-first on the center-out spiral keeps large birds central.
-    weights = _size_weights(names)
-    order = sorted(range(len(arts)), key=lambda i: -weights[i])
+    names = [name for name, _ in kept]
     flips = [_flip(name) for name in names]
-    base = min(
-        math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
-        min(width, height) * 0.7 / max(weights),
-    )
-    # Pack inside the margin but size off the whole page, so only a set that
-    # doesn't fit has to shrink.
-    margin = round(min(width, height) * _MARGIN)
-    box = (width - 2 * margin, height - 2 * margin)
-    args = (names, alphas, order, weights, flips, base, *box)
     name_px = label_px(width, height, label_size)
-    placed, used_px = _layout(
-        *args, font_key if show_names else None, name_px, label_text=label_text
+    labels = tuple(label_text(name) for name in names) if show_names else None
+    key = (
+        tuple((name, str(path)) for name, path in kept),
+        width,
+        height,
+        font_key if show_names else None,
+        name_px,
+        labels,
     )
-    if placed is None and show_names:
-        log.warning("No layout fits %d species with names at %dx%d", len(arts), *box)
-        placed, used_px = _layout(*args, None, name_px)  # birds beat blank paper
+    placed, used_px = _placements(
+        key,
+        arts,
+        names,
+        flips,
+        width,
+        height,
+        font_key if show_names else None,
+        name_px,
+        label_text,
+    )
 
-    for sprite, x, y in placed or []:
-        art = _scaled(arts[sprite.index][1], max(1, round(sprite.dim * scale)), flips[sprite.index])
+    for p in placed:
+        art = _scaled(arts[p.index], max(1, round(p.dim * scale)), flips[p.index])
         proc = process_sprite(art, textured=textured)
-        ax, ay = sprite.art_at
-        at = _at(x + margin + ax, y + margin + ay, scale)
+        at = _at(p.at, scale)
         canvas.paste(proc, (at[0] - PAD, at[1] - PAD), proc)
 
     # Names last: halos feather past the collision mask, so a name drawn inline
     # with the birds would be washed over by the next neighbour.
-    if placed and used_px:
+    if used_px:
         font = fonts.load(font_key, max(1, round(used_px * scale)))
-        for sprite, x, y in placed:
-            lx, top = sprite.label_at
-            mask = text_mask(label_text(names[sprite.index]), font, not textured)
-            at = _at(x + margin + lx, y + margin + top, scale)
-            centred = at[0] + round((sprite.label_w * scale - mask.width) / 2)
+        for p in placed:
+            if p.label_at is None:
+                continue
+            mask = text_mask(label_text(names[p.index]), font, not textured)
+            at = _at(p.label_at, scale)
+            centred = at[0] + round((p.label_w * scale - mask.width) / 2)
             stamp(canvas, mask, (centred, at[1]), textured)
 
     return canvas
 
 
-def _at(x: int, y: int, scale: float) -> tuple[int, int]:
-    return round(x * scale), round(y * scale)
+def _at(at: tuple[int, int], scale: float) -> tuple[int, int]:
+    return round(at[0] * scale), round(at[1] * scale)
 
 
 def gather_entries(

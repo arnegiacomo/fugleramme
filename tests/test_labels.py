@@ -16,6 +16,11 @@ from fugleramme.render.page import INK, PANEL_INK, label_px, stamp, text_mask
 from fugleramme.render.paper import TARGET_PAPER
 
 
+@pytest.fixture(autouse=True)
+def _no_cached_layouts():
+    collage._layouts.clear()
+
+
 def _ink(font, text="Turdus merula") -> float:
     return float(np.asarray(text_mask(text, font, flat=True)).mean())
 
@@ -193,10 +198,34 @@ def test_the_same_page_packs_identically_at_every_output_size(tmp_path):
     entries = _crowded(tmp_path, count=8)
     with patch.object(collage, "_layout", spy):
         for size in ((1600, 1200), (1920, 1440), (800, 600), (2880, 2160)):
+            collage._layouts.clear()  # the cache would otherwise answer for all four
             render_collage(entries, size, show_names=True, textured=False)
 
     assert len(packed) == 4
     assert packed.count(packed[0]) == 4
+
+
+def test_the_panel_and_the_kiosk_share_one_pack(tmp_path):
+    """Packing is the whole cost of a render and both outputs pack the same, so
+    whichever draws first pays for both."""
+    entries = _crowded(tmp_path, count=8)
+    calls = 0
+    real = collage._layout
+
+    def spy(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return real(*args, **kwargs)
+
+    with patch.object(collage, "_layout", spy):
+        for size, textured in (((1600, 1200), False), ((1920, 1440), True), ((2880, 2160), True)):
+            render_collage(entries, size, show_names=True, textured=textured)
+    assert calls == 1
+
+    # A different page still packs: the key is the species and their artwork.
+    with patch.object(collage, "_layout", spy):
+        render_collage(_crowded(tmp_path, count=6), (1600, 1200), show_names=True, textured=False)
+    assert calls == 2
 
 
 def test_nothing_is_drawn_against_the_page_edge(tmp_path):
