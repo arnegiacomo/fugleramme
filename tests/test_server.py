@@ -14,7 +14,6 @@ import pytest
 from PIL import Image
 
 from fugleramme.db import Database
-from fugleramme.featured import Featured
 from fugleramme.picks import Picks
 from fugleramme.seed import seed
 from fugleramme.settings import SettingsStore
@@ -39,7 +38,6 @@ def frame(tmp_path):
         tmp_path / "images",
         SettingsStore(tmp_path / SETTINGS),
         Picks(tmp_path / "artwork.json"),
-        Featured(tmp_path / "featured.json"),
         None,
         Status(),
     )

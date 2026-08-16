@@ -11,12 +11,13 @@ import pytest
 
 from fugleramme import modes
 from fugleramme.db import Database
-from fugleramme.featured import Featured
 from fugleramme.languages import namer
 from fugleramme.picks import Picks
 from fugleramme.settings import Settings
 from fugleramme.status import Status
 from fugleramme.web import STATIC_DIR, admin, server
+
+PANEL = (1600, 1200)
 
 
 def _page(tmp_path, **overrides) -> str:
@@ -25,12 +26,11 @@ def _page(tmp_path, **overrides) -> str:
         Database(tmp_path / "absent.db"),
         tmp_path,
         Picks(tmp_path / "artwork.json"),
-        Featured(tmp_path / "featured.json"),
         settings,
         namer("sci", "", tmp_path),
-        settings.web_size(),
+        settings.web_size(PANEL),
     )
-    return admin.page(ctx, settings, Status(), None, tmp_path)
+    return admin.page(ctx, settings, Status(), PANEL, True, tmp_path)
 
 
 @pytest.mark.parametrize("mode", list(modes.MODES))

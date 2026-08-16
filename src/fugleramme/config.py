@@ -1,7 +1,7 @@
 """Static, per-launch configuration for the frame service.
 
 Paths and the network binding come from CLI flags. Presentation settings that
-change at runtime (kiosk resolution, rotation, lookback, refresh) live in the
+change at runtime (kiosk resolution, rotation, lookback) live in the
 admin-owned settings file instead - see settings.py.
 """
 
@@ -10,13 +10,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-# Kiosk render sizes offered in the admin UI, landscape-native (width, height).
-# The panel render never uses these: it takes the attached Inky's own resolution.
-WEB_RESOLUTIONS: dict[str, tuple[int, int]] = {
-    "720p": (1280, 720),
-    "1080p": (1920, 1080),
-    "1440p": (2560, 1440),
-    "4K": (3840, 2160),
+# Kiosk render heights, named for the screen they match. The width follows the
+# panel's aspect, not the screen's: the kiosk letterboxes, so only the height is
+# pixel-for-pixel, and a different shape would pack a different page.
+WEB_HEIGHTS: dict[str, int] = {
+    "720p": 720,
+    "1080p": 1080,
+    "1440p": 1440,
+    "4K": 2160,
 }
 
 DEFAULT_WEB_RESOLUTION = "1080p"

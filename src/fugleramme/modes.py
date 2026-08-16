@@ -3,9 +3,9 @@
 A mode is one page in two halves: how it is drawn, and what it is a function of.
 Both outputs go through the same pair, so the panel and the kiosk can never
 disagree, and the render loop re-renders only when a mode's own key moves - the
-species set for the collage, the species alone for the latest bird, the date for
-the bird of the day. The key is what makes a slow e-ink page bearable: a busy
-feeder must not spend the day refreshing.
+species set for the collage, the species alone for the latest bird. The key is
+what makes a slow e-ink page bearable: a busy feeder must not spend the day
+refreshing.
 
 Only the collage reads the lookback window; the rest look at the whole record,
 which is why the admin greys the setting out for them.
@@ -18,16 +18,15 @@ import io
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, datetime, time
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PIL import Image
 
 from .db import Database, Species
-from .featured import Featured
 from .languages import Namer
-from .names import drawable_keys, image_for, normalize, perches_for, resolve, variants_for
+from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
 from .render.collage import gather_entries, render_collage
 from .render.page import day_ordinal
@@ -50,7 +49,6 @@ class Context:
     images_dir: Path
     style: str
     picks: Picks
-    featured: Featured
     namer: Namer
     resolution: tuple[int, int]
     show_names: bool
@@ -58,8 +56,6 @@ class Context:
     font_key: str
     label_size: str
     textured: bool = True
-    # Only the render loop may advance the bird of the day; everyone else peeks.
-    commit: bool = False
 
     def perches(self):
         return perches_for(self.images_dir, self.style)
@@ -74,12 +70,10 @@ def context(
     db: Database,
     images_dir: Path,
     picks: Picks,
-    featured: Featured,
     settings: Settings,
     namer: Namer,
     resolution: tuple[int, int],
     textured: bool = True,
-    commit: bool = False,
 ) -> Context:
     return Context(
         mode=settings.mode,
@@ -87,7 +81,6 @@ def context(
         images_dir=images_dir,
         style=resolve(settings.style, images_dir),
         picks=picks,
-        featured=featured,
         namer=namer,
         resolution=resolution,
         show_names=settings.show_names,
@@ -95,7 +88,6 @@ def context(
         font_key=settings.label_font,
         label_size=settings.label_size,
         textured=textured,
-        commit=commit,
     )
 
 
@@ -130,10 +122,6 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
 def _date(moment: datetime) -> str:
     local = moment.astimezone()
     return f"{local.day} {local.strftime('%B')}"
-
-
-def _midnight() -> int:
-    return int(datetime.combine(date.today(), time.min).timestamp())
 
 
 def _collage_key(ctx: Context) -> tuple:
@@ -177,45 +165,6 @@ def _latest_page(ctx: Context) -> Image.Image:
     return _plate(ctx, latest.scientific_name, _date(latest.detected_at))
 
 
-def _of_the_day(ctx: Context) -> tuple[Species, int] | None:
-    """Today's bird and its lap of the walk, drawn from the record as it stood at
-    midnight so its tally is fixed for the day."""
-    keys = ctx.drawable()
-    entries = [
-        s for s in ctx.db.life_list(until=_midnight()) if normalize(s.scientific_name) in keys
-    ]
-    chosen = ctx.featured.choose(
-        day_ordinal(), [s.scientific_name for s in entries], commit=ctx.commit
-    )
-    if chosen is None:
-        return None
-    name, lap = chosen
-    species = next((s for s in entries if s.scientific_name == name), None)
-    return (species, lap) if species else None
-
-
-def _daily_key(ctx: Context) -> tuple:
-    today = _of_the_day(ctx)
-    return (day_ordinal(), today[0].scientific_name if today else None)
-
-
-def _daily_page(ctx: Context) -> Image.Image:
-    today = _of_the_day(ctx)
-    if today is None:
-        return _plate(ctx, None)
-    species, lap = today
-    # By lap, not picks.choose: a bird the walk never forgets would otherwise
-    # wear the plate it first rolled every time round.
-    variants = variants_for(species.scientific_name, ctx.images_dir, ctx.style)
-    heard = "Heard once" if species.count == 1 else f"Heard {species.count} times"
-    return _plate(
-        ctx,
-        species.scientific_name,
-        f"{heard} · first {_date(species.first_seen)}",
-        art=variants[lap % len(variants)],
-    )
-
-
 def _arrival(ctx: Context) -> Species | None:
     """The most recent first-ever species, which may be weeks old - that it has
     been a while is itself worth reading."""
@@ -257,12 +206,6 @@ MODES: dict[str, Mode] = {
         _latest_page,
         _latest_key,
         lambda ctx: [d.scientific_name] if (d := _latest(ctx)) else [],
-    ),
-    "daily": Mode(
-        "Bird of the day",
-        _daily_page,
-        _daily_key,
-        lambda ctx: _one(today[0] if (today := _of_the_day(ctx)) else None),
     ),
     "arrival": Mode("Newest arrival", _arrival_page, _arrival_key, lambda ctx: _one(_arrival(ctx))),
 }

@@ -4,10 +4,10 @@ The frame service owns the panel and treats it as optional: if the Inky library
 or the physical device is absent (as off-Pi), we log a warning and return
 None so the caller runs web-only.
 
-The attached panel's own resolution is authoritative for the panel render - the
-admin resolution setting is the kiosk's, not the glass's. The render is sized as
-the viewer sees it, so `push` turns it back into the panel's native landscape,
-which is the only buffer the driver accepts.
+The attached panel's own resolution is authoritative for both renders: the admin
+setting only picks how many pixels the kiosk gets, never its shape. The render
+is sized as the viewer sees it, so `push` turns it back into the panel's native
+landscape, which is the only buffer the driver accepts.
 """
 
 from __future__ import annotations
@@ -15,6 +15,8 @@ from __future__ import annotations
 import logging
 
 from PIL import Image
+
+from .config import FALLBACK_PANEL_RESOLUTION
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +42,11 @@ class Panel:
             raise ValueError(f"image is {image.size}, panel is {self.resolution}")
         self._device.set_image(image)
         self._device.show()  # blocks ~35s on the 13.3" while the panel refreshes
+
+
+def resolution_of(panel: Panel | None) -> tuple[int, int]:
+    """The shape every render is laid out for, kiosk included."""
+    return panel.resolution if panel else FALLBACK_PANEL_RESOLUTION
 
 
 def init_panel() -> Panel | None:

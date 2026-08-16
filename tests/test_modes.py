@@ -13,7 +13,6 @@ from PIL import Image
 
 from fugleramme import modes
 from fugleramme.db import Database
-from fugleramme.featured import Featured
 from fugleramme.languages import namer
 from fugleramme.picks import Picks
 from fugleramme.settings import Settings
@@ -54,24 +53,22 @@ def images(tmp_path):
     return tmp_path
 
 
-def _ctx(db, images, tmp_path, mode, commit=False, **overrides):
+def _ctx(db, images, tmp_path, mode, **overrides):
     settings = Settings(mode=mode, **overrides)
     return modes.context(
         db,
         images,
         Picks(tmp_path / "artwork.json"),
-        Featured(tmp_path / "featured.json"),
         settings,
         namer("sci", "", tmp_path),
         (400, 300),
         textured=False,
-        commit=commit,
     )
 
 
 def test_every_mode_is_offered_and_the_default_is_the_collage():
     assert modes.DEFAULT_MODE == "collage"
-    assert list(modes.MODES) == ["collage", "latest", "daily", "arrival"]
+    assert list(modes.MODES) == ["collage", "latest", "arrival"]
     assert [k for k, m in modes.MODES.items() if m.windowed] == ["collage"]
     assert modes.mode_of("gone") is modes.MODES["collage"]
 
@@ -138,33 +135,6 @@ def test_the_collage_holds_the_page_when_a_bird_already_on_it_calls_again(tmp_pa
 
     assert db.species_since()[0][0] == "Turdus merula"  # the ranking did flip
     assert modes.state_key(_ctx(db, images, tmp_path, "collage")) == before
-
-
-def test_the_bird_of_the_day_ignores_todays_calls(tmp_path, images):
-    """Its tally is the record as of midnight, so a bird calling all afternoon
-    does not re-render its own page."""
-    db = _db(tmp_path / "b.db", [_row(1, 10, 30), _row(2, 11, 30)])
-    before = modes.state_key(_ctx(db, images, tmp_path, "daily"))
-
-    conn = sqlite3.connect(tmp_path / "b.db")
-    conn.executemany(
-        "INSERT INTO detections VALUES (?, ?, ?, ?, ?)",
-        [_row(n, 10, 0) for n in range(3, 12)],
-    )
-    conn.commit()
-    conn.close()
-    db.close()
-
-    assert modes.state_key(_ctx(db, images, tmp_path, "daily")) == before
-
-
-def test_the_kiosk_never_advances_the_bird_of_the_day(tmp_path, images):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 30), _row(2, 11, 30)])
-    modes.state_key(_ctx(db, images, tmp_path, "daily"))
-    assert not (tmp_path / "featured.json").exists()
-
-    modes.state_key(_ctx(db, images, tmp_path, "daily", commit=True))
-    assert (tmp_path / "featured.json").exists()
 
 
 def test_the_newest_arrival_is_the_latest_first_ever(tmp_path, images):

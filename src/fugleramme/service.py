@@ -4,7 +4,7 @@ One page, two outputs (issue #1 "render once, fan out"): the web/kiosk view
 serves it full-color on request; the Inky panel gets the same page dithered to 6
 colors. The loop re-renders the panel image only when the mode's own key changes
 - see modes.py - a natural debounce for the slow e-ink refresh. The web view
-renders fresh per request, at its own resolution setting.
+renders fresh per request, at the panel's shape and its own pixel count.
 
 Panel-absent is not a special case: init_panel returns None and we skip the
 push, the same path as the preview.
@@ -19,11 +19,10 @@ import threading
 import time
 
 from . import __version__, buttons, modes, updates
-from .config import BIRDNET_PORT, FALLBACK_PANEL_RESOLUTION, Config
+from .config import BIRDNET_PORT, Config
 from .db import Database
-from .featured import FILENAME as FEATURED_FILE, Featured
 from .languages import namer
-from .panel import init_panel
+from .panel import init_panel, resolution_of
 from .picks import FILENAME as PICKS_FILE, Picks
 from .render.dither import dither
 from .settings import SettingsStore
@@ -71,7 +70,6 @@ def run(config: Config) -> None:
     panel = init_panel()
     store = SettingsStore(config.config_path)
     picks = Picks(config.config_path.parent / PICKS_FILE)
-    featured = Featured(config.config_path.parent / FEATURED_FILE)
     status = Status()
 
     server_thread = threading.Thread(
@@ -83,7 +81,6 @@ def run(config: Config) -> None:
             config.port,
             store,
             picks,
-            featured,
             panel,
             status,
         ),
@@ -107,7 +104,7 @@ def run(config: Config) -> None:
         settings = store.get()
         if _update(status, settings.auto_update):
             return  # new code is checked out; systemd restarts us into it
-        size = settings.oriented(panel.resolution if panel else FALLBACK_PANEL_RESOLUTION)
+        size = settings.oriented(resolution_of(panel))
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
@@ -115,12 +112,10 @@ def run(config: Config) -> None:
             db,
             config.images_dir,
             picks,
-            featured,
             settings,
             name_of,
             size,
             textured=False,
-            commit=True,
         )
         key = (modes.state_key(ctx), settings.rotation)
         if key != last_key:

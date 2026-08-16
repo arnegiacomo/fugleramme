@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from fugleramme.languages import NONE, SCIENTIFIC
 from fugleramme.render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
 from fugleramme.settings import (
@@ -25,13 +27,10 @@ def test_update_persists_and_clamps(tmp_path):
     path = tmp_path / "settings.json"
     store = SettingsStore(path)
 
-    saved = store.update(
-        web_resolution="1440p", rotation="90", lookback_hours="6", kiosk_refresh_seconds="0"
-    )
+    saved = store.update(web_resolution="1440p", rotation="90", lookback_hours="9000")
     assert saved.web_resolution == "1440p"
     assert saved.rotation == 90  # arrives as a form string
-    assert saved.lookback_hours == 6
-    assert saved.kiosk_refresh_seconds == 1  # clamped up to the floor
+    assert saved.lookback_hours == 720  # clamped down to the ceiling
 
     # Written to disk and reloaded identically by a fresh store.
     assert json.loads(path.read_text())["rotation"] == 90
@@ -126,10 +125,24 @@ def test_oriented_swaps_only_for_quarter_turns():
     assert Settings(rotation=0).oriented((480, 800)) == (800, 480)
 
 
-def test_web_size_from_resolution_and_rotation():
-    assert Settings(web_resolution="1080p").web_size() == (1920, 1080)
-    assert Settings(web_resolution="720p").web_size() == (1280, 720)
-    assert Settings(web_resolution="1080p", rotation=90).web_size() == (1080, 1920)
+def test_the_kiosk_takes_its_shape_from_the_panel_and_only_its_height_from_the_setting():
+    """The layout is packed into whatever rectangle it is given, so a kiosk of a
+    different aspect than the glass is a different page, not a scaled one."""
+    for panel in ((1600, 1200), (800, 480)):
+        for size in ("720p", "1440p"):
+            w, h = Settings(web_resolution=size).web_size(panel)
+            assert h == {"720p": 720, "1440p": 1440}[size]
+            assert w / h == pytest.approx(panel[0] / panel[1], abs=0.002)
+
+    assert Settings(web_resolution="1080p").web_size((1600, 1200)) == (1440, 1080)
+
+
+def test_rotation_turns_the_kiosk_render_without_shrinking_it():
+    """Sizing after the turn would spend 44% fewer pixels on a portrait frame
+    for the same setting."""
+    landscape = Settings(web_resolution="1080p").web_size((1600, 1200))
+    portrait = Settings(web_resolution="1080p", rotation=90).web_size((1600, 1200))
+    assert portrait == landscape[::-1] == (1080, 1440)
 
 
 def test_all_time_is_a_lookback_the_admin_offers(tmp_path):

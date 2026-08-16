@@ -18,7 +18,6 @@ import pytest
 
 from fugleramme import service, updates
 from fugleramme.db import Database
-from fugleramme.featured import Featured
 from fugleramme.picks import Picks
 from fugleramme.settings import SettingsStore
 from fugleramme.status import Status
@@ -105,7 +104,6 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
         tmp_path,
         SettingsStore(tmp_path / "s.json"),
         Picks(tmp_path / "artwork.json"),
-        Featured(tmp_path / "featured.json"),
         None,
         status,
     )

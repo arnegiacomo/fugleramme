@@ -28,9 +28,8 @@ from urllib.parse import parse_qs, urlparse
 
 from .. import __version__, modes, updates
 from ..db import Database
-from ..featured import Featured
 from ..languages import namer
-from ..panel import Panel
+from ..panel import Panel, resolution_of
 from ..picks import Picks
 from ..settings import Settings, SettingsStore, merged
 from ..status import Status
@@ -57,7 +56,6 @@ def make_handler(
     images_dir: Path,
     store: SettingsStore,
     picks: Picks,
-    featured: Featured,
     panel: Panel | None,
     status: Status,
 ):
@@ -103,15 +101,13 @@ def make_handler(
             return parse_qs(urlparse(self.path).query)
 
         def _context(self, settings: Settings) -> modes.Context:
-            # commit stays False: the kiosk must never advance the bird of the day.
             return modes.context(
                 db,
                 images_dir,
                 picks,
-                featured,
                 settings,
                 namer(settings.primary_language, settings.secondary_language, store.path.parent),
-                settings.web_size(),
+                settings.web_size(resolution_of(panel)),
             )
 
         def _edited(self) -> Settings:
@@ -126,18 +122,9 @@ def make_handler(
             self._send_cached(modes.png_bytes(self._context(self._edited())), "image/png")
 
         def _state(self):
-            # Cheap enough to poll every second: one grouped query, no render.
-            settings = store.get()
-            self._send(
-                200,
-                json.dumps(
-                    {
-                        "token": modes.token(modes.state_key(self._context(settings))),
-                        "refresh": settings.kiosk_refresh_seconds,
-                    }
-                ).encode(),
-                JSON,
-            )
+            # Cheap enough to poll: one grouped query, no render.
+            token = modes.token(modes.state_key(self._context(store.get())))
+            self._send(200, json.dumps({"token": token}).encode(), JSON)
 
         def _species(self):
             ctx = self._context(self._edited())
@@ -156,7 +143,8 @@ def make_handler(
                 self._context(settings),
                 settings,
                 status,
-                panel.resolution if panel else None,
+                resolution_of(panel),
+                panel is not None,
                 store.path.parent,
             )
             self._send(200, html.encode(), HTML)
@@ -232,12 +220,11 @@ def serve(
     port: int,
     store: SettingsStore,
     picks: Picks,
-    featured: Featured,
     panel: Panel | None = None,
     status: Status | None = None,
 ) -> None:
     """Blocking server loop. Opens its own DB connection."""
     db = Database(db_path)
-    handler = make_handler(db, images_dir, store, picks, featured, panel, status or Status())
+    handler = make_handler(db, images_dir, store, picks, panel, status or Status())
     httpd = ThreadingHTTPServer((host, port), handler)
     httpd.serve_forever()

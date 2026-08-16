@@ -1,8 +1,8 @@
 """Command-line entry point for the frame service.
 
 Two modes:
-  --preview OUT.png   render the latest detection once and exit (no server,
-                      no panel) - the hardware-free layout loop.
+  --preview OUT.png   render the page once and exit (no server, no push). It
+                      still reads the panel's size, which shapes the page.
   (default)           run the service: render loop + HTTP server, pushing to
                       the Inky panel if one is present.
 """
@@ -22,8 +22,8 @@ from .config import (
     Config,
 )
 from .db import Database
-from .featured import FILENAME as FEATURED_FILE, Featured
 from .languages import namer
+from .panel import init_panel, resolution_of
 from .picks import FILENAME as PICKS_FILE, Picks
 from .service import run
 from .settings import SettingsStore
@@ -73,10 +73,9 @@ def main(argv: list[str] | None = None) -> None:
                 db,
                 config.images_dir,
                 Picks(data_dir / PICKS_FILE),
-                Featured(data_dir / FEATURED_FILE),
                 settings,
                 name_of,
-                settings.web_size(),
+                settings.web_size(resolution_of(init_panel())),
             )
         ).save(args.preview)
         db.close()

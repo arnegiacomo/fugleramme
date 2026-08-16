@@ -39,7 +39,6 @@ class Detection:
 @dataclass(frozen=True)
 class Species:
     scientific_name: str
-    count: int
     first_seen: datetime
 
 
@@ -121,22 +120,15 @@ class Database:
         )
         return [(r["scientific_name"], r["n"]) for r in rows]
 
-    def life_list(self, until: int | None = None) -> list[Species]:
-        """Every species ever recorded, with its count and the date it was first
-        heard, earliest first. `until` cuts the tally off at an epoch: the bird
-        of the day counts only what was already true this morning, so its page
-        does not re-render every time the bird calls again."""
-        where = " AND d.detected_at < ?" if until is not None else ""
+    def life_list(self) -> list[Species]:
+        """Every species ever recorded with the date it was first heard, earliest first."""
         rows = self._rows(
-            f"SELECT l.scientific_name AS scientific_name, COUNT(*) AS n, "
-            f"MIN(d.detected_at) AS first {_FROM}{where} "
-            "GROUP BY l.scientific_name ORDER BY first, l.scientific_name",
-            (until,) if until is not None else (),
+            f"SELECT l.scientific_name AS scientific_name, MIN(d.detected_at) AS first {_FROM} "
+            "GROUP BY l.scientific_name ORDER BY first, l.scientific_name"
         )
         return [
             Species(
                 scientific_name=r["scientific_name"],
-                count=r["n"],
                 first_seen=datetime.fromtimestamp(r["first"], tz=UTC),
             )
             for r in rows

@@ -19,7 +19,7 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 ./run.sh                                    # Pi only: converge an existing checkout (BirdNET-Go + services)
 ```
 
-**Settings are runtime, flags are launch-only.** Kiosk resolution, rotation, lookback, kiosk refresh, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The flags are `--db`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`. The panel's own size is never a setting.
+**Settings are runtime, flags are launch-only.** Kiosk resolution, rotation, lookback, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The flags are `--db`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`. The panel's own size is never a setting.
 
 ## Architecture
 
@@ -33,11 +33,12 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 **Render once, fan out** (`service.py`).
 
 - The loop re-renders only when its inputs change: species in the window, panel size, style, rotation, names + language + typeface.
-- It dithers to 6 colors and pushes to the panel; the kiosk serves the same collage full-color at its own resolution (`collage_key`). No panel means web-only, the same path as `--preview`.
+- It dithers to 6 colors and pushes to the panel; the kiosk serves the same page full-color at its own pixel count. No panel means web-only, the same path as `--preview`.
 
 **The panel sizes itself** (`panel.py`, #4).
 
-- The loop renders at the attached Inky's resolution (`FALLBACK_PANEL_RESOLUTION` when none is attached), so the admin resolution setting only governs the kiosk.
+- `resolution_of` is the single answer to how big the page is: the attached Inky, or `FALLBACK_PANEL_RESOLUTION`. Both renders derive from it.
+- The admin resolution setting picks the kiosk's **height** only; `settings.web_size` takes the width from the panel's aspect. The collage packs into whatever rectangle it is handed, so a kiosk of a different shape would be a different page, not a scaled one - and the browser letterboxes anyway, so only the height is ever pixel-for-pixel.
 - `settings.rotation` (counter-clockwise) shapes both, but only `push` turns pixels - the driver takes native landscape only.
 - `inky.set_image` re-dithers anything that is not already a 6-color "P" image, so `render.dither.dither` must hand it a palette mapping 1:1 onto the driver's. `tests/test_panel.py` pins this.
 

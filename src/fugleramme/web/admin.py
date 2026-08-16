@@ -7,12 +7,13 @@ template's slots. Pure string builders, so none of it needs a server to test.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from string import Template
 
 from .. import __version__, modes
-from ..config import BIRDNET_PORT, DOCS_URL, WEB_RESOLUTIONS
+from ..config import BIRDNET_PORT, DOCS_URL, WEB_HEIGHTS
 from ..languages import NONE, Namer, catalog, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, source_of
@@ -182,7 +183,8 @@ def page(
     ctx: modes.Context,
     settings: Settings,
     status: Status,
-    panel_size: tuple[int, int] | None,
+    panel_size: tuple[int, int],
+    detected: bool,
     names_dir: Path,
 ) -> str:
     """The admin page. Everything about the frame comes off `ctx`, so the
@@ -195,7 +197,8 @@ def page(
     rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
     if status.push_error:
         rendered += f" · panel push failing ({status.push_error})"
-    w, h = settings.web_size()
+    w, h = settings.web_size(panel_size)
+    glass = f"{panel_size[0]}×{panel_size[1]}"
     return Template((STATIC_DIR / "admin.html").read_text()).substitute(
         version=__version__,
         docs_url=DOCS_URL,
@@ -212,15 +215,16 @@ def page(
             f"{_radios('mode', [(k, m.label) for k, m in MODES.items()], settings.mode)}</div>"
         ),
         resolutions=_options(
-            WEB_RESOLUTIONS,
+            WEB_HEIGHTS,
             settings.web_resolution,
-            lambda r: f"{r} ({WEB_RESOLUTIONS[r][0]}×{WEB_RESOLUTIONS[r][1]})",
+            lambda r: "{} ({}×{})".format(
+                r, *replace(settings, web_resolution=r).web_size(panel_size)
+            ),
         ),
         rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
         lookback_off="" if windowed else ' class="off"',
         lookback_disabled="" if windowed else " disabled",
         lookbacks=_lookbacks(settings),
-        refresh_seconds=settings.kiosk_refresh_seconds,
         names_field=_names_field(settings, languages),
         style_field=(
             f'<div class="field"><span>Artwork style</span>'
@@ -232,11 +236,7 @@ def page(
         auto_update=_checkbox(
             "auto_update", "Install new releases automatically", settings.auto_update
         ),
-        panel=(
-            f"detected · {panel_size[0]}×{panel_size[1]}"
-            if panel_size
-            else "not detected (web-only)"
-        ),
+        panel=f"detected · {glass}" if detected else f"not detected · assuming {glass}",
         birdnet=_state(hostinfo.reachable("127.0.0.1", BIRDNET_PORT), "running", "unreachable"),
         host=hostinfo.lan_address(),
         online=_state(online, "online", "offline") + (f" · {iface}" if iface else ""),

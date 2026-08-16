@@ -17,7 +17,7 @@ import threading
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from .config import DEFAULT_WEB_RESOLUTION, WEB_RESOLUTIONS
+from .config import DEFAULT_WEB_RESOLUTION, WEB_HEIGHTS
 from .languages import NONE, SCIENTIFIC
 from .modes import DEFAULT_MODE, MODES
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
@@ -54,8 +54,6 @@ class Settings:
     # Shapes both outputs; only the panel actually turns the pixels.
     rotation: int = 0
     lookback_hours: int = 24
-    # How often the kiosk asks /state whether the collage changed; a check, not a render.
-    kiosk_refresh_seconds: int = 3
     # Active artwork style folder; empty means "whichever is present" (resolved
     # against the filesystem at render time, so it survives a renamed style).
     style: str = ""
@@ -73,9 +71,10 @@ class Settings:
         long, short = max(resolution), min(resolution)
         return (short, long) if self.rotation % 180 else (long, short)
 
-    def web_size(self) -> tuple[int, int]:
-        """Kiosk render size: the selected resolution, oriented."""
-        return self.oriented(WEB_RESOLUTIONS[self.web_resolution])
+    def web_size(self, panel: tuple[int, int]) -> tuple[int, int]:
+        """Kiosk render size: the panel scaled to the selected height, then turned."""
+        scale = WEB_HEIGHTS[self.web_resolution] / min(panel)
+        return self.oriented((round(panel[0] * scale), round(panel[1] * scale)))
 
 
 def _as_int(value, default: int, lo: int, hi: int) -> int:
@@ -132,13 +131,10 @@ def _coerce(raw: dict) -> Settings:
     return Settings(
         mode=_one_of(str(raw.get("mode", d.mode)), MODES, d.mode),
         web_resolution=_one_of(
-            str(raw.get("web_resolution", d.web_resolution)), WEB_RESOLUTIONS, d.web_resolution
+            str(raw.get("web_resolution", d.web_resolution)), WEB_HEIGHTS, d.web_resolution
         ),
         rotation=_one_of(rotation, ROTATIONS, d.rotation),
         lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, ALL_TIME, 24 * 30),
-        kiosk_refresh_seconds=_as_int(
-            raw.get("kiosk_refresh_seconds"), d.kiosk_refresh_seconds, 1, 3600
-        ),
         style=_style(raw, d.style),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
         show_names=_as_bool(raw.get("show_names"), d.show_names),

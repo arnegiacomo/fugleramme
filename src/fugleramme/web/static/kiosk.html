@@ -14,13 +14,11 @@
 <body>
 <img id="collage" src="/collage.png" alt="Birds seen recently">
 <script>
-  // The interval comes from /state: without a reload, nothing else picks up an
-  // admin change. The seed only ever applies if that first fetch fails.
-  let token = null, delay = 3;
+  const DELAY = 3000;  // /state is one query, no render
+  let token = null;
   async function tick() {
     try {
       const state = await (await fetch("/state", {cache: "no-store"})).json();
-      delay = state.refresh;
       if (state.token !== token) {
         token = state.token;
         const next = new Image();  // decode before swapping, so the frame never blanks
@@ -28,7 +26,7 @@
         next.src = "/collage.png?v=" + encodeURIComponent(token);
       }
     } catch (e) {}  // transient: retry next tick
-    setTimeout(tick, delay * 1000);
+    setTimeout(tick, DELAY);
   }
   tick();
 </script>
