@@ -5,6 +5,8 @@ description = "E-ink bird frame: renders the latest BirdNET detection to an Inky
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    # Month names in the reader's language. Pure python - nothing to generate on the Pi.
+    "babel>=2.17",
     "numpy>=2.4.6",
     "pillow>=10.0",
 ]

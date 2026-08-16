@@ -4,6 +4,8 @@ the fallbacks, none of which need a container."""
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import pytest
 
 from fugleramme import languages
@@ -198,3 +200,53 @@ def test_seeding_does_not_clobber_a_fetched_dictionary(monkeypatch, tmp_path):
 def test_namer_needs_no_dictionaries_at_all():
     # The collage's default: no API, no cache dir, no network.
     assert Namer(SCIENTIFIC, NONE, {}, ()).label("Pica pica") == "Pica pica"
+
+
+# Local noon, so the date reads 16 August wherever the suite runs.
+DATE = datetime(2026, 8, 16, 7, 42).astimezone()
+
+
+@pytest.mark.parametrize(
+    ("code", "date", "moment"),
+    [
+        ("nb", "16. august 2026", "16. august, 07:42"),
+        ("en", "August 16, 2026", "August 16, 7:42 AM"),
+        ("es", "16 de agosto de 2026", "16 de agosto, 7:42"),
+        # More than the month's name: these put the year first, lv adds "gada",
+        # and only some of them join the day and the time with a comma.
+        ("hu", "2026. augusztus 16.", "augusztus 16. 7:42"),
+        ("lv", "2026. gada 16. augusts", "16. augusts 07:42"),
+    ],
+)
+def test_a_plates_date_reads_in_the_primary_language(code, date, moment):
+    namer = Namer(code, NONE, {}, ())
+    assert namer.date(DATE) == date
+    assert namer.moment(DATE) == moment
+
+
+@pytest.mark.parametrize("code", [SCIENTIFIC, NONE, "zz"])
+def test_a_date_with_no_language_is_numeric(code):
+    """A language the frame cannot spell must not take the plate down with it."""
+    namer = Namer(code, NONE, {}, ())
+    assert namer.date(DATE) == "16.08.2026"
+    assert namer.moment(DATE) == "16.08 07:42"
+
+
+def test_a_missing_babel_falls_back_rather_than_crashing(monkeypatch):
+    """The self-update checks out before it syncs, so the new code can run for a
+    moment without its new dependency."""
+    monkeypatch.setattr(languages, "format_date", None)
+    monkeypatch.setattr(languages, "format_skeleton", None)
+    assert Namer("nb", NONE, {}, ()).date(DATE) == "16.08.2026"
+
+
+def test_the_second_language_does_not_reach_the_date():
+    assert Namer("nb", "en", {}, ()).date(DATE) == Namer("nb", NONE, {}, ()).date(DATE)
+
+
+def test_no_date_carries_a_space_the_label_faces_cannot_draw():
+    """CLDR really does ask for a narrow no-break space before AM/PM, but five of
+    the seven faces have no glyph for one and draw a box: "7:42[]AM"."""
+    for code in ("en", "fr", "nb"):
+        namer = Namer(code, NONE, {}, ())
+        assert not {*namer.date(DATE), *namer.moment(DATE)} & set("\u202f\u00a0")

@@ -215,6 +215,7 @@ name = "fugleramme"
 version = "0.12.5"
 source = { editable = "." }
 dependencies = [
+    { name = "babel" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pillow" },
@@ -240,6 +241,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "babel", specifier = ">=2.17" },
     { name = "gpiod", marker = "extra == 'panel'", specifier = ">=2.1" },
     { name = "gpiodevice", marker = "extra == 'panel'", specifier = ">=0.0.5" },
     { name = "inky", marker = "extra == 'panel'", specifier = ">=2.2" },

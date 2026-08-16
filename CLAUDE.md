@@ -74,6 +74,8 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 - `GET /api/v2/settings/locales` lists locales, `HEAD /api/v2/species/dictionary/<code>` says which have one. The two disagree on codes (the list's `no` answers as `nb`), so a language's code is its dictionary's.
 - Dictionaries cache in `detector/data/names/`, revalidated by ETag. With nothing cached the only language is `sci` - the dev loop's normal state.
 - Norwegian names arrive lowercase and English titled, so a label capitalizes the first letter only.
+- A plate's date follows the primary language too, via `babel`: `Namer.date` for the newest arrival (a day and its year, which can be months back), `Namer.moment` for the latest bird (a day and a clock time). Languages differ in more than the month's name - Hungarian and Latvian put the year first, only some join the day and time with a comma - so a hand-rolled table would get them wrong. `sci`, and any language `babel` lacks, get a numeric date.
+- The plates carry no words beyond the name. Nothing translates UI text, so "First heard" became the year. Narrow no-break spaces are flattened to plain ones: CLDR asks for one before AM/PM and five of the seven label faces draw a box instead of it.
 
 **Name to artwork** (`names.py`, `picks.py`).
 

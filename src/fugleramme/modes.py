@@ -3,9 +3,9 @@
 A mode is one page in two halves: how it is drawn, and what it is a function of.
 Both outputs go through the same pair, so the panel and the kiosk can never
 disagree, and the render loop re-renders only when a mode's own key moves - the
-species set for the collage, the species alone for the latest bird. The key is
-what makes a slow e-ink page bearable: a busy feeder must not spend the day
-refreshing.
+species set for the collage, the run the latest bird is on rather than its last
+call. The key is what makes a slow e-ink page bearable: a busy feeder must not
+spend the day refreshing.
 
 Only the collage reads the lookback window; the rest look at the whole record,
 which is why the admin greys the setting out for them.
@@ -35,9 +35,10 @@ from .render.plate import render_plate
 if TYPE_CHECKING:
     from .settings import Settings
 
-# How far back to look for a detection we have artwork for. A species with no
-# plate cannot hold the page, so the latest one that can does instead.
-_RECENT_SCAN = 60
+# How far back to look for a detection we have artwork for, and for the start of
+# the run the holder is on. A species with no plate cannot hold the page, so the
+# latest one that can does instead.
+_RECENT_SCAN = 500
 
 
 @dataclass(frozen=True)
@@ -119,11 +120,6 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
     )
 
 
-def _date(moment: datetime) -> str:
-    local = moment.astimezone()
-    return f"{local.day} {local.strftime('%B')}"
-
-
 def _collage_key(ctx: Context) -> tuple:
     # Sorted to keep key constant for the same bird set (avoid re-renders on order change)
     species = tuple(sorted(name for name, _ in ctx.db.species_since(ctx.lookback_hours)))
@@ -143,26 +139,37 @@ def _collage(ctx: Context) -> Image.Image:
     )
 
 
-def _latest(ctx: Context):
+def _holder(ctx: Context) -> tuple[str, datetime] | None:
+    """The species holding the page, and when it took it - the oldest detection
+    of its unbroken run. A species with no artwork cannot hold the page, so it
+    does not break someone else's run either."""
     keys = ctx.drawable()
-    return next(
-        (d for d in ctx.db.recent(_RECENT_SCAN) if normalize(d.scientific_name) in keys), None
-    )
+    name: str | None = None
+    since: datetime | None = None
+    for detection in ctx.db.recent(_RECENT_SCAN):  # newest first
+        if normalize(detection.scientific_name) not in keys:
+            continue
+        if name is None:
+            name = detection.scientific_name
+        elif detection.scientific_name != name:
+            break
+        since = detection.detected_at
+    return (name, since) if name and since else None
 
 
 def _latest_key(ctx: Context) -> tuple:
-    latest = _latest(ctx)
-    if latest is None:
-        return (None, day_ordinal())
-    # The species, not the detection: the same bird calling again holds the page.
-    return (latest.scientific_name, latest.detected_at.astimezone().date())
+    # When the run began, not when the bird last called: the caption shows a
+    # clock time, so a key that moved on every call would re-push the panel all
+    # day, and one that ignored the time would let the two outputs disagree.
+    return _holder(ctx) or (None, day_ordinal())
 
 
 def _latest_page(ctx: Context) -> Image.Image:
-    latest = _latest(ctx)
-    if latest is None:
+    holder = _holder(ctx)
+    if holder is None:
         return _plate(ctx, None)
-    return _plate(ctx, latest.scientific_name, _date(latest.detected_at))
+    name, since = holder
+    return _plate(ctx, name, ctx.namer.moment(since))
 
 
 def _arrival(ctx: Context) -> Species | None:
@@ -185,7 +192,9 @@ def _arrival_page(ctx: Context) -> Image.Image:
     species = _arrival(ctx)
     if species is None:
         return _plate(ctx, None)
-    return _plate(ctx, species.scientific_name, f"First heard {_date(species.first_seen)}")
+    # The year stands in for "first heard": only names get translated, and this
+    # one can be months old.
+    return _plate(ctx, species.scientific_name, ctx.namer.date(species.first_seen))
 
 
 def _one(species) -> list[str]:
@@ -205,7 +214,7 @@ MODES: dict[str, Mode] = {
         "Latest bird",
         _latest_page,
         _latest_key,
-        lambda ctx: [d.scientific_name] if (d := _latest(ctx)) else [],
+        lambda ctx: [h[0]] if (h := _holder(ctx)) else [],
     ),
     "arrival": Mode("Newest arrival", _arrival_page, _arrival_key, lambda ctx: _one(_arrival(ctx))),
 }

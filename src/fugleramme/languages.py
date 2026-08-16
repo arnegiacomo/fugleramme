@@ -21,6 +21,7 @@ import json
 import logging
 import threading
 import time
+from datetime import datetime
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -172,6 +173,48 @@ def dictionary(code: str, cache_dir: Path) -> tuple[dict[str, str], str]:
         return names, etag
 
 
+try:
+    from babel import Locale
+    from babel.core import UnknownLocaleError
+    from babel.dates import format_date, format_skeleton, format_time
+except ImportError:  # a half-finished self-update: numeric dates still read fine
+    Locale = format_date = format_skeleton = format_time = None  # type: ignore[assignment,misc]
+    UnknownLocaleError = ValueError  # type: ignore[assignment,misc]
+
+
+# English puts a narrow no-break space before AM/PM. Five of the seven label
+# faces have no glyph for one and draw a box instead.
+_PLAIN_SPACES = str.maketrans({"\u202f": " ", "\u00a0": " "})
+
+
+def _spelled(code: str, local: datetime, clock: bool) -> str | None:
+    """The date in the language's own words, or None when babel cannot."""
+    if code in (SCIENTIFIC, NONE) or format_date is None:
+        return None
+    try:
+        if not clock:
+            # "long" keeps the month spelled out; asking for day-month-year
+            # shortens it to "16. aug. 2026".
+            return format_date(local, "long", locale=code)
+        day = str(format_skeleton("MMMMd", local, locale=code))
+        # Some languages put a comma between the day and the time, some a space.
+        join = str(Locale.parse(code).datetime_formats["short"])
+        return join.format(format_time(local, "short", locale=code), day)
+    except (UnknownLocaleError, ValueError, KeyError):
+        log.warning("No date format for %s; using numeric", code)
+        return None
+
+
+def _written(code: str, when: datetime, clock: bool) -> str:
+    """A date the way the language writes it - more than the month's name, since
+    Hungarian and Latvian put the year first and Spanish joins with "de"."""
+    local = when.astimezone()
+    written = _spelled(code, local, clock) or local.strftime(
+        "%-d.%m %H:%M" if clock else "%-d.%m.%Y"
+    )
+    return written.translate(_PLAIN_SPACES)
+
+
 def _capitalized(name: str) -> str:
     """Norwegian names come lowercase, English titled; a standalone label reads
     better capitalized, and a mixed dictionary evenly."""
@@ -212,6 +255,14 @@ class Namer:
     def inline(self, scientific: str) -> str:
         """One line, for the admin listings."""
         return self.label(scientific).replace("\n", " ")
+
+    def date(self, when: datetime) -> str:
+        """A day, with its year: the newest arrival's can be months back."""
+        return _written(self.primary, when, clock=False)
+
+    def moment(self, when: datetime) -> str:
+        """A day and a clock time, for the bird holding the page now."""
+        return _written(self.primary, when, clock=True)
 
 
 def namer(primary: str, secondary: str, cache_dir: Path) -> Namer:
