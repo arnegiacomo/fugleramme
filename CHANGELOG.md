@@ -2,6 +2,53 @@
 
 <!-- version list -->
 
+## v0.13.0 (2026-08-16)
+
+### Bug Fixes
+
+- #1 pack the collage once and scale it to the output
+  ([`819dd8c`](https://github.com/arnegiacomo/fugleramme/commit/819dd8cc1fbc48d657573200175f2404b0582643))
+
+- #1 pack the kiosk and the panel into the same shape
+  ([`f539f4f`](https://github.com/arnegiacomo/fugleramme/commit/f539f4fd1a5cdd3a38942062eacf2c13dcb5230b))
+
+### Chores
+
+- Apply ruff format
+  ([`dc4cd59`](https://github.com/arnegiacomo/fugleramme/commit/dc4cd59188e9164f7011d124f42706b944f68639))
+
+- Claude doctor
+  ([`3d967db`](https://github.com/arnegiacomo/fugleramme/commit/3d967db364770aad570a4c4426527809f7156bf7))
+
+- Ignore the format commit in git blame
+  ([`e6465cb`](https://github.com/arnegiacomo/fugleramme/commit/e6465cb098bc248043ffc03bf8fd0f0116f25303))
+
+### Continuous Integration
+
+- Run tests, ruff, mypy and shellcheck on push and PRs
+  ([`d9e00fd`](https://github.com/arnegiacomo/fugleramme/commit/d9e00fd47fc02d782f3898b9f1d47c57d7e359d9))
+
+### Documentation
+
+- Add contributing guide
+  ([`e26830a`](https://github.com/arnegiacomo/fugleramme/commit/e26830a068a4c3ebd40ccbf93f8177c3b99cca9d))
+
+### Features
+
+- #1 write the plate dates in the reader's language
+  ([`70ea7cd`](https://github.com/arnegiacomo/fugleramme/commit/70ea7cdf61dc1102366f5fdf9af71f526524959a))
+
+### Performance Improvements
+
+- #1 share one pack between the panel and the kiosk
+  ([`96eaaab`](https://github.com/arnegiacomo/fugleramme/commit/96eaaab41f0ada1bca21e916884885848751a934))
+
+### Refactoring
+
+- Satisfy ruff and mypy
+  ([`8d492c6`](https://github.com/arnegiacomo/fugleramme/commit/8d492c6c369395ed4828aab7f44cf478eddaac33))
+
+
 ## v0.12.5 (2026-08-15)
 
 ### Bug Fixes
