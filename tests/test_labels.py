@@ -11,14 +11,8 @@ import pytest
 from PIL import Image, ImageFont
 
 from fugleramme.render import collage, fonts
-from fugleramme.render.collage import (
-    _draw_names,
-    _pack,
-    _Sprite,
-    _with_label,
-    render_collage,
-)
-from fugleramme.render.page import INK, PANEL_INK, label_px, text_mask
+from fugleramme.render.collage import _pack, _Sprite, _with_label, render_collage
+from fugleramme.render.page import INK, PANEL_INK, label_px, stamp, text_mask
 from fugleramme.render.paper import TARGET_PAPER
 
 
@@ -58,15 +52,9 @@ def test_flat_label_has_no_intermediate_alpha():
 
 def test_panel_names_are_stamped_in_exact_palette_black():
     # Anything but exact black would be re-dithered into colour speckle.
-    sprite = _Sprite(
-        Image.new("RGBA", (10, 10)),
-        np.ones((10, 10), dtype=bool),
-        label=Image.new("L", (6, 4), 255),
-        label_at=(2, 3),
-    )
     for textured, expected in ((False, PANEL_INK), (True, INK)):
         canvas = Image.new("RGB", (20, 20), (255, 255, 255))
-        _draw_names(canvas, [(sprite, 0, 0)], textured)
+        stamp(canvas, Image.new("L", (6, 4), 255), (2, 3), textured)
         assert canvas.getpixel((2, 3)) == expected
 
 
@@ -92,9 +80,7 @@ def test_label_size_scales_with_the_short_side():
 
 def test_label_reserves_space_in_the_footprint():
     art_mask = np.ones((30, 41), dtype=bool)  # odd width: the centroid is a whole pixel
-    sprite = _with_label(
-        Image.new("RGBA", (41, 30)), art_mask, Image.new("L", (90, 12), 255), gap=5
-    )
+    sprite = _with_label(0, 41, art_mask, Image.new("L", (90, 12), 255), gap=5)
 
     assert sprite.mask.shape == (30 + 5 + 12, 90)  # the label is wider than the bird
     assert sprite.art_at == (25, 0)  # bird centred over the label
@@ -107,10 +93,7 @@ def test_label_reserves_space_in_the_footprint():
 def test_reserved_box_always_covers_the_drawn_label(label_width):
     # Rounding the two edges separately used to leave the mask a column short.
     sprite = _with_label(
-        Image.new("RGBA", (57, 20)),
-        np.ones((20, 57), dtype=bool),
-        Image.new("L", (label_width, 8), 255),
-        gap=3,
+        0, 57, np.ones((20, 57), dtype=bool), Image.new("L", (label_width, 8), 255), gap=3
     )
     lx, top = sprite.label_at
     assert lx >= 0 and lx + label_width <= sprite.mask.shape[1]
@@ -123,7 +106,7 @@ def test_label_tucks_up_under_the_silhouette():
     art_mask = np.zeros((40, 40), dtype=bool)
     art_mask[:20, :] = True
     art_mask[20:, :6] = True
-    sprite = _with_label(Image.new("RGBA", (40, 40)), art_mask, Image.new("L", (20, 8), 255), gap=2)
+    sprite = _with_label(0, 40, art_mask, Image.new("L", (20, 8), 255), gap=2)
 
     _lx, top = sprite.label_at
     assert top == 22  # last opaque row under the label, +1, + the gap
@@ -135,9 +118,7 @@ def test_label_centres_on_the_silhouette_not_the_bounding_box():
     art_mask = np.zeros((20, 100), dtype=bool)
     art_mask[:, :20] = True
     art_mask[8:12, 20:] = True
-    sprite = _with_label(
-        Image.new("RGBA", (100, 20)), art_mask, Image.new("L", (10, 6), 255), gap=1
-    )
+    sprite = _with_label(0, 100, art_mask, Image.new("L", (10, 6), 255), gap=1)
 
     lx, _top = sprite.label_at
     ax, _ay = sprite.art_at
@@ -146,10 +127,9 @@ def test_label_centres_on_the_silhouette_not_the_bounding_box():
 
 
 def test_packing_never_overlaps_a_label():
-    art = Image.new("RGBA", (30, 30))
     sprites = [
-        _with_label(art, np.ones((30, 30), dtype=bool), Image.new("L", (60, 10), 255), gap=4)
-        for _ in range(6)
+        _with_label(n, 30, np.ones((30, 30), dtype=bool), Image.new("L", (60, 10), 255), gap=4)
+        for n in range(6)
     ]
     placed = _pack(sprites, 400, 400)
     assert placed is not None
@@ -162,9 +142,8 @@ def test_packing_never_overlaps_a_label():
 
 
 def test_sprite_without_a_label_is_just_the_bird():
-    mask = np.ones((10, 10), dtype=bool)
-    sprite = _Sprite(Image.new("RGBA", (10, 10)), mask)
-    assert sprite.label is None
+    sprite = _Sprite(0, 10, np.ones((10, 10), dtype=bool))
+    assert sprite.label_at is None
     assert sprite.art_at == (0, 0)
 
 
@@ -195,6 +174,29 @@ def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog)
     )
     assert (np.asarray(page) == PANEL_INK).all(axis=2).any()  # names made it onto the page
     assert "No layout fits" not in caplog.text
+
+
+def test_the_same_page_packs_identically_at_every_output_size(tmp_path):
+    """The panel and the kiosk draw the same page at different pixel counts, and
+    the packer works in whole pixels, so it runs at one size and the placements
+    are scaled. Packing at the output size used to swap birds between the two."""
+    packed = []
+    real = collage._layout
+
+    def spy(*args, **kwargs):
+        placed, px = real(*args, **kwargs)
+        packed.append(
+            (args[5:8], px, [(s.index, s.dim, s.art_at, s.label_at, x, y) for s, x, y in placed])
+        )
+        return placed, px
+
+    entries = _crowded(tmp_path, count=8)
+    with patch.object(collage, "_layout", spy):
+        for size in ((1600, 1200), (1920, 1440), (800, 600), (2880, 2160)):
+            render_collage(entries, size, show_names=True, textured=False)
+
+    assert len(packed) == 4
+    assert packed.count(packed[0]) == 4
 
 
 def test_nothing_is_drawn_against_the_page_edge(tmp_path):

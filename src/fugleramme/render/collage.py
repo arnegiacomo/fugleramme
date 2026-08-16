@@ -50,6 +50,10 @@ from .sizes import SIZE_EXPONENT, mass_of
 log = logging.getLogger(__name__)
 
 DEFAULT_RESOLUTION = (1280, 800)
+# Short side the layout is packed at, then scaled to whatever is drawn. The
+# packer works in whole pixels, so packing at the output size would put the
+# panel and the kiosk on different pages.
+_PACK_SHORT = 1200
 _MARGIN = 0.04  # page edge to content on short side. Hardcoded now, maybe add configurability?
 _MAX_BIRDS = 40  # keeps the render quick, not the page tidy
 _ALPHA_CUTOFF = 24
@@ -60,38 +64,40 @@ _STEP = 6
 _ATTEMPTS = 20
 
 
-def _scaled_sprite(
-    img: Image.Image, max_dim: int, flip: bool = False
-) -> tuple[Image.Image, np.ndarray]:
-    """Scale a trimmed sprite to max_dim on its longest side, optionally mirror
-    it, and return it with an eroded opaque mask (bool array, True = keep-clear).
-    Eroding lets the paper halos overlap so birds pack a little tighter; their
-    bodies still can't. Mirroring (not rotation) adds variety while keeping any
-    ground or water level."""
+def _scaled(img: Image.Image, max_dim: int, flip: bool) -> Image.Image:
+    """Scale a trimmed sprite to max_dim on its longest side, optionally mirroring
+    it. Mirroring (not rotation) adds variety while keeping any ground or water
+    level. Takes the alpha channel alone when packing, the whole plate to draw."""
     scale = max_dim / max(img.width, img.height)
     if scale != 1.0:
         img = img.resize(
             (max(1, round(img.width * scale)), max(1, round(img.height * scale))),
             Image.Resampling.LANCZOS,
         )
-    if flip:
-        img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-    mask = img.getchannel("A").point(lambda a: 255 if a > _ALPHA_CUTOFF else 0)
+    return img.transpose(Image.Transpose.FLIP_LEFT_RIGHT) if flip else img
+
+
+def _footprint(alpha: Image.Image) -> np.ndarray:
+    """Opaque area as a bool array (True = keep clear), eroded so birds nestle
+    into each other's (invisible on paper) halos. Their bodies still can't."""
+    mask = alpha.point(lambda a: 255 if a > _ALPHA_CUTOFF else 0)
     if _OVERLAP_PX:
         mask = mask.filter(ImageFilter.MinFilter(_OVERLAP_PX * 2 + 1))
-    return img, np.asarray(mask, dtype=bool)
+    return np.asarray(mask, dtype=bool)
 
 
 @dataclass(frozen=True, eq=False)  # eq: a generated __eq__ would raise on the ndarray
 class _Sprite:
     """A bird, and optionally its name, as one packable unit: `mask` is the whole
-    footprint, `art_at` and `label_at` locate the two inside it."""
+    footprint, `art_at` and `label_at` locate the two inside it. Everything is in
+    pack pixels - the art is redrawn from source at the size being rendered."""
 
-    art: Image.Image
+    index: int
+    dim: int  # the art's longest side
     mask: np.ndarray
     art_at: tuple[int, int] = (0, 0)
-    label: Image.Image | None = None
-    label_at: tuple[int, int] = (0, 0)
+    label_at: tuple[int, int] | None = None
+    label_w: int = 0  # the reserved box; the redrawn name is centred in it
 
 
 def _spiral(cx: float, cy: float, max_r: float):
@@ -140,7 +146,9 @@ def _center(placed, width: int, height: int):
     return [(sprite, x + dx, y + dy) for sprite, x, y in placed]
 
 
-def _with_label(art: Image.Image, art_mask: np.ndarray, label: Image.Image, gap: int) -> _Sprite:
+def _with_label(
+    index: int, dim: int, art_mask: np.ndarray, label: Image.Image, gap: int
+) -> _Sprite:
     """Join a bird and its name into one packable footprint.
 
     Reserving the name with the bird is what guarantees it a place at all: the
@@ -167,7 +175,7 @@ def _with_label(art: Image.Image, art_mask: np.ndarray, label: Image.Image, gap:
     mask = np.zeros((height, width), dtype=bool)
     mask[:ah, ax : ax + aw] = art_mask
     mask[top : top + lh, lx : lx + lw] = True
-    return _Sprite(art, mask, (ax, 0), label, (lx, top))
+    return _Sprite(index, dim, mask, (ax, 0), (lx, top), lw)
 
 
 def _flip(name: str) -> bool:
@@ -185,7 +193,8 @@ def _size_weights(names: list[str]) -> list[float]:
 
 
 def _layout(
-    arts: list[tuple[str, Image.Image]],
+    names: list[str],
+    alphas: list[Image.Image],
     order: list[int],
     weights: list[float],
     flips: list[bool],
@@ -194,12 +203,12 @@ def _layout(
     height: int,
     font_key: str | None,
     name_px: int,
-    flat: bool,
     label_text: Callable[[str], str] = str,
 ):
-    """Shrink the set to the first size where every bird, name included, fits.
-    Names have to shrink too: a fixed-size name never yields, so a full page of
-    them cannot converge at all."""
+    """Shrink the set to the first size where every bird, name included, fits,
+    and return the placements with the name size they were reserved at. Names
+    have to shrink too: a fixed-size name never yields, so a full page of them
+    cannot converge at all."""
     labels: list[Image.Image] = []
     last_px = gap = 0
     for attempt in range(_ATTEMPTS):
@@ -208,20 +217,20 @@ def _layout(
             px = max(MIN_LABEL_PX, round(name_px * shrink))
             if px != last_px:
                 font = fonts.load(font_key, px)
-                labels = [text_mask(label_text(arts[i][0]), font, flat) for i in order]
+                # Only the size is packed; the draw pass re-rasterizes.
+                labels = [text_mask(label_text(names[i]), font, False) for i in order]
                 last_px, gap = px, round(px * 0.35)
         sprites = []
         for n, i in enumerate(order):
-            art, mask = _scaled_sprite(
-                arts[i][1], max(24, int(base * shrink * weights[i])), flips[i]
-            )
+            dim = max(24, int(base * shrink * weights[i]))
+            mask = _footprint(_scaled(alphas[i], dim, flips[i]))
             sprites.append(
-                _with_label(art, mask, labels[n], gap) if font_key else _Sprite(art, mask)
+                _with_label(i, dim, mask, labels[n], gap) if font_key else _Sprite(i, dim, mask)
             )
         placed = _pack(sprites, width, height)
         if placed is not None:
-            return _center(placed, width, height)
-    return None
+            return _center(placed, width, height), last_px
+    return None, 0
 
 
 def render_collage(
@@ -241,7 +250,6 @@ def render_collage(
     label_text: scientific name -> what the label reads; str leaves it alone.
     perches: the active style's bare branches, for a page with no birds on it.
     """
-    width, height = resolution
     canvas = blank(resolution, textured)
 
     arts = [(name, trim(path)) for name, path in entries if path is not None][:_MAX_BIRDS]
@@ -249,52 +257,58 @@ def render_collage(
         draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
 
+    # Pack pixels from here down; `scale` takes them to the output.
+    scale = min(resolution) / _PACK_SHORT
+    width, height = round(resolution[0] / scale), round(resolution[1] / scale)
+
+    names = [name for name, _ in arts]
+    alphas = [img.getchannel("A") for _, img in arts]
     # Each bird's target size scales with its real mass (compressed); the whole
     # set then overshoots and shrinks to the first fit that fills the canvas.
     # Placing biggest-first on the center-out spiral keeps large birds central.
-    weights = _size_weights([name for name, _ in arts])
+    weights = _size_weights(names)
     order = sorted(range(len(arts)), key=lambda i: -weights[i])
-    flips = [_flip(name) for name, _ in arts]
+    flips = [_flip(name) for name in names]
     base = min(
         math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
         min(width, height) * 0.7 / max(weights),
     )
     # Pack inside the margin but size off the whole page, so only a set that
     # doesn't fit has to shrink.
-    margin = round(min(resolution) * _MARGIN)
+    margin = round(min(width, height) * _MARGIN)
     box = (width - 2 * margin, height - 2 * margin)
-    args = (arts, order, weights, flips, base, *box)
+    args = (names, alphas, order, weights, flips, base, *box)
     name_px = label_px(width, height, label_size)
-    placed = _layout(
-        *args,
-        font_key if show_names else None,
-        name_px,
-        flat=not textured,
-        label_text=label_text,
+    placed, used_px = _layout(
+        *args, font_key if show_names else None, name_px, label_text=label_text
     )
     if placed is None and show_names:
         log.warning("No layout fits %d species with names at %dx%d", len(arts), *box)
-        placed = _layout(*args, None, name_px, flat=not textured)  # birds beat blank paper
+        placed, used_px = _layout(*args, None, name_px)  # birds beat blank paper
 
-    if placed:
-        placed = [(sprite, x + margin, y + margin) for sprite, x, y in placed]
+    for sprite, x, y in placed or []:
+        art = _scaled(arts[sprite.index][1], max(1, round(sprite.dim * scale)), flips[sprite.index])
+        proc = process_sprite(art, textured=textured)
+        ax, ay = sprite.art_at
+        at = _at(x + margin + ax, y + margin + ay, scale)
+        canvas.paste(proc, (at[0] - PAD, at[1] - PAD), proc)
+
+    # Names last: halos feather past the collision mask, so a name drawn inline
+    # with the birds would be washed over by the next neighbour.
+    if placed and used_px:
+        font = fonts.load(font_key, max(1, round(used_px * scale)))
         for sprite, x, y in placed:
-            ax, ay = sprite.art_at
-            proc = process_sprite(sprite.art, textured=textured)
-            canvas.paste(proc, (x + ax - PAD, y + ay - PAD), proc)
-        _draw_names(canvas, placed, textured)
+            lx, top = sprite.label_at
+            mask = text_mask(label_text(names[sprite.index]), font, not textured)
+            at = _at(x + margin + lx, y + margin + top, scale)
+            centred = at[0] + round((sprite.label_w * scale - mask.width) / 2)
+            stamp(canvas, mask, (centred, at[1]), textured)
 
     return canvas
 
 
-def _draw_names(canvas, placed, textured: bool) -> None:
-    """A second pass: halos feather past the collision mask, so a name drawn
-    inline with the birds would be washed over by the next neighbour."""
-    for sprite, x, y in placed:
-        if sprite.label is None:
-            continue
-        lx, ly = sprite.label_at
-        stamp(canvas, sprite.label, (x + lx, y + ly), textured)
+def _at(x: int, y: int, scale: float) -> tuple[int, int]:
+    return round(x * scale), round(y * scale)
 
 
 def gather_entries(
