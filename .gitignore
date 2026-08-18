@@ -13,6 +13,7 @@ venv/
 # on the Pi, and nothing the frame runs depends on it - so it stays local.
 scripts/
 wikimedia-scrape/
+rawpixel-scrape/
 
 # Runtime artifacts: BirdNET-Go's DB (detector/data) and the frame's rendered output
 data/
