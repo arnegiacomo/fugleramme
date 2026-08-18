@@ -48,7 +48,7 @@ def subjects(ctx: modes.Context) -> list[tuple[str, str | None]]:
     rows = []
     for name in modes.subjects(ctx):
         pick = image_for(name, ctx.images_dir, ctx.style, ctx.picks)
-        # Unstamped (a hand-filled style): name the style itself.
+        # Unlisted (a hand-filled style keeps no manifest): name the style itself.
         rows.append((name, source_of(pick) or ctx.style if pick else None))
     return rows
 
@@ -110,7 +110,7 @@ def _stamp(dt: datetime) -> str:
 
 def _species_li(name: str, source: str | None) -> str:
     # Marks species counted in the window but omitted from the collage (#9); else
-    # names the plate the artwork was cut from, read from the file's own metadata.
+    # names the plate the artwork was cut from, per the style's manifest.
     if source is None:
         return f'<li class="noart">{name} <small>no art</small></li>'
     return f"<li>{name} <small>{_display_name(source)}</small></li>"

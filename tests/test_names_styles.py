@@ -1,15 +1,21 @@
 """Style-folder selection: discovery, resolution of a saved selection against
-what's on disk, and a species' variants (and the empty page's perches) within
-the active style."""
+what's on disk, a species' variants (and the empty page's perches) within the
+active style, and the manifest naming the plate each file was cut from."""
 
 from __future__ import annotations
 
+import json
+import os
+
 from fugleramme.names import (
+    MANIFEST,
     PERCHES,
     available_styles,
     image_for,
+    origin_of,
     perches_for,
     resolve,
+    source_of,
     variants_for,
 )
 from fugleramme.picks import Picks
@@ -102,3 +108,76 @@ def test_a_perch_folder_is_not_mistaken_for_a_species(tmp_path):
     _make(tmp_path, "classic")
     (tmp_path / "classic" / PERCHES).mkdir()
     assert variants_for("Perches", tmp_path, "classic") == []
+
+
+def _manifest(images_dir, style, record):
+    (images_dir / style / MANIFEST).write_text(json.dumps(record))
+
+
+def test_provenance_comes_from_the_styles_manifest(tmp_path):
+    _make(tmp_path, "classic", "turdus-merula", "turdus-merula-2")
+    _manifest(
+        tmp_path,
+        "classic",
+        {
+            "turdus-merula.png": {"source": "gould", "url": "https://example.org/a"},
+            "turdus-merula-2.png": {"source": "vonwright", "url": "https://example.org/b"},
+        },
+    )
+    pngs = variants_for("Turdus merula", tmp_path, "classic")
+    assert [source_of(p) for p in pngs] == ["gould", "vonwright"]
+    assert [origin_of(p) for p in pngs] == ["https://example.org/a", "https://example.org/b"]
+
+
+def test_an_entry_may_carry_a_source_and_no_url(tmp_path):
+    # Not every plate has a page to cite; the work it came from still holds.
+    _make(tmp_path, "classic", "turdus-merula")
+    _manifest(tmp_path, "classic", {"turdus-merula.png": {"source": "gould"}})
+    assert source_of(tmp_path / "classic" / "turdus-merula.png") == "gould"
+    assert origin_of(tmp_path / "classic" / "turdus-merula.png") == ""
+
+
+def test_a_style_with_no_manifest_resolves_cleanly(tmp_path):
+    # A hand-filled `custom/` ships nothing but images; that is not a failure.
+    _make(tmp_path, "custom", "turdus-merula")
+    assert source_of(tmp_path / "custom" / "turdus-merula.png") == ""
+    assert origin_of(tmp_path / "custom" / "turdus-merula.png") == ""
+
+
+def test_a_file_the_manifest_omits_has_no_provenance(tmp_path):
+    _make(tmp_path, "classic", "turdus-merula", "corvus-corax")
+    _manifest(tmp_path, "classic", {"turdus-merula.png": {"source": "gould"}})
+    assert source_of(tmp_path / "classic" / "corvus-corax.png") == ""
+
+
+def test_an_entry_that_is_not_a_record_is_dropped(tmp_path):
+    # The shape changed once already; a leftover string must not crash a render.
+    _make(tmp_path, "classic", "turdus-merula", "corvus-corax")
+    _manifest(
+        tmp_path,
+        "classic",
+        {
+            "turdus-merula.png": "gould/turdus-merula.png",
+            "corvus-corax.png": {"source": "gould"},
+        },
+    )
+    assert source_of(tmp_path / "classic" / "turdus-merula.png") == ""
+    assert source_of(tmp_path / "classic" / "corvus-corax.png") == "gould"
+
+
+def test_a_rewritten_manifest_is_read_again(tmp_path):
+    # Cached per folder, so an edit under the running frame has to invalidate it.
+    _make(tmp_path, "classic", "turdus-merula")
+    path = tmp_path / "classic" / "turdus-merula.png"
+    _manifest(tmp_path, "classic", {"turdus-merula.png": {"source": "gould"}})
+    assert source_of(path) == "gould"
+    _manifest(tmp_path, "classic", {"turdus-merula.png": {"source": "vonwright"}})
+    manifest_path = tmp_path / "classic" / MANIFEST
+    os.utime(manifest_path, (0, manifest_path.stat().st_mtime + 1))
+    assert source_of(path) == "vonwright"
+
+
+def test_a_broken_manifest_is_not_fatal(tmp_path):
+    _make(tmp_path, "classic", "turdus-merula")
+    (tmp_path / "classic" / MANIFEST).write_text("{ not json")
+    assert source_of(tmp_path / "classic" / "turdus-merula.png") == ""

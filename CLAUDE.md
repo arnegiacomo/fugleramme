@@ -88,7 +88,7 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 
 - The whole artwork pipeline (scraping, background removal, contact sheet, plates) is gitignored and workstation-only: the frame doesn't depend on it and plates are re-scrapeable.
 - The sheet writes kept candidates as `<key>.png`, `<key>-2.png`, ... and rewrites a species whole on every change, so dropping one renumbers the rest rather than leaving a gap `variants_for` would never look for.
-- Shipped PNGs carry `Source` / `Origin` tEXt chunks spliced in after IHDR, so provenance can't drift from the file and there is no manifest. `names.origin_of` hand-parses the header - Pillow opens the whole plate (18s over a folder against 0.02s).
+- A style's `manifest.json` gives a shipped file the work it was cut from and a link to the plate (`turdus-merula.png` -> `{"source": "gould", "url": ...}`), written by the sheet alongside the files it renames. `names.source_of` reads the key ATTRIBUTION.md maps to terms, `names.origin_of` the citation; both cached per folder on the file's mtime, since the admin page asks once per subject. No manifest (a hand-filled `custom/`), no entry, or an entry with no URL all resolve to `""` rather than failing.
 
 **The install splits at the reboot** (`install.sh`, `run.sh`).
 

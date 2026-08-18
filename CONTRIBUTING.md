@@ -70,8 +70,9 @@ Then, for the style folder it lands in:
 
 - **The licensing has to work.** Public domain, or terms compatible with the
   folder's own. `classic` is CC BY-SA 4.0.
-- **Every PNG names its plate in its own metadata** (`Source`, `Origin` -
-  `exiftool bird.png`). There's no manifest anywhere else.
+- **The folder's `manifest.json` names each PNG's source and links its
+  plate** (`"bird.png": {"source": "gould", "url": ...}`). A new file means a
+  new entry.
 - **`ATTRIBUTION.md` names the works and their terms.** A new source means a new
   entry.
 

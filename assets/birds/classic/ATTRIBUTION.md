@@ -8,8 +8,7 @@ so none is faithful to its scan. The whole style is offered under
 > Digital restorations via Wikimedia Commons, edited for this project.
 > [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
-Each file names the plate it came from in its own PNG metadata (`Source`,
-`Origin`) - `exiftool turdus-merula.png`.
+The plate each file came from is linked from this folder's `manifest.json`.
 
 ## Sources
 

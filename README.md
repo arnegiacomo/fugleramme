@@ -63,8 +63,8 @@ please [get in touch](https://arnegiacomo.dev/).
   separately as a container): CC BY-NC-SA 4.0, non-commercial only. BirdNET model
   by the Cornell Lab of Ornithology and Chemnitz University of Technology,
   taxonomy data powered by eBird.org.
-- Bird images: each style folder carries its own terms and sources, and every
-  file names the plate it was cut from in its PNG metadata. `classic` is
+- Bird images: each style folder carries its own terms and sources, and its
+  manifest links the plate every file was cut from. `classic` is
   CC BY-SA 4.0 - see
   [`assets/birds/classic/ATTRIBUTION.md`](assets/birds/classic/ATTRIBUTION.md).
 - Label fonts (`assets/fonts/`): SIL OFL 1.1 - see

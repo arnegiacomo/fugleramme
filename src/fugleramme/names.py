@@ -13,21 +13,22 @@ from. A style is curated by hand (`scripts/curate.py`) and may keep more than
 one image for a bird, numbered "<key>-2.png", "<key>-3.png"; which of them a
 species is currently wearing is picks.py's business, not this module's.
 
-Each style folder carries its own ATTRIBUTION.md naming the works it draws on.
-Which plate a single file came from is stamped into the file, and `origin_of`
-reads it back.
+Each style folder carries its own ATTRIBUTION.md naming the works it draws on,
+and a manifest.json giving each single file the work it was cut from
+(`source_of`) and a link to the plate itself (`origin_of`). A style filled by
+hand has no manifest and simply has no provenance to show.
 """
 
 from __future__ import annotations
 
+import json
 import re
-import struct
 from pathlib import Path
 
 from .picks import Picks
 
 PERCHES = "perches"
-ORIGIN = "Origin"  # PNG tEXt key: "<source>/<file>.png" the image was curated from
+MANIFEST = "manifest.json"  # a style's record: "<file>.png" -> {"source", "url"}
 
 
 def normalize(scientific_name: str) -> str:
@@ -102,31 +103,46 @@ def perches_for(images_dir: Path, style: str) -> list[Path]:
     return sorted((images_dir / style / PERCHES).glob("*.png")) if style else []
 
 
-def origin_of(path: Path) -> str:
-    """The plate an image was curated from ("gould/turdus-merula-2.png"), read
-    from its own PNG metadata, or "" if it carries none.
+_manifests: dict[Path, tuple[float, dict[str, dict[str, str]]]] = {}
 
-    Header only, walking chunks by hand: Pillow opens the whole plate, which at
-    a page of birds is milliseconds against a second. This is the reader for
-    what the curation tool stamps, so the record can never drift from the file.
+
+def manifest(folder: Path) -> dict[str, dict[str, str]]:
+    """A style folder's provenance record, or {} if it keeps none.
+
+    Cached on the file's mtime: the admin page asks for one line of it per
+    subject, and re-reading the whole record that often is pointless work.
     """
+    path = folder / MANIFEST
     try:
-        with path.open("rb") as fh:
-            raw = fh.read(4096)
+        mtime = path.stat().st_mtime
     except OSError:
-        return ""
-    at = 8  # past the PNG signature
-    while at + 8 <= len(raw):
-        size, kind = struct.unpack(">I", raw[at : at + 4])[0], raw[at + 4 : at + 8]
-        if kind == b"IDAT":
-            break
-        body = raw[at + 8 : at + 8 + size]
-        if kind == b"tEXt" and body.split(b"\0", 1)[0] == ORIGIN.encode():
-            return body.split(b"\0", 1)[1].decode("latin-1")
-        at += 12 + size
-    return ""
+        return {}
+    cached = _manifests.get(path)
+    if cached is not None and cached[0] == mtime:
+        return cached[1]
+    try:
+        loaded = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(loaded, dict):
+        return {}
+    record = {
+        str(key): {str(field): str(text) for field, text in value.items()}
+        for key, value in loaded.items()
+        if isinstance(value, dict)
+    }
+    _manifests[path] = (mtime, record)
+    return record
 
 
 def source_of(path: Path) -> str:
-    """The work an image was cut from ("gould"), or "" if unstamped."""
-    return origin_of(path).split("/", 1)[0]
+    """The work an image was cut from ("gould"), or "" if it is unlisted. This is
+    the key ATTRIBUTION.md maps to terms, so it is what the admin page shows."""
+    return manifest(path.parent).get(path.name, {}).get("source", "")
+
+
+def origin_of(path: Path) -> str:
+    """Where the plate an image was cut from can be seen - a citation URL, or ""
+    when the manifest has none. Not every plate has one: a scan with no page to
+    point at, or a file added by hand, keeps its work without a link."""
+    return manifest(path.parent).get(path.name, {}).get("url", "")
