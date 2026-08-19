@@ -34,7 +34,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--images",
         type=Path,
-        default=REPO_ROOT / "assets" / "birds",
+        default=REPO_ROOT / "assets" / "artwork",
         help="bird artwork directory",
     )
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)

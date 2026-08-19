@@ -13,8 +13,9 @@ from fugleramme.settings import Settings, SettingsStore
 @pytest.fixture
 def images_dir(tmp_path):
     for style in ("classic", "custom", "modern"):
-        (tmp_path / style).mkdir()
-        (tmp_path / style / "turdus-merula.png").write_bytes(b"x")  # an empty style is not offered
+        (tmp_path / style / "birds").mkdir(parents=True)
+        # An empty style is not offered.
+        (tmp_path / style / "birds" / "turdus-merula.png").write_bytes(b"x")
     return tmp_path
 
 

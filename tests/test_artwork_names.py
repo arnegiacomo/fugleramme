@@ -16,7 +16,7 @@ import pytest
 from fugleramme.names import PERCHES
 
 REPO = Path(__file__).resolve().parents[1]
-IMAGES = REPO / "assets" / "birds"
+IMAGES = REPO / "assets" / "artwork"
 LABELS = REPO / "assets" / "birdnet_labels_v2.4.txt"
 # Curation priority list: workstation-only tooling, so absent from a clone.
 PRIORITY = REPO / "scripts" / "bergen_species.txt"

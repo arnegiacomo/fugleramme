@@ -66,7 +66,7 @@ please [get in touch](https://arnegiacomo.dev/).
 - Bird images: each style folder carries its own terms and sources, and its
   manifest links the plate every file was cut from. `classic` is
   CC BY-SA 4.0 - see
-  [`assets/birds/classic/ATTRIBUTION.md`](assets/birds/classic/ATTRIBUTION.md).
+  [`assets/artwork/classic/ATTRIBUTION.md`](assets/artwork/classic/ATTRIBUTION.md).
 - Label fonts (`assets/fonts/`): SIL OFL 1.1 - see
   [`assets/fonts/ATTRIBUTION.md`](assets/fonts/ATTRIBUTION.md).
 - Bird sizes (`assets/bird_sizes.csv`): body mass from AVONET (Tobias et al.

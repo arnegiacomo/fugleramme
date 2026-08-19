@@ -27,6 +27,7 @@ from pathlib import Path
 
 from .picks import Picks
 
+BIRDS = "birds"
 PERCHES = "perches"
 MANIFEST = "manifest.json"  # a style's record: "<file>.png" -> {"source", "url"}
 
@@ -44,7 +45,9 @@ def available_styles(images_dir: Path) -> list[str]:
     frame when selected. Perches alone do not count - there would be no birds.
     """
     try:
-        return sorted(d.name for d in images_dir.iterdir() if d.is_dir() and any(d.glob("*.png")))
+        return sorted(
+            d.name for d in images_dir.iterdir() if d.is_dir() and any((d / BIRDS).glob("*.png"))
+        )
     except OSError:
         return []
 
@@ -68,7 +71,7 @@ def variants_for(scientific_name: str, images_dir: Path, style: str) -> list[Pat
     if not style:
         return []
     key = normalize(scientific_name)
-    folder = images_dir / style
+    folder = images_dir / style / BIRDS
     numbered = re.compile(rf"{re.escape(key)}-(\d+)")
     base = [folder / f"{key}.png"] if (folder / f"{key}.png").exists() else []
     rest = [(m, p) for p in folder.glob(f"{key}-*.png") if (m := numbered.fullmatch(p.stem))]
@@ -88,7 +91,7 @@ def drawable_keys(images_dir: Path, style: str) -> set[str]:
     """
     if not style:
         return set()
-    return {_NUMBERED.sub("", path.stem) for path in (images_dir / style).glob("*.png")}
+    return {_NUMBERED.sub("", path.stem) for path in (images_dir / style / BIRDS).glob("*.png")}
 
 
 def image_for(scientific_name: str, images_dir: Path, style: str, picks: Picks) -> Path | None:
@@ -135,14 +138,27 @@ def manifest(folder: Path) -> dict[str, dict[str, str]]:
     return record
 
 
+def record_of(path: Path) -> dict[str, str]:
+    """An image's manifest entry, from the nearest record at or above it.
+
+    A style keeps one manifest, so a file in a subfolder - a perch - is keyed by
+    its path relative to the folder the manifest sits in ("perches/oak.png").
+    """
+    for folder in (path.parent, path.parent.parent):
+        listed = manifest(folder)
+        if listed:
+            return listed.get(path.relative_to(folder).as_posix(), {})
+    return {}
+
+
 def source_of(path: Path) -> str:
     """The work an image was cut from ("gould"), or "" if it is unlisted. This is
     the key ATTRIBUTION.md maps to terms, so it is what the admin page shows."""
-    return manifest(path.parent).get(path.name, {}).get("source", "")
+    return record_of(path).get("source", "")
 
 
 def origin_of(path: Path) -> str:
     """Where the plate an image was cut from can be seen - a citation URL, or ""
     when the manifest has none. Not every plate has one: a scan with no page to
     point at, or a file added by hand, keeps its work without a link."""
-    return manifest(path.parent).get(path.name, {}).get("url", "")
+    return record_of(path).get("url", "")

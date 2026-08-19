@@ -80,7 +80,7 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 **Name to artwork** (`names.py`, `picks.py`).
 
 - "Turdus merula" normalizes to `turdus-merula.png` plus any curated `-N` variants. No runtime alias map - the assets were renamed to modern eBird / BirdNET v2.4 names in a one-off migration.
-- Artwork is grouped by **style** into subfolders of `assets/birds/`, one active at a time (`settings.style`; empty = whichever is present). No union across styles, and a folder with no birds isn't offered at all.
+- Artwork is grouped by **style** into subfolders of `assets/artwork/`, each holding `birds/` and `perches/` beside its `ATTRIBUTION.md` and `manifest.json`, one active at a time (`settings.style`; empty = whichever is present). No union across styles, and a folder with no birds isn't offered at all.
 - `tests/test_artwork_names.py` enforces it: every filename (`perches/` aside) must be a BirdNET label, a hybrid (`-x-`), or a listed exception.
 - The variant pick is per species, not per render, persisted to `detector/data/artwork.json` so a restart doesn't reshuffle the page. Only the render loop calls `retain` - the kiosk and admin preview may hold a different lookback. The collage cache key needs nothing extra: picks change only when the species set does.
 
@@ -88,7 +88,7 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 
 - The whole artwork pipeline (scraping, background removal, contact sheet, plates) is gitignored and workstation-only: the frame doesn't depend on it and plates are re-scrapeable.
 - The sheet writes kept candidates as `<key>.png`, `<key>-2.png`, ... and rewrites a species whole on every change, so dropping one renumbers the rest rather than leaving a gap `variants_for` would never look for.
-- A style's `manifest.json` gives a shipped file the work it was cut from and a link to the plate (`turdus-merula.png` -> `{"source": "gould", "url": ...}`), written by the sheet alongside the files it renames. `names.source_of` reads the key ATTRIBUTION.md maps to terms, `names.origin_of` the citation; both cached per folder on the file's mtime, since the admin page asks once per subject. No manifest (a hand-filled `custom/`), no entry, or an entry with no URL all resolve to `""` rather than failing.
+- A style's `manifest.json` gives a shipped file the work it was cut from and a link to the plate (`birds/turdus-merula.png` -> `{"source": "gould", "url": ...}`), keyed by the path under the style so one record covers `birds/` and `perches/` both. The sheet writes it alongside the files it renames and carries the perch entries through untouched. `names.source_of` reads the key ATTRIBUTION.md maps to terms, `names.origin_of` the citation; both cached per folder on the file's mtime, since the admin page asks once per subject. No manifest (a hand-filled `custom/`), no entry, or an entry with no URL all resolve to `""` rather than failing.
 
 **The install splits at the reboot** (`install.sh`, `run.sh`).
 
@@ -113,5 +113,5 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 - [`README.md`](README.md) - project summary and licensing split
 - [`docs/`](docs/index.md) - the end-user manual (hardware, install, operations, troubleshooting)
 - [`detector/README.md`](detector/README.md) - BirdNET-Go container, the direct-read DB, and Pi deployment
-- [`assets/birds/classic/ATTRIBUTION.md`](assets/birds/classic/ATTRIBUTION.md) - that style's sources and terms; one per style folder
+- [`assets/artwork/classic/ATTRIBUTION.md`](assets/artwork/classic/ATTRIBUTION.md) - that style's sources and terms; one per style folder
 - [`assets/fonts/ATTRIBUTION.md`](assets/fonts/ATTRIBUTION.md) - label typefaces, SIL OFL 1.1

@@ -45,9 +45,9 @@ def _row(id_, label_id, ago_hours):
 def images(tmp_path):
     """Two species with artwork, in a style of their own."""
     style = tmp_path / "classic"
-    style.mkdir()
+    (style / "birds").mkdir(parents=True)
     for key in ("turdus-merula", "parus-major"):
-        Image.new("RGBA", (120, 90), (40, 40, 40, 255)).save(style / f"{key}.png")
+        Image.new("RGBA", (120, 90), (40, 40, 40, 255)).save(style / "birds" / f"{key}.png")
     (style / "perches").mkdir()
     Image.new("RGBA", (80, 60), (20, 20, 20, 255)).save(style / "perches" / "twig.png")
     return tmp_path
@@ -114,7 +114,7 @@ def test_the_latest_bird_changes_the_page_when_the_species_changes(tmp_path, ima
 
 
 def test_the_latest_bird_skips_a_species_it_cannot_draw(tmp_path, images):
-    (images / "classic" / "parus-major.png").unlink()
+    (images / "classic" / "birds" / "parus-major.png").unlink()
     db = _db(tmp_path / "b.db", [_row(1, 10, 2), _row(2, 11, 1)])
     assert modes.state_key(_ctx(db, images, tmp_path, "latest"))[-1][0] == "Turdus merula"
 

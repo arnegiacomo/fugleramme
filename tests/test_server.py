@@ -29,9 +29,9 @@ def frame(tmp_path):
     random.seed(0)
     seed(tmp_path / "birdnet.db", 40)
     style = tmp_path / "images" / "classic"
-    style.mkdir(parents=True)
+    (style / "birds").mkdir(parents=True)
     for key in ("turdus-merula", "parus-major"):
-        Image.new("RGBA", (120, 90), (40, 40, 40, 255)).save(style / f"{key}.png")
+        Image.new("RGBA", (120, 90), (40, 40, 40, 255)).save(style / "birds" / f"{key}.png")
 
     handler = server.make_handler(
         Database(tmp_path / "birdnet.db"),

@@ -61,7 +61,7 @@ PRs are squashed, so the title is the message that counts.
 Half the point of this project is showing off amazing public-domain natural-history illustration, so every bird has to be cut from a real plate. Nothing AI-generated.
 Retouching a scan with AI is fair game - e.g. the `classic` perches were tidied up that way.
 
-`assets/birds/custom/README.md` covers the file itself: a transparent PNG, named
+`assets/artwork/custom/README.md` covers the file itself: a transparent PNG, named
 for the scientific name exactly as BirdNET-Go emits it
 (`assets/birdnet_labels_v2.4.txt`), with `-2`, `-3` for more of the same bird. A
 name that isn't an existing label fails the test suite.
@@ -77,7 +77,7 @@ Then, for the style folder it lands in:
   entry.
 
 **A whole new style** is the nicest thing you can contribute: its own folder
-under `assets/birds/`, its own `ATTRIBUTION.md`, picked from the admin page.
+under `assets/artwork/`, its own `ATTRIBUTION.md`, picked from the admin page.
 
 **A missing bird in `classic`** is better as an issue than a PR - link the plate
 you have in mind (ideally on Wikimedia Commons or similar). The cutting and

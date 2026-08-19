@@ -8,6 +8,7 @@ import json
 import os
 
 from fugleramme.names import (
+    BIRDS,
     MANIFEST,
     PERCHES,
     available_styles,
@@ -22,7 +23,7 @@ from fugleramme.picks import Picks
 
 
 def _make(images_dir, style, *stems):
-    d = images_dir / style
+    d = images_dir / style / BIRDS
     d.mkdir(parents=True, exist_ok=True)
     for stem in stems:
         (d / f"{stem}.png").write_bytes(b"x")
@@ -120,8 +121,8 @@ def test_provenance_comes_from_the_styles_manifest(tmp_path):
         tmp_path,
         "classic",
         {
-            "turdus-merula.png": {"source": "gould", "url": "https://example.org/a"},
-            "turdus-merula-2.png": {"source": "vonwright", "url": "https://example.org/b"},
+            "birds/turdus-merula.png": {"source": "gould", "url": "https://example.org/a"},
+            "birds/turdus-merula-2.png": {"source": "vonwright", "url": "https://example.org/b"},
         },
     )
     pngs = variants_for("Turdus merula", tmp_path, "classic")
@@ -129,25 +130,41 @@ def test_provenance_comes_from_the_styles_manifest(tmp_path):
     assert [origin_of(p) for p in pngs] == ["https://example.org/a", "https://example.org/b"]
 
 
+def test_a_perch_is_keyed_by_its_path_under_the_style(tmp_path):
+    # One manifest per style, so a subfolder's files carry their folder in the key.
+    _make(tmp_path, "classic", "turdus-merula")
+    perches = tmp_path / "classic" / PERCHES
+    perches.mkdir()
+    (perches / "birch-twig.png").write_bytes(b"")
+    _manifest(
+        tmp_path,
+        "classic",
+        {"perches/birch-twig.png": {"source": "vonwright", "url": "https://example.org/p"}},
+    )
+    perch = perches_for(tmp_path, "classic")[0]
+    assert source_of(perch) == "vonwright"
+    assert origin_of(perch) == "https://example.org/p"
+
+
 def test_an_entry_may_carry_a_source_and_no_url(tmp_path):
     # Not every plate has a page to cite; the work it came from still holds.
     _make(tmp_path, "classic", "turdus-merula")
-    _manifest(tmp_path, "classic", {"turdus-merula.png": {"source": "gould"}})
-    assert source_of(tmp_path / "classic" / "turdus-merula.png") == "gould"
-    assert origin_of(tmp_path / "classic" / "turdus-merula.png") == ""
+    _manifest(tmp_path, "classic", {"birds/turdus-merula.png": {"source": "gould"}})
+    assert source_of(tmp_path / "classic" / BIRDS / "turdus-merula.png") == "gould"
+    assert origin_of(tmp_path / "classic" / BIRDS / "turdus-merula.png") == ""
 
 
 def test_a_style_with_no_manifest_resolves_cleanly(tmp_path):
     # A hand-filled `custom/` ships nothing but images; that is not a failure.
     _make(tmp_path, "custom", "turdus-merula")
-    assert source_of(tmp_path / "custom" / "turdus-merula.png") == ""
-    assert origin_of(tmp_path / "custom" / "turdus-merula.png") == ""
+    assert source_of(tmp_path / "custom" / BIRDS / "turdus-merula.png") == ""
+    assert origin_of(tmp_path / "custom" / BIRDS / "turdus-merula.png") == ""
 
 
 def test_a_file_the_manifest_omits_has_no_provenance(tmp_path):
     _make(tmp_path, "classic", "turdus-merula", "corvus-corax")
-    _manifest(tmp_path, "classic", {"turdus-merula.png": {"source": "gould"}})
-    assert source_of(tmp_path / "classic" / "corvus-corax.png") == ""
+    _manifest(tmp_path, "classic", {"birds/turdus-merula.png": {"source": "gould"}})
+    assert source_of(tmp_path / "classic" / BIRDS / "corvus-corax.png") == ""
 
 
 def test_an_entry_that_is_not_a_record_is_dropped(tmp_path):
@@ -157,21 +174,21 @@ def test_an_entry_that_is_not_a_record_is_dropped(tmp_path):
         tmp_path,
         "classic",
         {
-            "turdus-merula.png": "gould/turdus-merula.png",
-            "corvus-corax.png": {"source": "gould"},
+            "birds/turdus-merula.png": "gould/turdus-merula.png",
+            "birds/corvus-corax.png": {"source": "gould"},
         },
     )
-    assert source_of(tmp_path / "classic" / "turdus-merula.png") == ""
-    assert source_of(tmp_path / "classic" / "corvus-corax.png") == "gould"
+    assert source_of(tmp_path / "classic" / BIRDS / "turdus-merula.png") == ""
+    assert source_of(tmp_path / "classic" / BIRDS / "corvus-corax.png") == "gould"
 
 
 def test_a_rewritten_manifest_is_read_again(tmp_path):
     # Cached per folder, so an edit under the running frame has to invalidate it.
     _make(tmp_path, "classic", "turdus-merula")
-    path = tmp_path / "classic" / "turdus-merula.png"
-    _manifest(tmp_path, "classic", {"turdus-merula.png": {"source": "gould"}})
+    path = tmp_path / "classic" / BIRDS / "turdus-merula.png"
+    _manifest(tmp_path, "classic", {"birds/turdus-merula.png": {"source": "gould"}})
     assert source_of(path) == "gould"
-    _manifest(tmp_path, "classic", {"turdus-merula.png": {"source": "vonwright"}})
+    _manifest(tmp_path, "classic", {"birds/turdus-merula.png": {"source": "vonwright"}})
     manifest_path = tmp_path / "classic" / MANIFEST
     os.utime(manifest_path, (0, manifest_path.stat().st_mtime + 1))
     assert source_of(path) == "vonwright"
@@ -180,4 +197,4 @@ def test_a_rewritten_manifest_is_read_again(tmp_path):
 def test_a_broken_manifest_is_not_fatal(tmp_path):
     _make(tmp_path, "classic", "turdus-merula")
     (tmp_path / "classic" / MANIFEST).write_text("{ not json")
-    assert source_of(tmp_path / "classic" / "turdus-merula.png") == ""
+    assert source_of(tmp_path / "classic" / BIRDS / "turdus-merula.png") == ""
