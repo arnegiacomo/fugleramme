@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v0.14.0 (2026-08-22)
+
+### Chores
+
+- Ignore rawpixel-scrape
+  ([`bdea9fe`](https://github.com/arnegiacomo/fugleramme/commit/bdea9febc74071806f913aca124fa2a6cee4233e))
+
+### Features
+
+- #21 add 68 von Wright plates from rawpixel
+  ([`28b4728`](https://github.com/arnegiacomo/fugleramme/commit/28b47289fc0437783ed2e00c2bbb2a6d762f94c4))
+
+### Refactoring
+
+- Give a style birds/ and perches/ under assets/artwork
+  ([`6a21f89`](https://github.com/arnegiacomo/fugleramme/commit/6a21f89a6868f55b7c5e4055d718ec491d98b804))
+
+- Record artwork provenance in a style manifest
+  ([`738c3cd`](https://github.com/arnegiacomo/fugleramme/commit/738c3cddaa94952696f6d3a7a81708c5ac053835))
+
+
 ## v0.13.0 (2026-08-16)
 
 ### Bug Fixes
