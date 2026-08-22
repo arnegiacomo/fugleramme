@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v0.14.1 (2026-08-22)
+
+### Bug Fixes
+
+- #21 extract regulus-reguluses from troglodytes-troglodytes-2.png
+  ([`c17702f`](https://github.com/arnegiacomo/fugleramme/commit/c17702fabcd2747739889ea1230968b8a3a49122))
+
+### Chores
+
+- CLAUDE.md -> AGENTS.md
+  ([`ff13772`](https://github.com/arnegiacomo/fugleramme/commit/ff137720554578fbd16a965224f97097920aea00))
+
+- Update CLAUDE.md
+  ([`a612964`](https://github.com/arnegiacomo/fugleramme/commit/a612964c6754e310048267d0dc10b9741b117076))
+
+
 ## v0.14.0 (2026-08-22)
 
 ### Chores
