@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds into its own SQLite; the frame reads that DB read-only and renders the recently seen birds as a collage on a Pimoroni Inky Impression (Spectra 6) panel, serving the same view over HTTP. Python managed with `uv`: Pillow + numpy for rendering, stdlib `sqlite3` and `http.server`, and the Pi-only `inky` driver. It runs on a Pi in production and on a workstation for development - live mic capture and the panel push are Pi-only.
 
+**The panel is the product.** The kiosk mirrors what is on the glass; it is not a second product with its own views. Detection, statistics and talking to other systems are BirdNET-Go's - it already serves a dashboard, spectrograms, live audio, MQTT with Home Assistant discovery, BirdWeather and clip export on `:8090`, and the admin links there. A feature that does not improve what hangs on the wall or the artwork on it belongs upstream, not here.
+
 ## Commands
 
 ```bash
