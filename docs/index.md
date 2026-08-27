@@ -12,6 +12,11 @@ panel, and serves the same view as a web kiosk.
 | :---: | :---: | :---: |
 | ![No birds detected](assets/empty.png) | ![A few garden birds](assets/few.png) | ![Many garden birds](assets/many.png) |
 
+> [!TIP]
+> Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)**
+> running from my kitchen window and displaying the actual birds currently
+> heard in my garden (Bergen, Norway).
+
 The birds are cut-outs from historic, public-domain natural-history drawings,
 hand-curated for this project. Each detected species is matched to its
 illustration and packed onto a textured paper page - larger birds toward the

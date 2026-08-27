@@ -9,6 +9,8 @@ the detections and renders recently-seen birds on an [Inky-Impression](https://s
 > The e-ink panel is not required, although its recommended for the inteded experience. Without one, Fugleramme runs web-only - show the
 > kiosk on a display over HDMI, or open it from any device on the network.
 
+Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** running from my kitchen window and displaying the actual birds currently heard in my garden (Bergen, Norway).
+
 Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://arnegiacomo.dev/fugleramme/)**
 
 ## Art
