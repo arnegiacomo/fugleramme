@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v0.15.0 (2026-08-30)
+
+### Bug Fixes
+
+- #3 bump BirdNET-Go to 20260823
+  ([`011d720`](https://github.com/arnegiacomo/fugleramme/commit/011d72072f5ad41c82475164daf5d2ae2456e009))
+
+### Chores
+
+- Link to fugleramme.arnegiacomo.dev
+  ([`4b2452b`](https://github.com/arnegiacomo/fugleramme/commit/4b2452bd1114cc61da535d2be8fce7d124252234))
+
+### Features
+
+- #2 show the detector version in the admin
+  ([`ac364ef`](https://github.com/arnegiacomo/fugleramme/commit/ac364ef39e6dd8560654621e982f3f7839783170))
+
+- #3 converge the detector on self-update
+  ([`2ee1dbc`](https://github.com/arnegiacomo/fugleramme/commit/2ee1dbc98a9561081a47354df42260e6b931ec5a))
+
+
 ## v0.14.1 (2026-08-22)
 
 ### Bug Fixes
