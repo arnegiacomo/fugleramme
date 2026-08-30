@@ -11,7 +11,7 @@ import pytest
 from PIL import Image, ImageFont
 
 from fugleramme.render import collage, fonts
-from fugleramme.render.collage import _pack, _Sprite, _with_label, render_collage
+from fugleramme.render.collage import _pack, _probes, _Sprite, _with_label, render_collage
 from fugleramme.render.page import INK, PANEL_INK, label_px, stamp, text_mask
 from fugleramme.render.paper import TARGET_PAPER
 
@@ -281,3 +281,20 @@ def test_the_branch_turns_over_with_the_day(tmp_path):
 def test_an_empty_page_with_no_perches_is_bare_paper(tmp_path):
     page = render_collage([], (200, 150), textured=False, perches=[])
     assert (np.asarray(page) == TARGET_PAPER).all()
+
+
+def test_a_probe_is_a_real_row_of_the_sprite():
+    """The packer skips the full footprint test whenever a probe row collides.
+    That is only sound while a probe is literally a row of the mask at the index
+    it claims - anything else would reject positions that were actually free."""
+    rng = np.random.default_rng(0)
+    for shape in ((40, 25), (3, 90), (120, 7)):
+        mask = rng.random(shape) > 0.6
+        for row, probe in _probes(mask):
+            assert np.array_equal(probe, mask[row])
+        # A blank band contributes nothing rather than a row that can never collide.
+        assert all(probe.any() for _, probe in _probes(mask))
+
+
+def test_a_sprite_with_no_opaque_pixels_probes_nothing():
+    assert _probes(np.zeros((20, 20), dtype=bool)) == []

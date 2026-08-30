@@ -112,6 +112,23 @@ def _spiral(cx: float, cy: float, max_r: float):
         r += _STEP
 
 
+_PROBE_BANDS = 3
+
+
+def _probes(mask: np.ndarray) -> list[tuple[int, np.ndarray]]:
+    """One row per horizontal band of a sprite, tested before its whole footprint.
+    Most candidate positions on a filling page collide, and a row costs a
+    hundredth of the box. Banded rather than simply the densest rows, which all
+    land in the body and catch the same collisions as each other."""
+    density = mask.sum(axis=1)
+    probes = []
+    for band in np.array_split(np.arange(len(density)), _PROBE_BANDS):
+        if band.size and density[band].max():
+            row = int(band[int(np.argmax(density[band]))])
+            probes.append((row, mask[row]))
+    return probes
+
+
 def _pack(sprites: list[_Sprite], width: int, height: int):
     """Place every sprite with no opaque overlap and fully on-screen, or return
     None if one does not fit. Sprites should be pre-sorted largest-first."""
@@ -120,10 +137,15 @@ def _pack(sprites: list[_Sprite], width: int, height: int):
     max_r = math.hypot(width, height)
     for sprite in sprites:
         h, w = sprite.mask.shape
+        probes = _probes(sprite.mask)
         spot = None
         for px, py in _spiral(width / 2, height / 2, max_r):
             x, y = int(px - w / 2), int(py - h / 2)
             if x < 0 or y < 0 or x + w > width or y + h > height:
+                continue
+            # A colliding probe row is a real collision, so this only ever skips
+            # the box test for positions it would have rejected anyway.
+            if any((occ[y + r, x : x + w] & row).any() for r, row in probes):
                 continue
             if not (occ[y : y + h, x : x + w] & sprite.mask).any():
                 spot = (x, y)
