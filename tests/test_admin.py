@@ -71,3 +71,16 @@ def test_the_update_row_offers_the_install_only_once_a_release_is_known():
 
     status.update_available, status.updating = None, True
     assert "<progress" in admin._update(status)  # no button while it installs
+
+
+def test_the_detector_row_carries_the_version_it_reports(monkeypatch):
+    """The version has to survive a detector that answers without one."""
+    monkeypatch.setattr(admin.hostinfo, "reachable", lambda host, port: True)
+    monkeypatch.setattr(admin.hostinfo, "detector_version", lambda port: "20260823")
+    assert "running" in admin._detector() and "20260823" in admin._detector()
+
+    monkeypatch.setattr(admin.hostinfo, "detector_version", lambda port: "")
+    assert admin._detector() == admin._state(True, "running", "unreachable")
+
+    monkeypatch.setattr(admin.hostinfo, "reachable", lambda host, port: False)
+    assert "unreachable" in admin._detector()

@@ -5,13 +5,16 @@ Nothing here renders - the admin decides how a probe reads.
 
 from __future__ import annotations
 
+import json
 import shutil
 import socket
 import time
 from pathlib import Path
+from urllib.request import urlopen
 
 _ONLINE_TTL = 60
 _online_cache: tuple[float, bool] | None = None
+_version_cache: tuple[float, str] | None = None
 
 
 def reachable(host: str, port: int) -> bool:
@@ -41,6 +44,26 @@ def online() -> tuple[bool, str]:
         # Cloudflare by IP - no name lookup to hang on; 443 since some networks filter 53.
         _online_cache = (now, reachable("1.1.1.1", 443))
     return _online_cache[1], _default_iface()
+
+
+def detector_version(port: int) -> str:
+    """The version BirdNET-Go reports, or "" if it does not answer. The frame's
+    update leaves the container alone, so this drifts from the tag the compose
+    pins until `run.sh` runs. Cached like `online()`."""
+    global _version_cache
+    now = time.monotonic()
+    if _version_cache is None or now - _version_cache[0] >= _ONLINE_TTL:
+        _version_cache = (now, _probe_version(port))
+    return _version_cache[1]
+
+
+def _probe_version(port: int) -> str:
+    # /api/v2/health sits outside BirdNET-Go's auth group.
+    try:
+        with urlopen(f"http://127.0.0.1:{port}/api/v2/health", timeout=3) as response:
+            return str(json.load(response).get("version") or "")
+    except (OSError, ValueError):
+        return ""
 
 
 def lan_address() -> str:

@@ -91,6 +91,14 @@ def _state(ok: bool, good: str, bad: str) -> str:
     return f'<span class="{"ok" if ok else "bad"}">{good if ok else bad}</span>'
 
 
+def _detector() -> str:
+    """BirdNET-Go's state, and the version it reports when it answers."""
+    if not hostinfo.reachable("127.0.0.1", BIRDNET_PORT):
+        return _state(False, "running", "unreachable")
+    version = hostinfo.detector_version(BIRDNET_PORT)
+    return _state(True, "running", "unreachable") + (f" · {version}" if version else "")
+
+
 def _duration(seconds: int) -> str:
     for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
         if seconds >= size:
@@ -237,7 +245,7 @@ def page(
             "auto_update", "Install new releases automatically", settings.auto_update
         ),
         panel=f"detected · {glass}" if detected else f"not detected · assuming {glass}",
-        birdnet=_state(hostinfo.reachable("127.0.0.1", BIRDNET_PORT), "running", "unreachable"),
+        birdnet=_detector(),
         host=hostinfo.lan_address(),
         online=_state(online, "online", "offline") + (f" · {iface}" if iface else ""),
         disk=hostinfo.disk_free(ctx.db.path.parent),
