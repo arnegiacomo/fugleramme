@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.15.1 (2026-08-30)
+
+### Performance Improvements
+
+- Reject pack collisions on a probe row before the full footprint
+  ([`aac77d3`](https://github.com/arnegiacomo/fugleramme/commit/aac77d30533f37e4f6be29cd56102c46c9d1e739))
+
+
 ## v0.15.0 (2026-08-30)
 
 ### Bug Fixes
