@@ -1,7 +1,7 @@
 services:
   birdnet-go:
-    # BirdNET-Go ships only nightlies; pin a dated one and bump deliberately.
-    image: ghcr.io/tphakala/birdnet-go:nightly-20260615
+    # Upstream tags releases by date; bump deliberately after testing on the Pi.
+    image: ghcr.io/tphakala/birdnet-go:20260823
     container_name: birdnet-go
     restart: unless-stopped
     environment:
