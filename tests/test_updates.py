@@ -7,12 +7,13 @@ from __future__ import annotations
 
 import io
 import json
+import sqlite3
 import subprocess
 import sys
 import threading
 import urllib.request
 from http.server import ThreadingHTTPServer
-from unittest.mock import patch
+from unittest.mock import DEFAULT, patch
 
 import pytest
 
@@ -200,6 +201,7 @@ def test_stale_tags_are_pruned_through_the_patched_seam():
     with (
         patch.object(updates, "_run") as run,
         patch.object(updates.subprocess, "run", return_value=listing),
+        patch.object(updates, "_converge_detector"),
     ):
         updates.apply("v0.2.0")
     deletes = [c.args[0] for c in run.call_args_list if c.args[0][:2] == ["git", "tag"]]
@@ -207,7 +209,7 @@ def test_stale_tags_are_pruned_through_the_patched_seam():
 
 
 def _apply_calls():
-    with patch.object(updates, "_run") as run:
+    with patch.object(updates, "_run") as run, patch.object(updates, "_converge_detector"):
         updates.apply("v0.2.0")
     return run.call_args_list
 
@@ -224,3 +226,64 @@ def test_a_failed_install_does_not_retry_every_tick():
 
         assert service._update(status, auto=True) is False
         apply.assert_called_once()
+
+
+def _converged(tmp_path, **patches):
+    """A checkout run.sh has converged: `.env` beside the compose file is what
+    tells the update this is an appliance and not somebody's dev tree."""
+    (tmp_path / "detector").mkdir(exist_ok=True)
+    (tmp_path / "detector" / ".env").write_text("BIRDNET_UID=1000\n")
+    return patch.multiple(updates, REPO_ROOT=tmp_path, **patches)
+
+
+def test_the_detector_is_brought_onto_the_pin_the_release_carries(tmp_path):
+    """An update that changes docker-compose.yml has to reach the container, or
+    the pin is decorative: the frame moves and the detector stays where it was."""
+    with _converged(tmp_path, _run=DEFAULT, _backup_db=DEFAULT) as patched:
+        updates._converge_detector()
+    command = patched["_run"].call_args.args[0]
+    assert command[:2] == ["docker", "compose"] and command[-2:] == ["up", "-d"]
+    assert str(tmp_path / "detector" / ".env") in command  # UID/GID/ALSA_CARD
+    # No --force-recreate: an unchanged pin must not bounce a working detector.
+    assert "--force-recreate" not in command
+
+
+def test_a_dev_checkout_never_touches_docker(tmp_path):
+    with patch.multiple(updates, REPO_ROOT=tmp_path, _run=DEFAULT) as patched:
+        updates._converge_detector()
+    assert not patched["_run"].called
+
+
+def test_a_detector_that_will_not_update_does_not_fail_the_frame_update(tmp_path):
+    """The frame is already checked out and synced by this point. A missing docker,
+    a denied socket or a failed pull must leave it on the new version anyway."""
+    for failure in (RuntimeError("pull failed"), FileNotFoundError("docker")):
+        with _converged(tmp_path, _backup_db=DEFAULT, _run=DEFAULT) as patched:
+            patched["_run"].side_effect = failure
+            updates._converge_detector()
+
+
+def test_the_container_is_left_alone_when_the_backup_fails(tmp_path):
+    """The new container migrates the DB in place on first start. With no copy to
+    fall back on, the old container is the safe place to stay."""
+    with _converged(tmp_path, _run=DEFAULT, _backup_db=DEFAULT) as patched:
+        patched["_backup_db"].side_effect = sqlite3.OperationalError("disk full")
+        updates._converge_detector()
+    assert not patched["_run"].called
+
+
+def test_the_backup_captures_the_detections(tmp_path):
+    db = tmp_path / "birdnet.db"
+    with sqlite3.connect(db) as conn:
+        conn.execute("CREATE TABLE detections (id INTEGER)")
+        conn.execute("INSERT INTO detections VALUES (1), (2)")
+    with patch.object(updates, "DEFAULT_DB_PATH", db):
+        updates._backup_db()
+    with sqlite3.connect(tmp_path / "birdnet.db.bak") as backup:
+        assert backup.execute("SELECT count(*) FROM detections").fetchone()[0] == 2
+
+
+def test_a_missing_database_is_not_a_backup_failure(tmp_path):
+    """First boot: BirdNET-Go has not created it yet, and there is nothing to lose."""
+    with patch.object(updates, "DEFAULT_DB_PATH", tmp_path / "absent.db"):
+        updates._backup_db()

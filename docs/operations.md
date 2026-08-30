@@ -26,6 +26,8 @@ frame restarts itself and comes back on the new
 version. If an update fails, the
 reason shows in place of the version and the frame keeps running as it was.
 
+Some updates also bring a new version of BirdNET-Go, which is a few hundred megabytes and may take a while to download. (Your detections will be automatically backed up to `detector/data/birdnet.db.bak`.)
+
 The frame has to be online to check for or install updates, whichever way you do
 it. The System tab tells you whether it is.
 
@@ -52,8 +54,7 @@ cd ~/fugleramme
 ./run.sh
 ```
 
-Run it if you move the repo, swap the mic, or a release changes BirdNET-Go's
-container.
+Run it if you move the repo or swap the mic.
 
 ## Changing Wi-Fi in gadget mode (USB-C)
 

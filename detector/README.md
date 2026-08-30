@@ -59,8 +59,10 @@ journalctl -u fugleramme-frame -f            # frame
 
 ## Deployment notes
 
-- **Image pin:** BirdNET-Go ships only nightlies; the compose pins a dated tag.
-  Bump it deliberately after testing rather than tracking `nightly`.
+- **Image pin:** upstream tags releases by date (`20260823`; the `nightly-`
+  prefix is gone since mid-2026). A release carries the pin to every frame -
+  `updates.apply` runs `compose up -d` after the checkout - so test a bump on the
+  Pi before tagging one.
 - **Licence:** BirdNET-Go and the BirdNET model are CC BY-NC-SA 4.0. Nothing from
   it is vendored - the compose pulls a prebuilt image and `db.py` only knows the
   schema - which is what keeps this repo MIT. Don't fork it into the tree.

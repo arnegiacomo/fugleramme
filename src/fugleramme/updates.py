@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import shutil
+import sqlite3
 import subprocess
 import threading
 import time
@@ -20,7 +21,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from . import __version__
-from .config import RELEASES_API, REPO_HTTPS_URL, REPO_ROOT
+from .config import DEFAULT_DB_PATH, RELEASES_API, REPO_HTTPS_URL, REPO_ROOT
 
 log = logging.getLogger(__name__)
 
@@ -85,6 +86,53 @@ def apply(tag: str, progress: Progress | None = None) -> None:
     except RuntimeError:
         # Same fallback as run.sh: no panel driver still leaves a working kiosk.
         _run([_uv(), "sync"], "Installing dependencies", progress)
+    _converge_detector(progress)
+
+
+def _converge_detector(progress: Progress | None = None) -> None:
+    """Bring the container onto the image the new checkout pins. `up -d` pulls a
+    tag that is not local yet and recreates only what changed, so a release that
+    left the pin alone costs a second. Not fatal: the frame is already on the new
+    version, and a detector left on its old container still serves the DB."""
+    env_file = REPO_ROOT / "detector" / ".env"
+    if not env_file.exists():
+        return  # run.sh writes it, so this is a dev checkout, not an appliance
+    try:
+        _backup_db(progress)
+        _run(
+            [
+                "docker",
+                "compose",
+                "--env-file",
+                str(env_file),
+                "-f",
+                str(REPO_ROOT / "detector" / "docker-compose.yml"),
+                "up",
+                "-d",
+            ],
+            "Updating the detector",
+            progress,
+        )
+    except (RuntimeError, OSError, sqlite3.Error) as exc:
+        log.warning("Detector left on its current image: %s", exc)
+
+
+def _backup_db(progress: Progress | None = None) -> None:
+    """A copy beside the original, taken before the new container migrates it in
+    place - upstream has shipped migrations that lost the database, and the
+    detections are the one thing here that cannot be fetched again. Raising skips
+    the swap: an un-backed-up migration is the risk this whole step exists for."""
+    if not DEFAULT_DB_PATH.exists():
+        return  # the unit runs with no --db, so the appliance's DB is the default one
+    if progress:
+        progress("Backing up detections", None)
+    source = sqlite3.connect(f"file:{DEFAULT_DB_PATH}?mode=ro", uri=True)
+    target = sqlite3.connect(DEFAULT_DB_PATH.with_suffix(".db.bak"))
+    try:
+        source.backup(target)  # consistent under WAL, which copying the file is not
+    finally:
+        target.close()
+        source.close()
 
 
 def _drop_stale_tags(keep: str, progress: Progress | None = None) -> None:
