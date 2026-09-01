@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or idea
+    url: https://github.com/arnegiacomo/fugleramme/discussions
+    about: Anything that isn't a bug - setup help, artwork, feature ideas.
+  - name: Detection, mic, MQTT or BirdWeather
+    url: https://github.com/tphakala/birdnet-go/issues
+    about: The detector is BirdNET-Go. Missed or wrong species belong there.

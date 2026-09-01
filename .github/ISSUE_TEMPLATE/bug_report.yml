@@ -1,0 +1,54 @@
+name: Bug report
+description: Something on the frame is not working
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Detection itself - missed birds, wrong species, mic setup, MQTT - belongs
+        to [BirdNET-Go](https://github.com/tphakala/birdnet-go/issues). This
+        tracker is for the frame: the panel, the collage, the admin page and the
+        install.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Fugleramme version
+      description: The System tab of the admin page, or `git describe --tags` in the checkout.
+      placeholder: v0.15.1
+    validations:
+      required: true
+
+  - type: input
+    id: pi
+    attributes:
+      label: Raspberry Pi model and OS
+      placeholder: Pi 5 2GB, Raspberry Pi OS Bookworm 64-bit
+    validations:
+      required: true
+
+  - type: input
+    id: panel
+    attributes:
+      label: Panel
+      description: Which Inky, or "none / web only".
+      placeholder: Inky Impression 13.3" (Spectra 6)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        `journalctl -u fugleramme-frame -n 100 --no-pager`, and for the detector
+        `docker compose -f detector/docker-compose.yml logs --tail 100`.
+      render: text
