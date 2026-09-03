@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# BirdNET-Go only logs and retries on a missing mic; this makes it fatal instead.
+# BirdNET-Go only logs and retries on a missing mic; report it before startup.
 set -euo pipefail
 
 if ! command -v arecord >/dev/null 2>&1; then

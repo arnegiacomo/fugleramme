@@ -2,8 +2,10 @@
 # Brings the appliance up from an existing checkout: BirdNET-Go (container) plus
 # the render loop + kiosk (systemd). Re-run after a git pull or a repo move.
 # install.sh handles the one-time machine setup and calls this at the end.
-# Idempotent. --no-start enables the frame without starting it.
+# Idempotent. --no-start enables the frame without starting it;
+# --skip-mic-check allows BirdNET-Go to start without a capture device.
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG="$REPO_ROOT/detector/config/config.yaml"

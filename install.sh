@@ -6,6 +6,7 @@
 # on boot lives here, what is safe to re-run against a live frame lives in run.sh.
 # Idempotent. Pass options through the pipe with `bash -s -- -y`.
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
 
 REPO_URL="https://github.com/arnegiacomo/fugleramme.git"
 REPO_DIR="${FUGLERAMME_DIR:-$HOME/fugleramme}"
@@ -73,7 +74,6 @@ ensure_uv() {
   echo "missing: uv"
   confirm "install uv (astral.sh installer)?" || need uv
   curl -fsSL https://astral.sh/uv/install.sh | sh
-  export PATH="$HOME/.local/bin:$PATH"
 }
 
 ensure_docker() {
@@ -98,6 +98,14 @@ ensure_repo() {
   fi
   # Shallow: the Pi only needs the current tree, not every past version of the artwork.
   git clone --depth 1 --branch "$REPO_REF" "$REPO_URL" "$REPO_DIR"
+}
+
+ensure_mic() {
+  "$REPO_DIR/detector/preflight.sh" >/dev/null 2>&1 && return 0
+  echo "==> microphone"
+  echo "   no ALSA capture device found"
+  confirm "continue installation without a USB mic?" || need "an ALSA capture device"
+  RUN_ARGS+=(--skip-mic-check)
 }
 
 # Panel access needs spi/i2c/gpio; docker saves a sudo. New groups only reach new logins.
@@ -174,8 +182,7 @@ main() {
   for arg in "$@"; do
     case "$arg" in
       -y|--yes) ASSUME_YES=1 ;;
-      --skip-mic-check) RUN_ARGS+=(--skip-mic-check) ;;
-      *) echo "unknown argument: $arg (accepts -y/--yes, --skip-mic-check)" >&2; exit 1 ;;
+      *) echo "unknown argument: $arg (accepts -y/--yes)" >&2; exit 1 ;;
     esac
   done
 
@@ -190,6 +197,8 @@ main() {
 
   echo "==> repo"
   ensure_repo
+
+  ensure_mic
 
   echo "==> groups"
   ensure_groups

@@ -45,12 +45,13 @@ container stopped and nothing cached, names fall back to the scientific name.
 | --- | --- |
 | `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db bind-mounted from `./data` (persistent), web UI on `:8090` |
 | `config/config.yaml.template` | Tracked template; `run.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, analysis defaults (#15), clips on, SQLite at `/data/birdnet.db`, log levels pinned to `info` |
-| `preflight.sh` | Fatal check that an ALSA capture device exists |
+| `preflight.sh` | Checks that an ALSA capture device exists; `install.sh` can confirm a bypass |
 
 ## Deploy
 
 `run.sh` brings the detector up as part of the appliance bootstrap - see the
-[install guide](../docs/install.md). Follow the logs with:
+[install guide](../docs/install.md). When running it directly, a missing capture
+device is fatal unless `--skip-mic-check` is passed. Follow the logs with:
 
 ```bash
 docker logs -f birdnet-go                     # detector

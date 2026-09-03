@@ -28,11 +28,11 @@ curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install
 ```
 
 It asks before installing anything, including whether to turn on USB gadget
-mode - recommended, see step 4. Two flags, if you'd rather it didn't ask:
+mode - recommended, see step 4. If no USB mic is detected, it asks whether to
+continue without one. If lazy: pass `-y` to accept every prompt (installs, mic-check and so on):
 
 ```bash
-... | bash -s -- -y                 # accept every prompt
-... | bash -s -- --skip-mic-check   # install before mic is plugged in
+... | bash -s -- -y
 ```
 
 This clones the repo, installs missing deps, brings up BirdNET-Go, and enables
