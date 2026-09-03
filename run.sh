@@ -104,7 +104,7 @@ sync_python() {
   echo "==> python env"
   # Panel extra is Pi-only; if its driver can't build, the frame still runs
   # web-only, so fall back rather than fail the whole bootstrap.
-  uv sync --extra panel || uv sync
+  uv sync --directory "$REPO_ROOT" --extra panel || uv sync --directory "$REPO_ROOT"
 }
 
 converge_detector() {
