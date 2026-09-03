@@ -2,6 +2,16 @@
 
 Symptom to cause.
 
+## Installation stops partway
+
+If the repository was successfully cloned but failed on setup:
+
+```bash
+~/fugleramme/install.sh
+```
+
+It reuses the checkout and skips setup that is already complete (idempotent).
+
 ## SSH over USB
 
 **computer sees no USB device.** Check you're in the Pi's USB-C port, not USB-A,
