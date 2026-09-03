@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.15.2 (2026-09-03)
+
+### Bug Fixes
+
+- Install script from repo-root
+  ([`8f4bae0`](https://github.com/arnegiacomo/fugleramme/commit/8f4bae0655bfea81ff1d2ddddf06de2761d2be08))
+
+### Chores
+
+- Add issue templates
+  ([`c79c356`](https://github.com/arnegiacomo/fugleramme/commit/c79c3560ee924bcc08baea65ce2d5ef1aa9805d5))
+
+### Documentation
+
+- Photograph the frame and re-render the art previews
+  ([`b0d39a6`](https://github.com/arnegiacomo/fugleramme/commit/b0d39a65e6c9a215c58824f4bf4615ad70398b90))
+
+
 ## v0.15.1 (2026-08-30)
 
 ### Performance Improvements
