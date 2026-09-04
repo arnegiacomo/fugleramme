@@ -82,7 +82,7 @@ It prints a line per question the frame asks, and the address it asked. Pass
 - **It answers but finds no birds.** That's BirdNET-Go's side. Open its own
   page and check the mic is picking something up.
 - **Authentication required.** The instance has private mode on. Fill in the
-  username and password under Detector.
+  username and password under Detector → Credentials.
 
 The frame keeps showing its last page while the detector is away, rather than
 wiping the glass, so a brief outage looks like nothing happening at all.

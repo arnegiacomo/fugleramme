@@ -99,6 +99,15 @@ def test_the_detector_row_carries_the_version_it_reports(monkeypatch):
     assert "unreachable" in admin._detector("http://pi:8090")
 
 
+def test_the_credentials_fold_away_until_there_is_one_to_show(tmp_path, source):
+    """PrivateMode is the rare case, so the common form is the address alone."""
+    assert '<details id="credentials">' in _page(tmp_path, source())
+    assert '<details id="credentials" open>' in _page(tmp_path, source(), detector_username="bn")
+    assert '<details id="credentials" open>' in _page(
+        tmp_path, source(), detector_password="hunter2"
+    )
+
+
 def test_a_stored_password_never_reaches_the_page(tmp_path, source):
     page = _page(tmp_path, source(), detector_password="hunter2")
     assert "hunter2" not in page
@@ -171,3 +180,18 @@ def test_the_connection_test_reads_the_stored_password_behind_the_placeholder(de
     settings = Settings(detector_url=url, detector_username="birdnet", detector_password="hunter2")
     form = {"detector_username": ["birdnet"], "detector_password": [admin.PASSWORD_SET]}
     assert admin.connection(form, settings)["state"] == "ok"
+
+
+def test_the_connection_test_answers_in_the_status_row_s_words_too(detector):
+    """The row and the test must never disagree, so the test carries the row."""
+    url, httpd = detector(password="hunter2")
+    settings = Settings(detector_url=url, detector_username="birdnet", detector_password="hunter2")
+    assert admin.connection({}, settings)["status"] == admin._state(True, "running", "unreachable")
+
+    # /health answers under PrivateMode, so only the test knows this one is unusable.
+    bad = admin.connection({"detector_password": ["wrong"]}, settings)
+    assert bad["status"] == '<span class="bad">authentication required</span>'
+
+    httpd.shutdown()
+    httpd.server_close()
+    assert admin.connection({}, settings)["status"] == '<span class="bad">unreachable</span>'

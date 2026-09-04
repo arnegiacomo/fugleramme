@@ -13,6 +13,9 @@ from pathlib import Path
 from urllib.request import urlopen
 
 _ONLINE_TTL = 60
+# The row a user watches while fixing it, so cached only long enough to keep a
+# burst of reloads off the probe.
+_DETECTOR_TTL = 5
 _online_cache: tuple[float, bool] | None = None
 _detector_cache: tuple[str, float, tuple[bool, str]] | None = None
 
@@ -49,11 +52,11 @@ def online() -> tuple[bool, str]:
 def detector(url: str) -> tuple[bool, str]:
     """Whether BirdNET-Go answers at `url`, and the version it reports. The
     frame's update leaves the container alone, so the version drifts from the tag
-    the compose pins until `run.sh` runs. Cached like `online()`."""
+    the compose pins until `run.sh` runs. Cached like `online()`, but briefly."""
     global _detector_cache
     now = time.monotonic()
     cached = _detector_cache if _detector_cache and _detector_cache[0] == url else None
-    if cached is None or now - cached[1] >= _ONLINE_TTL:
+    if cached is None or now - cached[1] >= _DETECTOR_TTL:
         _detector_cache = (url, now, _probe_detector(url))
         return _detector_cache[2]
     return cached[2]

@@ -9,8 +9,12 @@ document.getElementById("birdnet").href = cfg.birdnetPort
 
 // Every button posts and redirects, so a save reloads: the tab and the scroll
 // position have to be carried across by hand.
+let saving = false;
 for (const f of document.querySelectorAll("form")) {
-  f.addEventListener("submit", () => sessionStorage.setItem("scroll", String(window.scrollY)));
+  f.addEventListener("submit", () => {
+    saving = true;
+    sessionStorage.setItem("scroll", String(window.scrollY));
+  });
 }
 const scrolled = sessionStorage.getItem("scroll");
 sessionStorage.removeItem("scroll");
@@ -67,11 +71,27 @@ if (document.getElementById("bar")) {
   })();
 }
 
+// Save stays disabled until a form differs from what the server served. An
+// untouched password placeholder serializes the same both times, so it needs no
+// case of its own. The action forms (Check, Install) are not settings and stay out.
+const serialize = (f) => new URLSearchParams(new FormData(f)).toString();
+const changed = new Map();
+for (const f of document.querySelectorAll("form.settings, form.block")) {
+  const button = f.querySelector("button[type=submit]");
+  const served = serialize(f);
+  const dirty = () => serialize(f) !== served;
+  changed.set(f, dirty);
+  f.addEventListener("input", () => { button.disabled = !dirty(); });
+  button.disabled = true;
+}
+
 // Tests the values in the form, not the saved ones, so a fix can be tried first.
 const test = document.getElementById("test");
 if (test) {
   const detectorForm = document.getElementById("detector");
   const outcome = document.getElementById("test-result");
+  const row = document.getElementById("detector-state");
+  const creds = document.getElementById("credentials");
   test.addEventListener("click", async () => {
     test.disabled = true;
     outcome.className = "";
@@ -82,6 +102,10 @@ if (test) {
       const result = await answer.json();
       outcome.className = result.state === "ok" ? "ok" : "bad";
       outcome.textContent = result.text;
+      if (result.state === "auth") creds.open = true;
+      // The row is about the detector the frame reads from, so only a test of
+      // the saved values speaks for it - edited ones may never be saved.
+      if (!changed.get(detectorForm)()) row.innerHTML = result.status;
     } catch (e) {
       outcome.className = "bad";
       outcome.textContent = "the frame did not answer";
@@ -95,14 +119,10 @@ const shot = document.getElementById("shot");
 const caption = document.querySelector(".rendering");
 const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
-const save = form.querySelector("button[type=submit]");
-const serialize = () => new URLSearchParams(new FormData(form)).toString();
-const saved = serialize();
-const dirty = () => serialize() !== saved;
-let saving = false, shown = null, seq = 0, timer = null;
+let shown = null, seq = 0, timer = null;
 
 function loadPreview() {
-  const query = serialize();
+  const query = serialize(form);
   if (query === shown) return;
   const id = ++seq;
   preview.classList.add("loading");
@@ -142,20 +162,22 @@ function syncMode() {
   lookback.classList.toggle("off", !on);
 }
 
+// Capture, so a mode change settles which fields still submit before the shared
+// dirty check reads them - a round trip back to the saved mode is not a change.
 form.addEventListener("input", () => {
   syncMode();
-  save.disabled = !dirty();
   clearTimeout(timer);  // debounced: a render is expensive on the Pi
   timer = setTimeout(loadPreview, 500);
-});
-form.addEventListener("submit", () => { saving = true; });
+}, true);
+
+// An untouched form is never dirty, so this only fires over edits the user
+// would actually lose - a typed password among them.
 window.addEventListener("beforeunload", (e) => {
-  if (saving || !dirty()) return;
+  if (saving || ![...changed.values()].some((dirty) => dirty())) return;
   e.preventDefault();
   e.returnValue = "";
 });
 
 syncMode();
-save.disabled = true;
 loadPreview();
 if (scrolled !== null) window.scrollTo(0, Number(scrolled));

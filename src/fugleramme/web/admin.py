@@ -41,6 +41,14 @@ _NAMES = {"vonwright": "von Wright", "gould": "Gould"}
 
 _UNREACHABLE = '<li class="empty">detector unreachable</li>'
 
+# A probe's answer in the test's words, then in the status row's: the row is
+# about the detector, not about the test just run.
+_ANSWERS = {
+    "ok": ("connected", "running"),
+    "auth": ("authentication required", "authentication required"),
+    "unreachable": ("unreachable", "unreachable"),
+}
+
 
 def form_changes(form: dict[str, list[str]]) -> dict:
     """Admin form to settings overrides. Unchecked checkboxes and disabled
@@ -200,19 +208,22 @@ def _text_field(field: str, label: str, value: str, kind: str = "text", hint: st
 
 
 def _detector_field(settings: Settings) -> str:
-    """Where the frame reads from. The password is never rendered: a stored one
-    shows as PASSWORD_SET, which posts back as "leave it alone"."""
+    """Where the frame reads from. Credentials are only for a BirdNET-Go in
+    PrivateMode, so they fold away until one is stored - or until a test comes
+    back asking for them, which admin.js opens."""
+    stored = settings.detector_username or settings.detector_password
     return (
         _text_field("detector_url", "Address", settings.detector_url, "url")
-        + _text_field(
-            "detector_username", "Username", settings.detector_username, hint="(PrivateMode only)"
-        )
+        + f'<details id="credentials"{" open" if stored else ""}>'
+        + "<summary>Credentials <small>(PrivateMode only)</small></summary>"
+        + _text_field("detector_username", "Username", settings.detector_username)
         + _text_field(
             "detector_password",
             "Password",
             PASSWORD_SET if settings.detector_password else "",
             "password",
         )
+        + "</details>"
     )
 
 
@@ -228,13 +239,19 @@ def birdnet_link(url: str) -> tuple[str, int | None]:
 
 def connection(form: dict[str, list[str]], settings: Settings) -> dict:
     """The connection test, over the values the form is holding rather than the
-    saved ones - validated and placeholder-resolved exactly as Save would."""
+    saved ones - validated and placeholder-resolved exactly as Save would.
+
+    `status` is the same answer in the BirdNET-Go row's words, so the two can
+    never disagree. The row's own probe is /health, which answers under
+    PrivateMode, so only the test can tell "running" from "unusable"."""
     tried = merged(settings, **form_changes(form))
     state, detail = probe(tried.detector_url, tried.detector_username, tried.detector_password)
-    text = {"ok": "connected", "auth": "authentication required", "unreachable": "unreachable"}[
-        state
-    ]
-    return {"state": state, "text": f"{text} · {detail}" if detail else text}
+    text, row = _ANSWERS[state]
+    return {
+        "state": state,
+        "text": f"{text} · {detail}" if detail else text,
+        "status": f'<span class="{"ok" if state == "ok" else "bad"}">{row}</span>',
+    }
 
 
 def _lookbacks(settings: Settings) -> str:
