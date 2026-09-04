@@ -4,7 +4,7 @@ This file provides guidance to coding agents working in this repository.
 
 ## Project
 
-Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds into its own SQLite; the frame reads that DB read-only and renders the recently seen birds as a collage on a Pimoroni Inky Impression (Spectra 6) panel, serving the same view over HTTP. Python managed with `uv`: Pillow + numpy for rendering, stdlib `sqlite3` and `http.server`, and the Pi-only `inky` driver. It runs on a Pi in production and on a workstation for development - live mic capture and the panel push are Pi-only.
+Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds; the frame reads its API and renders the recently seen birds as a collage on a Pimoroni Inky Impression (Spectra 6) panel, serving the same view over HTTP. The detector can be the container beside the frame or an install elsewhere on the network. Python managed with `uv`: Pillow + numpy for rendering, stdlib `urllib` and `http.server`, and the Pi-only `inky` driver. It runs on a Pi in production and on a workstation for development - live mic capture and the panel push are Pi-only.
 
 **The panel is the product.** The kiosk mirrors what is on the glass; it is not a second product with its own views. Detection, statistics and talking to other systems are BirdNET-Go's - it already serves a dashboard, spectrograms, live audio, MQTT with Home Assistant discovery, BirdWeather and clip export on `:8090`, and the admin links there. A feature that does not improve what hangs on the wall or the artwork on it belongs upstream, not here.
 
@@ -17,22 +17,26 @@ uv run fugleramme-frame                     # run the service: render loop + kio
 uv run fugleramme-dev                       # same, auto-restart on source change
 uv run fugleramme-frame --preview out.png   # render the collage once and exit, no server/panel
 uv run pytest -q                            # the suite CI gates on; ruff format/check and mypy are the rest
-uv run python -m fugleramme.seed --count 40 # BirdNET-Go-shaped fixtures: detections + names cache
+uv run fugleramme-fake-detector             # stand-in BirdNET-Go: generated detections over /api/v2
+uv run fugleramme-check                     # does a detector answer everything the frame needs?
 uv run python scripts/curate.py             # workstation only: contact sheet on :8081
 ./install.sh                                # Pi only: one-time bootstrap (curl'able; deps, clone, gadget, reboot)
 ./run.sh                                    # Pi only: converge an existing checkout (BirdNET-Go + services)
 ```
 
-**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The flags are `--db`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`. The panel's own size is never a setting.
+**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`, #2), persisted to `--config` (default `detector/data/settings.json`). The detector's address and credentials are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`; `--detector` only supplies the default for a settings file that carries no `detector_url` of its own. The panel's own size is never a setting.
 
 ## Architecture
 
-Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 detector**, **#7 direct-read refactor**. Each issue is the source of truth for its half.
+Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 detector**, **#29 reading the API**. Each issue is the source of truth for its half.
 
-**The DB file is the interface.** The halves meet at BirdNET-Go's SQLite (bind-mounted to `detector/data`), plus its API for names alone.
+**The API is the interface.** The halves meet at BirdNET-Go's `/api/v2`, never at its database. A frame can therefore point at the container beside it, at a BirdNET-Go already running on the same machine, or at one across the house - all the same code path, only a different URL (#29).
 
-- `db.py` is the only code that knows BirdNET-Go's schema. It exposes `species_since` / `recent` / `latest` / `stats` - nothing else sees its SQL.
-- No frame-owned DB and no sync process (dropped in #7). WAL lets the loop and the server each hold a read connection.
+- `source.py` is the surface everything above sees: `species_since` / `recent` / `latest` / `life_list` / `stats`. `api.py` is the only implementation, and the only code that knows upstream's endpoints.
+- **A transport failure raises `Unavailable`; an empty list means the detector answered and there were no birds.** Never collapse the two. HTTP failures are routine, and a source that returned `[]` on a timeout would push a bare perch to the glass on the first blip. The render loop holds its last good page; the kiosk answers 503; the admin still renders and says so.
+- The endpoints disagree about time: the species summary filters on whole dates and stamps `first_heard`/`last_heard` with an offset, while `/detections/recent` gives a bare wall clock. So the summary is where the station's own UTC offset is read from, and a window shorter than a day is counted off the feed instead.
+- `api.Configured` wraps the source and rebuilds it when the settings name a different detector, so one save reaches the loop, the server and `languages` at once. It must never call out to another module while holding its lock.
+- `fake.py` serves the same endpoints over generated detections, so the dev loop, the tests and `fugleramme-check` all run without a container. It is also where upstream's real response shapes are written down.
 
 **Render once, fan out** (`service.py`).
 
@@ -50,7 +54,7 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 
 - `web/` is the kiosk and the admin: `server.py` is routing and transport only, `admin.py` builds the page from a `modes.Context`, `hostinfo.py` probes the machine. Nothing outside it imports anything but `web.server.serve`.
 - `render/` is the PIL work: the collage and the plate, the furniture they share (`page.py`, `paper.py`, `fonts.py`, `sizes.py`), and `dither.py` for the panel's six colors.
-- Everything else stays flat. `db.py`, `names.py`, `picks.py` and `languages.py` each have five or six importers spread across the app - a folder round them would draw no boundary.
+- Everything else stays flat. `api.py`, `names.py`, `picks.py` and `languages.py` each have five or six importers spread across the app - a folder round them would draw no boundary.
 
 **The web pages are files** (`web/static/`).
 
@@ -75,9 +79,9 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 
 **BirdNET-Go owns the names** (`languages.py`).
 
-- The frame keys everything on the scientific name and asks the API for the rest - BirdNET-Go's SQLite has no common names at all.
+- The frame keys everything on the scientific name and asks the detector for the rest, through the same session as the detections.
 - `GET /api/v2/settings/locales` lists locales, `HEAD /api/v2/species/dictionary/<code>` says which have one. The two disagree on codes (the list's `no` answers as `nb`), so a language's code is its dictionary's.
-- Dictionaries cache in `detector/data/names/`, revalidated by ETag. With nothing cached the only language is `sci` - the dev loop's normal state.
+- Dictionaries cache in `detector/data/names/`, revalidated by ETag, and carry the station they came from so re-pointing the frame cannot serve another station's names. With nothing cached and nothing answering, the only language is `sci`.
 - Norwegian names arrive lowercase and English titled, so a label capitalizes the first letter only.
 - A plate's date follows the primary language too, via `babel`: `Namer.date` for the newest arrival (a day and its year, which can be months back), `Namer.moment` for the latest bird (a day and a clock time). Languages differ in more than the month's name - Hungarian and Latvian put the year first, only some join the day and time with a comma - so a hand-rolled table would get them wrong. `sci`, and any language `babel` lacks, get a numeric date.
 - The plates carry no words beyond the name. Nothing translates UI text, so "First heard" became the year. Narrow no-break spaces are flattened to plain ones: CLDR asks for one before AM/PM and five of the seven label faces draw a box instead of it.
@@ -101,7 +105,9 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 **The install splits at the reboot** (`install.sh`, `run.sh`).
 
 - `install.sh` is the curl'able one-time bootstrap: deps, clone, groups, SPI/I2C overlays, gadget mode. Everything in it only takes effect on boot, so it is the only script that prompts a reboot - and only if something actually changed. It must stay self-contained; it is fetched before the checkout exists.
-- `run.sh` is the idempotent converge: `uv sync`, config, compose up, systemd unit. Re-run after a pull or a repo move - it bakes `$REPO_ROOT` into the unit.
+- `install.sh` also asks where BirdNET-Go lives: installed here, already running on this machine, or on another. The answer plus the two ports land in a gitignored `frame.env` at the repo root, which `run.sh` sources. Only a bundled detector gets a `detector/.env`, so an external install skips the container everywhere by that one marker.
+- `run.sh` is the idempotent converge: `uv sync`, config, compose up, systemd unit. Re-run after a pull or a repo move - it bakes `$REPO_ROOT`, the frame's port and the detector's URL into the unit.
+- **`updates.apply` never re-runs `run.sh`.** A Pi that auto-updates keeps its old unit, its old `detector/.env` and its old `settings.json`, so every default a release introduces must reproduce the previous one's behaviour: frame on 8080, bundled detector on 8090, `detector_url` of `http://127.0.0.1:8090`. A new compose variable needs its default inline (`${BIRDNET_PORT:-8090}`), not only in `frame.env`. Get this wrong and working appliances break on update, which is the one failure nobody can recover from remotely.
 - The self-update converges the detector too, so a release can move the image pin (`updates._converge_detector`). It is `up -d`, not run.sh's `--force-recreate`: an unchanged pin must not bounce a working detector. `detector/.env` is the marker for "an appliance, not a dev checkout", and a failure only logs - the frame is already on the new version by then. The DB is copied to `birdnet.db.bak` first and a failed copy skips the swap, since the new container migrates it in place on first start.
 - With a reboot pending, `--no-start` leaves the frame enabled but stopped, since there is no SPI and no group membership yet. The container starts either way: `restart: unless-stopped` only revives a container that was already running.
 - Prompts read `/dev/tty`, not stdin - under `curl | bash` stdin is the script itself. Same reason the body is wrapped in `main`, called on the last line.
@@ -124,6 +130,6 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 
 - [`README.md`](README.md) - end-user-facing project summary and licensing split; avoid internal ownership and architecture jargon
 - [`docs/`](docs/index.md) - the end-user manual (hardware, install, operations, troubleshooting)
-- [`detector/README.md`](detector/README.md) - BirdNET-Go container, the direct-read DB, and Pi deployment
+- [`detector/README.md`](detector/README.md) - BirdNET-Go container, the endpoints the frame reads, and Pi deployment
 - [`assets/artwork/classic/ATTRIBUTION.md`](assets/artwork/classic/ATTRIBUTION.md) - that style's sources and terms; one per style folder
 - [`assets/fonts/ATTRIBUTION.md`](assets/fonts/ATTRIBUTION.md) - label typefaces, SIL OFL 1.1

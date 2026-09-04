@@ -61,6 +61,32 @@ sudo networksetup -ordernetworkservices "Wi-Fi" ... "Raspberry Pi USB Gadget"
 
 SSH keeps working - `10.12.194.1` is a directly connected route.
 
+## The page is empty, or says the detector is unreachable
+
+The frame draws what BirdNET-Go has heard, so an empty page usually means it
+can't get an answer. Ask it directly:
+
+```bash
+ssh <user>@<host>.local
+cd ~/fugleramme
+uv run fugleramme-check
+```
+
+It prints a line per question the frame asks, and the address it asked. Pass
+`--detector http://<host>:<port>` to try a different one without saving it.
+
+- **Nothing answers.** Check the address on the admin page's System tab, under
+  Detector. **Test connection** there says whether it is reachable, needs
+  credentials, or answers fine. If Fugleramme installed BirdNET-Go for you,
+  check the container is up: `docker ps`.
+- **It answers but finds no birds.** That's BirdNET-Go's side. Open its own
+  page and check the mic is picking something up.
+- **Authentication required.** The instance has private mode on. Fill in the
+  username and password under Detector.
+
+The frame keeps showing its last page while the detector is away, rather than
+wiping the glass, so a brief outage looks like nothing happening at all.
+
 ## Panel stays blank
 
 ```bash

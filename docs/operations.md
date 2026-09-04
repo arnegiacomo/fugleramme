@@ -26,7 +26,7 @@ frame restarts itself and comes back on the new
 version. If an update fails, the
 reason shows in place of the version and the frame keeps running as it was.
 
-Some updates also bring a new version of BirdNET-Go, which is a few hundred megabytes and may take a while to download. (Your detections will be automatically backed up to `detector/data/birdnet.db.bak`.)
+Some updates also bring a new version of BirdNET-Go, which is a few hundred megabytes and may take a while to download. (Your detections will be automatically backed up to `detector/data/birdnet.db.bak`.) This only applies if Fugleramme installed BirdNET-Go for you; a detector you run yourself is left alone.
 
 The frame has to be online to check for or install updates, whichever way you do
 it. The System tab tells you whether it is.
@@ -54,7 +54,16 @@ cd ~/fugleramme
 ./run.sh
 ```
 
-Run it if you move the repo or swap the mic.
+Run it if you move the repo, swap the mic, or change a port in `frame.env`.
+
+## Pointing the frame at a different BirdNET-Go
+
+The admin page's System tab has a Detector section: the address, and a username
+and password for an instance with private mode on. Saving takes effect straight
+away - no restart. **Test connection** checks before you commit to it.
+
+The frame reads detections only. Everything about how birds are detected stays
+in BirdNET-Go's own settings.
 
 ## Changing Wi-Fi in gadget mode (USB-C)
 

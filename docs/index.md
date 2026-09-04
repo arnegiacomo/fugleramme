@@ -8,6 +8,9 @@ detections and renders the recently-seen birds as a collage on an
 [Inky Impression](https://shop.pimoroni.com/products/inky-impression) e-ink
 panel, and serves the same view as a web kiosk.
 
+Fugleramme can install BirdNET-Go for you, or read one you already run - on the
+same machine or elsewhere on your network.
+
 | No detections | A few visitors | A full garden |
 | :---: | :---: | :---: |
 | ![No birds detected](assets/empty.png) | ![A few garden birds](assets/few.png) | ![Many garden birds](assets/many.png) |

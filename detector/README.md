@@ -1,49 +1,47 @@
 # Detector (issue #3)
 
 The detector half of the appliance: a USB mic feeds **BirdNET-Go**, which
-classifies bird sounds and logs them to its own SQLite. The frame reads that DB
-directly (issue #7); the halves meet at the DB file, plus BirdNET-Go's API for
-species names.
+classifies bird sounds and records them. The frame reads its API; the halves
+meet at `/api/v2` and nowhere else (issue #29).
 
 ```
-USB mic --> BirdNET-Go (container) --> birdnet.db (disk/NVMe, bind mount) --> frame (#1, read-only)
-                                   --> :8090 /api/v2 (species names) ----------^
+USB mic --> BirdNET-Go (container) --> :8090 /api/v2 --> frame (#1)
 ```
 
-## The frame reads BirdNET-Go's DB directly
+This container is the default, not a requirement. Because the interface is the
+API, a frame can equally read a BirdNET-Go you installed yourself on the same
+machine, or one on another machine entirely - the same code path, a different
+`detector_url`. The install asks which.
 
-BirdNET-Go's schema is GORM-migrated and normalized: the species name comes from
-a `labels`/`label_types` join and the timestamp is a Unix epoch. The frame's read
-adapter (`db.py`) is the one place that knows this schema; nothing else in the
-renderer sees BirdNET-Go SQL. The adapter opens the file `mode=ro`.
+## What the frame asks for
 
-Two decisions make the direct read work:
+- `/analytics/species/summary` - per-species counts with first and last heard,
+  false positives already excluded. Drives the collage and the life list.
+- `/detections/recent` - the newest rows, false positives included and flagged,
+  so the frame drops them itself.
+- `/settings/locales` and `/species/dictionary/<code>` - the language list and
+  `{scientific name: common name}`. Only some locales have a dictionary, so the
+  admin offers the ones a `HEAD` confirms. Dictionaries cache under
+  `data/names/` and revalidate by ETag; with nothing answering and nothing
+  cached, names fall back to the scientific name.
 
-- **Disk, not tmpfs.** BirdNET-Go's DB used to live on a RAM tmpfs to spare the
-  SD card, which forced a second durable DB and a copying sync process. On NVMe
-  the SD-wear concern is gone, so the DB persists on disk and the sync step is
-  deleted.
-- **Bind mount, not a named volume.** BirdNET-Go's DB is bind-mounted from the
-  container to a host path (`detector/data`, gitignored). The frame runs on the
-  *host* and reads the same file; named volumes aren't cleanly host-accessible.
+`Security.PrivateMode` gates the whole API, so an instance with it on needs a
+username and password in the admin's Detector section.
 
-See issue #7 for the full rationale.
+## The database is BirdNET-Go's alone
 
-## Species names come over the API, not the DB
-
-BirdNET-Go's `labels` table holds the scientific name alone - no common names, no
-locale table - so the frame's language settings read them from the container's
-own API on `:8090` instead: `/api/v2/settings/locales` for the list,
-`/api/v2/species/dictionary/<code>` for `{scientific name: common name}`. Only
-some locales have a dictionary, so the admin offers the ones a `HEAD` confirms.
-Dictionaries are cached under `data/names/` and revalidated by ETag; with the
-container stopped and nothing cached, names fall back to the scientific name.
+`detector/data` is a bind mount, not a named volume, so the file stays on the
+host where it can be backed up and where the container's entrypoint can chown it
+to the host user. The frame never opens it. The one thing that touches it is
+`updates._backup_db`, which copies it to `birdnet.db.bak` before a release moves
+the image pin - upstream has shipped migrations that lost the database, and the
+detections are the one thing here that cannot be fetched again.
 
 ## Layout
 
 | File | Purpose |
 | --- | --- |
-| `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, birdnet.db bind-mounted from `./data` (persistent), web UI on `:8090` |
+| `docker-compose.yml` | BirdNET-Go container: mic via `/dev/snd`, data bind-mounted from `./data` (persistent), web UI on `${BIRDNET_PORT:-8090}` |
 | `config/config.yaml.template` | Tracked template; `run.sh` copies it to a gitignored per-Pi `config.yaml`. Bergen lat/lon + range/week filter, `interval` debounce, analysis defaults (#15), clips on, SQLite at `/data/birdnet.db`, log levels pinned to `info` |
 | `preflight.sh` | Checks that an ALSA capture device exists; `install.sh` can confirm a bypass |
 
@@ -65,8 +63,8 @@ journalctl -u fugleramme-frame -f            # frame
   `updates.apply` runs `compose up -d` after the checkout - so test a bump on the
   Pi before tagging one.
 - **Licence:** BirdNET-Go and the BirdNET model are CC BY-NC-SA 4.0. Nothing from
-  it is vendored - the compose pulls a prebuilt image and `db.py` only knows the
-  schema - which is what keeps this repo MIT. Don't fork it into the tree.
+  it is vendored - the compose pulls a prebuilt image and the frame only calls
+  its API - which is what keeps this repo MIT. Don't fork it into the tree.
 - **Mic device:** `run.sh` writes the first card from `arecord -l` into
   `detector/.env` as `ALSA_CARD` (by card name, so it survives reboots/replugs),
   making the USB mic ALSA's default - HDMI takes cards 0/1 and has no capture
