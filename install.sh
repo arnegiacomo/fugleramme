@@ -12,6 +12,7 @@ REPO_URL="https://github.com/arnegiacomo/fugleramme.git"
 REPO_DIR="${FUGLERAMME_DIR:-$HOME/fugleramme}"
 REPO_REF="${FUGLERAMME_REF:-main}"
 ASSUME_YES=0
+DROP_BUNDLED=0
 NEEDS_REBOOT=0
 APT_UPDATED=0
 RUN_ARGS=()
@@ -108,10 +109,10 @@ choose_detector() {
     choice=$default
   else
     cat <<'EOF'
-   Where does BirdNET-Go listen for birds?
-     1) install it here, alongside the frame
-     2) it already runs on this machine
-     3) it runs on another machine
+   Do you have BirdNET-Go installed?
+     1) no - install it here, alongside the frame
+     2) yes - it already runs on this machine
+     3) yes - it runs on another machine
 EOF
     read -rp "   choice [$default] " choice </dev/tty || choice=$default
   fi
@@ -123,14 +124,42 @@ EOF
     *) DETECTOR_MODE=bundled ;;
   esac
 
-  FRAME_PORT="$(ask_port "port for the frame's kiosk and admin" "$FRAME_PORT")"
+  FRAME_PORT="$(ask_port "port for the frame's web interface" "$FRAME_PORT")"
   if [[ $DETECTOR_MODE == bundled ]]; then
-    BIRDNET_PORT="$(ask_port "port to publish BirdNET-Go on" "$BIRDNET_PORT")"
+    BIRDNET_PORT="$(ask_port "port to run BirdNET-Go on" "$BIRDNET_PORT")"
     DETECTOR_URL="http://127.0.0.1:$BIRDNET_PORT"
   else
     DETECTOR_URL="${DETECTOR_URL%/}"
     probe_detector "$DETECTOR_URL"
+    # A container from a previous bundled install keeps running on its own and
+    # keeps detector/.env, which is what makes the self-update converge it.
+    if [[ -f "$REPO_DIR/detector/.env" ]]; then
+      echo "   this Pi still runs a BirdNET-Go of its own on port $BIRDNET_PORT"
+      confirm "   stop it and leave the frame reading $DETECTOR_URL?" && DROP_BUNDLED=1
+    fi
   fi
+}
+
+# docker or sudo docker, depending on whether the group change has taken effect.
+compose_down() {
+  local args=(compose --env-file "$REPO_DIR/detector/.env"
+              -f "$REPO_DIR/detector/docker-compose.yml" down)
+  if docker info >/dev/null 2>&1; then
+    docker "${args[@]}"
+  else
+    sudo docker "${args[@]}"
+  fi
+}
+
+# The detections stay in detector/data - only the container and the marker go.
+drop_bundled_detector() {
+  [[ $DROP_BUNDLED == 1 ]] || return 0
+  echo "==> stopping this Pi's own BirdNET-Go"
+  if have docker; then
+    compose_down || echo "   could not stop it - 'docker compose down' in detector/ by hand"
+  fi
+  rm -f "$REPO_DIR/detector/.env"
+  echo "   detections kept in detector/data"
 }
 
 # run.sh reads this back on every converge; the self-update never re-runs it, so
@@ -319,6 +348,7 @@ main() {
   echo "==> repo"
   ensure_repo
   write_frame_env
+  drop_bundled_detector
 
   if [[ $DETECTOR_MODE == bundled ]]; then
     ensure_mic
