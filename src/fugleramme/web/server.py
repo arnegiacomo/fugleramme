@@ -12,8 +12,11 @@ files under static/ are served as they are.
 
 Stdlib http.server only, but threaded with a socket timeout: a serial server is
 one silent client away from a dead kiosk, since a connection that never sends a
-request blocks the accept loop forever. The server opens its own SQLite
-connection; WAL lets it coexist with the render loop's connection.
+request blocks the accept loop forever. It shares the render loop's detector
+source, so the two halves of a page cost one round trip between them.
+
+A request that cannot reach the detector answers 503 rather than an empty page,
+and the kiosk keeps the picture it is holding.
 """
 
 from __future__ import annotations
@@ -27,11 +30,11 @@ from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 
 from .. import __version__, modes, updates
-from ..db import Database
 from ..languages import namer
 from ..panel import Panel, resolution_of
 from ..picks import Picks
 from ..settings import Settings, SettingsStore, merged
+from ..source import Source, Unavailable
 from ..status import Status
 from . import STATIC_DIR, admin
 
@@ -52,13 +55,16 @@ FILES = {
 
 
 def make_handler(
-    db: Database,
+    source: Source,
     images_dir: Path,
     store: SettingsStore,
     picks: Picks,
     panel: Panel | None,
     status: Status,
 ):
+    # Held across requests: an outage must not blank every viewer at once.
+    last_page: bytes | None = None
+
     class Handler(BaseHTTPRequestHandler):
         timeout = REQUEST_TIMEOUT
         head = False
@@ -102,7 +108,7 @@ def make_handler(
 
         def _context(self, settings: Settings) -> modes.Context:
             return modes.context(
-                db,
+                source,
                 images_dir,
                 picks,
                 settings,
@@ -116,7 +122,14 @@ def make_handler(
             return merged(store.get(), **admin.form_changes(self._query()))
 
         def _page_png(self):
-            self._send_cached(modes.png_bytes(self._context(store.get())), "image/png")
+            nonlocal last_page
+            try:
+                last_page = modes.png_bytes(self._context(store.get()))
+            except Unavailable:
+                if last_page is None:
+                    raise
+                log.warning("Detector unavailable, serving the last kiosk page")
+            self._send_cached(last_page, "image/png")
 
         def _preview_png(self):
             self._send_cached(modes.png_bytes(self._context(self._edited())), "image/png")
@@ -182,7 +195,11 @@ def make_handler(
                 name, content_type = FILES[route]
                 self._send_cached((STATIC_DIR / name).read_bytes(), content_type)
             elif route in self.ROUTES:
-                self.ROUTES[route](self)
+                try:
+                    self.ROUTES[route](self)
+                except Unavailable as exc:
+                    log.warning("%s: %s", route, exc)
+                    self._send(503, f"detector unavailable: {exc}".encode(), "text/plain")
             else:
                 self._send(404, b"not found", "text/plain")
 
@@ -192,11 +209,17 @@ def make_handler(
             self.do_GET()
 
         def do_POST(self):
-            if urlparse(self.path).path != "/admin":
-                self._send(404, b"not found", "text/plain")
-                return
+            route = urlparse(self.path).path
             length = int(self.headers.get("Content-Length", 0))
             form = parse_qs(self.rfile.read(length).decode())
+            # POST, not a query: the connection test carries a password.
+            if route == "/detector":
+                answer = admin.connection(form, store.get())
+                self._send(200, json.dumps(answer).encode(), JSON)
+                return
+            if route != "/admin":
+                self._send(404, b"not found", "text/plain")
+                return
             action = form.get("action", [""])[0]
             if action == "check":
                 status.update_error = None
@@ -214,7 +237,7 @@ def make_handler(
 
 
 def serve(
-    db_path: Path,
+    source: Source,
     images_dir: Path,
     host: str,
     port: int,
@@ -223,8 +246,7 @@ def serve(
     panel: Panel | None = None,
     status: Status | None = None,
 ) -> None:
-    """Blocking server loop. Opens its own DB connection."""
-    db = Database(db_path)
-    handler = make_handler(db, images_dir, store, picks, panel, status or Status())
+    """Blocking server loop."""
+    handler = make_handler(source, images_dir, store, picks, panel, status or Status())
     httpd = ThreadingHTTPServer((host, port), handler)
     httpd.serve_forever()

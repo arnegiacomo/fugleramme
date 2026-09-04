@@ -5,7 +5,7 @@ and the HTTP server in one process. The file is the source of truth: it is
 reloaded when its mtime changes, so hand edits and admin-form writes are both
 picked up live without a restart. Writes are atomic (temp + os.replace).
 
-Presentation only - detector config lives in BirdNET-Go's own UI.
+Presentation, plus where the detector is - how it listens stays BirdNET-Go's own UI.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import threading
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from .config import DEFAULT_WEB_RESOLUTION, WEB_HEIGHTS
+from .config import DEFAULT_DETECTOR_URL, DEFAULT_WEB_RESOLUTION, WEB_HEIGHTS
 from .languages import NONE, SCIENTIFIC
 from .modes import DEFAULT_MODE, MODES
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
@@ -65,6 +65,10 @@ class Settings:
     secondary_language: str = NONE
     label_font: str = DEFAULT_FONT
     label_size: str = DEFAULT_LABEL_SIZE
+    # Credentials are only needed for a BirdNET-Go running in PrivateMode.
+    detector_url: str = DEFAULT_DETECTOR_URL
+    detector_username: str = ""
+    detector_password: str = ""
 
     def oriented(self, resolution: tuple[int, int]) -> tuple[int, int]:
         """Apply the rotation's aspect to a landscape-native (w, h)."""
@@ -109,6 +113,7 @@ def _style(raw: dict, default: str) -> str:
 
 
 _LOCALE_RE = re.compile(r"[a-z]{2,3}(-[a-z]{2})?")
+_URL_RE = re.compile(r"https?://[^\s/]+(/[^\s]*)?")
 
 
 def _language(value, default: str) -> str:
@@ -120,10 +125,27 @@ def _language(value, default: str) -> str:
     return value if value in (NONE, SCIENTIFIC) or _LOCALE_RE.fullmatch(value) else default
 
 
-def _coerce(raw: dict) -> Settings:
+def _url(value, default: str) -> str:
+    """An http(s) base address; the trailing slash goes so paths join cleanly.
+    Whether anything answers there is settled at request time, not here."""
+    if not isinstance(value, str):
+        return default
+    value = value.strip().rstrip("/")
+    return value if _URL_RE.fullmatch(value) else default
+
+
+def _text(value, default: str) -> str:
+    return value.strip() if isinstance(value, str) else default
+
+
+_DEFAULTS = Settings()
+
+
+def _coerce(raw: dict, base: Settings | None = None) -> Settings:
     """Build validated Settings from an untrusted dict, filling defaults and
-    clamping out-of-range values. Unknown keys are ignored."""
-    d = Settings()
+    clamping out-of-range values. Unknown keys are ignored. `base` supplies the
+    defaults, so a launch flag can stand in for a key the file does not carry."""
+    d = base or _DEFAULTS
     try:
         rotation = int(raw.get("rotation", d.rotation))
     except (TypeError, ValueError):
@@ -143,6 +165,9 @@ def _coerce(raw: dict) -> Settings:
         secondary_language=_language(raw.get("secondary_language"), d.secondary_language),
         label_font=_one_of(str(raw.get("label_font", d.label_font)), FONTS, d.label_font),
         label_size=_one_of(str(raw.get("label_size", d.label_size)), LABEL_SIZES, d.label_size),
+        detector_url=_url(raw.get("detector_url"), d.detector_url),
+        detector_username=_text(raw.get("detector_username"), d.detector_username),
+        detector_password=_text(raw.get("detector_password"), d.detector_password),
     )
 
 
@@ -154,10 +179,11 @@ def merged(base: Settings, **changes) -> Settings:
 class SettingsStore:
     """Thread-safe view of the settings file for the render loop + HTTP server."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, defaults: Settings | None = None):
         self.path = Path(path)
         self._lock = threading.Lock()
-        self._settings = Settings()
+        self._defaults = defaults or _DEFAULTS
+        self._settings = self._defaults
         self._mtime: float | None = None
         self._load()
 
@@ -188,7 +214,7 @@ class SettingsStore:
             self._mtime = self.path.stat().st_mtime
         except (OSError, json.JSONDecodeError):
             return  # missing or corrupt: fall back to what we have
-        self._settings = _coerce(raw)
+        self._settings = _coerce(raw, self._defaults)
 
     def _write(self, settings: Settings) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)

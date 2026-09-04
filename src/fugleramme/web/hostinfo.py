@@ -14,7 +14,7 @@ from urllib.request import urlopen
 
 _ONLINE_TTL = 60
 _online_cache: tuple[float, bool] | None = None
-_version_cache: tuple[float, str] | None = None
+_detector_cache: tuple[str, float, tuple[bool, str]] | None = None
 
 
 def reachable(host: str, port: int) -> bool:
@@ -46,24 +46,26 @@ def online() -> tuple[bool, str]:
     return _online_cache[1], _default_iface()
 
 
-def detector_version(port: int) -> str:
-    """The version BirdNET-Go reports, or "" if it does not answer. The frame's
-    update leaves the container alone, so this drifts from the tag the compose
-    pins until `run.sh` runs. Cached like `online()`."""
-    global _version_cache
+def detector(url: str) -> tuple[bool, str]:
+    """Whether BirdNET-Go answers at `url`, and the version it reports. The
+    frame's update leaves the container alone, so the version drifts from the tag
+    the compose pins until `run.sh` runs. Cached like `online()`."""
+    global _detector_cache
     now = time.monotonic()
-    if _version_cache is None or now - _version_cache[0] >= _ONLINE_TTL:
-        _version_cache = (now, _probe_version(port))
-    return _version_cache[1]
+    cached = _detector_cache if _detector_cache and _detector_cache[0] == url else None
+    if cached is None or now - cached[1] >= _ONLINE_TTL:
+        _detector_cache = (url, now, _probe_detector(url))
+        return _detector_cache[2]
+    return cached[2]
 
 
-def _probe_version(port: int) -> str:
-    # /api/v2/health sits outside BirdNET-Go's auth group.
+def _probe_detector(url: str) -> tuple[bool, str]:
+    # /api/v2/health sits outside BirdNET-Go's auth group, so PrivateMode answers too.
     try:
-        with urlopen(f"http://127.0.0.1:{port}/api/v2/health", timeout=3) as response:
-            return str(json.load(response).get("version") or "")
+        with urlopen(f"{url}/api/v2/health", timeout=3) as response:
+            return True, str(json.load(response).get("version") or "")
     except (OSError, ValueError):
-        return ""
+        return False, ""
 
 
 def lan_address() -> str:

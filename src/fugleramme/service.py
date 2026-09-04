@@ -18,20 +18,31 @@ import signal
 import threading
 import time
 
-from . import __version__, buttons, modes, updates
-from .config import BIRDNET_PORT, Config
-from .db import Database
+from . import __version__, buttons, languages, modes, updates
+from .api import Configured
+from .config import Config
 from .languages import namer
 from .panel import init_panel, resolution_of
 from .picks import FILENAME as PICKS_FILE, Picks
 from .render.dither import dither
-from .settings import SettingsStore
+from .settings import Settings, SettingsStore
+from .source import Unavailable
 from .status import Status
 from .web.server import serve
 
 log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 5  # one query per tick; re-renders only on change, so e-ink stays the bottleneck
+
+
+def detector(config: Config) -> tuple[SettingsStore, Configured]:
+    """The settings store and the detector they name. settings.json wins when it
+    carries a detector_url; --detector only supplies the default for a file that
+    does not."""
+    store = SettingsStore(config.config_path, Settings(detector_url=config.detector_url))
+    source = Configured(store)
+    languages.use(source)
+    return store, source
 
 
 def _update(status: Status, auto: bool) -> bool:
@@ -68,14 +79,14 @@ def run(config: Config) -> None:
     log.info("Fugleramme v%s", __version__)
 
     panel = init_panel()
-    store = SettingsStore(config.config_path)
+    store, source = detector(config)
     picks = Picks(config.config_path.parent / PICKS_FILE)
     status = Status()
 
     server_thread = threading.Thread(
         target=serve,
         args=(
-            config.db_path,
+            source,
             config.images_dir,
             config.host,
             config.port,
@@ -95,11 +106,11 @@ def run(config: Config) -> None:
         ).start()
     log.info("Serving kiosk on http://%s:%s", config.host, config.port)
     log.info("Kiosk admin on http://%s:%s/admin", config.host, config.port)
-    log.info("BirdNET-Go UI on http://%s:%s", config.host, BIRDNET_PORT)
+    log.info("Reading detections from %s", source.base_url)
 
-    db = Database(config.db_path)
     last_key: tuple | None = None
     pending = None  # rendered but not yet on the glass; survives a failed push
+    unreachable = False
     while True:
         settings = store.get()
         if _update(status, settings.auto_update):
@@ -109,7 +120,7 @@ def run(config: Config) -> None:
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
         ctx = modes.context(
-            db,
+            source,
             config.images_dir,
             picks,
             settings,
@@ -117,18 +128,28 @@ def run(config: Config) -> None:
             size,
             textured=False,
         )
-        key = (modes.state_key(ctx), settings.rotation)
-        if key != last_key:
-            if modes.mode_of(ctx.mode).windowed:
-                # The loop owns the window, so it is the only caller that may forget
-                # a departed bird's artwork - the kiosk may be previewing another one.
-                picks.retain(name for name, _ in db.species_since(settings.lookback_hours))
-            panel_image = dither(modes.render(ctx))
-            panel_image.save(config.output_path)
-            log.info("Rendered %s page at %dx%d", ctx.mode, *size)
-            status.rendered()
-            last_key = key
-            pending = (panel_image, settings.rotation) if panel is not None else None
+        try:
+            key = (modes.state_key(ctx), settings.rotation)
+            if key != last_key:
+                if modes.mode_of(ctx.mode).windowed:
+                    # The loop owns the window, so it is the only caller that may forget
+                    # a departed bird's artwork - the kiosk may be previewing another one.
+                    picks.retain(name for name, _ in source.species_since(settings.lookback_hours))
+                panel_image = dither(modes.render(ctx))
+                panel_image.save(config.output_path)
+                log.info("Rendered %s page at %dx%d", ctx.mode, *size)
+                status.rendered()
+                last_key = key
+                pending = (panel_image, settings.rotation) if panel is not None else None
+            if unreachable:
+                log.info("Detector reachable again")
+                unreachable = False
+        except Unavailable as exc:
+            # last_key is left alone, so the page stays on the glass: a detector
+            # slow to return after its own update must never blank the frame.
+            if not unreachable:
+                log.warning("Detector unavailable, holding the current page (%s)", exc)
+                unreachable = True
         if panel is not None and pending is not None:
             try:
                 panel.push(*pending)

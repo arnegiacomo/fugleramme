@@ -1,8 +1,8 @@
 """Static, per-launch configuration for the frame service.
 
-Paths and the network binding come from CLI flags. Presentation settings that
-change at runtime (kiosk resolution, rotation, lookback) live in the
-admin-owned settings file instead - see settings.py.
+Paths, the detector's address and the network binding come from CLI flags.
+Presentation settings that change at runtime (kiosk resolution, rotation,
+lookback) live in the admin-owned settings file instead - see settings.py.
 """
 
 from __future__ import annotations
@@ -31,6 +31,10 @@ DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 8080
 BIRDNET_PORT = 8090
 
+# The bundled container publishes here, so an existing appliance keeps working
+# with nothing written to settings.json.
+DEFAULT_DETECTOR_URL = f"http://127.0.0.1:{BIRDNET_PORT}"
+
 # Published docs site (mkdocs.yml site_url).
 DOCS_URL = "https://arnegiacomo.dev/fugleramme/"
 
@@ -42,7 +46,8 @@ RELEASES_API = "https://api.github.com/repos/arnegiacomo/fugleramme/releases/lat
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-# BirdNET-Go's SQLite, bind-mounted to detector/data and read directly by the frame.
+# BirdNET-Go's SQLite, bind-mounted to detector/data. The frame reads the API,
+# not this file; the path is here for the backup a container image bump needs.
 DEFAULT_DB_PATH = REPO_ROOT / "detector" / "data" / "birdnet.db"
 
 # Runtime presentation settings (#2), gitignored next to the DB.
@@ -52,7 +57,7 @@ DEFAULT_CONFIG_PATH = REPO_ROOT / "detector" / "data" / "settings.json"
 @dataclass(frozen=True)
 class Config:
     images_dir: Path
-    db_path: Path
+    detector_url: str
     output_path: Path
     host: str
     port: int

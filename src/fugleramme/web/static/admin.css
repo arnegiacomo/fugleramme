@@ -43,6 +43,9 @@ time { border-bottom: 1px dotted #bbb; cursor: help; }
 .bad { color: #a4392f; }
 .warn { color: #8a6d1f; }
 form.block { margin: 0 0 1.75rem; }  /* the Save button carries no bottom margin of its own */
+form.detector input { width: 100%; max-width: 22rem; }
+form.detector button { margin-right: 0.5rem; }
+#test-result { display: inline; }
 form.inline { display: inline; }
 form.inline button { font-size: 0.8rem; padding: 0.1rem 0.5rem; margin: 0 0 0 0.5rem; }
 ul.species { list-style: none; padding: 0; margin: 0 0 1.75rem;

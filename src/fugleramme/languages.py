@@ -1,8 +1,8 @@
 """Species names in the reader's language, from BirdNET-Go's API.
 
-Nothing is vendored: BirdNET-Go is the only name source, and its SQLite has none
-of them (`labels` carries the scientific name alone), so they come over HTTP from
-the same container the frame reads the DB from:
+Nothing is vendored: BirdNET-Go is the only name source, so they come over HTTP
+from the same instance the frame reads its detections from - through that
+source's session, since PrivateMode gates these two endpoints as well:
 
     GET /api/v2/settings/locales           -> {code: English name}, all label locales
     GET /api/v2/species/dictionary/<code>   -> {scientific name: common name}, gzipped
@@ -16,26 +16,21 @@ unreachable and nothing cached, SCIENTIFIC is the only language left.
 
 from __future__ import annotations
 
-import gzip
 import json
 import logging
 import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from typing import Any
 
-from .config import BIRDNET_PORT
+from .source import Unavailable
 
 log = logging.getLogger(__name__)
 
 # Pseudo-language: the scientific name, the only one needing no BirdNET-Go.
 SCIENTIFIC = "sci"
 NONE = ""  # secondary language unset
-
-_API = f"http://127.0.0.1:{BIRDNET_PORT}/api/v2"
-_TIMEOUT = 3
 
 # Locale codes the dictionary spells differently; the rest just drop the region.
 _ALIASES = {"no": "nb"}
@@ -50,35 +45,60 @@ _RETRY_TTL = 120  # BirdNET-Go down or still starting: retry soon, not tomorrow
 _UNCHANGED = object()  # 304: the cached copy is still current
 
 _lock = threading.Lock()
-_catalog: tuple[float, dict[str, str]] | None = None  # (deadline, {code: display})
-_dicts: dict[str, tuple[float, str, dict[str, str]]] = {}  # code -> (deadline, etag, names)
+
+# Both caches carry the station they came from: a dictionary and its ETag are
+# one detector's answer, so pointing the frame at another expires them rather
+# than serving the old station's names under the new one's.
+_Catalog = tuple[float, str, dict[str, str]]
+_Dictionary = tuple[float, str, str, dict[str, str]]
+_catalog: _Catalog | None = None
+_dicts: dict[str, _Dictionary] = {}
+
+_source: Any = None
 
 
-def _fetch(url: str, etag: str = "") -> tuple[object, str]:
+def use(source: Any) -> None:
+    """Read names through this detector. Set once at startup; unset, there is
+    nothing to ask and SCIENTIFIC is the only language."""
+    global _source
+    _source = source
+
+
+def _station() -> str:
+    """Which detector the caches belong to. Read per lookup, not captured: the
+    settings can point `use`'s source at another address while we run."""
+    return str(getattr(_source, "base_url", ""))
+
+
+def _request(path: str, method: str = "GET", headers: dict[str, str] | None = None):
+    """The detector's answer, or None when it gives none. A missing name is a
+    scientific one, not a blank page, so nothing here raises."""
+    if _source is None:
+        return None
+    try:
+        return _source.request(path, method, headers)
+    except Unavailable:
+        return None
+
+
+def _fetch(path: str, etag: str = "") -> tuple[object, str]:
     """(payload, etag), where payload is _UNCHANGED on a 304 and None when
     BirdNET-Go is unreachable or answers anything but JSON."""
-    headers = {"Accept-Encoding": "gzip"}
-    if etag:
-        headers["If-None-Match"] = etag
+    answer = _request(path, headers={"If-None-Match": etag} if etag else None)
+    if answer is None:
+        return None, ""
+    status, headers, body = answer
+    if status == 304:
+        return _UNCHANGED, etag
     try:
-        with urlopen(Request(url, headers=headers), timeout=_TIMEOUT) as response:
-            raw = response.read()
-            if response.headers.get("Content-Encoding") == "gzip":
-                raw = gzip.decompress(raw)
-            return json.loads(raw), response.headers.get("ETag", "")
-    except HTTPError as exc:
-        return (_UNCHANGED if exc.code == 304 else None), etag
-    except (URLError, OSError, ValueError, gzip.BadGzipFile):
+        return (json.loads(body), headers.get("ETag", "")) if status == 200 else (None, "")
+    except ValueError:
         return None, ""
 
 
 def _has_dictionary(code: str) -> bool:
-    request = Request(f"{_API}/species/dictionary/{code}", method="HEAD")
-    try:
-        with urlopen(request, timeout=_TIMEOUT) as response:
-            return response.status == 200
-    except (HTTPError, URLError, OSError):
-        return False
+    answer = _request(f"/species/dictionary/{code}", "HEAD")
+    return answer is not None and answer[0] == 200
 
 
 def _display(locales: dict[str, str], code: str, fallback: str) -> str:
@@ -89,7 +109,7 @@ def _display(locales: dict[str, str], code: str, fallback: str) -> str:
 
 def _probe() -> dict[str, str] | None:
     """The locales that have a dictionary, as {dictionary code: display name}."""
-    locales, _etag = _fetch(f"{_API}/settings/locales")
+    locales, _etag = _fetch("/settings/locales")
     if not isinstance(locales, dict):
         return None
     found: dict[str, str] = {}
@@ -117,8 +137,7 @@ def _write(path: Path, payload: dict) -> None:
 
 
 def cache_path(cache_dir: Path, name: str) -> Path:
-    """Where a probed language list ("languages") or a locale's dictionary lands.
-    Public for `seed.py`, which writes the same files for a container-less loop."""
+    """Where a probed language list ("languages") or a locale's dictionary lands."""
     return Path(cache_dir) / "names" / f"{name}.json"
 
 
@@ -130,17 +149,18 @@ def catalog(cache_dir: Path) -> dict[str, str]:
     """
     global _catalog
     with _lock:
+        station = _station()
         path = cache_path(cache_dir, "languages")
-        if _catalog is None:
-            _catalog = (0.0, _read(path).get("languages") or {})
-        deadline, found = _catalog
+        if _catalog is None or _catalog[1] != station:
+            _catalog = (0.0, station, _read(path).get("languages") or {})
+        deadline, _held, found = _catalog
         if time.monotonic() >= deadline:
             probed = _probe()
             if probed is not None:
                 found = probed
                 _write(path, {"languages": found})
             ttl = _CATALOG_TTL if probed is not None else _RETRY_TTL
-            _catalog = (time.monotonic() + ttl, found)
+            _catalog = (time.monotonic() + ttl, station, found)
         return {SCIENTIFIC: "Scientific", **found}
 
 
@@ -158,18 +178,19 @@ def dictionary(code: str, cache_dir: Path) -> tuple[dict[str, str], str]:
     if code in (SCIENTIFIC, NONE):
         return {}, ""
     with _lock:
+        station = _station()
         path = cache_path(cache_dir, code)
-        if code not in _dicts:
+        if code not in _dicts or _dicts[code][1] != station:
             cached = _read(path)
-            _dicts[code] = (0.0, cached.get("etag", ""), cached.get("names") or {})
-        deadline, etag, names = _dicts[code]
+            _dicts[code] = (0.0, station, cached.get("etag", ""), cached.get("names") or {})
+        deadline, _held, etag, names = _dicts[code]
         if time.monotonic() >= deadline:
-            payload, fresh = _fetch(f"{_API}/species/dictionary/{code}", etag)
+            payload, fresh = _fetch(f"/species/dictionary/{code}", etag)
             if isinstance(payload, dict):
                 etag, names = fresh, payload
                 _write(path, {"etag": etag, "names": names})
             ttl = _DICT_TTL if payload is not None else _RETRY_TTL
-            _dicts[code] = (time.monotonic() + ttl, etag, names)
+            _dicts[code] = (time.monotonic() + ttl, station, etag, names)
         return names, etag
 
 

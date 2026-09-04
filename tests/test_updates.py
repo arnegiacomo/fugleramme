@@ -18,7 +18,7 @@ from unittest.mock import DEFAULT, patch
 import pytest
 
 from fugleramme import service, updates
-from fugleramme.db import Database
+from fugleramme.api import ApiSource
 from fugleramme.picks import Picks
 from fugleramme.settings import SettingsStore
 from fugleramme.status import Status
@@ -101,7 +101,8 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
     never exits from inside a request."""
     status = Status()
     handler = server.make_handler(
-        Database(tmp_path / "absent.db"),
+        # Nothing here asks the detector anything: the buttons are status writes.
+        ApiSource("http://127.0.0.1:1"),
         tmp_path,
         SettingsStore(tmp_path / "s.json"),
         Picks(tmp_path / "artwork.json"),

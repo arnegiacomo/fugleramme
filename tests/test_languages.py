@@ -4,14 +4,18 @@ the fallbacks, none of which need a container."""
 
 from __future__ import annotations
 
+import threading
 from datetime import datetime
 
 import pytest
 
 from fugleramme import languages
+from fugleramme.api import ApiSource, Configured
 from fugleramme.languages import NONE, SCIENTIFIC, Namer, catalog, dictionary, namer, ordered
-from fugleramme.seed import seed_names
+from fugleramme.settings import Settings, SettingsStore
 from fugleramme.web.admin import _language_select
+
+NB = "nb"  # the fake's own dictionary code
 
 # A slice of the real /api/v2/settings/locales: region variants, and "no" for
 # the dictionary's "nb".
@@ -28,21 +32,15 @@ LOCALES = {
 NAMES = {"nb": {"Turdus merula": "svarttrost", "Acanthis hornemanni": "Arctic Redpoll"}}
 
 
-@pytest.fixture(autouse=True)
-def _clean_caches(monkeypatch):
-    monkeypatch.setattr(languages, "_catalog", None)
-    monkeypatch.setattr(languages, "_dicts", {})
-
-
 def _api(monkeypatch, locales=LOCALES, names=NAMES, etag="v1"):
-    """Stand in for BirdNET-Go. Returns the list of URLs fetched."""
+    """Stand in for BirdNET-Go. Returns the list of paths fetched."""
     fetched = []
 
-    def fetch(url, tag=""):
-        fetched.append((url, tag))
-        if url.endswith("/settings/locales"):
+    def fetch(path, tag=""):
+        fetched.append((path, tag))
+        if path.endswith("/settings/locales"):
             return (locales, "") if locales is not None else (None, "")
-        code = url.rsplit("/", 1)[1]
+        code = path.rsplit("/", 1)[1]
         if code not in names:
             return None, ""
         return (languages._UNCHANGED, tag) if tag == etag else (names[code], etag)
@@ -106,7 +104,7 @@ def test_an_expired_dictionary_is_revalidated_not_refetched(monkeypatch, tmp_pat
     languages._dicts["nb"] = (0.0, etag, names)  # deadline passed
 
     assert dictionary("nb", tmp_path) == (names, etag)
-    assert fetched[-1] == (f"{languages._API}/species/dictionary/nb", "v1")
+    assert fetched[-1] == ("/species/dictionary/nb", "v1")
 
 
 def test_a_fresh_dictionary_is_served_without_a_request(monkeypatch, tmp_path):
@@ -180,21 +178,29 @@ def test_a_language_birdnet_go_is_not_serving_stays_selectable():
     )
 
 
-def test_the_seeded_fixture_reads_back_as_a_cache(monkeypatch, tmp_path):
-    # seed.py writes these files by hand, so their shape is a contract.
-    _api(monkeypatch, locales=None, names={})
-    seed_names(tmp_path)
+def test_names_come_through_the_detectors_own_session(detector, tmp_path):
+    """PrivateMode gates the locale list too, so a frame without the session gets
+    no names at all - it has to ask through the same source it reads birds from."""
+    url, _httpd = detector(password="hunter2")
 
+    languages.use(ApiSource(url))
+    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+
+    languages._catalog = None
+    languages.use(ApiSource(url, "birdnet", "hunter2"))
     assert catalog(tmp_path) == {SCIENTIFIC: "Scientific", "nb": "Norwegian", "en": "English"}
     assert namer("nb", SCIENTIFIC, tmp_path).label("Turdus merula") == "Svarttrost\n(Turdus merula)"
 
 
-def test_seeding_does_not_clobber_a_fetched_dictionary(monkeypatch, tmp_path):
-    _api(monkeypatch)
-    dictionary("nb", tmp_path)
+def test_an_unreachable_detector_leaves_the_cached_dictionaries(detector, tmp_path):
+    url, httpd = detector()
+    languages.use(ApiSource(url))
+    assert dictionary("nb", tmp_path)[0]["Turdus merula"] == "svarttrost"
 
-    assert seed_names(tmp_path) == ["languages", "en"]  # nb is already there, and better
-    assert seed_names(tmp_path, force=True) == ["languages", "nb", "en"]
+    httpd.shutdown()
+    httpd.server_close()
+    languages._dicts = {}
+    assert dictionary("nb", tmp_path)[0]["Turdus merula"] == "svarttrost"  # off disk
 
 
 def test_namer_needs_no_dictionaries_at_all():
@@ -250,3 +256,45 @@ def test_no_date_carries_a_space_the_label_faces_cannot_draw():
     for code in ("en", "fr", "nb"):
         namer = Namer(code, NONE, {}, ())
         assert not {*namer.date(DATE), *namer.moment(DATE)} & set("\u202f\u00a0")
+
+
+def test_pointing_at_another_station_expires_the_names_rather_than_reusing_them(detector, tmp_path):
+    """A dictionary and its ETag are one detector's answer. Cached in the process
+    across a swap, the frame would label the new station's birds off the old."""
+    first, one = detector()
+    second, _two = detector()
+    store = SettingsStore(tmp_path / "s.json", Settings(detector_url=first))
+    languages.use(Configured(store))
+
+    assert catalog(tmp_path)[NB] == "Norwegian"
+    assert dictionary(NB, tmp_path)[0]["Turdus merula"] == "svarttrost"
+
+    one.shutdown()  # only the first station is gone
+    one.server_close()
+    store.update(detector_url=second)
+
+    assert languages._catalog is not None and languages._catalog[1] == first  # still the old entry
+    assert catalog(tmp_path)[NB] == "Norwegian"  # re-asked, of the second station
+    assert languages._catalog[1] == second
+    # Lazy, per lookup: the dictionary is only re-asked when a label needs it.
+    assert languages._dicts[NB][1] == first
+    assert dictionary(NB, tmp_path)[0]["Turdus merula"] == "svarttrost"
+    assert languages._dicts[NB][1] == second
+
+
+def test_a_swap_noticed_from_inside_a_name_lookup_does_not_wedge_the_frame(detector, tmp_path):
+    """`catalog` holds the module lock across its probe, and the probe is what
+    first asks the wrapper for the new source. Expiring the caches by station
+    keeps that one-way: a callback the other way deadlocks both threads."""
+    url, _httpd = detector()
+    store = SettingsStore(tmp_path / "s.json", Settings(detector_url="http://127.0.0.1:1"))
+    source = Configured(store)
+    languages.use(source)
+
+    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}  # nothing answers there
+    store.update(detector_url=url)
+
+    done = threading.Event()
+    threading.Thread(target=lambda: (catalog(tmp_path), done.set()), daemon=True).start()
+    assert done.wait(20), "the name lookup never returned"
+    assert source.source.base_url == url  # and the loop's own call is not stuck behind it

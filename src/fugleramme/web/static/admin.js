@@ -1,9 +1,11 @@
 // Read from the page, not interpolated in: keeps this file static and cacheable.
 const cfg = JSON.parse(document.getElementById("config").textContent);
 
-// Same host as this page, BirdNET-Go's own port - the bind host (0.0.0.0) is not reachable.
-document.getElementById("birdnet").href =
-  location.protocol + "//" + location.hostname + ":" + cfg.birdnetPort + "/";
+// A loopback detector is only loopback from the Pi, so a remote browser follows
+// this page's own host on its port; anything else is linked as configured.
+document.getElementById("birdnet").href = cfg.birdnetPort
+  ? location.protocol + "//" + location.hostname + ":" + cfg.birdnetPort + "/"
+  : cfg.birdnetUrl;
 
 // Every button posts and redirects, so a save reloads: the tab and the scroll
 // position have to be carried across by hand.
@@ -63,6 +65,29 @@ if (document.getElementById("bar")) {
       poll();
     }, 1000);
   })();
+}
+
+// Tests the values in the form, not the saved ones, so a fix can be tried first.
+const test = document.getElementById("test");
+if (test) {
+  const detectorForm = document.getElementById("detector");
+  const outcome = document.getElementById("test-result");
+  test.addEventListener("click", async () => {
+    test.disabled = true;
+    outcome.className = "";
+    outcome.textContent = "testing…";
+    try {
+      const body = new URLSearchParams(new FormData(detectorForm));
+      const answer = await fetch("/detector", {method: "POST", body});
+      const result = await answer.json();
+      outcome.className = result.state === "ok" ? "ok" : "bad";
+      outcome.textContent = result.text;
+    } catch (e) {
+      outcome.className = "bad";
+      outcome.textContent = "the frame did not answer";
+    }
+    test.disabled = false;
+  });
 }
 
 const preview = document.getElementById("preview");

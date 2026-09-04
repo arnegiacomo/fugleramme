@@ -15,6 +15,10 @@ dependencies = [
 fugleramme-frame = "fugleramme.cli:main"
 # Dev-only: same service with auto-restart on source change. Needs the dev group.
 fugleramme-dev = "fugleramme.dev:main"
+# Dev-only: a stand-in BirdNET-Go serving generated detections over its /api/v2.
+fugleramme-fake-detector = "fugleramme.fake:main"
+# Whether a detector answers everything the frame needs. The fake or a real one.
+fugleramme-check = "fugleramme.check:main"
 
 [project.optional-dependencies]
 # Pi-only hardware. Not installed on the dev loop; the frame service
