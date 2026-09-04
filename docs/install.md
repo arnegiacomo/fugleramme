@@ -27,50 +27,44 @@ One command:
 curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install.sh | bash
 ```
 
-It asks before installing anything, including whether to turn on USB gadget
-mode - recommended, see step 4. If no USB mic is detected, it asks whether to
-continue without one. If lazy: pass `-y` to accept every prompt (installs, mic-check and so on):
+It asks before installing anything and helps you set up the required dependencies. If no USB mic is detected, it asks whether to
+continue without one. If lazy: pass `-y` to accept every prompt (installs, default ports, run BirdNET-Go locally, mic-check and so on):
 
 ```bash
 ... | bash -s -- -y
 ```
 
 This clones the repo, installs missing deps, and enables the frame as a systemd
-service serving the kiosk on `:8080`. It also enables SPI and I2C, so it ends by
+service serving the kiosk on `:8080` (or whatever port you configured it to). It also enables SPI and I2C, so it ends by
 asking for a **reboot** before the panel will drive. Say yes - everything comes
 back on its own.
 
-### Where BirdNET-Go lives
+### Where BirdNET-Go "lives"
 
-The installer asks. Three answers:
+The installer asks **Do you have BirdNET-Go installed?**
 
-1. **Install it here** - the default. Fugleramme brings up BirdNET-Go in Docker
-   alongside the frame, published on `:8090`. Pick this if you're starting fresh.
-2. **Already running on this machine** - you installed BirdNET-Go yourself. Give
-   its address; the default offered is `http://127.0.0.1:8080`, which is where
-   BirdNET-Go puts itself.
-3. **On another machine** - a station elsewhere on your network. Give its
-   address, e.g. `http://birdnet.local:8080`.
+1. **No** - the default. Fugleramme brings up BirdNET-Go in Docker alongside the
+   frame. Pick this if you're starting fresh.
+2. **Yes, on this machine** - give its address. The default offered is
+   `http://127.0.0.1:8080`, which is where BirdNET-Go puts itself if you follow [the official installation guide](https://github.com/tphakala/birdnet-go#quick-install).
+3. **Yes, on another machine** - give its address, e.g.
+   `http://birdnet.local:8080`. It can be anything the Pi can reach, https
+   included (auth can be configured via the admin panel).
 
-For 2 and 3, nothing is installed in Docker and no mic is needed on this Pi. The
-installer checks the address answers and tells you if it doesn't, but carries on
-either way - you can fix it later on the admin page.
+Answer 2 or 3 and no docker containers will be installed, and mic setup can be skipped.
+The installer says whether the address answered or is reachable, but continues either way (you can always edit this in the admin panel later).
 
 ### Ports
 
-The installer asks which port the frame's kiosk should use, defaulting to
-`8080`. If something already holds it, it says what and asks again. This is the
-one to change if you already run BirdNET-Go on `8080`.
+Two more prompts: the frame's web interface (`8080`) and, if it is installing
+BirdNET-Go, that too (`8090`). Change the first if you already run something on
+`8080`.
 
-When Fugleramme installs BirdNET-Go for you, it asks for that port too,
-defaulting to `8090`.
-
-Both answers are saved to `frame.env` in the checkout. To change them later,
-edit that file and re-run `./run.sh`.
+Both these values are saved in `frame.env` in the checkout. To change them later, edit that file and re-run `./run.sh`.
 
 ## 4. USB gadget mode (optional)
 
-Lets you SSH in over a USB-C cable from your computer (**Strongly recommended**). It lets you interface with the frame without Wi-Fi or Ethernet (e.g. when installing in a new location or when changing Wi-Fi).
+Lets you SSH in over a USB-C cable from your computer (**recommended**). It lets you interface with the frame without Wi-Fi or Ethernet (e.g. when installing in a new location or when changing Wi-Fi).
 
 The installer turns it on if you accepted it in step 3.
 
@@ -102,4 +96,4 @@ If something doesn't come up on the screen, see [Troubleshooting](troubleshootin
 If Fugleramme installed BirdNET-Go for you, next up is [setting up
 BirdNET-Go](birdnetgo-config.md), so that you can get your audio source
 connected. If you pointed the frame at a BirdNET-Go you already run, you're
-done - it keeps its own settings.
+good-to-go!

@@ -22,11 +22,9 @@ Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://ar
 
 ## How it works
 
-Mic → BirdNET-Go → collage → panel.
+BirdNET-Go listens on a USB mic and records what it identifies. Fugleramme polls the BirdNET-Go api, matches each species to an illustration, then packs them onto a page, and redraws only when the birds change. There's an admin page that lets you configure what to show, and automatic updates and such.
 
-BirdNET-Go listens on a USB mic and records what it identifies. Fugleramme asks it what has been heard, matches each species to an illustration, packs them onto a page, and redraws only when the birds change. There's an admin page that lets you configure what to show, and automatic updates and such.
-
-The detector doesn't have to be the one Fugleramme installs. If you already run BirdNET-Go, point the frame at it instead - on the same machine or anywhere on your network.
+If you already run BirdNET-Go, point the frame at it instead - on the same machine or anywhere else reachable from your network.
 
 ## Hardware
 

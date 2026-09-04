@@ -26,7 +26,7 @@ frame restarts itself and comes back on the new
 version. If an update fails, the
 reason shows in place of the version and the frame keeps running as it was.
 
-Some updates also bring a new version of BirdNET-Go, which is a few hundred megabytes and may take a while to download. (Your detections will be automatically backed up to `detector/data/birdnet.db.bak`.) This only applies if Fugleramme installed BirdNET-Go for you; a detector you run yourself is left alone.
+Some updates also bring a new version of BirdNET-Go, which is a few hundred megabytes and may take a while to download. (Your detections will be automatically backed up to `detector/data/birdnet.db.bak`.) This happens only while Fugleramme is the one running BirdNET-Go (a detector you run yourself is never touched).
 
 The frame has to be online to check for or install updates, whichever way you do
 it. The System tab tells you whether it is.
@@ -58,14 +58,8 @@ Run it if you move the repo or swap the mic.
 
 ## Changing the ports
 
-The installer asks for these and save them to `frame.env`:
-
-| | |
-| --- | --- |
-| `FRAME_PORT` | the kiosk and admin, default `8080` |
-| `BIRDNET_PORT` | BirdNET-Go, default `8090`. Only if Fugleramme installed it for you |
-
-To change either, edit the file and re-run `./run.sh`:
+`FRAME_PORT` is the web interface, `BIRDNET_PORT` is BirdNET-Go when Fugleramme
+runs it. Both are located in `frame.env`:
 
 ```bash
 ssh <user>@<host>.local
@@ -74,16 +68,9 @@ nano frame.env
 ./run.sh
 ```
 
-`run.sh` writes the port into the frame's service definition, which is why a
-plain restart isn't enough.
-
-> [!NOTE]
-> Updates leave your ports alone, deliberately - a new release can't move the
-> address you've bookmarked. That also means a frame installed before the ports
-> were a choice stays on 8080 and 8090 until you run `./run.sh` yourself.
-
-Changing `BIRDNET_PORT` moves where BirdNET-Go is published, so update the
-address under **Detector** on the admin page to match.
+`run.sh` is what bakes the port into the service, so a plain restart isn't enough.
+Moving `BIRDNET_PORT` also means changing the address under **Detector** on the
+admin page. Updates never touch either.
 
 ## Pointing the frame at a different BirdNET-Go
 
@@ -93,6 +80,11 @@ away - no restart. **Test connection** checks before you commit to it.
 
 The frame reads detections only. Everything about how birds are detected stays
 in BirdNET-Go's own settings.
+
+If Fugleramme was running a BirdNET-Go of its own and you move the frame to
+another instance for good, re-run `./install.sh` and answer 2 or 3. It offers to stop
+the old container and hand the port back, so updates stop pulling an image
+ and you stop the running container. Your detections stay in `detector/data` either way. Changing only the address on the admin page leaves the old container running, which is what you want if you plan to point back in the future.
 
 ## Changing Wi-Fi in gadget mode (USB-C)
 
