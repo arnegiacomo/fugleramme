@@ -29,3 +29,11 @@ CC0.
 from the Commons category
 [The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould)).
 Public domain (PD-old-70-expired).
+
+**Dresser** - *A History of the Birds of Europe* by **H. E. Dresser**
+(1871-1881), plates by **J. G. Keulemans**, **Edward Neale**, **Archibald
+Thorburn** and **Joseph Wolf**, with **Richard Bowdler Sharpe**, from the
+Commons category
+[A history of the birds of Europe](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe).
+Scans from the Biodiversity Heritage Library. Public domain
+(PD-scan / PD-old-70-expired).
