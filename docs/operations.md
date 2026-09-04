@@ -54,7 +54,36 @@ cd ~/fugleramme
 ./run.sh
 ```
 
-Run it if you move the repo, swap the mic, or change a port in `frame.env`.
+Run it if you move the repo or swap the mic.
+
+## Changing the ports
+
+The installer asks for these and save them to `frame.env`:
+
+| | |
+| --- | --- |
+| `FRAME_PORT` | the kiosk and admin, default `8080` |
+| `BIRDNET_PORT` | BirdNET-Go, default `8090`. Only if Fugleramme installed it for you |
+
+To change either, edit the file and re-run `./run.sh`:
+
+```bash
+ssh <user>@<host>.local
+cd ~/fugleramme
+nano frame.env
+./run.sh
+```
+
+`run.sh` writes the port into the frame's service definition, which is why a
+plain restart isn't enough.
+
+> [!NOTE]
+> Updates leave your ports alone, deliberately - a new release can't move the
+> address you've bookmarked. That also means a frame installed before the ports
+> were a choice stays on 8080 and 8090 until you run `./run.sh` yourself.
+
+Changing `BIRDNET_PORT` moves where BirdNET-Go is published, so update the
+address under **Detector** on the admin page to match.
 
 ## Pointing the frame at a different BirdNET-Go
 
