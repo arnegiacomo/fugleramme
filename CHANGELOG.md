@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v0.15.3 (2026-09-04)
+
+### Bug Fixes
+
+- Erithacus-rubecula gould -> dresser
+  ([`c04bcea`](https://github.com/arnegiacomo/fugleramme/commit/c04bceae29d2c407bb6c5ca1a22a87d54ca7e63f))
+
+### Chores
+
+- Simplify mic-check logic and docs
+  ([`917154d`](https://github.com/arnegiacomo/fugleramme/commit/917154daf5b7be6c0d438e0e002bf065d9cfeac9))
+
+### Documentation
+
+- Editing artwork with Krita
+  ([`f77843c`](https://github.com/arnegiacomo/fugleramme/commit/f77843c1901857d17d5566f4d27114190953b95e))
+
+- Install retry
+  ([`bc7d885`](https://github.com/arnegiacomo/fugleramme/commit/bc7d8855e2be86e9d9528cde061de0b079dccd09))
+
+
 ## v0.15.2 (2026-09-03)
 
 ### Bug Fixes
