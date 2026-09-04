@@ -176,3 +176,23 @@ def test_the_kiosk_holds_its_last_page_when_the_detector_goes_away(tmp_path, det
 
         status, _headers, held = _fetch(base + "/collage.png")
         assert (status, held) == (200, page)
+
+
+def test_an_emptied_field_clears_the_setting(frame, tmp_path):
+    """ "None" for the second language and a cleared credential both post blank,
+    and a dropped blank reads as "field absent, keep what is saved"."""
+    store = SettingsStore(tmp_path / SETTINGS)
+
+    def post(**fields):
+        body = urllib.parse.urlencode(fields).encode()
+        request = urllib.request.Request(frame + "/admin", data=body, method="POST")
+        with urllib.request.urlopen(request, timeout=10):
+            pass
+        return store.get()
+
+    assert post(mode="collage", secondary_language="nb").secondary_language == "nb"
+    assert post(mode="collage", secondary_language="").secondary_language == ""
+
+    saved = post(detector_url="http://127.0.0.1:1", detector_username="bird")
+    assert saved.detector_username == "bird"
+    assert post(detector_url="http://127.0.0.1:1", detector_username="").detector_username == ""

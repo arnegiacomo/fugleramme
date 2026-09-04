@@ -104,7 +104,7 @@ def make_handler(
                 self.wfile.write(body)
 
         def _query(self) -> dict[str, list[str]]:
-            return parse_qs(urlparse(self.path).query)
+            return parse_qs(urlparse(self.path).query, keep_blank_values=True)
 
         def _context(self, settings: Settings) -> modes.Context:
             return modes.context(
@@ -211,7 +211,9 @@ def make_handler(
         def do_POST(self):
             route = urlparse(self.path).path
             length = int(self.headers.get("Content-Length", 0))
-            form = parse_qs(self.rfile.read(length).decode())
+            # keep_blank_values: an emptied field is a change, not an absent one.
+            # "None" for the second language and a cleared credential both post blank.
+            form = parse_qs(self.rfile.read(length).decode(), keep_blank_values=True)
             # POST, not a query: the connection test carries a password.
             if route == "/detector":
                 answer = admin.connection(form, store.get())
