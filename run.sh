@@ -9,6 +9,19 @@ export PATH="$HOME/.local/bin:$PATH"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG="$REPO_ROOT/detector/config/config.yaml"
+
+# Per-Pi install choices. A checkout from before install.sh asked has no
+# frame.env, and the self-update never re-runs this script, so these defaults
+# must stay what such a frame already runs on.
+FRAME_PORT=8080
+BIRDNET_PORT=8090
+DETECTOR_MODE=bundled
+DETECTOR_URL="http://127.0.0.1:8090"
+if [[ -f "$REPO_ROOT/frame.env" ]]; then
+  # shellcheck source=/dev/null
+  source "$REPO_ROOT/frame.env"
+fi
+
 SKIP_MIC_CHECK=0
 NO_START=0
 for arg in "$@"; do
@@ -33,8 +46,10 @@ require_linux() {
 require_deps() {
   local missing=()
   have uv || missing+=(uv)
-  have docker || missing+=(docker)
-  have arecord || missing+=(alsa-utils)
+  if [[ $DETECTOR_MODE == bundled ]]; then
+    have docker || missing+=(docker)
+    have arecord || missing+=(alsa-utils)
+  fi
   [[ ${#missing[@]} -eq 0 ]] && return 0
   echo "missing: ${missing[*]} - run ./install.sh first" >&2
   exit 1
@@ -99,6 +114,7 @@ write_env() {
 BIRDNET_UID=$(id -u)
 BIRDNET_GID=$(id -g)
 ALSA_CARD=$card
+BIRDNET_PORT=$BIRDNET_PORT
 EOF
 }
 
@@ -120,12 +136,8 @@ converge_detector() {
   echo "==> config"
   ensure_config
 
-  echo "==> data dir"
-  # Persistent bind mount for BirdNET-Go's DB; drop the old tmpfs rule if present.
-  mkdir -p "$REPO_ROOT/detector/data"
-  sudo rm -f /etc/tmpfiles.d/fugleramme.conf
-
   echo "==> birdnet-go"
+  sudo rm -f /etc/tmpfiles.d/fugleramme.conf  # the old tmpfs rule, if present
   # force-recreate so a changed config.yaml or .env reloads. Started even under
   # --no-start: restart:unless-stopped only revives a container that was running.
   write_env
@@ -136,16 +148,28 @@ converge_detector() {
 converge_frame() {
   echo "==> frame service"
   install_service fugleramme-frame \
-    "Fugleramme frame service (render loop + kiosk)" fugleramme-frame
+    "Fugleramme frame service (render loop + kiosk)" \
+    "fugleramme-frame --port $FRAME_PORT --detector $DETECTOR_URL"
 }
 
 require_linux
 require_deps
 echo "==> fugleramme v$VERSION"
 sync_python
-converge_detector
+echo "==> data dir"
+# Settings, artwork picks and name caches; also BirdNET-Go's bind mount, which
+# docker would otherwise create as root.
+mkdir -p "$REPO_ROOT/detector/data"
+if [[ $DETECTOR_MODE == bundled ]]; then
+  converge_detector
+else
+  echo "==> detector: $DETECTOR_URL (not ours to run)"
+fi
 converge_frame
 if [[ $NO_START == 0 ]]; then
-  echo "==> up. Kiosk: http://$(hostname -I | awk '{print $1}'):8080"
-  echo "    Logs: journalctl -u fugleramme-frame -f  (BirdNET-Go: docker logs -f birdnet-go)"
+  echo "==> up. Kiosk: http://$(hostname -I | awk '{print $1}'):$FRAME_PORT"
+  echo "    Logs: journalctl -u fugleramme-frame -f"
+  if [[ $DETECTOR_MODE == bundled ]]; then
+    echo "    BirdNET-Go: http://$(hostname -I | awk '{print $1}'):$BIRDNET_PORT  (docker logs -f birdnet-go)"
+  fi
 fi

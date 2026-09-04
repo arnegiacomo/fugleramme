@@ -25,8 +25,11 @@ frame.png
 # Per-Pi detector config, generated from config.yaml.template by setup.sh
 detector/config/config.yaml
 
-# Per-Pi container env (UID/GID/ALSA card), written by setup.sh
+# Per-Pi container env (UID/GID/ALSA card), written by run.sh
 detector/.env
+
+# Per-Pi install choices (ports, where BirdNET-Go runs), written by install.sh
+frame.env
 
 # Built docs site
 site/

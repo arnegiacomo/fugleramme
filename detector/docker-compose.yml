@@ -27,4 +27,6 @@ services:
       - /data/logs:size=128M,uid=${BIRDNET_UID:-1000},gid=${BIRDNET_GID:-1000},mode=0755
       - /config/hls:exec,size=50M,uid=${BIRDNET_UID:-1000},gid=${BIRDNET_GID:-1000},mode=0755
     ports:
-      - "8090:8080"                  # 8080 is the frame kiosk
+      # Default inline, not only in frame.env: an appliance installed before the
+      # port was a choice has no such file and must stay on 8090.
+      - "${BIRDNET_PORT:-8090}:8080"
