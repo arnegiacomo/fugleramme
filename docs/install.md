@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install
 ```
 
 It asks before installing anything and helps you set up the required dependencies. If no USB mic is detected, it asks whether to
-continue without one. If lazy: pass `-y` to accept every prompt (installs, default ports, run BirdNET-Go locally, mic-check and so on):
+continue without one. If lazy: pass `-y` to accept every prompt (installs, ports, run BirdNET-Go locally, mic-check and so on). A port that is already in use is skipped to the next free one:
 
 ```bash
 ... | bash -s -- -y
@@ -51,16 +51,17 @@ The installer asks **Do you have BirdNET-Go installed?**
    `http://birdnet.local:8080`. It can be anything the Pi can reach, https
    included (auth can be configured via the admin panel).
 
-Answer 2 or 3 and no docker containers will be installed, and mic setup can be skipped.
+Answer 2 or 3 and no docker containers will be installed, and the mic check is skipped.
 The installer says whether the address answered or is reachable, but continues either way (you can always edit this in the admin panel later).
 
 ### Ports
 
 Two more prompts: the frame's web interface (`8080`) and, if it is installing
 BirdNET-Go, that too (`8090`). Change the first if you already run something on
-`8080`.
+`8080`. A port that is already in use is refused, and you will have to choose another.
 
-Both these values are saved in `frame.env` in the checkout. To change them later, edit that file and re-run `./run.sh`.
+The ports and where BirdNET-Go "lives" are saved in `frame.env` in the checkout.
+To change them later, see [Changing the ports](operations.md#changing-the-ports).
 
 ## 4. USB gadget mode (optional)
 

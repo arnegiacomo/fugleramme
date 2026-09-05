@@ -33,7 +33,7 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 **The API is the interface.** The halves meet at BirdNET-Go's `/api/v2`, never at its database. A frame can therefore point at the container beside it, at a BirdNET-Go already running on the same machine, or at one across the house - all the same code path, only a different URL (#29).
 
 - `source.py` is the surface everything above sees: `species_since` / `recent` / `latest` / `life_list` / `stats`. `api.py` is the only implementation, and the only code that knows upstream's endpoints.
-- **A transport failure raises `Unavailable`; an empty list means the detector answered and there were no birds.** Never collapse the two. HTTP failures are routine, and a source that returned `[]` on a timeout would push a bare perch to the glass on the first blip. The render loop holds its last good page; the kiosk answers 503; the admin still renders and says so.
+- **A transport failure raises `Unavailable`; an empty list means the detector answered and there were no birds.** Never collapse the two. HTTP failures are routine, and a source that returned `[]` on a timeout would push a bare perch to the glass on the first blip. The render loop holds its last good page and the server holds the last one it served - dropped when the settings name another detector, since another station's birds are not ours. With nothing held the route answers 503; the admin still renders and says so.
 - The endpoints disagree about time: the species summary filters on whole dates and stamps `first_heard`/`last_heard` with an offset, while `/detections/recent` gives a bare wall clock. So the summary is where the station's own UTC offset is read from, and a window shorter than a day is counted off the feed instead.
 - `api.Configured` wraps the source and rebuilds it when the settings name a different detector, so one save reaches the loop, the server and `languages` at once. It must never call out to another module while holding its lock.
 - `fake.py` serves the same endpoints over generated detections, so the dev loop, the tests and `fugleramme-check` all run without a container. It is also where upstream's real response shapes are written down.
@@ -124,7 +124,7 @@ Work is split across GitHub issues: **#1 frame service**, **#2 admin**, **#3 det
 - The lock check is the one worth knowing: `--locked` fails on drift between `uv.lock` and `pyproject.toml`, because a stale lock is what blocks the self-update's checkout
 - Commit types drive releases: python-semantic-release tags every push to `main` carrying a `feat` (minor) or `fix`/`perf` (patch), bumps `pyproject.toml` + `__init__.py`, and writes `CHANGELOG.md`
 - `uv.lock` carries the project's version, so the release commit must re-lock it - a stale lock gets rewritten by the next `uv sync`, and the dirty file then blocks the self-update's checkout
-- That's why `updates.apply` checks out with `--force`: it discards tracked files only, and everything the Pi owns (`detector/data`, `detector/config/config.yaml`, `detector/.env`, `frame.png`) is gitignored. Committing a currently-ignored per-Pi path would put it in the blast radius
+- That's why `updates.apply` checks out with `--force`: it discards tracked files only, and everything the Pi owns (`detector/data`, `detector/config/config.yaml`, `detector/.env`, `frame.env`, `frame.png`) is gitignored. Committing a currently-ignored per-Pi path would put it in the blast radius
 
 ## Docs
 
