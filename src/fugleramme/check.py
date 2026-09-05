@@ -15,11 +15,10 @@ from pathlib import Path
 from typing import Any
 
 from . import languages
-from .api import ApiSource
+from .api import ApiSource, probe
 from .config import DEFAULT_CONFIG_PATH, DEFAULT_DETECTOR_URL
 from .settings import Settings, SettingsStore
 from .source import Unavailable
-from .web import hostinfo
 
 _OK, _FAIL = "ok  ", "FAIL"
 
@@ -56,9 +55,12 @@ def _first(source: ApiSource) -> str:
 def run(url: str, username: str, password: str, cache_dir: Path) -> int:
     source = ApiSource(url, username, password)
     languages.use(source)
-    reachable, version = hostinfo.detector(url)
+    # The admin's own test, not a bare /health: that answers under PrivateMode
+    # too, so it would call an instance the frame cannot read "reachable".
+    state, detail = probe(url, username, password)
+    reachable = state == "ok"
     print(f"{url}\n")
-    print(f"{_OK if reachable else _FAIL} {'reachable':<22} {version or 'no answer'}")
+    print(f"{_OK if reachable else _FAIL} {'reachable':<22} {detail or 'answered'}")
     checks = [
         ("species, 6 hours", lambda: source.species_since(6)),
         ("species, 24 hours", lambda: source.species_since(24)),

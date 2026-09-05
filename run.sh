@@ -161,6 +161,8 @@ echo "==> data dir"
 # docker would otherwise create as root.
 mkdir -p "$REPO_ROOT/detector/data"
 if [[ $DETECTOR_MODE == bundled ]]; then
+  # Ours to publish, so the address follows the port rather than frame.env's copy.
+  DETECTOR_URL="http://127.0.0.1:$BIRDNET_PORT"
   converge_detector
 else
   echo "==> detector: $DETECTOR_URL (not ours to run)"
