@@ -20,7 +20,7 @@ from fugleramme.web import STATIC_DIR, admin, server
 PANEL = (1600, 1200)
 
 
-def _page(tmp_path, source, **overrides) -> str:
+def _page(tmp_path, source, names_dir=None, **overrides) -> str:
     settings = Settings(**overrides)
     ctx = modes.context(
         source,
@@ -30,13 +30,19 @@ def _page(tmp_path, source, **overrides) -> str:
         namer("sci", "", tmp_path),
         settings.web_size(PANEL),
     )
-    return admin.page(ctx, settings, Status(), PANEL, True, tmp_path)
+    return admin.page(ctx, settings, Status(), PANEL, True, names_dir or tmp_path)
 
 
 def _config(page: str) -> dict:
     return json.loads(
         re.search(r'<script id="config"[^>]*>(.*?)</script>', page, re.DOTALL).group(1)
     )
+
+
+def test_the_page_renders_before_anything_has_written_to_the_data_dir(tmp_path, source):
+    # A fresh checkout has no detector/data: nothing has saved settings, picks or
+    # a dictionary yet, and the admin is where the frame is first reached (#43).
+    assert "$" not in _page(tmp_path, source(), names_dir=tmp_path / "data")
 
 
 @pytest.mark.parametrize("mode", list(modes.MODES))

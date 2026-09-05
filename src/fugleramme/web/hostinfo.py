@@ -85,5 +85,7 @@ def lan_address() -> str:
 
 
 def disk_free(path: Path) -> str:
-    usage = shutil.disk_usage(path)
+    # detector/data is created by whatever writes to it first, so on a fresh
+    # checkout it need not exist yet. Report the filesystem it will land on.
+    usage = shutil.disk_usage(next(p for p in (path, *path.parents) if p.exists()))
     return f"{usage.free / 1e9:.0f} GB free of {usage.total / 1e9:.0f} GB"
