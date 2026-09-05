@@ -42,7 +42,8 @@ an alternative to recommend - suggestions welcome!
   crazy expensive.
 - **Other Inky displays** are supported but not recommended - you lose
   resolution and size. The panel is optional entirely: the frame serves the same
-  view as a web kiosk, so you can run it on an HDMI display or fully headless.
+  view as a web kiosk, so you can run it on an HDMI display or fully headless -
+  see [Showing the frame without the e-ink panel](operations.md#showing-the-frame-without-the-e-ink-panel).
 
 ## Enclosure/Frame
 
