@@ -33,14 +33,18 @@ has_tty() { (exec </dev/tty) 2>/dev/null; }
 # Nothing to ask with -y or without a terminal: take the default and move on.
 unattended() { [[ $ASSUME_YES == 1 ]] || ! has_tty; }
 
+# $2 = "yes" to make Enter mean yes, for a step that is all but required.
 confirm() {
   [[ $ASSUME_YES == 1 ]] && return 0
+  local yes="${2:-}"
+  # No terminal means nobody to stop it, so a missing answer is still no.
   if ! has_tty; then
     echo "   no terminal to ask '$1' - assuming no (re-run with -y to auto-accept)"
     return 1
   fi
   local ans=""
-  read -rp "$1 [y/N] " ans </dev/tty || return 1
+  read -rp "$1 [$([[ $yes == yes ]] && echo Y/n || echo y/N)] " ans </dev/tty || return 1
+  [[ -z "$ans" ]] && { [[ $yes == yes ]]; return; }
   [[ "$ans" == [yY] || "$ans" == [yY][eE][sS] ]]
 }
 
@@ -317,7 +321,7 @@ finish() {
   else
     echo "    The frame starts itself on boot."
   fi
-  if confirm "reboot now?"; then
+  if confirm "reboot now?" yes; then
     sudo reboot
   else
     echo "    Run 'sudo reboot' when you are ready."
