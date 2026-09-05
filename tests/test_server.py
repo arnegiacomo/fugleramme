@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 import socket
 import threading
@@ -196,3 +197,13 @@ def test_an_emptied_field_clears_the_setting(frame, tmp_path):
     saved = post(detector_url="http://127.0.0.1:1", detector_username="bird")
     assert saved.detector_username == "bird"
     assert post(detector_url="http://127.0.0.1:1", detector_username="").detector_username == ""
+
+
+def test_a_detector_that_stays_away_is_reported_once(stranded, caplog):
+    """The kiosk polls every few seconds, so one warning per failed request would
+    fill the journal for as long as the detector is gone."""
+    with caplog.at_level(logging.WARNING, logger="fugleramme.web.server"):
+        for _ in range(8):
+            assert _fetch(stranded + "/state")[0] == 503
+
+    assert len(caplog.records) == 1

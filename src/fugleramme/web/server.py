@@ -64,10 +64,26 @@ def make_handler(
 ):
     # Held across requests: an outage must not blank every viewer at once.
     last_page: bytes | None = None
+    # The kiosk polls every few seconds, so one warning per failed request would
+    # never stop. Say it once, and again on recovery.
+    unreachable = False
+
+    def note(message: str, gone: bool) -> None:
+        nonlocal unreachable
+        if gone and not unreachable:
+            log.warning("%s", message)
+        elif not gone and unreachable:
+            log.info("Detector reachable again")
+        else:
+            log.debug("%s", message)
+        unreachable = gone
 
     class Handler(BaseHTTPRequestHandler):
         timeout = REQUEST_TIMEOUT
         head = False
+        # Set when a route answered from a held copy rather than the detector, so
+        # a served page is not mistaken for the detector having come back.
+        degraded = False
 
         def log_message(self, fmt, *args):
             log.debug("%s %s", self.address_string(), fmt % args)
@@ -125,10 +141,11 @@ def make_handler(
             nonlocal last_page
             try:
                 last_page = modes.png_bytes(self._context(store.get()))
-            except Unavailable:
+            except Unavailable as exc:
                 if last_page is None:
                     raise
-                log.warning("Detector unavailable, serving the last kiosk page")
+                self.degraded = True
+                note(f"Detector unavailable, serving the last kiosk page ({exc})", True)
             self._send_cached(last_page, "image/png")
 
         def _preview_png(self):
@@ -197,8 +214,9 @@ def make_handler(
             elif route in self.ROUTES:
                 try:
                     self.ROUTES[route](self)
+                    note("", self.degraded)
                 except Unavailable as exc:
-                    log.warning("%s: %s", route, exc)
+                    note(f"{route}: {exc}", True)
                     self._send(503, f"detector unavailable: {exc}".encode(), "text/plain")
             else:
                 self._send(404, b"not found", "text/plain")
