@@ -2,6 +2,23 @@
 
 Symptom to cause.
 
+## curl says the certificate is not yet valid
+
+```
+curl: (60) SSL certificate problem: certificate is not yet valid
+```
+
+The Pi has no battery-backed clock, so on a fresh install its time might still
+be behind the certificate's start date until it syncs over the network. Wait a
+moment and run the same command again.
+
+If it keeps failing, check the clock has caught up:
+
+```bash
+timedatectl          # System clock synchronized: yes
+sudo timedatectl set-ntp true
+```
+
 ## Installation stops partway
 
 If the repository was successfully cloned but failed on setup:
