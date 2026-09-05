@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.16.1 (2026-09-05)
+
+### Bug Fixes
+
+- #43 render the admin before detector/data exists
+  ([`7d8f372`](https://github.com/arnegiacomo/fugleramme/commit/7d8f372e367e49a723d550d7dba2d6b6cdc5868d))
+
+
 ## v0.16.0 (2026-09-05)
 
 ### Bug Fixes
