@@ -2,6 +2,63 @@
 
 <!-- version list -->
 
+## v0.16.0 (2026-09-05)
+
+### Bug Fixes
+
+- #29 clear a setting from an emptied admin field
+  ([`648083c`](https://github.com/arnegiacomo/fugleramme/commit/648083c80fa3287cb0bb16095cb6c6488ca2bd11))
+
+- #29 default the reboot prompt to yes
+  ([`77efa79`](https://github.com/arnegiacomo/fugleramme/commit/77efa79b51c6051ab1147137aa3addb90a349fec))
+
+- #29 drop the held kiosk page when the detector changes
+  ([`ab0481b`](https://github.com/arnegiacomo/fugleramme/commit/ab0481b510a8e2d860dc6ec78c16b129faea0c16))
+
+- #29 report authentication in the check and derive the bundled URL
+  ([`a6eaf01`](https://github.com/arnegiacomo/fugleramme/commit/a6eaf01d5d8b1f9e051a365697c42eb7f38b244d))
+
+- #29 take the next free port when nobody can be asked
+  ([`a2f321f`](https://github.com/arnegiacomo/fugleramme/commit/a2f321f4f9c5c3d3920592fccba3560d5f6a9ace))
+
+- #29 tell the kiosk to wait rather than show a broken image
+  ([`ba02b4c`](https://github.com/arnegiacomo/fugleramme/commit/ba02b4c81a3db23661d78c584376e7a4630bbe14))
+
+- Phylloscopus-collybita-4 -> phylloscopus-collybita
+  ([`2a63676`](https://github.com/arnegiacomo/fugleramme/commit/2a63676057ce1649ae395b0ec5b6cf968f47c95f))
+
+### Documentation
+
+- #29 a detector anywhere on the network
+  ([`20a5a4f`](https://github.com/arnegiacomo/fugleramme/commit/20a5a4fbc3321d785ee467f71b0284af353ac71a))
+
+- #29 correct the install prompts and the kiosk's outage behaviour
+  ([`e30ef6d`](https://github.com/arnegiacomo/fugleramme/commit/e30ef6ded0b6450e9a9bf073d990332f42ebe10b))
+
+- #29 document changing the ports, drop the detector README
+  ([`f805ba0`](https://github.com/arnegiacomo/fugleramme/commit/f805ba003b6970e34c39830feee7a30c18a07978))
+
+- #29 simplify the install and detector pages
+  ([`33845fe`](https://github.com/arnegiacomo/fugleramme/commit/33845feb25a22fd1bf5469ad6762a7f589f011c1))
+
+- Troubleshooting curl cert error
+  ([`27c31bf`](https://github.com/arnegiacomo/fugleramme/commit/27c31bfe4de3e76cb93de09617b760efbdb42c1b))
+
+### Features
+
+- #29 choose the detector and ports at install
+  ([`7ebb99d`](https://github.com/arnegiacomo/fugleramme/commit/7ebb99d34193c493572b2b92883e6d142411e98a))
+
+- #29 offer to stop the bundled detector when pointing elsewhere
+  ([`d018bd8`](https://github.com/arnegiacomo/fugleramme/commit/d018bd8d907d1fc75f2cf04ddaf7e9c65c715d34))
+
+- #29 read detections from BirdNET-Go's API
+  ([`2c6fb4c`](https://github.com/arnegiacomo/fugleramme/commit/2c6fb4c5a20c75d66fb4f9ed85ec069363a5791a))
+
+- #29 tighten the admin's detector and save controls
+  ([`9a21b5b`](https://github.com/arnegiacomo/fugleramme/commit/9a21b5bb38d69282a13edcb8a8c84b6dc620b4ee))
+
+
 ## v0.15.3 (2026-09-04)
 
 ### Bug Fixes
