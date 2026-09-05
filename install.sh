@@ -69,18 +69,33 @@ listener() {  # $1 = port; prints what holds it, non-zero when free
   echo "$row"
 }
 
+# Unattended, so there is nobody to re-ask: take the next port nothing holds
+# rather than one that is bound, which would leave the frame unable to start.
+next_free() {  # $1 = first to try
+  local port=$1
+  while ((port < $1 + 20)); do
+    if ! listener "$port" >/dev/null; then
+      [[ $port == "$1" ]] || echo "   using $port instead" >&2
+      echo "$port"
+      return 0
+    fi
+    port=$((port + 1))
+  done
+  echo "$1"  # nothing free nearby, so fail loudly on the one that was asked for
+}
+
 ask_port() {  # $1 = prompt, $2 = default
   local port held
   while true; do
     port="$(ask "$1" "$2")"
     if [[ ! "$port" =~ ^[0-9]+$ ]] || ((port < 1 || port > 65535)); then
       echo "   not a port number: $port" >&2
-      unattended && { echo "$2"; return 0; }
+      unattended && { next_free "$2"; return 0; }
       continue
     fi
     held="$(listener "$port")" || { echo "$port"; return 0; }
     echo "   port $port is already in use by $held" >&2
-    unattended && { echo "$port"; return 0; }
+    unattended && { next_free "$port"; return 0; }
   done
 }
 
