@@ -37,6 +37,11 @@ class Species:
 
 
 class Source(Protocol):
+    @property
+    def base_url(self) -> str:
+        """Which detector this is. Anything held from one station is not the
+        answer for another, so callers key their caches on it."""
+
     def latest(self) -> Detection | None: ...
 
     def recent(self, limit: int = 20) -> list[Detection]: ...

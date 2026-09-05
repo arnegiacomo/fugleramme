@@ -62,8 +62,10 @@ def make_handler(
     panel: Panel | None,
     status: Status,
 ):
-    # Held across requests: an outage must not blank every viewer at once.
+    # Held across requests: an outage must not blank every viewer at once. Tied
+    # to the detector that drew it, since another station's birds are not ours.
     last_page: bytes | None = None
+    last_from = ""
     # The kiosk polls every few seconds, so one warning per failed request would
     # never stop. Say it once, and again on recovery.
     unreachable = False
@@ -138,7 +140,9 @@ def make_handler(
             return merged(store.get(), **admin.form_changes(self._query()))
 
         def _page_png(self):
-            nonlocal last_page
+            nonlocal last_page, last_from
+            if source.base_url != last_from:
+                last_page, last_from = None, source.base_url
             try:
                 last_page = modes.png_bytes(self._context(store.get()))
             except Unavailable as exc:

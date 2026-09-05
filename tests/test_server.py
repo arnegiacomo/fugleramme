@@ -17,14 +17,14 @@ from PIL import Image
 from fugleramme import api
 from fugleramme.api import ApiSource
 from fugleramme.picks import Picks
-from fugleramme.settings import SettingsStore
+from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import Status
 from fugleramme.web import server
 
 SETTINGS = "s.json"
 
 
-def _serve(tmp_path, source):
+def _serve(tmp_path, source, store=None):
     """A served frame with artwork for two of the fake's species."""
     style = tmp_path / "images" / "classic"
     (style / "birds").mkdir(parents=True)
@@ -34,7 +34,7 @@ def _serve(tmp_path, source):
     handler = server.make_handler(
         source,
         tmp_path / "images",
-        SettingsStore(tmp_path / SETTINGS),
+        store or SettingsStore(tmp_path / SETTINGS),
         Picks(tmp_path / "artwork.json"),
         None,
         Status(),
@@ -207,3 +207,24 @@ def test_a_detector_that_stays_away_is_reported_once(stranded, caplog):
             assert _fetch(stranded + "/state")[0] == 503
 
     assert len(caplog.records) == 1
+
+
+def test_pointing_at_another_detector_drops_the_held_page(tmp_path, detector, monkeypatch):
+    """Holding a page through a blip is the point of it, but after a deliberate
+    switch that page is another station's birds, not a stale copy of ours."""
+    monkeypatch.setattr(api, "_TTL", 0)
+    url, fake = detector(count=40, seed=0)
+    store = SettingsStore(tmp_path / SETTINGS, Settings(detector_url=url))
+
+    for base in _serve(tmp_path, api.Configured(store), store=store):
+        assert _fetch(base + "/collage.png")[0] == 200
+
+        store.update(detector_url="http://127.0.0.1:1")
+        assert _fetch(base + "/collage.png")[0] == 503
+
+        store.update(detector_url=url)
+        assert _fetch(base + "/collage.png")[0] == 200
+
+        fake.shutdown()  # the same detector going quiet still holds
+        fake.server_close()
+        assert _fetch(base + "/collage.png")[0] == 200
