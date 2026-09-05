@@ -31,9 +31,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
 
-from ..db import Database
 from ..names import image_for
 from ..picks import Picks
+from ..source import Source
 from . import fonts
 from .page import (
     MIN_LABEL_PX,
@@ -414,7 +414,7 @@ def _at(at: tuple[int, int], scale: float) -> tuple[int, int]:
 
 
 def gather_entries(
-    db: Database,
+    source: Source,
     images_dir: Path,
     style: str,
     picks: Picks,
@@ -427,5 +427,5 @@ def gather_entries(
     """
     return [
         (name, image_for(name, images_dir, style, picks))
-        for name, _count in sorted(db.species_since(hours))
+        for name, _count in sorted(source.species_since(hours))
     ]

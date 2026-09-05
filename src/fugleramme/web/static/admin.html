@@ -51,10 +51,19 @@
     $auto_update
     <button type="submit">Save</button>
   </form>
+  <h2>Detector</h2>
+  <dl class="status">
+    <dt>BirdNET-Go</dt><dd id="detector-state">$birdnet</dd>
+  </dl>
+  <form class="block detector" id="detector" method="post" action="/admin">
+    $detector_field
+    <button type="submit">Save</button>
+    <button type="button" id="test">Test connection</button>
+    <span id="test-result"></span>
+  </form>
   <h2>System</h2>
   <dl class="status">
     <dt>Inky panel</dt><dd>$panel</dd>
-    <dt>BirdNET-Go</dt><dd>$birdnet</dd>
     <dt>Host</dt><dd>$host</dd>
     <dt>Internet</dt><dd>$online</dd>
     <dt>Disk</dt><dd>$disk</dd>

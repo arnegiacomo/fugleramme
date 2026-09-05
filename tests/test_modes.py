@@ -4,41 +4,31 @@ would freeze the frame."""
 
 from __future__ import annotations
 
-import sqlite3
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 import numpy as np
 import pytest
 from PIL import Image
 
-from fugleramme import modes
-from fugleramme.db import Database
+from fugleramme import fake, modes
+from fugleramme.api import ApiSource
 from fugleramme.languages import namer
 from fugleramme.picks import Picks
 from fugleramme.settings import Settings
 
-NOW = datetime.now(UTC)
+NOW = datetime.now().astimezone()
+BLACKBIRD, TIT = "Turdus merula", "Parus major"
 
 
-def _db(path, detections):
-    conn = sqlite3.connect(path)
-    conn.executescript(
-        "CREATE TABLE label_types (id INTEGER PRIMARY KEY, name TEXT);"
-        "CREATE TABLE labels (id INTEGER PRIMARY KEY, scientific_name TEXT, label_type_id INTEGER);"
-        "CREATE TABLE detections (id INTEGER PRIMARY KEY, label_id INTEGER, "
-        "detected_at INTEGER, confidence REAL, clip_name TEXT);"
-        "CREATE TABLE detection_reviews (id INTEGER PRIMARY KEY, detection_id INTEGER, verified TEXT);"
-        "INSERT INTO label_types VALUES (1,'species');"
-        "INSERT INTO labels VALUES (10,'Turdus merula',1),(11,'Parus major',1);"
-    )
-    conn.executemany("INSERT INTO detections VALUES (?, ?, ?, ?, ?)", detections)
-    conn.commit()
-    conn.close()
-    return Database(path)
+def _row(id_: int, name: str, ago_hours: float) -> fake.Detection:
+    return fake.Detection(id_, NOW - timedelta(hours=ago_hours), name, 0.9, False)
 
 
-def _row(id_, label_id, ago_hours):
-    return (id_, label_id, int((NOW - timedelta(hours=ago_hours)).timestamp()), 0.9, None)
+def _heard(source: ApiSource, rows: list, row: fake.Detection) -> None:
+    """A new detection reaches a running fake, and the source is asked again
+    rather than answering from its few seconds of memory."""
+    rows.insert(0, row)
+    source._cache.clear()
 
 
 @pytest.fixture
@@ -53,10 +43,10 @@ def images(tmp_path):
     return tmp_path
 
 
-def _ctx(db, images, tmp_path, mode, **overrides):
+def _ctx(source, images, tmp_path, mode, **overrides):
     settings = Settings(mode=mode, **overrides)
     return modes.context(
-        db,
+        source,
         images,
         Picks(tmp_path / "artwork.json"),
         settings,
@@ -74,99 +64,91 @@ def test_every_mode_is_offered_and_the_default_is_the_collage():
 
 
 @pytest.mark.parametrize("mode", list(modes.MODES))
-def test_every_mode_draws_something(tmp_path, images, mode):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 1), _row(2, 11, 2)])
-    page = modes.render(_ctx(db, images, tmp_path, mode))
+def test_every_mode_draws_something(tmp_path, images, source, mode):
+    detections = source(rows=[_row(2, TIT, 2), _row(1, BLACKBIRD, 1)])
+    page = modes.render(_ctx(detections, images, tmp_path, mode))
     assert np.asarray(page).std() > 1
 
 
 @pytest.mark.parametrize("mode", list(modes.MODES))
-def test_an_empty_record_falls_back_to_the_perch(tmp_path, images, mode):
-    db = _db(tmp_path / "b.db", [])
-    page = modes.render(_ctx(db, images, tmp_path, mode))
+def test_an_empty_record_falls_back_to_the_perch(tmp_path, images, source, mode):
+    page = modes.render(_ctx(source(rows=[]), images, tmp_path, mode))
     assert np.asarray(page).std() > 1  # the branch, not bare paper
 
 
-def test_the_latest_bird_holds_the_page_while_the_same_bird_calls(tmp_path, images):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 2)])
-    before = modes.state_key(_ctx(db, images, tmp_path, "latest"))
+def test_the_latest_bird_holds_the_page_while_the_same_bird_calls(tmp_path, images, detector):
+    rows = [_row(1, BLACKBIRD, 2)]
+    url, _httpd = detector(rows=rows)
+    detections = ApiSource(url)
+    before = modes.state_key(_ctx(detections, images, tmp_path, "latest"))
 
-    conn = sqlite3.connect(tmp_path / "b.db")
-    conn.execute("INSERT INTO detections VALUES (?, ?, ?, ?, ?)", _row(2, 10, 1))
-    conn.commit()
-    conn.close()
-    db.close()
-
-    assert modes.state_key(_ctx(db, images, tmp_path, "latest")) == before
+    _heard(detections, rows, _row(2, BLACKBIRD, 1))
+    assert modes.state_key(_ctx(detections, images, tmp_path, "latest")) == before
 
 
-def test_the_latest_bird_changes_the_page_when_the_species_changes(tmp_path, images):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 2)])
-    before = modes.state_key(_ctx(db, images, tmp_path, "latest"))
+def test_the_latest_bird_changes_the_page_when_the_species_changes(tmp_path, images, detector):
+    rows = [_row(1, BLACKBIRD, 2)]
+    url, _httpd = detector(rows=rows)
+    detections = ApiSource(url)
+    before = modes.state_key(_ctx(detections, images, tmp_path, "latest"))
 
-    conn = sqlite3.connect(tmp_path / "b.db")
-    conn.execute("INSERT INTO detections VALUES (?, ?, ?, ?, ?)", _row(2, 11, 1))
-    conn.commit()
-    conn.close()
-    db.close()
-
-    assert modes.state_key(_ctx(db, images, tmp_path, "latest")) != before
+    _heard(detections, rows, _row(2, TIT, 1))
+    assert modes.state_key(_ctx(detections, images, tmp_path, "latest")) != before
 
 
-def test_the_latest_bird_skips_a_species_it_cannot_draw(tmp_path, images):
+def test_the_latest_bird_skips_a_species_it_cannot_draw(tmp_path, images, source):
     (images / "classic" / "birds" / "parus-major.png").unlink()
-    db = _db(tmp_path / "b.db", [_row(1, 10, 2), _row(2, 11, 1)])
-    assert modes.state_key(_ctx(db, images, tmp_path, "latest"))[-1][0] == "Turdus merula"
+    detections = source(rows=[_row(2, TIT, 1), _row(1, BLACKBIRD, 2)])
+    assert modes.state_key(_ctx(detections, images, tmp_path, "latest"))[-1][0] == BLACKBIRD
 
 
-def test_the_collage_holds_the_page_when_a_bird_already_on_it_calls_again(tmp_path, images):
+def test_the_collage_holds_the_page_when_a_bird_already_on_it_calls_again(
+    tmp_path, images, detector
+):
     """species_since ranks by count, so re-hearing a bird can overtake another
     and reorder the window. The set is the same, so the page must be too."""
-    db = _db(tmp_path / "b.db", [_row(1, 11, 2), _row(2, 11, 2), _row(3, 10, 1)])
-    before = modes.state_key(_ctx(db, images, tmp_path, "collage"))
+    rows = [_row(3, BLACKBIRD, 1), _row(2, TIT, 2), _row(1, TIT, 2)]
+    url, _httpd = detector(rows=rows)
+    detections = ApiSource(url)
+    before = modes.state_key(_ctx(detections, images, tmp_path, "collage"))
 
-    conn = sqlite3.connect(tmp_path / "b.db")
-    conn.executemany(
-        "INSERT INTO detections VALUES (?, ?, ?, ?, ?)", [_row(n, 10, 0) for n in (4, 5)]
-    )
-    conn.commit()
-    conn.close()
-    db.close()
+    for id_ in (4, 5):
+        _heard(detections, rows, _row(id_, BLACKBIRD, 0))
 
-    assert db.species_since()[0][0] == "Turdus merula"  # the ranking did flip
-    assert modes.state_key(_ctx(db, images, tmp_path, "collage")) == before
+    assert detections.species_since()[0][0] == BLACKBIRD  # the ranking did flip
+    assert modes.state_key(_ctx(detections, images, tmp_path, "collage")) == before
 
 
-def test_the_newest_arrival_is_the_latest_first_ever(tmp_path, images):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 200), _row(2, 11, 100), _row(3, 10, 1)])
-    assert modes.state_key(_ctx(db, images, tmp_path, "arrival"))[-1][0] == "Parus major"
+def test_the_newest_arrival_is_the_latest_first_ever(tmp_path, images, source):
+    detections = source(rows=[_row(3, BLACKBIRD, 1), _row(2, TIT, 100), _row(1, BLACKBIRD, 200)])
+    assert modes.state_key(_ctx(detections, images, tmp_path, "arrival"))[-1][0] == TIT
 
 
-def test_only_the_collage_reads_the_lookback_window(tmp_path, images):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 1), _row(2, 11, 40)])
+def test_only_the_collage_reads_the_lookback_window(tmp_path, images, source):
+    detections = source(rows=[_row(2, BLACKBIRD, 1), _row(1, TIT, 400)])
     for mode, sensitive in (("collage", True), ("latest", False), ("arrival", False)):
-        short = modes.state_key(_ctx(db, images, tmp_path, mode, lookback_hours=24))
-        long = modes.state_key(_ctx(db, images, tmp_path, mode, lookback_hours=72))
+        short = modes.state_key(_ctx(detections, images, tmp_path, mode, lookback_hours=24))
+        long = modes.state_key(_ctx(detections, images, tmp_path, mode, lookback_hours=720))
         assert (short != long) is sensitive
 
 
-def test_the_key_carries_what_the_page_is_drawn_from(tmp_path, images):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 1)])
-    base = _ctx(db, images, tmp_path, "latest")
+def test_the_key_carries_what_the_page_is_drawn_from(tmp_path, images, source):
+    detections = source(rows=[_row(1, BLACKBIRD, 1)])
+    base = _ctx(detections, images, tmp_path, "latest")
     for change in ({"show_names": False}, {"label_font": "bitter"}, {"label_size": "large"}):
-        assert modes.state_key(_ctx(db, images, tmp_path, "latest", **change)) != modes.state_key(
-            base
-        )
+        assert modes.state_key(
+            _ctx(detections, images, tmp_path, "latest", **change)
+        ) != modes.state_key(base)
 
 
-def test_switching_mode_changes_the_page(tmp_path, images):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 1), _row(2, 11, 2)])
-    keys = {modes.state_key(_ctx(db, images, tmp_path, m)) for m in modes.MODES}
+def test_switching_mode_changes_the_page(tmp_path, images, source):
+    detections = source(rows=[_row(2, TIT, 2), _row(1, BLACKBIRD, 1)])
+    keys = {modes.state_key(_ctx(detections, images, tmp_path, m)) for m in modes.MODES}
     assert len(keys) == len(modes.MODES)
 
 
-def test_a_render_is_cached_until_its_key_moves(tmp_path, images):
-    db = _db(tmp_path / "b.db", [_row(1, 10, 1)])
-    ctx = _ctx(db, images, tmp_path, "latest")
+def test_a_render_is_cached_until_its_key_moves(tmp_path, images, source):
+    detections = source(rows=[_row(1, BLACKBIRD, 1)])
+    ctx = _ctx(detections, images, tmp_path, "latest")
     assert modes.png_bytes(ctx) is modes.png_bytes(ctx)
-    assert modes.png_bytes(_ctx(db, images, tmp_path, "arrival")) != modes.png_bytes(ctx)
+    assert modes.png_bytes(_ctx(detections, images, tmp_path, "arrival")) != modes.png_bytes(ctx)

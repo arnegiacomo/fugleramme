@@ -9,12 +9,22 @@
   html, body { margin: 0; height: 100%; background: #faf9f6; }
   body { display: flex; align-items: center; justify-content: center; }
   img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+  p { font: 1rem/1.5 system-ui, sans-serif; color: #8a8880; text-align: center; }
+  p a { color: inherit; }
 </style>
 </head>
 <body>
 <img id="collage" src="/collage.png" alt="Birds seen recently">
+<p id="waiting" hidden>Waiting for BirdNET-Go<br><a href="/admin">Configure it in the admin panel</a></p>
 <script>
   const DELAY = 3000;  // /state is one query, no render
+  const collage = document.getElementById("collage");
+  const waiting = document.getElementById("waiting");
+  // Only ever seen before the first render: once a page exists the server holds
+  // it through an outage, so a blip leaves the birds up rather than a message.
+  const show = (page) => { collage.hidden = !page; waiting.hidden = page; };
+  collage.onload = () => show(true);
+  collage.onerror = () => show(false);
   let token = null;
   async function tick() {
     try {
@@ -22,7 +32,7 @@
       if (state.token !== token) {
         token = state.token;
         const next = new Image();  // decode before swapping, so the frame never blanks
-        next.onload = () => { document.getElementById("collage").src = next.src; };
+        next.onload = () => { collage.src = next.src; };
         next.src = "/collage.png?v=" + encodeURIComponent(token);
       }
     } catch (e) {}  // transient: retry next tick

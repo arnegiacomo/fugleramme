@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import sqlite3
 import subprocess
 import sys
@@ -18,7 +19,8 @@ from unittest.mock import DEFAULT, patch
 import pytest
 
 from fugleramme import service, updates
-from fugleramme.db import Database
+from fugleramme.api import ApiSource
+from fugleramme.config import BIRDNET_PORT, DEFAULT_DETECTOR_URL, DEFAULT_PORT, REPO_ROOT
 from fugleramme.picks import Picks
 from fugleramme.settings import SettingsStore
 from fugleramme.status import Status
@@ -101,7 +103,8 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
     never exits from inside a request."""
     status = Status()
     handler = server.make_handler(
-        Database(tmp_path / "absent.db"),
+        # Nothing here asks the detector anything: the buttons are status writes.
+        ApiSource("http://127.0.0.1:1"),
         tmp_path,
         SettingsStore(tmp_path / "s.json"),
         Picks(tmp_path / "artwork.json"),
@@ -287,3 +290,32 @@ def test_a_missing_database_is_not_a_backup_failure(tmp_path):
     """First boot: BirdNET-Go has not created it yet, and there is nothing to lose."""
     with patch.object(updates, "DEFAULT_DB_PATH", tmp_path / "absent.db"):
         updates._backup_db()
+
+
+# The self-update never re-runs run.sh, so an appliance keeps the unit, the
+# detector/.env and the settings.json it was installed with: every default
+# introduced later has to reproduce what it already runs on.
+
+
+def _run_sh() -> str:
+    return (REPO_ROOT / "run.sh").read_text()
+
+
+def _default(name: str) -> str:
+    return re.search(rf'^{name}="?([^"\n]*)"?$', _run_sh(), re.MULTILINE).group(1)
+
+
+def test_a_checkout_with_no_frame_env_converges_onto_todays_layout():
+    assert _default("FRAME_PORT") == str(DEFAULT_PORT)
+    assert _default("BIRDNET_PORT") == str(BIRDNET_PORT)
+    assert _default("DETECTOR_MODE") == "bundled"
+    assert _default("DETECTOR_URL") == DEFAULT_DETECTOR_URL
+    # Read only when it is there, so an existing checkout takes the block above.
+    assert '[[ -f "$REPO_ROOT/frame.env" ]]' in _run_sh()
+
+
+def test_a_detector_env_from_before_the_port_was_a_choice_still_publishes_8090():
+    """`updates._converge_detector` runs compose against the .env the Pi already
+    has, which carries no BIRDNET_PORT - the inline default is what holds it."""
+    compose = (REPO_ROOT / "detector" / "docker-compose.yml").read_text()
+    assert f'"${{BIRDNET_PORT:-{BIRDNET_PORT}}}:8080"' in compose

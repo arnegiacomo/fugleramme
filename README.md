@@ -22,9 +22,9 @@ Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://ar
 
 ## How it works
 
-Mic → BirdNET-Go → SQLite → collage → panel.
+BirdNET-Go listens on a USB mic and records what it identifies. Fugleramme polls the BirdNET-Go api, matches each species to an illustration, then packs them onto a page, and redraws only when the birds change. There's an admin page that lets you configure what to show, and automatic updates and such.
 
-BirdNET-Go listens on a USB mic and writes what it identifies to its own database. Fugleramme reads it, matches each species to an illustration, packs them onto a page, and redraws only when the birds change. There's an admin page that lets you configure what to show, and automatic updates and such.
+If you already run BirdNET-Go, point the frame at it instead - on the same machine or anywhere else reachable from your network.
 
 ## Hardware
 
@@ -57,7 +57,7 @@ See [Editing artwork](docs/editing-artwork.md) for manual cutout steps.
 
 ```bash
 uv sync                                       # set up venv
-uv run python -m fugleramme.seed --count 40   # seed db (no BirdNET-Go in dev)
+uv run fugleramme-fake-detector               # stand-in BirdNET-Go on :8090
 uv run fugleramme-dev                         # start service on :8080 with hot-reload
 ```
 
@@ -69,7 +69,7 @@ From the pi (assuming you have the hardware up and running):
 curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install.sh | bash
 ```
 
-Clones the repo, installs the required deps, starts BirdNET-Go and starts the frame as a systemd service. **NB!** Will probably require a reboot on a fresh system.
+Asks where BirdNET-Go should live and which ports to use, clones the repo, installs the required deps, and starts the frame as a systemd service. **NB!** Will probably require a reboot on a fresh system.
 
 If the display
 stays blank after that, see

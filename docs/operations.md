@@ -26,7 +26,7 @@ frame restarts itself and comes back on the new
 version. If an update fails, the
 reason shows in place of the version and the frame keeps running as it was.
 
-Some updates also bring a new version of BirdNET-Go, which is a few hundred megabytes and may take a while to download. (Your detections will be automatically backed up to `detector/data/birdnet.db.bak`.)
+Some updates also bring a new version of BirdNET-Go, which is a few hundred megabytes and may take a while to download. (Your detections will be automatically backed up to `detector/data/birdnet.db.bak`.) This happens only while Fugleramme is the one running BirdNET-Go (a detector you run yourself is never touched).
 
 The frame has to be online to check for or install updates, whichever way you do
 it. The System tab tells you whether it is.
@@ -55,6 +55,36 @@ cd ~/fugleramme
 ```
 
 Run it if you move the repo or swap the mic.
+
+## Changing the ports
+
+`FRAME_PORT` is the web interface, `BIRDNET_PORT` is BirdNET-Go when Fugleramme
+runs it. Both are located in `frame.env`:
+
+```bash
+ssh <user>@<host>.local
+cd ~/fugleramme
+nano frame.env
+./run.sh
+```
+
+`run.sh` is what bakes the port into the service, so a plain restart isn't enough.
+Moving `BIRDNET_PORT` also means changing the address under **Detector** on the
+admin page. Updates never touch either.
+
+## Pointing the frame at a different BirdNET-Go
+
+The admin page's System tab has a Detector section: the address, and a username
+and password for an instance with private mode on. Saving takes effect straight
+away - no restart. **Test connection** checks before you commit to it.
+
+The frame reads detections only. Everything about how birds are detected stays
+in BirdNET-Go's own settings.
+
+If Fugleramme was running a BirdNET-Go of its own and you move the frame to
+another instance for good, re-run `./install.sh` and answer 2 or 3. It offers to stop
+the old container and hand the port back, so updates stop pulling an image
+ and you stop the running container. Your detections stay in `detector/data` either way. Changing only the address on the admin page leaves the old container running, which is what you want if you plan to point back in the future.
 
 ## Changing Wi-Fi in gadget mode (USB-C)
 

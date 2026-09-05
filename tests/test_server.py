@@ -3,40 +3,38 @@
 from __future__ import annotations
 
 import json
-import random
+import logging
 import re
 import socket
 import threading
+import urllib.parse
 import urllib.request
 from http.server import ThreadingHTTPServer
 
 import pytest
 from PIL import Image
 
-from fugleramme.db import Database
+from fugleramme import api
+from fugleramme.api import ApiSource
 from fugleramme.picks import Picks
-from fugleramme.seed import seed
-from fugleramme.settings import SettingsStore
+from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import Status
 from fugleramme.web import server
 
 SETTINGS = "s.json"
 
 
-@pytest.fixture
-def frame(tmp_path):
-    """A served frame over a seeded record, with artwork for two of its species."""
-    random.seed(0)
-    seed(tmp_path / "birdnet.db", 40)
+def _serve(tmp_path, source, store=None):
+    """A served frame with artwork for two of the fake's species."""
     style = tmp_path / "images" / "classic"
     (style / "birds").mkdir(parents=True)
     for key in ("turdus-merula", "parus-major"):
         Image.new("RGBA", (120, 90), (40, 40, 40, 255)).save(style / "birds" / f"{key}.png")
 
     handler = server.make_handler(
-        Database(tmp_path / "birdnet.db"),
+        source,
         tmp_path / "images",
-        SettingsStore(tmp_path / SETTINGS),
+        store or SettingsStore(tmp_path / SETTINGS),
         Picks(tmp_path / "artwork.json"),
         None,
         Status(),
@@ -47,6 +45,17 @@ def frame(tmp_path):
         yield f"http://127.0.0.1:{httpd.server_address[1]}"
     finally:
         httpd.shutdown()
+
+
+@pytest.fixture
+def frame(tmp_path, source):
+    yield from _serve(tmp_path, source(count=40, seed=0))
+
+
+@pytest.fixture
+def stranded(tmp_path, source):
+    """The same frame over a detector that will not answer."""
+    yield from _serve(tmp_path, source(down=True))
 
 
 def _fetch(url: str, method: str = "GET", headers: dict | None = None):
@@ -83,6 +92,20 @@ def test_every_route_answers_with_what_it_promises(frame, route, content_type):
 
 def test_an_unknown_route_is_a_404(frame):
     assert _fetch(frame + "/nope")[0] == 404
+
+
+def test_a_page_that_cannot_reach_the_detector_says_so(stranded):
+    """A 503 the kiosk retries past, not a blank page it would swap onto the glass."""
+    for route in ("/collage.png", "/preview.png", "/state", "/species"):
+        status, _headers, body = _fetch(stranded + route)
+        assert status == 503
+        assert b"detector unavailable" in body
+
+
+def test_the_admin_still_renders_with_the_detector_gone(stranded):
+    status, _headers, body = _fetch(stranded + "/admin")
+    assert status == 200
+    assert b"detector unreachable" in body
 
 
 def _raw(url: str, request: str) -> tuple[str, bytes]:
@@ -129,3 +152,79 @@ def test_the_species_listing_marks_what_the_collage_cannot_draw(frame):
     body = json.loads(_fetch(frame + "/species")[2])
     assert 'class="noart"' in body["html"]
     assert body["html"].count("<li") == body["count"]
+
+
+def test_the_connection_test_answers_over_the_wire(frame):
+    body = urllib.parse.urlencode({"detector_url": "http://127.0.0.1:1"}).encode()
+    request = urllib.request.Request(frame + "/detector", data=body, method="POST")
+    with urllib.request.urlopen(request, timeout=10) as response:
+        answer = json.loads(response.read())
+    assert answer["state"] == "unreachable"
+
+
+def test_the_kiosk_holds_its_last_page_when_the_detector_goes_away(tmp_path, detector, monkeypatch):
+    """The kiosk mirrors the glass, so a blip must not blank every viewer with a
+    broken image."""
+    monkeypatch.setattr(api, "_TTL", 0)  # or the cached answer, not the hold, is what passes
+    url, fake = detector(count=40, seed=0)
+    for base in _serve(tmp_path, ApiSource(url)):
+        status, _headers, page = _fetch(base + "/collage.png")
+        assert status == 200
+
+        fake.shutdown()
+        fake.server_close()
+        assert _fetch(base + "/species")[0] == 503  # the detector really is gone
+
+        status, _headers, held = _fetch(base + "/collage.png")
+        assert (status, held) == (200, page)
+
+
+def test_an_emptied_field_clears_the_setting(frame, tmp_path):
+    """ "None" for the second language and a cleared credential both post blank,
+    and a dropped blank reads as "field absent, keep what is saved"."""
+    store = SettingsStore(tmp_path / SETTINGS)
+
+    def post(**fields):
+        body = urllib.parse.urlencode(fields).encode()
+        request = urllib.request.Request(frame + "/admin", data=body, method="POST")
+        with urllib.request.urlopen(request, timeout=10):
+            pass
+        return store.get()
+
+    assert post(mode="collage", secondary_language="nb").secondary_language == "nb"
+    assert post(mode="collage", secondary_language="").secondary_language == ""
+
+    saved = post(detector_url="http://127.0.0.1:1", detector_username="bird")
+    assert saved.detector_username == "bird"
+    assert post(detector_url="http://127.0.0.1:1", detector_username="").detector_username == ""
+
+
+def test_a_detector_that_stays_away_is_reported_once(stranded, caplog):
+    """The kiosk polls every few seconds, so one warning per failed request would
+    fill the journal for as long as the detector is gone."""
+    with caplog.at_level(logging.WARNING, logger="fugleramme.web.server"):
+        for _ in range(8):
+            assert _fetch(stranded + "/state")[0] == 503
+
+    assert len(caplog.records) == 1
+
+
+def test_pointing_at_another_detector_drops_the_held_page(tmp_path, detector, monkeypatch):
+    """Holding a page through a blip is the point of it, but after a deliberate
+    switch that page is another station's birds, not a stale copy of ours."""
+    monkeypatch.setattr(api, "_TTL", 0)
+    url, fake = detector(count=40, seed=0)
+    store = SettingsStore(tmp_path / SETTINGS, Settings(detector_url=url))
+
+    for base in _serve(tmp_path, api.Configured(store), store=store):
+        assert _fetch(base + "/collage.png")[0] == 200
+
+        store.update(detector_url="http://127.0.0.1:1")
+        assert _fetch(base + "/collage.png")[0] == 503
+
+        store.update(detector_url=url)
+        assert _fetch(base + "/collage.png")[0] == 200
+
+        fake.shutdown()  # the same detector going quiet still holds
+        fake.server_close()
+        assert _fetch(base + "/collage.png")[0] == 200

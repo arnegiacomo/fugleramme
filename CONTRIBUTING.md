@@ -10,12 +10,19 @@ Everything except the panel, the buttons and the mic runs on a workstation:
 
 ```bash
 uv sync
-uv run python -m fugleramme.seed --count 40   # fake detections, no BirdNET-Go
+uv run fugleramme-fake-detector               # stand-in BirdNET-Go on :8090
 uv run fugleramme-dev                         # :8080, restarts on save
 ```
 
 Kiosk on `http://localhost:8080/`, admin on `/admin`.
 `uv run fugleramme-frame --preview out.png` renders the collage once and exits.
+
+The fake serves the same `/api/v2` endpoints the frame reads, over generated
+detections; `--auth` and `--down` reproduce a locked-down and an unreachable
+station. To work against a real one instead, pass its address:
+`uv run fugleramme-dev --detector http://birdnet.local:8090`.
+`uv run fugleramme-check` says whether a detector answers everything the frame
+needs, and is the first thing to run when a page comes up empty.
 
 > [!NOTE]
 > I can only test on the hardware I have. If a change touches the panel, the

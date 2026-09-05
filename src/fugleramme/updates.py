@@ -123,7 +123,7 @@ def _backup_db(progress: Progress | None = None) -> None:
     detections are the one thing here that cannot be fetched again. Raising skips
     the swap: an un-backed-up migration is the risk this whole step exists for."""
     if not DEFAULT_DB_PATH.exists():
-        return  # the unit runs with no --db, so the appliance's DB is the default one
+        return  # a frame pointed at a detector elsewhere has no file of its own to keep
     if progress:
         progress("Backing up detections", None)
     source = sqlite3.connect(f"file:{DEFAULT_DB_PATH}?mode=ro", uri=True)

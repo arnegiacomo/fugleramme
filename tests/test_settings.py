@@ -7,6 +7,7 @@ import json
 
 import pytest
 
+from fugleramme.config import DEFAULT_DETECTOR_URL
 from fugleramme.languages import NONE, SCIENTIFIC
 from fugleramme.render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
 from fugleramme.settings import (
@@ -161,3 +162,55 @@ def test_a_negative_lookback_clamps_to_all_time(tmp_path):
     path = tmp_path / "settings.json"
     path.write_text(json.dumps({"lookback_hours": -5}))
     assert SettingsStore(path).get().lookback_hours == ALL_TIME
+
+
+def test_the_detector_url_is_kept_by_shape(tmp_path):
+    path = tmp_path / "settings.json"
+    assert SettingsStore(path).update(detector_url="https://pi.local:8090/").detector_url == (
+        "https://pi.local:8090"  # the trailing slash goes, so paths join cleanly
+    )
+    for bad in ("pi.local:8090", "ftp://pi", "", 8090):
+        path.write_text(json.dumps({"detector_url": bad}))
+        assert SettingsStore(path).get().detector_url == DEFAULT_DETECTOR_URL
+
+
+def test_a_launch_default_only_fills_in_what_the_file_does_not_say(tmp_path):
+    """The systemd unit passes no flags, so an existing settings.json must keep
+    working; --detector is only for a file that names none."""
+    path = tmp_path / "settings.json"
+    flagged = Settings(detector_url="http://elsewhere:8090")
+
+    assert SettingsStore(path, flagged).get().detector_url == "http://elsewhere:8090"
+
+    path.write_text(json.dumps({"detector_url": "http://saved:8090"}))
+    assert SettingsStore(path, flagged).get().detector_url == "http://saved:8090"
+
+
+def test_detector_connection_round_trips(tmp_path):
+    path = tmp_path / "s.json"
+    saved = SettingsStore(path).update(
+        detector_url="http://birdnet.local:8080/",
+        detector_username="birdnet",
+        detector_password="hunter2",
+    )
+    assert saved.detector_url == "http://birdnet.local:8080"  # trailing slash dropped
+    assert saved.detector_username == "birdnet"
+    assert saved.detector_password == "hunter2"
+    assert SettingsStore(path).get() == saved
+
+
+def test_a_detector_url_that_is_not_one_falls_back(tmp_path):
+    path = tmp_path / "s.json"
+    path.write_text(json.dumps({"detector_url": "birdnet.local", "detector_username": 7}))
+    settings = SettingsStore(path).get()
+    assert settings.detector_url == DEFAULT_DETECTOR_URL
+    assert settings.detector_username == ""
+
+
+def test_the_launch_flag_only_fills_in_a_url_the_file_lacks(tmp_path):
+    path = tmp_path / "s.json"
+    flagged = Settings(detector_url="http://flag:8090")
+    assert SettingsStore(path, flagged).get().detector_url == "http://flag:8090"
+
+    path.write_text(json.dumps({"detector_url": "http://saved:8090"}))
+    assert SettingsStore(path, flagged).get().detector_url == "http://saved:8090"

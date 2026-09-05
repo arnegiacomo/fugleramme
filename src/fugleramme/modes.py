@@ -24,13 +24,13 @@ from typing import TYPE_CHECKING
 
 from PIL import Image
 
-from .db import Database, Species
 from .languages import Namer
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
 from .render.collage import gather_entries, render_collage
 from .render.page import day_ordinal
 from .render.plate import render_plate
+from .source import Source, Species
 
 if TYPE_CHECKING:
     from .settings import Settings
@@ -46,7 +46,7 @@ class Context:
     """Everything a mode draws from, resolved from the settings by `context`."""
 
     mode: str
-    db: Database
+    source: Source
     images_dir: Path
     style: str
     picks: Picks
@@ -68,7 +68,7 @@ class Context:
 
 
 def context(
-    db: Database,
+    source: Source,
     images_dir: Path,
     picks: Picks,
     settings: Settings,
@@ -78,7 +78,7 @@ def context(
 ) -> Context:
     return Context(
         mode=settings.mode,
-        db=db,
+        source=source,
         images_dir=images_dir,
         style=resolve(settings.style, images_dir),
         picks=picks,
@@ -122,13 +122,13 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
 
 def _collage_key(ctx: Context) -> tuple:
     # Sorted to keep key constant for the same bird set (avoid re-renders on order change)
-    species = tuple(sorted(name for name, _ in ctx.db.species_since(ctx.lookback_hours)))
+    species = tuple(sorted(name for name, _ in ctx.source.species_since(ctx.lookback_hours)))
     return (species, day_ordinal() if not species else None)
 
 
 def _collage(ctx: Context) -> Image.Image:
     return render_collage(
-        gather_entries(ctx.db, ctx.images_dir, ctx.style, ctx.picks, ctx.lookback_hours),
+        gather_entries(ctx.source, ctx.images_dir, ctx.style, ctx.picks, ctx.lookback_hours),
         ctx.resolution,
         ctx.show_names,
         ctx.textured,
@@ -146,7 +146,7 @@ def _holder(ctx: Context) -> tuple[str, datetime] | None:
     keys = ctx.drawable()
     name: str | None = None
     since: datetime | None = None
-    for detection in ctx.db.recent(_RECENT_SCAN):  # newest first
+    for detection in ctx.source.recent(_RECENT_SCAN):  # newest first
         if normalize(detection.scientific_name) not in keys:
             continue
         if name is None:
@@ -177,7 +177,7 @@ def _arrival(ctx: Context) -> Species | None:
     been a while is itself worth reading."""
     keys = ctx.drawable()
     return next(
-        (s for s in reversed(ctx.db.life_list()) if normalize(s.scientific_name) in keys), None
+        (s for s in reversed(ctx.source.life_list()) if normalize(s.scientific_name) in keys), None
     )
 
 
@@ -204,7 +204,7 @@ def _one(species) -> list[str]:
 def _collage_subjects(ctx: Context) -> list[str]:
     # The whole window, art-less species included: the admin marks those as
     # counted but not drawn.
-    return [name for name, _ in ctx.db.species_since(ctx.lookback_hours)]
+    return [name for name, _ in ctx.source.species_since(ctx.lookback_hours)]
 
 
 # Insertion order is the order button A walks.

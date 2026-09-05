@@ -2,6 +2,23 @@
 
 Symptom to cause.
 
+## curl says the certificate is not yet valid
+
+```
+curl: (60) SSL certificate problem: certificate is not yet valid
+```
+
+The Pi has no battery-backed clock, so on a fresh install its time might still
+be behind the certificate's start date until it syncs over the network. Wait a
+moment and run the same command again.
+
+If it keeps failing, check the clock has caught up:
+
+```bash
+timedatectl          # System clock synchronized: yes
+sudo timedatectl set-ntp true
+```
+
 ## Installation stops partway
 
 If the repository was successfully cloned but failed on setup:
@@ -60,6 +77,26 @@ sudo networksetup -ordernetworkservices "Wi-Fi" ... "Raspberry Pi USB Gadget"
 ```
 
 SSH keeps working - `10.12.194.1` is a directly connected route.
+
+## Page is empty, or the detector is unreachable
+
+```bash
+ssh <user>@<host>.local
+cd ~/fugleramme
+uv run fugleramme-check
+```
+
+A line per question the frame asks BirdNET-Go, and the address it asked. Add
+`--detector http://<host>:<port>` to try another without saving it.
+
+If nothing answers, check that address on the admin page's System tab under
+Detector - **Test connection** says whether it is reachable, needs credentials,
+or is fine. Credentials go under Detector → Credentials. If Fugleramme runs
+BirdNET-Go for you, `docker ps` should show it. If it answers but finds no
+birds, that's BirdNET-Go's side - open its own page and check the mic.
+
+The frame holds its last page while the detector is away rather than wiping the
+glass, so a short outage looks like nothing happening at all.
 
 ## Panel stays blank
 
