@@ -35,8 +35,8 @@ Public domain (PD-old-70-expired).
 Thorburn** and **Joseph Wolf**, with **Richard Bowdler Sharpe**, from the
 Commons category
 [A history of the birds of Europe](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe).
-Scans from the Biodiversity Heritage Library. Public domain
-(PD-scan / PD-old-70-expired).
+Scans from the Biodiversity Heritage Library, public domain
+(PD-scan / PD-old-70-expired), and Commons uploads offered under CC BY-SA 4.0.
 
 **Keulemans** - *Onze vogels in huis en tuin* by **J. G. Keulemans**
 (1869-1876), from the Biodiversity Heritage Library
