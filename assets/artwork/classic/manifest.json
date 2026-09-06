@@ -2615,6 +2615,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVHyacinthine_Porphyrio.jpg"
   },
+  "birds/porzana-porzana-2.png": {
+    "source": "vonwright",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00116.jpg"
+  },
   "birds/porzana-porzana.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVSpotted_Crake.jpg"
@@ -2682,10 +2686,6 @@
   "birds/rallus-aquaticus-2.png": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00117.jpg"
-  },
-  "birds/rallus-aquaticus-3.png": {
-    "source": "vonwright",
-    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00116.jpg"
   },
   "birds/rallus-aquaticus.png": {
     "source": "gould",
