@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v0.16.2 (2026-09-06)
+
+### Bug Fixes
+
+- #45 say when the detector will not serve its locale list
+  ([`3fdbb71`](https://github.com/arnegiacomo/fugleramme/commit/3fdbb711c22e350dd301e3ec09eba65b3f3d98e3))
+
+### Chores
+
+- Add license to pyproject.toml
+  ([`18a3485`](https://github.com/arnegiacomo/fugleramme/commit/18a3485b88c7bbbf22ef411aa010a86a347a10cd))
+
+### Documentation
+
+- #40 fix HDMI kiosk instructions for Raspberry Pi OS Lite
+  ([`9cf25c1`](https://github.com/arnegiacomo/fugleramme/commit/9cf25c1c34019baff75f545367d57fdcd58d7152))
+
+- Put the early-development note in a callout
+  ([`f47af25`](https://github.com/arnegiacomo/fugleramme/commit/f47af25311b3191c82606e20772a6ec72db81ae9))
+
+
 ## v0.16.1 (2026-09-05)
 
 ### Bug Fixes
