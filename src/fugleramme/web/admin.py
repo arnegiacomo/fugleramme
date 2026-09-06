@@ -21,6 +21,7 @@ from ..languages import NONE, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, source_of
 from ..render.fonts import FONTS, LABEL_SIZES
+from ..render.packing import LAYOUTS
 from ..settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, lookback_order, merged
 from ..source import NEEDS_PASSWORD, Unavailable
 from ..status import Status
@@ -350,9 +351,12 @@ def page(
             ),
         ),
         rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
-        lookback_off="" if windowed else ' class="off"',
-        lookback_disabled="" if windowed else " disabled",
+        collage_off="" if windowed else ' class="off"',
+        collage_disabled="" if windowed else " disabled",
         lookbacks=_lookbacks(settings),
+        layouts=_options(
+            LAYOUTS, settings.layout, lambda k: f"{LAYOUTS[k].label} - {LAYOUTS[k].blurb}"
+        ),
         names_field=_names_field(settings, languages, names_failure),
         style_field=(
             f'<div class="field"><span>Artwork style</span>'

@@ -11,14 +11,10 @@ import pytest
 from PIL import Image, ImageFont
 
 from fugleramme.render import collage, fonts
-from fugleramme.render.collage import _pack, _probes, _Sprite, _with_label, render_collage
+from fugleramme.render.collage import _Sprite, _with_label, render_collage
+from fugleramme.render.packing import _probes, spiral
 from fugleramme.render.page import INK, PANEL_INK, label_px, stamp, text_mask
 from fugleramme.render.paper import TARGET_PAPER
-
-
-@pytest.fixture(autouse=True)
-def _no_cached_layouts():
-    collage._layouts.clear()
 
 
 def _ink(font, text="Turdus merula") -> float:
@@ -136,7 +132,7 @@ def test_packing_never_overlaps_a_label():
         _with_label(n, 30, np.ones((30, 30), dtype=bool), Image.new("L", (60, 10), 255), gap=4)
         for n in range(6)
     ]
-    placed = _pack(sprites, 400, 400)
+    placed = spiral(sprites, 400, 400)
     assert placed is not None
 
     occupied = np.zeros((400, 400), dtype=bool)

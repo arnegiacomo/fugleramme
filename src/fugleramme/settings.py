@@ -21,6 +21,7 @@ from .config import DEFAULT_DETECTOR_URL, DEFAULT_WEB_RESOLUTION, WEB_HEIGHTS
 from .languages import NONE, SCIENTIFIC
 from .modes import DEFAULT_MODE, MODES
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
+from .render.packing import DEFAULT_LAYOUT, LAYOUTS
 
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
 ROTATIONS = (0, 90, 180, 270)
@@ -57,6 +58,8 @@ class Settings:
     # Active artwork style folder; empty means "whichever is present" (resolved
     # against the filesystem at render time, so it survives a renamed style).
     style: str = ""
+    # How the collage packs its birds; the other modes draw one bird and ignore it.
+    layout: str = DEFAULT_LAYOUT
     auto_update: bool = False
     show_names: bool = True
     # Species-name languages: BirdNET-Go dictionary locales, resolved
@@ -160,6 +163,7 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         rotation=_one_of(rotation, ROTATIONS, d.rotation),
         lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, ALL_TIME, 24 * 30),
         style=_style(raw, d.style),
+        layout=_one_of(str(raw.get("layout", d.layout)), LAYOUTS, d.layout),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
         show_names=_as_bool(raw.get("show_names"), d.show_names),
         # A primary language is required: an empty pick means the scientific name.

@@ -36,6 +36,16 @@ How far back the collage looks, from the last 6 hours to all time. Default is
 
 **All time** never drops a species, so the page only grows.
 
+### Layout
+
+How the collage arranges/packs the birds. Default is **Spiral**.
+
+| Layout | What it does |
+| --- | --- |
+| Spiral (default) | Big birds in the middle, small ones around them |
+| Spiral (fast) | Same as above but skips some steps |
+| Voids | Birds spread out to fill the whole sheet |
+
 ### Species names
 
 **Show species names** turns the labels on and off, same as **B** on the panel.

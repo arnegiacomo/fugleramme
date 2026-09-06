@@ -10,6 +10,7 @@ import pytest
 from fugleramme.config import DEFAULT_DETECTOR_URL
 from fugleramme.languages import NONE, SCIENTIFIC
 from fugleramme.render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
+from fugleramme.render.packing import DEFAULT_LAYOUT
 from fugleramme.settings import (
     ALL_TIME,
     LOOKBACK_OPTIONS,
@@ -97,6 +98,12 @@ def test_label_font_and_size_fall_back_to_defaults(tmp_path):
     assert settings.label_font == DEFAULT_FONT
     assert settings.label_size == DEFAULT_LABEL_SIZE
     assert settings.show_names is False
+
+
+def test_unknown_layout_falls_back_to_the_default(tmp_path):
+    path = tmp_path / "s.json"
+    path.write_text(json.dumps({"layout": "hexagons"}))
+    assert SettingsStore(path).get().layout == DEFAULT_LAYOUT
 
 
 def test_language_codes_are_kept_by_shape_not_by_availability(tmp_path):

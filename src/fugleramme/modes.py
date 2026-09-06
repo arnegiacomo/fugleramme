@@ -28,6 +28,7 @@ from .languages import Namer
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
 from .render.collage import gather_entries, render_collage
+from .render.packing import DEFAULT_LAYOUT
 from .render.page import day_ordinal
 from .render.plate import render_plate
 from .source import Source, Species
@@ -56,6 +57,7 @@ class Context:
     lookback_hours: int
     font_key: str
     label_size: str
+    layout: str = DEFAULT_LAYOUT
     textured: bool = True
 
     def perches(self):
@@ -88,6 +90,7 @@ def context(
         lookback_hours=settings.lookback_hours,
         font_key=settings.label_font,
         label_size=settings.label_size,
+        layout=settings.layout,
         textured=textured,
     )
 
@@ -136,6 +139,7 @@ def _collage(ctx: Context) -> Image.Image:
         ctx.label_size,
         ctx.namer.label,
         ctx.perches(),
+        ctx.layout,
     )
 
 
@@ -237,6 +241,7 @@ def state_key(ctx: Context) -> tuple:
         ctx.show_names,
         ctx.font_key,
         ctx.label_size,
+        ctx.layout if mode.windowed else None,
         ctx.namer.key,
         mode.key(ctx),
     )

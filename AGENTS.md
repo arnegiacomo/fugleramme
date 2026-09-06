@@ -24,7 +24,7 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 ./run.sh                                    # Pi only: converge an existing checkout (BirdNET-Go + services)
 ```
 
-**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`), persisted to `--config` (default `detector/data/settings.json`). The detector's address and password are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`; `--detector` only supplies the default for a settings file that carries no `detector_url` of its own. The panel's own size is never a setting.
+**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, style, layout, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`), persisted to `--config` (default `detector/data/settings.json`). The detector's address and password are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`; `--detector` only supplies the default for a settings file that carries no `detector_url` of its own. The panel's own size is never a setting.
 
 ## Architecture
 
@@ -51,7 +51,7 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 **Two packages, the rest flat** (`web/`, `render/`).
 
 - `web/` is the kiosk and the admin: `server.py` is routing and transport only, `admin.py` builds the page from a `modes.Context`, `hostinfo.py` probes the machine. Nothing outside it imports anything but `web.server.serve`.
-- `render/` is the PIL work: the collage and the plate, the furniture they share (`page.py`, `paper.py`, `fonts.py`, `sizes.py`), and `dither.py` for the panel's six colors.
+- `render/` is the PIL work: the collage and the plate, the packers behind the collage (`packing.py`), the furniture they share (`page.py`, `paper.py`, `fonts.py`, `sizes.py`), and `dither.py` for the panel's six colors.
 - Everything else stays flat. `api.py`, `names.py`, `picks.py` and `languages.py` each have five or six importers spread across the app - a folder round them would draw no boundary.
 
 **The web pages are files** (`web/static/`).
@@ -69,11 +69,18 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 **The collage is the product** (`render/collage.py` + `render/paper.py`), not a dashboard.
 
 - Birds are packed by their alpha silhouette so opaque pixels never overlap and nothing clips; halos are normalized and feathered onto paper at render time, assets untouched.
-- The packer works in whole pixels (`_STEP`, `_OVERLAP_PX`), so it is not scale-invariant: it packs at `_PACK_SHORT` and scales the placements to the output. Packing at the output size instead swapped birds between the panel and the kiosk. Sprites and labels are redrawn from source at the target size, never resampled from the packed raster, and a label is centred in the box `_with_label` reserved for it since a re-rasterized font is not exactly `width × scale`.
-- Packing is ~90% of a render and both outputs pack identically, so `_placements` caches it (`_layouts`, keyed on the species and their artwork, the pack size, and the resolved label strings). The loop's panel render pays for the kiosk's: 5.4s to 0.5s here. The lock is held across the pack so the second caller waits rather than packing its own copy.
+- The packer works in whole pixels (`packing._STEP`, `_OVERLAP_PX`), so it is not scale-invariant: it packs at `_PACK_SHORT` and scales the placements to the output. Packing at the output size instead swapped birds between the panel and the kiosk. Sprites and labels are redrawn from source at the target size, never resampled from the packed raster, and a label is centred in the box `_with_label` reserved for it since a re-rasterized font is not exactly `width × scale`.
+- Packing is ~90% of a render and both outputs pack identically, so `_placements` caches it (`_layouts`, keyed on the species and their artwork, the pack size, the layout, and the resolved label strings). The loop's panel render pays for the kiosk's: 5.4s to 0.5s here. The lock is held across the pack so the second caller waits rather than packing its own copy.
 - No-artwork species are omitted. An empty window draws one branch from the style's own `perches/`, chosen by day (`collage.perch_day`, in both cache keys).
 - A label's box joins its bird's collision mask, so it tucks under the body and never lands on a neighbour. A second language stacks below in parentheses.
 - On the panel labels are hard-thresholded to pure black: antialiased grey dithers into colour speckle.
+
+**How the birds are placed is a setting** (`render/packing.py`, `settings.layout`).
+
+- `LAYOUTS` is the one table the admin menu, the settings coercion and the docs read; each entry carries its packer and how far the size search may push it. Only the collage has a layout, so `state_key` carries it for windowed modes alone and the admin dims it beside the lookback for the rest.
+- The spiral takes the first non-colliding position on an outward walk from the centre. It is the default, and the reason a page reads as a round blob with bare corners: a disc grows into a rectangle badly. The others score every legal position at once out of one FFT - `centre` by the spiral's own rule, `voids` by which paper is emptiest - so an aesthetic rule costs no more than a collision test.
+- Those pack on a grid of `packing.K` pack pixels, max-pooled from the footprint. Pooling can over-report a collision but never miss one, and it hands each bird up to a cell of padding: the same `_OVERLAP_PX` nestles looser under them than under the spiral.
+- The size search descends by 0.9 to the first fit, then bisects into the size that failed (`Layout.refine`). Three more packs buy 4-10% larger birds where a pack is cheap; the spiral's cost 3x that, so it keeps its first fit. Nothing failed means `base` was already the ceiling, and bisecting from there would shrink a page that fitted.
 
 **BirdNET-Go owns the names** (`languages.py`).
 

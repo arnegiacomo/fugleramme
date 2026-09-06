@@ -7,6 +7,7 @@ import pytest
 
 from fugleramme import fake, languages
 from fugleramme.api import ApiSource
+from fugleramme.render import collage
 
 
 @pytest.fixture(autouse=True)
@@ -15,6 +16,12 @@ def _clean_language_caches(monkeypatch):
     monkeypatch.setattr(languages, "_source", None)
     monkeypatch.setattr(languages, "_catalog", None)
     monkeypatch.setattr(languages, "_dicts", {})
+
+
+@pytest.fixture(autouse=True)
+def _no_cached_layouts():
+    """A module global, so one test's packing must not answer for the next."""
+    collage._layouts.clear()
 
 
 @pytest.fixture

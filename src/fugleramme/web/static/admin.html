@@ -23,9 +23,12 @@
       <select name="web_resolution">$resolutions</select></label>
     <label><span>Rotation <small>(how the frame hangs)</small></span>
       <select name="rotation">$rotations</select></label>
-    <label id="lookback"$lookback_off>
+    <label class="collage-only"$collage_off>
       <span>Lookback window <small>(how far back the frame looks)</small></span>
-      <select name="lookback_hours"$lookback_disabled>$lookbacks</select></label>
+      <select name="lookback_hours"$collage_disabled>$lookbacks</select></label>
+    <label class="collage-only"$collage_off>
+      <span>Layout <small>(how the collage packs)</small></span>
+      <select name="layout"$collage_disabled>$layouts</select></label>
     $names_field
     $style_field
     <button type="submit">Save</button>

@@ -162,12 +162,14 @@ async function loadSpecies(query, id) {
 
 // Settings the chosen mode ignores go dim and stop being submitted, so the
 // saved value survives a trip through a mode that has no use for it.
-const lookback = document.getElementById("lookback");
+const collageOnly = [...document.querySelectorAll(".collage-only")];
 function syncMode() {
   const mode = form.querySelector("input[name=mode]:checked");
   const on = !mode || cfg.windowedModes.includes(mode.value);
-  lookback.querySelector("select").disabled = !on;
-  lookback.classList.toggle("off", !on);
+  for (const field of collageOnly) {
+    field.querySelector("select").disabled = !on;
+    field.classList.toggle("off", !on);
+  }
 }
 
 // Capture, so a mode change settles which fields still submit before the shared
