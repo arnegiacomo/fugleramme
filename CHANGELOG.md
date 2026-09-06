@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.16.5 (2026-09-06)
+
+### Bug Fixes
+
+- Add erithacus-rubecula-2
+  ([`2e47948`](https://github.com/arnegiacomo/fugleramme/commit/2e479486fdde15ea1a543fb56bd799babb7030fc))
+
+
 ## v0.16.4 (2026-09-06)
 
 ### Bug Fixes
