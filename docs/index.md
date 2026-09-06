@@ -27,6 +27,11 @@ centre, sized by real body mass.
 
 For more display options see [Display](display.md).
 
+> [!NOTE]
+> Still in early development: expect the odd bug and a few unpolished edges, with
+> plenty more features to come. Bug reports and suggestions are very welcome on
+> [GitHub](https://github.com/arnegiacomo/fugleramme/issues).
+
 ## Docs
 
 - **[Hardware](hardware.md)** - the parts, and what's swappable

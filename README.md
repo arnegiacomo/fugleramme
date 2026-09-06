@@ -8,6 +8,9 @@ E-ink bird frame for Raspberry Pi - real-time bird detection by audio.
   <em>Sorry about the dirty window - squirrels have been stealing the bird food.</em>
 </p>
 
+> [!NOTE]
+> Still in early development: expect the odd bug and a few unpolished edges, with plenty more features to come.
+
 Built on top of [BirdNET-Go](https://github.com/tphakala/birdnet-go), which handles
 the mic, the BirdNET classifier and the detection settings. Fugleramme reads
 the detections and renders recently-seen birds on an [Inky-Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel.
@@ -52,6 +55,7 @@ See [Editing artwork](docs/editing-artwork.md) for manual cutout steps.
 - **The artwork covers Northern Europe.** The plates are Scandinavian and
   British, so the Nordics, the British Isles and Germany are well covered. Elsewhere not so much (yet).
 - **The mic matters more than the Pi.** Detection is BirdNET-Go's job, and how well it does depends mostly on the mic, where you put it, how many birds are in your area and so on.
+- **BirdNET-Go OIDC not supported.** Currently only Basic Authentication (password) is supported. OIDC is in the works.
 
 ## Run locally (for development)
 
