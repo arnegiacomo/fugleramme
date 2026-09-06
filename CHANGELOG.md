@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v0.16.3 (2026-09-06)
+
+### Bug Fixes
+
+- **assets**: Add Streptopelia decaocto
+  ([`37ab757`](https://github.com/arnegiacomo/fugleramme/commit/37ab7577fbe2e6821e8c94a202866d1b2df4d37c))
+
+### Chores
+
+- #44 add artwork import tool
+  ([`d1f99f3`](https://github.com/arnegiacomo/fugleramme/commit/d1f99f30eb0c7761cb3de324cbf072d70cdd0f3f))
+
+- Create FUNDING.yml
+  ([`c525352`](https://github.com/arnegiacomo/fugleramme/commit/c5253526362696f5b9c5f9ea797c6be51ad46539))
+
+### Documentation
+
+- Typos
+  ([`e11ed9a`](https://github.com/arnegiacomo/fugleramme/commit/e11ed9abf152549cd33ac2022729cc60f3f893cb))
+
+
 ## v0.16.2 (2026-09-06)
 
 ### Bug Fixes
