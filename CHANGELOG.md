@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.16.4 (2026-09-06)
+
+### Bug Fixes
+
+- Rallus-aquaticus-3 -> porzana-porzana-2
+  ([`ca18880`](https://github.com/arnegiacomo/fugleramme/commit/ca188808e9338e7a496feb0d6644d7b04c0669f5))
+
+- **assets**: Add passer hispaniolensis
+  ([`c14baae`](https://github.com/arnegiacomo/fugleramme/commit/c14baae1bdb76c871acb3bce10aac03884f2df7d))
+
+
 ## v0.16.3 (2026-09-06)
 
 ### Bug Fixes
