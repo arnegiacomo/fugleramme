@@ -37,7 +37,7 @@ nav:
   - Hardware: hardware.md
   - Install: install.md
   - Display: display.md
-  - Editing artwork: editing-artwork.md
+  - Adding artwork: adding-artwork.md
   - Operations: operations.md
   - Configuring BirdNET-Go: birdnetgo-config.md
   - Troubleshooting: troubleshooting.md

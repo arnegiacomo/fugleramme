@@ -9,4 +9,5 @@ it - one style is active at a time.
 - Several per bird: `turdus-merula-2.png`, `-3`, ... One is picked and kept for
   as long as that bird is in the window.
 - `perches/` holds the bare branches for when nothing has been heard.
-- `ATTRIBUTION.md` if you share the style, as `classic/` has.
+- Every shared image needs a `manifest.json` entry naming its source, and an
+  `ATTRIBUTION.md` entry describing that source and its terms, as `classic/` has.

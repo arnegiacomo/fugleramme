@@ -1,19 +1,19 @@
-"""Consistency guard: every artwork filename must be a name BirdNET-Go can emit.
+"""Consistency guards for shipped artwork filenames and attribution.
 
-This is the deterministic replacement for a hand-maintained mapping: if a file
-is added or renamed with a stem that is not a BirdNET v2.4 label (and not an
-explicit exception), this test fails. It is what keeps the detector-name ->
-image lookup a plain exact match forever.
+The filename check replaces a hand-maintained mapping: every bird must use a
+BirdNET v2.4 label or an explicit exception. The manifest check ensures every
+shipped bird and perch names the work it came from.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
 import pytest
 
-from fugleramme.names import PERCHES
+from fugleramme.names import MANIFEST, PERCHES
 
 REPO = Path(__file__).resolve().parents[1]
 IMAGES = REPO / "assets" / "artwork"
@@ -70,6 +70,20 @@ def test_every_artwork_name_is_a_birdnet_label_or_exception():
     assert not unknown, (
         "artwork filenames not matching a BirdNET label or exception:\n" + "\n".join(unknown)
     )
+
+
+def test_every_artwork_image_has_attribution():
+    missing = []
+    for style in sorted(path for path in IMAGES.iterdir() if path.is_dir()):
+        path = style / MANIFEST
+        listed = json.loads(path.read_text()) if path.exists() else {}
+        for png in sorted(style.rglob("*.png")):
+            key = png.relative_to(style).as_posix()
+            entry = listed.get(key)
+            source = entry.get("source") if isinstance(entry, dict) else None
+            if not isinstance(source, str) or not source.strip():
+                missing.append(f"{style.name}/{key}")
+    assert not missing, "artwork images without attribution:\n" + "\n".join(missing)
 
 
 @pytest.mark.skipif(not PRIORITY.exists(), reason="curation tooling is workstation-only")

@@ -73,6 +73,16 @@ for the scientific name exactly as BirdNET-Go emits it
 (`assets/birdnet_labels_v2.4.txt`), with `-2`, `-3` for more of the same bird. A
 name that isn't an existing label fails the test suite.
 
+After cutting a bird, use the artwork tool to add it as an asset:
+
+```bash
+uv run python tools/add_bird.py ~/Desktop/bird.png
+```
+
+It searches BirdNET species and existing artist/source keys, assigns the next
+variant filename, and updates the style manifest. `fzf` provides live search
+when installed. See [Adding artwork](docs/adding-artwork.md).
+
 Then, for the style folder it lands in:
 
 - **The licensing has to work.** Public domain, or terms compatible with the

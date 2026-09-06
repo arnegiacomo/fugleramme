@@ -65,11 +65,11 @@ isort.combine-as-imports = true  # one line per module, aliases and all
 # frame's day is the local one.
 ignore = ["BLE001", "DTZ011"]
 
-# Only the app and the docs hook: the tests would need a round of `assert x is not
-# None` to say what a failing assert already says.
+# The app, the docs hook and the artwork tool: the tests would need a round of
+# `assert x is not None` to say what a failing assert already says.
 [tool.mypy]
 python_version = "3.12"
-files = ["src/fugleramme", "hooks"]
+files = ["src/fugleramme", "hooks", "tools"]
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]

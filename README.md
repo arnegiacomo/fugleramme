@@ -44,7 +44,7 @@ birds toward the centre, sized by body mass. An empty window shows a bare perch.
 
 Half the point of this project is showing off some amazing public-domain natural-history illustrations: every bird is cut from a real plate, no art is AI-generated (though some has been retouched with AI).
 
-See [Editing artwork](docs/editing-artwork.md) for manual cutout steps.
+See [Adding artwork](docs/adding-artwork.md) for manual cutout steps.
 
 | No detections | A few visitors | A full garden |
 | :---: | :---: | :---: |
