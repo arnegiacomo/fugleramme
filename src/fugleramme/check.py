@@ -52,13 +52,23 @@ def _first(source: ApiSource) -> str:
     return f"{len(life)} species, earliest {life[0].first_seen.date()}" if life else "none"
 
 
+def _languages(cache_dir: Path) -> list[str]:
+    """The selectable languages, or why there are none. Listing "sci" as a pass
+    would report the exact failure this check exists to catch as working."""
+    offered = sorted(languages.catalog(cache_dir))
+    failure = languages.catalog_failure()
+    if failure:
+        raise Unavailable(failure)
+    return offered
+
+
 def run(url: str, username: str, password: str, cache_dir: Path) -> int:
     source = ApiSource(url, username, password)
     languages.use(source)
-    # The admin's own test, not a bare /health: that answers under PrivateMode
-    # too, so it would call an instance the frame cannot read "reachable".
+    # The admin's own test, not a bare /health: it reads what the frame reads.
+    # "names" is reachable - the locale list it holds back is the check below.
     state, detail = probe(url, username, password)
-    reachable = state == "ok"
+    reachable = state in ("ok", "names")
     print(f"{url}\n")
     print(f"{_OK if reachable else _FAIL} {'reachable':<22} {detail or 'answered'}")
     checks = [
@@ -67,7 +77,7 @@ def run(url: str, username: str, password: str, cache_dir: Path) -> int:
         ("species, all time", lambda: source.species_since(0)),
         ("latest detection", lambda: _latest(source)),
         ("life list", lambda: _first(source)),
-        ("name languages", lambda: sorted(languages.catalog(cache_dir))),
+        ("name languages", lambda: _languages(cache_dir)),
     ]
     passed = [_check(label, run_one) for label, run_one in checks]
     failed = passed.count(False) + (not reachable)

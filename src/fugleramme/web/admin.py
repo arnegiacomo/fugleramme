@@ -17,12 +17,12 @@ from urllib.parse import urlparse
 from .. import __version__, modes
 from ..api import probe
 from ..config import BIRDNET_PORT, DOCS_URL, WEB_HEIGHTS
-from ..languages import NONE, Namer, catalog, ordered
+from ..languages import NONE, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, source_of
 from ..render.fonts import FONTS, LABEL_SIZES
 from ..settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, lookback_order, merged
-from ..source import Unavailable
+from ..source import NEEDS_PASSWORD, Unavailable
 from ..status import Status
 from . import STATIC_DIR, hostinfo
 
@@ -38,16 +38,6 @@ _ASPECT = {0: "(landscape)", 90: "(portrait)"}
 
 # Style and plate names that don't title-case into something readable.
 _NAMES = {"vonwright": "von Wright", "gould": "Gould"}
-
-_UNREACHABLE = '<li class="empty">detector unreachable</li>'
-
-# A probe's answer in the test's words, then in the status row's: the row is
-# about the detector, not about the test just run.
-_ANSWERS = {
-    "ok": ("connected", "running"),
-    "auth": ("authentication required", "authentication required"),
-    "unreachable": ("unreachable", "unreachable"),
-}
 
 
 def form_changes(form: dict[str, list[str]]) -> dict:
@@ -113,10 +103,50 @@ def _state(ok: bool, good: str, bad: str) -> str:
     return f'<span class="{"ok" if ok else "bad"}">{good if ok else bad}</span>'
 
 
-def _detector(url: str) -> str:
-    """The configured BirdNET-Go's state, and the version it reports."""
-    running, version = hostinfo.detector(url)
-    return _state(running, "running", "unreachable") + (f" · {version}" if version else "")
+def _fix(problem: str) -> str:
+    """A problem and the tab that fixes it, worded the same wherever it turns up."""
+    return (
+        f'{html.escape(problem)}. See <a href="#detector" data-tab="system">System → Detector</a>.'
+    )
+
+
+def _outage(state: str) -> str:
+    """What to show where a bird would have been. Only a refusal names the
+    password; anything else reads as unreachable, which is what the page saw."""
+    return f"detector {NEEDS_PASSWORD}" if state == "auth" else "detector unreachable"
+
+
+def _detector(state: str, version: str, reading: bool, names_failure: str = "") -> str:
+    """The configured BirdNET-Go's state, and the version it reports.
+
+    `state` is `/health` asked without credentials, so under PrivateMode it is
+    401 for every frame alike - the ones holding a working password included.
+    Only `reading`, whether the page's own calls came back, tells those apart.
+    Miss that and a frame with everything configured is told to fix it.
+
+    A detector that answers and holds something back is not unreachable either,
+    so the row says what it wants instead: a locale list refusing us is
+    BirdNET-Go's settings behind authentication while the detections stay open.
+    """
+    if not reading:
+        if state == "auth":
+            return f'<span class="bad">running · {NEEDS_PASSWORD}</span>'
+        return '<span class="bad">unreachable</span>'
+    running = "running" + (f" · {version}" if version else "")
+    if names_failure == NEEDS_PASSWORD:  # the settings only: birds yes, names no
+        return f'<span class="warn">{running} · {NEEDS_PASSWORD}</span>'
+    return f'<span class="ok">{running}</span>'
+
+
+# A probe's answer in the test's own words, and the status row it leaves behind.
+# The row comes from `_detector`, so the test and a page load cannot describe one
+# detector differently. "auth" leads with nothing: the detail is the whole answer.
+_ANSWERS = {
+    "ok": ("connected", _detector("ok", "", reading=True)),
+    "auth": ("", _detector("auth", "", reading=False)),
+    "names": ("connected", _detector("ok", "", reading=True, names_failure=NEEDS_PASSWORD)),
+    "unreachable": ("unreachable", _detector("down", "", reading=False)),
+}
 
 
 def _duration(seconds: int) -> str:
@@ -184,10 +214,15 @@ def _update(status: Status) -> str:
     return f'<span id="state">up to date</span>{_action("check", "Check")}'
 
 
-def _names_field(settings: Settings, languages: list[tuple[str, str]]) -> str:
+def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: str) -> str:
+    """The names block. `failure` says why the menu holds nothing but the
+    scientific name, so a detector that will not serve its locale list reads as
+    one to fix rather than as all the frame can do."""
+    note = f'<p class="note bad">{_fix(f"No languages: {failure}")}</p>' if failure else ""
     return (
         f'<div class="field"><span>Species names</span>'
         f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
+        f"{note}"
         f'<label class="sub"><small>Language</small>'
         f"{_language_select('primary_language', languages, settings.primary_language)}</label>"
         f'<label class="sub"><small>Second language (optional)</small>'
@@ -208,15 +243,17 @@ def _text_field(field: str, label: str, value: str, kind: str = "text", hint: st
 
 
 def _detector_field(settings: Settings) -> str:
-    """Where the frame reads from. Credentials are only for a BirdNET-Go in
-    PrivateMode, so they fold away until one is stored - or until a test comes
-    back asking for them, which admin.js opens."""
-    stored = settings.detector_username or settings.detector_password
+    """Where the frame reads from. Credentials fold away until one is stored -
+    or until a test comes back asking for them, which admin.js opens.
+
+    A password only: the username BirdNET-Go's API insists on is a fixed client
+    id (`api.CLIENT_ID`). An install that changed `security.basicauth.clientid`
+    sets `detector_username` in settings.json instead.
+    """
     return (
         _text_field("detector_url", "Address", settings.detector_url, "url")
-        + f'<details id="credentials"{" open" if stored else ""}>'
-        + "<summary>Credentials <small>(PrivateMode only)</small></summary>"
-        + _text_field("detector_username", "Username", settings.detector_username)
+        + f'<details id="credentials"{" open" if settings.detector_password else ""}>'
+        + "<summary>Credentials <small>(Basic Authentication)</small></summary>"
         + _text_field(
             "detector_password",
             "Password",
@@ -241,16 +278,15 @@ def connection(form: dict[str, list[str]], settings: Settings) -> dict:
     """The connection test, over the values the form is holding rather than the
     saved ones - validated and placeholder-resolved exactly as Save would.
 
-    `status` is the same answer in the BirdNET-Go row's words, so the two can
-    never disagree. The row's own probe is /health, which answers under
-    PrivateMode, so only the test can tell "running" from "unusable"."""
+    `status` is the row `_detector` would render for the same answer, so a test
+    and a page load can never describe one detector differently."""
     tried = merged(settings, **form_changes(form))
     state, detail = probe(tried.detector_url, tried.detector_username, tried.detector_password)
-    text, row = _ANSWERS[state]
+    lead, row = _ANSWERS[state]
     return {
         "state": state,
-        "text": f"{text} · {detail}" if detail else text,
-        "status": f'<span class="{"ok" if state == "ok" else "bad"}">{row}</span>',
+        "text": " · ".join(part for part in (lead, detail) if part),
+        "status": row,
     }
 
 
@@ -276,6 +312,8 @@ def page(
     when it is, so the rows that need it say so rather than vanish.
     """
     languages = ordered(catalog(names_dir))
+    names_failure = catalog_failure()
+    detector_state, detector_version = hostinfo.detector(settings.detector_url)
     try:
         latest, rows = ctx.source.latest(), subjects(ctx)
     except Unavailable:
@@ -315,19 +353,23 @@ def page(
         lookback_off="" if windowed else ' class="off"',
         lookback_disabled="" if windowed else " disabled",
         lookbacks=_lookbacks(settings),
-        names_field=_names_field(settings, languages),
+        names_field=_names_field(settings, languages, names_failure),
         style_field=(
             f'<div class="field"><span>Artwork style</span>'
             f"{_radios('style', [(s, _display_name(s)) for s in available_styles(ctx.images_dir)], ctx.style)}</div>"
         ),
         species_count=len(rows) if rows is not None else 0,
-        species_rows=species_html(rows, ctx.namer) if rows is not None else _UNREACHABLE,
+        species_rows=(
+            species_html(rows, ctx.namer)
+            if rows is not None
+            else f'<li class="problem">{_fix(_outage(detector_state))}</li>'
+        ),
         update=_update(status),
         auto_update=_checkbox(
             "auto_update", "Install new releases automatically", settings.auto_update
         ),
         panel=f"detected · {glass}" if detected else f"not detected · assuming {glass}",
-        birdnet=_detector(settings.detector_url),
+        birdnet=_detector(detector_state, detector_version, rows is not None, names_failure),
         detector_field=_detector_field(settings),
         host=hostinfo.lan_address(),
         online=_state(online, "online", "offline") + (f" · {iface}" if iface else ""),
@@ -338,6 +380,6 @@ def page(
         latest=(
             f"{ctx.namer.inline(latest.scientific_name)} · {_stamp(latest.detected_at)}"
             if latest
-            else ("none yet" if rows is not None else "detector unreachable")
+            else ("none yet" if rows is not None else _outage(detector_state))
         ),
     )

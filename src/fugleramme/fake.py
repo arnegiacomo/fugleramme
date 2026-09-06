@@ -199,7 +199,9 @@ def _one(query: dict[str, list[str]], name: str) -> str:
     return query.get(name, [""])[0]
 
 
-def make_handler(rows: list[Detection], password: str = "", down: bool = False):
+def make_handler(
+    rows: list[Detection], password: str = "", down: bool = False, private: bool = True
+):
     dictionaries = {code: names for code, (_, names) in NAMES.items()}
     codes: set[str] = set()
     sessions: set[str] = set()
@@ -220,9 +222,14 @@ def make_handler(rows: list[Detection], password: str = "", down: bool = False):
             body = json.dumps(payload, ensure_ascii=False).encode()
             self._send(status, body, {"Content-Type": "application/json"})
 
+        def _gated(self, route: str) -> bool:
+            """Which routes want the session. PrivateMode gates the whole API,
+            /health included; with it off, /settings/* is gated anyway whenever
+            any auth provider is configured - so `private=False` serves every
+            detection and still refuses the locale list."""
+            return bool(password) and (private or route.startswith(f"{API}/settings/"))
+
         def _authorized(self) -> bool:
-            if not password:
-                return True
             cookie = SimpleCookie(self.headers.get("Cookie", ""))
             return _SESSION_COOKIE in cookie and cookie[_SESSION_COOKIE].value in sessions
 
@@ -232,7 +239,7 @@ def make_handler(rows: list[Detection], password: str = "", down: bool = False):
                 self._json(404, {"error": "Species dictionary not found for locale"})
                 return
             if self.headers.get("If-None-Match") in (_DICT_ETAG, f"W/{_DICT_ETAG}"):
-                self._send(304, b"", {"ETag": _DICT_ETAG})
+                self._send(304, b"", {"Etag": _DICT_ETAG})
                 return
             body = gzip.compress(json.dumps(names, ensure_ascii=False).encode())
             self._send(
@@ -241,7 +248,7 @@ def make_handler(rows: list[Detection], password: str = "", down: bool = False):
                 {
                     "Content-Type": "application/json",
                     "Content-Encoding": "gzip",
-                    "ETag": _DICT_ETAG,
+                    "Etag": _DICT_ETAG,
                 },
             )
 
@@ -312,12 +319,11 @@ def make_handler(rows: list[Detection], password: str = "", down: bool = False):
             if route == f"{API}/auth/callback":
                 self._callback(query)
                 return
-            if route == f"{API}/health":
-                # Outside upstream's auth group, so PrivateMode answers here too.
-                self._json(200, {"status": "healthy", "version": "fake"})
-                return
-            if not self._authorized():
+            if self._gated(route) and not self._authorized():
                 self._json(401, {"error": "Authentication required"})
+                return
+            if route == f"{API}/health":
+                self._json(200, {"status": "healthy", "version": "fake"})
                 return
             if route == f"{API}/ping":
                 self._json(200, {"status": "ok"})
@@ -363,10 +369,11 @@ def serve(
     port: int = BIRDNET_PORT,
     password: str = "",
     down: bool = False,
+    private: bool = True,
 ) -> ThreadingHTTPServer:
     """Start the fake on a daemon thread. Port 0 asks the OS for one - read it
     back from `server_address[1]`."""
-    httpd = ThreadingHTTPServer((host, port), make_handler(rows, password, down))
+    httpd = ThreadingHTTPServer((host, port), make_handler(rows, password, down, private))
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd
 
@@ -380,10 +387,22 @@ def main() -> None:
     parser.add_argument(
         "--auth", metavar="PASSWORD", default="", help="simulate PrivateMode: 401 until login"
     )
+    parser.add_argument(
+        "--auth-names-only",
+        action="store_true",
+        help="with --auth: leave the detections open and gate only /settings/*",
+    )
     parser.add_argument("--down", action="store_true", help="answer every request 503")
     args = parser.parse_args()
 
-    httpd = serve(generate(args.count, args.seed), args.host, args.port, args.auth, args.down)
+    httpd = serve(
+        generate(args.count, args.seed),
+        args.host,
+        args.port,
+        args.auth,
+        args.down,
+        private=not args.auth_names_only,
+    )
     print(f"fake BirdNET-Go on http://{args.host}:{httpd.server_address[1]}{API}")
     with contextlib.suppress(KeyboardInterrupt):
         threading.Event().wait()

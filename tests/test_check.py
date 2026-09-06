@@ -25,3 +25,16 @@ def test_a_private_detector_fails_without_credentials(detector, tmp_path):
     url, _httpd = detector(password="hunter2")
     assert run(url, "", "", tmp_path) == 1
     assert run(url, "birdnet", "hunter2", tmp_path) == 0
+
+
+def test_a_detector_that_only_gates_the_names_fails_the_language_check(detector, tmp_path, capsys):
+    """Every detection answers, so the check would otherwise report a station
+    the frame cannot get a single common name out of as all good (#45)."""
+    url, _httpd = detector(password="hunter2", private=False)
+
+    assert run(url, "", "", tmp_path) == 1
+    out = capsys.readouterr().out
+    assert "ok   species, 24 hours" in out
+    assert "FAIL name languages" in out and "needs a password" in out
+
+    assert run(url, "", "hunter2", tmp_path) == 0

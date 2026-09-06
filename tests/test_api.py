@@ -200,3 +200,43 @@ def test_an_unreachable_detector_is_only_asked_once_a_tick(detector, monkeypatch
     monkeypatch.setattr(detections, "_get", lambda *a, **k: refuse())
     with pytest.raises(Unavailable):
         detections.species_since(0)
+
+
+def test_the_login_sends_birdnet_gos_own_client_id_when_none_is_configured(detector, monkeypatch):
+    """BirdNET-Go prompts for a password alone but its login rejects an empty
+    username, matching what it is given against `security.basicauth.clientid`.
+    So the admin asks for no username and the frame sends that id."""
+    url, _httpd = detector(password="hunter2")
+    sent = []
+    opened = api.ApiSource._open
+
+    def record(self, url_, method="GET", headers=None, data=None):
+        if data:
+            sent.append(json.loads(data))
+        return opened(self, url_, method, headers, data)
+
+    monkeypatch.setattr(api.ApiSource, "_open", record)
+    source = api.ApiSource(url, "", "hunter2")  # a password, no username
+
+    assert source.species_since(24) is not None  # the fake 400s an empty username
+    assert [payload["username"] for payload in sent] == [api.CLIENT_ID]
+
+
+def test_a_rejected_login_leaves_the_401_that_provoked_it(detector, caplog):
+    """The connection test reads that 401 as "credentials rejected". The login's
+    own words would name a client id the reader never entered, so they go to the
+    log instead."""
+    url, _httpd = detector(password="hunter2")
+    source = api.ApiSource(url, "", "wrong")
+
+    with caplog.at_level(logging.WARNING):
+        assert source.request(_SUMMARY)[0] == 401
+    assert "401" in caplog.text
+
+
+def test_a_response_header_is_found_whatever_case_it_arrived_in(detector):
+    """BirdNET-Go spells it "Etag". Read off a plain dict keyed as it came, the
+    frame would never send If-None-Match and would re-fetch every dictionary."""
+    url, _httpd = detector()
+    _status, headers, _body = api.ApiSource(url).request("/species/dictionary/nb")
+    assert headers["etag"]

@@ -11,6 +11,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
+# What a detector refusing the frame wants, in the one wording every surface
+# uses: the admin's Detector row, its language menu, and `fugleramme-check`.
+NEEDS_PASSWORD = "needs a password"
+
 
 class Unavailable(Exception):
     """The detector could not be reached, or answered with something else.

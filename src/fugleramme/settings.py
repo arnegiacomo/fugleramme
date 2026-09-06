@@ -65,7 +65,9 @@ class Settings:
     secondary_language: str = NONE
     label_font: str = DEFAULT_FONT
     label_size: str = DEFAULT_LABEL_SIZE
-    # Credentials are only needed for a BirdNET-Go running in PrivateMode.
+    # Only needed for a BirdNET-Go that authenticates. The username is not in the
+    # admin: BirdNET-Go asks for a password and matches the name against a fixed
+    # client id, so it is here only for an install that changed that id.
     detector_url: str = DEFAULT_DETECTOR_URL
     detector_username: str = ""
     detector_password: str = ""

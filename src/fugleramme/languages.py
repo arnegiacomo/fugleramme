@@ -12,6 +12,12 @@ codes (the list's "no" answers as "nb"), so the offered languages are the probed
 intersection - HEAD is enough to ask. Dictionaries cache under `<cache_dir>/names/`
 and revalidate by ETag, which is BirdNET-Go's own speciesDictVersion. With it
 unreachable and nothing cached, SCIENTIFIC is the only language left.
+
+The two are not gated alike. `/settings/*` sits behind BirdNET-Go's
+authentication whenever any provider is configured, where the detections are
+only behind PrivateMode - so the locale list is the first thing to refuse a
+frame that has no credentials, while the birds keep arriving. `catalog_failure`
+exists so the admin can say that instead of silently offering one language.
 """
 
 from __future__ import annotations
@@ -24,7 +30,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .source import Unavailable
+from .source import NEEDS_PASSWORD, Unavailable
 
 log = logging.getLogger(__name__)
 
@@ -49,7 +55,7 @@ _lock = threading.Lock()
 # Both caches carry the station they came from: a dictionary and its ETag are
 # one detector's answer, so pointing the frame at another expires them rather
 # than serving the old station's names under the new one's.
-_Catalog = tuple[float, str, dict[str, str]]
+_Catalog = tuple[float, str, dict[str, str], str]
 _Dictionary = tuple[float, str, str, dict[str, str]]
 _catalog: _Catalog | None = None
 _dicts: dict[str, _Dictionary] = {}
@@ -65,9 +71,11 @@ def use(source: Any) -> None:
 
 
 def _station() -> str:
-    """Which detector the caches belong to. Read per lookup, not captured: the
-    settings can point `use`'s source at another address while we run."""
-    return str(getattr(_source, "base_url", ""))
+    """Which source the caches belong to - the detector, and as whom. Read per
+    lookup, not captured: the settings can point `use`'s source elsewhere while
+    we run, and a password entered for the locale list must not sit out the
+    retry TTL before it counts."""
+    return str(getattr(_source, "station", ""))
 
 
 def _request(path: str, method: str = "GET", headers: dict[str, str] | None = None):
@@ -91,7 +99,7 @@ def _fetch(path: str, etag: str = "") -> tuple[object, str]:
     if status == 304:
         return _UNCHANGED, etag
     try:
-        return (json.loads(body), headers.get("ETag", "")) if status == 200 else (None, "")
+        return (json.loads(body), headers.get("etag", "")) if status == 200 else (None, "")
     except ValueError:
         return None, ""
 
@@ -107,18 +115,33 @@ def _display(locales: dict[str, str], code: str, fallback: str) -> str:
     return locales.get(code) or fallback.split(" (")[0]
 
 
-def _probe() -> dict[str, str] | None:
-    """The locales that have a dictionary, as {dictionary code: display name}."""
-    locales, _etag = _fetch("/settings/locales")
+def _probe() -> tuple[dict[str, str], str]:
+    """The locales that have a dictionary, as {dictionary code: display name},
+    and why there are none when there are none. The reason is a fragment, not a
+    sentence - the admin and `fugleramme-check` each frame it their own way."""
+    answer = _request("/settings/locales")
+    if answer is None:
+        return {}, "detector unreachable"
+    status, _headers, body = answer
+    if status == 401:
+        # Gated whenever any auth provider is configured, PrivateMode or not -
+        # hence a frame that shows birds and has no names for them.
+        return {}, NEEDS_PASSWORD
+    if status != 200:
+        return {}, f"detector answered {status}"
+    try:
+        locales = json.loads(body)
+    except ValueError:
+        locales = None
     if not isinstance(locales, dict):
-        return None
+        return {}, "unreadable locale list"
     found: dict[str, str] = {}
     for code, display in sorted(locales.items()):  # region-less codes sort first
         resolved = _ALIASES.get(code, code.split("-")[0])
         if resolved in found or not _has_dictionary(resolved):
             continue
         found[resolved] = _display(locales, resolved, display)
-    return found
+    return found, "" if found else "detector serves none"
 
 
 def _read(path: Path) -> dict:
@@ -152,16 +175,27 @@ def catalog(cache_dir: Path) -> dict[str, str]:
         station = _station()
         path = cache_path(cache_dir, "languages")
         if _catalog is None or _catalog[1] != station:
-            _catalog = (0.0, station, _read(path).get("languages") or {})
-        deadline, _held, found = _catalog
+            _catalog = (0.0, station, _read(path).get("languages") or {}, "")
+        deadline, _held, found, _why = _catalog
         if time.monotonic() >= deadline:
-            probed = _probe()
-            if probed is not None:
+            # An empty probe is a failure, not an answer: caching it for a day
+            # and writing it over a good list on disk would turn one bad moment
+            # into a frame with no languages until someone restarted it.
+            probed, why = _probe()
+            if probed:
                 found = probed
                 _write(path, {"languages": found})
-            ttl = _CATALOG_TTL if probed is not None else _RETRY_TTL
-            _catalog = (time.monotonic() + ttl, station, found)
+            ttl = _CATALOG_TTL if probed else _RETRY_TTL
+            _catalog = (time.monotonic() + ttl, station, found, why if not found else "")
         return {SCIENTIFIC: "Scientific", **found}
+
+
+def catalog_failure() -> str:
+    """Why the last `catalog` found nothing to offer, or "" when it did. Held
+    with the catalog rather than returned beside it: a list served off the disk
+    cache is a working menu whatever the probe behind it just did."""
+    with _lock:
+        return _catalog[3] if _catalog else ""
 
 
 def ordered(languages: dict[str, str]) -> list[tuple[str, str]]:

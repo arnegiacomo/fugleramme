@@ -21,17 +21,28 @@ from collections import Counter
 from collections.abc import Callable, Iterable
 from datetime import UTC, datetime, timedelta, tzinfo
 from http.cookiejar import CookieJar
+from itertools import count
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urljoin
 from urllib.request import HTTPCookieProcessor, HTTPRedirectHandler, Request, build_opener
 
 from .settings import SettingsStore
-from .source import Detection, Species, Unavailable
+from .source import NEEDS_PASSWORD, Detection, Species, Unavailable
 
 log = logging.getLogger(__name__)
 
 API = "/api/v2"
+
+# BirdNET-Go's basic auth is a password, but its login endpoint rejects an empty
+# username and compares the one it is given against `security.basicauth.clientid`.
+# This is that setting's default, and what BirdNET-Go's own login page sends.
+CLIENT_ID = "birdnet-client"
+
+# One serial per ApiSource. `station` is which detector, as whom: `Configured`
+# builds a new source for a changed address or changed credentials alike, so a
+# cache keyed on it expires for either - and the password stays out of the key.
+_stations = count(1)
 
 _TIMEOUT = 5
 _TTL = 3  # seconds: the loop and the server share one page's worth of answers
@@ -59,6 +70,13 @@ def _loads(body: bytes, what: str) -> Any:
         return json.loads(body)
     except ValueError as error:
         raise Unavailable(f"{what} answered no JSON") from error
+
+
+def _headers(response: Any) -> dict[str, str]:
+    """Response headers, keyed lowercase. urllib's own mapping is case-insensitive
+    and a plain dict of it is not, so a caller would be at the mercy of the case
+    upstream sent - BirdNET-Go spells it "Etag"."""
+    return {name.lower(): value for name, value in response.headers.items()}
 
 
 def _local() -> tzinfo:
@@ -117,6 +135,7 @@ class ApiSource:
         timeout: int = _TIMEOUT,
     ):
         self.base_url = base_url.rstrip("/")
+        self.station = f"{self.base_url}#{next(_stations)}"
         self._api = self.base_url + API
         self._username, self._password = username, password
         self._timeout = timeout
@@ -146,27 +165,34 @@ class ApiSource:
                 body = response.read()
                 if response.headers.get("Content-Encoding") == "gzip":
                     body = gzip.decompress(body)
-                return response.status, dict(response.headers), body
+                return response.status, _headers(response), body
         except HTTPError as error:
-            return error.code, dict(error.headers), error.read()
+            return error.code, _headers(error), error.read()
         except (URLError, OSError) as error:
             raise Unavailable(f"{self.base_url} unreachable: {error}") from error
 
-    def _login(self) -> None:
-        """Two steps: the login hands out a code, and following the callback it
-        names is what sets the session cookie."""
-        credentials = json.dumps({"username": self._username, "password": self._password})
-        status, _headers, body = self._open(
+    def _login(self) -> bool:
+        """Whether a session was established. Two steps: the login hands out a
+        code, and following the callback it names is what sets the cookie.
+
+        A refusal is reported, not raised, so the caller's own 401 stands and
+        says what it always meant. The detail goes to the log: a reader wants
+        "credentials rejected", not a client id and a status line.
+        """
+        user = self._username or CLIENT_ID
+        credentials = json.dumps({"username": user, "password": self._password})
+        status, _head, body = self._open(
             self._url("/auth/login"), "POST", data=credentials.encode()
         )
-        if status != 200:
-            raise Unavailable(f"login as {self._username!r} answered {status}")
-        redirect = _loads(body, "login").get("redirectUrl")
+        redirect = _loads(body, "login").get("redirectUrl") if status == 200 else ""
         if not redirect:
-            raise Unavailable("login named no callback")
-        status, _headers, _body = self._open(urljoin(self.base_url, redirect))
-        if status not in (200, 302):
-            raise Unavailable(f"login callback answered {status}")
+            log.warning("Login to %s as %r answered %s", self.base_url, user, status)
+            return False
+        status, _head, _body = self._open(urljoin(self.base_url, redirect))
+        if status in (200, 302):
+            return True
+        log.warning("Login callback answered %s", status)
+        return False
 
     def request(
         self,
@@ -180,8 +206,7 @@ class ApiSource:
         is worth exactly one re-login."""
         url = self._url(path, params)
         status, response_headers, body = self._open(url, method, headers)
-        if status == 401 and self._password:
-            self._login()
+        if status == 401 and self._password and self._login():
             return self._open(url, method, headers)
         return status, response_headers, body
 
@@ -357,33 +382,51 @@ class Configured:
     def base_url(self) -> str:
         return self.source.base_url
 
+    @property
+    def station(self) -> str:
+        return self.source.station
+
     def close(self) -> None:
         self.source.close()
 
 
-_PROBE = "/analytics/species/summary"
+_DETECTIONS = "/analytics/species/summary"
+_NAMES = "/settings/locales"
 
 
-def _reach(source: ApiSource) -> tuple[int, str]:
+def _reach(source: ApiSource, path: str) -> tuple[int, str]:
     """(status, failure) for a gated endpoint; status 0 when it was not reached."""
     try:
-        return source.request(_PROBE)[0], ""
+        return source.request(path)[0], ""
     except Unavailable as error:
         return 0, str(error)
 
 
 def probe(url: str, username: str = "", password: str = "") -> tuple[str, str]:
-    """The admin's connection test: (state, detail), state one of "ok", "auth"
-    or "unreachable". The credential-free call comes first - /health answers
-    under PrivateMode too, so only a gated endpoint shows a 401 at all."""
-    status, failure = _reach(ApiSource(url))
+    """The admin's connection test: (state, detail), state one of "ok", "auth",
+    "names" or "unreachable".
+
+    Two endpoints, because BirdNET-Go gates them differently. PrivateMode covers
+    the whole API, but `/settings/*` sits behind authentication whenever any
+    provider is enabled at all - so a detector can serve every detection
+    anonymously and still refuse the locale list the language menu is built
+    from. Testing only the detections would call that frame connected and leave
+    the reader wondering why the birds have nothing but scientific names.
+
+    One source for both, so the session the first call logs in serves the second.
+    """
+    refused = "credentials rejected" if password else NEEDS_PASSWORD
+    source = ApiSource(url, username, password)
+    status, failure = _reach(source, _DETECTIONS)
     if status == 0:
         return "unreachable", failure
+    if status == 401:
+        return "auth", refused
+    if status != 200:
+        return "unreachable", f"answered {status}"
+    status, failure = _reach(source, _NAMES)
     if status == 200:
         return "ok", ""
-    if status != 401:
-        return "unreachable", f"answered {status}"
-    if not password:
-        return "auth", "needs a username and password"
-    status, _failure = _reach(ApiSource(url, username, password))
-    return ("ok", "") if status == 200 else ("auth", "credentials rejected")
+    if status == 0:  # gone between the two calls, not holding its locale list back
+        return "unreachable", failure
+    return "names", refused if status == 401 else f"the locale list answered {status}"

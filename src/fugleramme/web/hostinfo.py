@@ -10,6 +10,7 @@ import shutil
 import socket
 import time
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import urlopen
 
 _ONLINE_TTL = 60
@@ -17,7 +18,7 @@ _ONLINE_TTL = 60
 # burst of reloads off the probe.
 _DETECTOR_TTL = 5
 _online_cache: tuple[float, bool] | None = None
-_detector_cache: tuple[str, float, tuple[bool, str]] | None = None
+_detector_cache: tuple[str, float, tuple[str, str]] | None = None
 
 
 def reachable(host: str, port: int) -> bool:
@@ -49,10 +50,11 @@ def online() -> tuple[bool, str]:
     return _online_cache[1], _default_iface()
 
 
-def detector(url: str) -> tuple[bool, str]:
-    """Whether BirdNET-Go answers at `url`, and the version it reports. The
-    frame's update leaves the container alone, so the version drifts from the tag
-    the compose pins until `run.sh` runs. Cached like `online()`, but briefly."""
+def detector(url: str) -> tuple[str, str]:
+    """How BirdNET-Go answers at `url` - "ok", "auth" or "down" - and the version
+    it reports. The frame's update leaves the container alone, so the version
+    drifts from the tag the compose pins until `run.sh` runs. Cached like
+    `online()`, but briefly."""
     global _detector_cache
     now = time.monotonic()
     cached = _detector_cache if _detector_cache and _detector_cache[0] == url else None
@@ -62,13 +64,16 @@ def detector(url: str) -> tuple[bool, str]:
     return cached[2]
 
 
-def _probe_detector(url: str) -> tuple[bool, str]:
-    # /api/v2/health sits outside BirdNET-Go's auth group, so PrivateMode answers too.
+def _probe_detector(url: str) -> tuple[str, str]:
     try:
         with urlopen(f"{url}/api/v2/health", timeout=3) as response:
-            return True, str(json.load(response).get("version") or "")
+            return "ok", str(json.load(response).get("version") or "")
+    except HTTPError as error:
+        # PrivateMode gates /health along with the rest, so a refusal is a
+        # detector that is up and will not talk to us - never an absent one.
+        return ("auth" if error.code in (401, 403) else "down"), ""
     except (OSError, ValueError):
-        return False, ""
+        return "down", ""
 
 
 def lan_address() -> str:

@@ -38,6 +38,12 @@ function showTab(name) {
 for (const tab of tabs) tab.addEventListener("click", () => showTab(tab.dataset.tab));
 showTab(localStorage.getItem("tab") === "system" ? "system" : "settings");
 
+// A setting one tab cannot offer, pointing at the tab that fixes it: open that
+// one first, then the href's fragment scrolls to the field itself.
+for (const link of document.querySelectorAll("a[data-tab]")) {
+  link.addEventListener("click", () => showTab(link.dataset.tab));
+}
+
 // The check runs inside its own POST, so the spinner only has to outlive the navigation.
 const check = document.querySelector("dd.update form.check");
 if (check) {
@@ -100,9 +106,11 @@ if (test) {
       const body = new URLSearchParams(new FormData(detectorForm));
       const answer = await fetch("/detector", {method: "POST", body});
       const result = await answer.json();
-      outcome.className = result.state === "ok" ? "ok" : "bad";
+      // "names" is a working detector holding back one thing, so it warns
+      // rather than fails - but it is fixed in the same box as "auth".
+      outcome.className = {ok: "ok", names: "warn"}[result.state] || "bad";
       outcome.textContent = result.text;
-      if (result.state === "auth") creds.open = true;
+      if (result.state === "auth" || result.state === "names") creds.open = true;
       // The row is about the detector the frame reads from, so only a test of
       // the saved values speaks for it - edited ones may never be saved.
       if (!changed.get(detectorForm)()) row.innerHTML = result.status;

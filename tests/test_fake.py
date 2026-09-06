@@ -115,7 +115,8 @@ def test_a_dictionary_revalidates_by_etag(api):
     assert status == 200
     assert json.loads(body)["Turdus merula"] == "svarttrost"
 
-    etag = headers["ETag"]
+    # "Etag", as BirdNET-Go spells it: the frame has to find it whatever the case.
+    etag = headers["Etag"]
     assert _fetch(f"{base}/species/dictionary/nb", headers={"If-None-Match": etag})[0] == 304
 
 

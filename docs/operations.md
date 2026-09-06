@@ -74,9 +74,9 @@ admin page. Updates never touch either.
 
 ## Pointing the frame at a different BirdNET-Go
 
-The admin page's System tab has a Detector section: the address, and a username
-and password for an instance with private mode on. Saving takes effect straight
-away - no restart. **Test connection** checks before you commit to it.
+The admin page's System tab has a Detector section: the address, and a password
+for an instance with Basic Authentication configured (OIDC not supported yet). Saving takes effect straight away (no
+restart). **Test connection** lets you check before saving the changes.
 
 The frame reads detections only. Everything about how birds are detected stays
 in BirdNET-Go's own settings.

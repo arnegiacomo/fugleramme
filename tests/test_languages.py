@@ -4,7 +4,9 @@ the fallbacks, none of which need a container."""
 
 from __future__ import annotations
 
+import json
 import threading
+import time
 from datetime import datetime
 
 import pytest
@@ -32,21 +34,29 @@ LOCALES = {
 NAMES = {"nb": {"Turdus merula": "svarttrost", "Acanthis hornemanni": "Arctic Redpoll"}}
 
 
-def _api(monkeypatch, locales=LOCALES, names=NAMES, etag="v1"):
-    """Stand in for BirdNET-Go. Returns the list of paths fetched."""
+def _api(monkeypatch, locales=LOCALES, names=NAMES, etag="v1", status=200):
+    """Stand in for BirdNET-Go at the transport, so everything above it - the
+    JSON, the ETag, the codes - is the frame's own. `locales=None` is a detector
+    that cannot be reached; `status` is what it answers for the locale list.
+    Returns the list of (path, If-None-Match) asked for."""
     fetched = []
 
-    def fetch(path, tag=""):
+    def request(path, method="GET", headers=None):
+        tag = (headers or {}).get("If-None-Match", "")
         fetched.append((path, tag))
+        body = b""
         if path.endswith("/settings/locales"):
-            return (locales, "") if locales is not None else (None, "")
+            if locales is None:
+                return None
+            return status, {}, json.dumps(locales).encode()
         code = path.rsplit("/", 1)[1]
         if code not in names:
-            return None, ""
-        return (languages._UNCHANGED, tag) if tag == etag else (names[code], etag)
+            return 404, {}, body
+        if tag == etag:  # keyed lowercase, as api._open normalises what arrives
+            return 304, {"etag": etag}, body
+        return 200, {"etag": etag}, json.dumps(names[code]).encode()
 
-    monkeypatch.setattr(languages, "_fetch", fetch)
-    monkeypatch.setattr(languages, "_has_dictionary", lambda code: code in names)
+    monkeypatch.setattr(languages, "_request", request)
     return fetched
 
 
@@ -101,9 +111,10 @@ def test_both_caches_survive_a_restart_with_birdnet_go_down(monkeypatch, tmp_pat
 def test_an_expired_dictionary_is_revalidated_not_refetched(monkeypatch, tmp_path):
     fetched = _api(monkeypatch)
     names, etag = dictionary("nb", tmp_path)
-    languages._dicts["nb"] = (0.0, etag, names)  # deadline passed
+    languages._dicts["nb"] = (0.0, languages._station(), etag, names)  # deadline passed
 
     assert dictionary("nb", tmp_path) == (names, etag)
+    # Asked again, but with the ETag - so a 304, not the whole dictionary.
     assert fetched[-1] == ("/species/dictionary/nb", "v1")
 
 
@@ -273,13 +284,14 @@ def test_pointing_at_another_station_expires_the_names_rather_than_reusing_them(
     one.server_close()
     store.update(detector_url=second)
 
-    assert languages._catalog is not None and languages._catalog[1] == first  # still the old entry
+    assert languages._catalog is not None
+    assert first in languages._catalog[1]  # still the old entry
     assert catalog(tmp_path)[NB] == "Norwegian"  # re-asked, of the second station
-    assert languages._catalog[1] == second
+    assert second in languages._catalog[1]
     # Lazy, per lookup: the dictionary is only re-asked when a label needs it.
-    assert languages._dicts[NB][1] == first
+    assert first in languages._dicts[NB][1]
     assert dictionary(NB, tmp_path)[0]["Turdus merula"] == "svarttrost"
-    assert languages._dicts[NB][1] == second
+    assert second in languages._dicts[NB][1]
 
 
 def test_a_swap_noticed_from_inside_a_name_lookup_does_not_wedge_the_frame(detector, tmp_path):
@@ -298,3 +310,62 @@ def test_a_swap_noticed_from_inside_a_name_lookup_does_not_wedge_the_frame(detec
     threading.Thread(target=lambda: (catalog(tmp_path), done.set()), daemon=True).start()
     assert done.wait(20), "the name lookup never returned"
     assert source.source.base_url == url  # and the loop's own call is not stuck behind it
+
+
+def test_an_empty_probe_is_a_failure_not_a_language_list(monkeypatch, tmp_path):
+    """The locale list answers and every dictionary HEAD does not. Cached as an
+    answer, that one bad moment would hold the menu empty for a day and write
+    itself over the good list on disk."""
+    _api(monkeypatch)
+    assert NB in catalog(tmp_path)
+    cached = languages.cache_path(tmp_path, "languages").read_text()
+
+    monkeypatch.setattr(languages, "_catalog", None)
+    _api(monkeypatch, names={})
+
+    assert NB in catalog(tmp_path)
+    assert languages.cache_path(tmp_path, "languages").read_text() == cached
+    assert languages._catalog[0] - time.monotonic() <= languages._RETRY_TTL
+
+
+def test_nothing_to_offer_and_nothing_cached_says_why(monkeypatch, tmp_path):
+    _api(monkeypatch, names={})
+
+    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+    assert languages.catalog_failure() == "detector serves none"
+    assert not languages.cache_path(tmp_path, "languages").exists()
+
+
+def test_a_gated_locale_list_says_so_rather_than_offering_one_language(monkeypatch, tmp_path):
+    _api(monkeypatch, status=401)
+
+    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+    assert languages.catalog_failure() == "needs a password"
+
+
+def test_a_list_off_the_disk_cache_is_not_a_failure(monkeypatch, tmp_path):
+    """The menu works, whatever the probe behind it just did - so there is
+    nothing for the admin to complain about."""
+    _api(monkeypatch)
+    assert NB in catalog(tmp_path)
+
+    monkeypatch.setattr(languages, "_catalog", None)
+    _api(monkeypatch, locales=None)
+
+    assert NB in catalog(tmp_path)
+    assert languages.catalog_failure() == ""
+
+
+def test_credentials_the_locale_list_was_waiting_for_expire_the_empty_catalog(detector, tmp_path):
+    """Keyed on the address alone, entering the password would leave the menu
+    empty until the retry TTL ran out - which reads as the fix not working."""
+    url, _httpd = detector(password="hunter2", private=False)
+    store = SettingsStore(tmp_path / "s.json", Settings(detector_url=url))
+    languages.use(Configured(store))
+
+    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+    assert languages.catalog_failure() == "needs a password"
+
+    store.update(detector_password="hunter2")
+    assert NB in catalog(tmp_path)
+    assert languages.catalog_failure() == ""

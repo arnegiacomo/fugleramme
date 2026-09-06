@@ -98,6 +98,11 @@ birds, that's BirdNET-Go's side - open its own page and check the mic.
 The frame holds its last page while the detector is away rather than wiping the
 glass, so a short outage looks like nothing happening at all.
 
+## Only scientific/lating bird names are available
+
+BirdNET-Go keeps its settings behind a password even when detections are public, and the species names come from those settings. Configure
+password in under System → Detector → Credentials and should appear. (OIDC not supported yet)
+
 ## Panel stays blank
 
 ```bash

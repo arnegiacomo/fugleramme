@@ -42,6 +42,7 @@ time { border-bottom: 1px dotted #bbb; cursor: help; }
 .ok { color: #3a7d44; }
 .bad { color: #a4392f; }
 .warn { color: #8a6d1f; }
+p.note { display: block; font-size: 0.9rem; margin: 0.6rem 0 0; }
 form.block { margin: 0 0 1.75rem; }  /* the Save button carries no bottom margin of its own */
 form.detector input { width: 100%; max-width: 22rem; }
 form.detector button { margin-right: 0.5rem; }
@@ -60,6 +61,8 @@ ul.species li { padding: 0.1rem 0; }
 ul.species li.noart { color: #aaa; }
 ul.species li.noart small { color: #aaa; }
 ul.species li.empty { color: #999; }
+/* An empty list because something is wrong, not because no bird has called yet. */
+ul.species li.problem { color: #a4392f; }
 /* Sized to the image, not the column: a portrait page in a 100%-wide box would
    draw its border around the letterboxing. */
 .preview img { display: block; max-width: 100%; max-height: 60vh;
