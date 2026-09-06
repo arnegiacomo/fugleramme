@@ -60,7 +60,7 @@ _PACK_SHORT = 1200
 _MARGIN = 0.04  # page edge to content on short side. Hardcoded now, maybe add configurability?
 _MAX_BIRDS = 40  # keeps the render quick, not the page tidy
 _ALPHA_CUTOFF = 24
-_OVERLAP_PX = 2  # erode the collision mask slightly so birds nestle into
+_OVERLAP_PX = 4  # erode the collision mask slightly so birds nestle into
 # each other's (invisible on paper) halos. No rotation:
 # it tilts the ground/water on birds drawn with terrain.
 _ATTEMPTS = 20
