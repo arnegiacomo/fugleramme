@@ -2695,11 +2695,11 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIFire-crested_Wren_Golden-crested_Wren.jpg"
   },
-  "birds/regulus-regulus.png": {
+  "birds/regulus-regulus-2.png": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00088.jpg"
   },
-  "birds/regulus-regulus-2.png": {
+  "birds/regulus-regulus.png": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00088.jpg"
   },
@@ -2894,6 +2894,10 @@
   "birds/sternula-albifrons.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVLittle_Tern.jpg"
+  },
+  "birds/streptopelia-decaocto.png": {
+    "source": "keulemans",
+    "url": "https://commons.wikimedia.org/wiki/File:Onze_vogels_in_huis_en_tuin_(12238985825).jpg"
   },
   "birds/streptopelia-orientalis.png": {
     "source": "vonwright",

@@ -37,3 +37,9 @@ Commons category
 [A history of the birds of Europe](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe).
 Scans from the Biodiversity Heritage Library. Public domain
 (PD-scan / PD-old-70-expired).
+
+**Keulemans** - *Onze vogels in huis en tuin* by **J. G. Keulemans**
+(1869-1876), from the Biodiversity Heritage Library
+[scan on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Onze_vogels_in_huis_en_tuin_(12238985825).jpg).
+Public domain (PD-scan / PD-old-70-expired); the BHL file is also offered under
+CC BY 2.0.
