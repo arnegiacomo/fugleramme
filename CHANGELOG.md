@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.16.7 (2026-09-07)
+
+### Bug Fixes
+
+- **assets**: Add panurus-biarmicus
+  ([`63958a4`](https://github.com/arnegiacomo/fugleramme/commit/63958a441003af96d6b7ee31a89021eddad36d5f))
+
+- **assets**: Add phylloscopus-inornatus
+  ([`e4cdd4f`](https://github.com/arnegiacomo/fugleramme/commit/e4cdd4fb539460a4976f6c9dbf4bd84cb25b2858))
+
+
 ## v0.16.6 (2026-09-07)
 
 ### Bug Fixes
