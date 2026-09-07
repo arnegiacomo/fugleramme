@@ -30,6 +30,12 @@ from the Commons category
 [The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould)).
 Public domain (PD-old-70-expired).
 
+**Gould (Birds of Asia)** - *The Birds of Asia* by **John Gould** and **Richard
+Bowdler Sharpe** (1850-1883), Volume 5, plate drawn and lithographed by **John
+Gould** and **William Hart**, printed by **Walter**, from the Commons category
+[The Birds of Asia (John Gould), Volume 5](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould),_Volume_5).
+Public domain (PD-Art, PD-old-100). Manifest key: `gould-asia`.
+
 **Dresser** - *A History of the Birds of Europe* by **H. E. Dresser**
 (1871-1881), plates by **J. G. Keulemans**, **Edward Neale**, **Archibald
 Thorburn** and **Joseph Wolf**, with **Richard Bowdler Sharpe**, from the
