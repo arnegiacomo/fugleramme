@@ -2,6 +2,28 @@
 
 <!-- version list -->
 
+## v0.16.6 (2026-09-07)
+
+### Bug Fixes
+
+- **assets**: Add Sturnus unicolor ([#49](https://github.com/arnegiacomo/fugleramme/pull/49),
+  [`17e6805`](https://github.com/arnegiacomo/fugleramme/commit/17e680518a3f48055ecce6649e1a3bd7baae5891))
+
+- **assets**: Match sturnus-unicolor colour to the shipped set
+  ([#49](https://github.com/arnegiacomo/fugleramme/pull/49),
+  [`17e6805`](https://github.com/arnegiacomo/fugleramme/commit/17e680518a3f48055ecce6649e1a3bd7baae5891))
+
+### Documentation
+
+- Make PRs the door for artwork contributions
+  ([`5ceea7d`](https://github.com/arnegiacomo/fugleramme/commit/5ceea7d49a31144f55c6bd3f3b4b18df0f56b96b))
+
+### Testing
+
+- Require every manifest source to name its key in ATTRIBUTION.md
+  ([`8fb25a2`](https://github.com/arnegiacomo/fugleramme/commit/8fb25a2ab6df540d059c5ecd0afe53ea29760ce2))
+
+
 ## v0.16.5 (2026-09-06)
 
 ### Bug Fixes
