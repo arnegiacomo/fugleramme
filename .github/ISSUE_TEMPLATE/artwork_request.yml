@@ -1,0 +1,45 @@
+name: Missing bird
+description: A species your station hears that the artwork can't draw
+labels: ["artwork"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a plate you'd like to get added but aren't cutting yourself.
+
+        **If you have already cut a bird, open a PR instead** - that's the
+        preferred door for artwork.
+        [Adding artwork](https://github.com/arnegiacomo/fugleramme/blob/main/docs/adding-artwork.md)
+  - type: input
+    id: species
+    attributes:
+      label: Species
+      description: The scientific name as BirdNET-Go emits it (`assets/birdnet_labels_v2.4.txt`).
+      placeholder: Sturnus unicolor
+    validations:
+      required: true
+
+  - type: textarea
+    id: plate
+    attributes:
+      label: Plates you have in mind
+      description: |
+        Links to the artwork - Wikimedia Commons, Biodiversity Heritage Library
+        or similar. Hand-drawn birds on paper work best. Painted scenery does
+        not cut out well. Say what the licensing is if it isn't obvious.
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Name on Commons
+      description: Only if it differs from the BirdNET one - genus moves and splits are common, and it costs time to go looking.
+      placeholder: Commons has Thinornis dubius as Charadrius dubius
+
+  - type: input
+    id: detections
+    attributes:
+      label: How often you hear it
+      description: Roughly, and where you are. Helps sort what to cut first.
+      placeholder: ~1200 detections since April, southern Spain

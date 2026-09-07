@@ -1,8 +1,11 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Question or idea
+  - name: Idea, feature request or question
     url: https://github.com/arnegiacomo/fugleramme/discussions
-    about: Anything that isn't a bug - setup help, artwork, feature ideas.
+    about: Anything that isn't a bug. Start a big feature here before building it.
   - name: Detection, mic, MQTT or BirdWeather
     url: https://github.com/tphakala/birdnet-go/issues
     about: The detector is BirdNET-Go. Missed or wrong species belong there.
+  - name: Artwork you have already cut
+    url: https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md#artwork
+    about: Open a PR instead - no issue needed.

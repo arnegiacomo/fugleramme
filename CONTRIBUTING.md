@@ -2,7 +2,13 @@
 
 This is a one-person project, but issues and PRs are very welcome - fixes, docs and artwork most of all!
 
-Open an issue before building anything big, so you don't spend a weekend on something that's already half-designed or deliberately out of scope. Small fixes just need the PR.
+| You have | Where it goes |
+| --- | --- |
+| A fix, a doc change, a bird you've cut | **A PR.** No issue needed. Ref an existing if relevant. |
+| Something is broken | **A [bug report](https://github.com/arnegiacomo/fugleramme/issues/new/choose)** |
+| An idea, a feature request, a setup question, showcase or anything else | **[Discussions](https://github.com/arnegiacomo/fugleramme/discussions)** |
+
+The one thing worth asking about first is a big feature or change - start it in Discussions so you don't spend a weekend on something that's already half-designed or deliberately out of scope.
 
 ## Running it without a Pi
 
@@ -68,10 +74,21 @@ PRs are squashed, so the title is the message that counts.
 Half the point of this project is showing off amazing public-domain natural-history illustration, so every bird has to be cut from a real plate. Nothing AI-generated.
 Retouching a scan with AI is fair game - e.g. the `classic` perches were tidied up that way.
 
-`assets/artwork/custom/README.md` covers the file itself: a transparent PNG, named
-for the scientific name exactly as BirdNET-Go emits it
-(`assets/birdnet_labels_v2.4.txt`), with `-2`, `-3` for more of the same bird. A
-name that isn't an existing label fails the test suite.
+**A bird missing from `classic`** is the usual one. Cut it and open a PR. If
+you'd rather point at a plate than cut it yourself, open a
+[Missing bird](https://github.com/arnegiacomo/fugleramme/issues/new/choose)
+issue instead.
+
+**A whole new style** is the nicest thing you can contribute: its own folder
+under `assets/artwork/`, its own `ATTRIBUTION.md`, picked from the admin page.
+
+Some things no tool can check, so they're what an artwork PR gets read for:
+whether the licensing is A-ok, the illustration looks good and fits the styles, and whether the cut-out blends nicely on the page.
+
+The rest is mechanical. `assets/artwork/custom/README.md` covers the file
+itself: a transparent PNG, named for the scientific name exactly as BirdNET-Go
+emits it (`assets/birdnet_labels_v2.4.txt`), with `-2`, `-3` for more of the
+same bird. A name that isn't an existing label fails the test suite.
 
 After cutting a bird, use the artwork tool to add it as an asset:
 
@@ -83,6 +100,13 @@ It searches BirdNET species and existing artist/source keys, assigns the next
 variant filename, and updates the style manifest. `fzf` provides live search
 when installed. See [Adding artwork](docs/adding-artwork.md).
 
+`--preview` renders your cut-out on the page's paper before it is written, which
+is the quickest way to see whether the halo blends:
+
+```bash
+uv run python tools/add_bird.py ~/Desktop/bird.png --preview /tmp/bird.png --dry-run
+```
+
 Then, for the style folder it lands in:
 
 - **The licensing has to work.** Public domain, or terms compatible with the
@@ -90,17 +114,9 @@ Then, for the style folder it lands in:
 - **The folder's `manifest.json` names each PNG's source and links its
   plate** (`"bird.png": {"source": "gould", "url": ...}`). A new file means a
   new entry.
-- **`ATTRIBUTION.md` names the works and their terms.** A new source means a new
-  entry.
-
-**A whole new style** is the nicest thing you can contribute: its own folder
-under `assets/artwork/`, its own `ATTRIBUTION.md`, picked from the admin page.
-
-**A missing bird in `classic`** is better as an issue than a PR - link the plate
-you have in mind (ideally on Wikimedia Commons or similar). The cutting and
-colour work happens in a curation pipeline that isn't in the repo
-(workstation-only, and gitignored), so a cut-out done another way tends to sit
-wrong on the page.
+- **`ATTRIBUTION.md` names the works and their terms, and gives each one its
+  manifest key** (``Manifest key: `gould`.``). A new source means a new entry -
+  the test suite fails a manifest key no entry names.
 
 ## Docs
 
