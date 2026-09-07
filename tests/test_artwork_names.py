@@ -2,7 +2,9 @@
 
 The filename check replaces a hand-maintained mapping: every bird must use a
 BirdNET v2.4 label or an explicit exception. The manifest check ensures every
-shipped bird and perch names the work it came from.
+shipped bird and perch names the work it came from, and that the work it names
+is one ATTRIBUTION.md actually describes - a manifest key is only a word until
+something maps it to terms and a licence.
 """
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ from fugleramme.names import MANIFEST, PERCHES
 REPO = Path(__file__).resolve().parents[1]
 IMAGES = REPO / "assets" / "artwork"
 LABELS = REPO / "assets" / "birdnet_labels_v2.4.txt"
+ATTRIBUTION = "ATTRIBUTION.md"
 # Curation priority list: workstation-only tooling, so absent from a clone.
 PRIORITY = REPO / "scripts" / "bergen_species.txt"
 
@@ -84,6 +87,31 @@ def test_every_artwork_image_has_attribution():
             if not isinstance(source, str) or not source.strip():
                 missing.append(f"{style.name}/{key}")
     assert not missing, "artwork images without attribution:\n" + "\n".join(missing)
+
+
+def test_every_manifest_source_is_named_in_attribution():
+    """A source key has to resolve to terms someone wrote down.
+
+    `source_of` hands the admin page the manifest's key and nothing more, so a
+    key with no ATTRIBUTION.md entry ships artwork whose licence is recorded
+    nowhere. Entries name their key as inline code (``Manifest key: `gould` ``),
+    since the prose heading is for humans and does not match the key by rule.
+    """
+    orphans = []
+    for style in sorted(path for path in IMAGES.iterdir() if path.is_dir()):
+        path = style / MANIFEST
+        if not path.exists():
+            continue
+        credits = style / ATTRIBUTION
+        text = credits.read_text() if credits.exists() else ""
+        named = set(re.findall(r"`([^`]+)`", text))
+        for entry in json.loads(path.read_text()).values():
+            source = entry.get("source") if isinstance(entry, dict) else None
+            if isinstance(source, str) and source.strip() and source not in named:
+                orphans.append(f"{style.name}: {source}")
+    assert not orphans, "manifest sources with no ATTRIBUTION.md entry naming them:\n" + "\n".join(
+        sorted(set(orphans))
+    )
 
 
 @pytest.mark.skipif(not PRIORITY.exists(), reason="curation tooling is workstation-only")

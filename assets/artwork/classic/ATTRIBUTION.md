@@ -15,20 +15,21 @@ restrictive of the sources below:
 1805-1868, Wilhelm 1810-1887, Ferdinand 1822-1906), from the Commons category
 [Svenska fåglar (von Wright)](https://commons.wikimedia.org/wiki/Category:Svenska_f%C3%A5glar_(von_Wright)):
 340 rawpixel plates (CC BY-SA 4.0) and 71 public-domain files. The `perches/`
-branches are cut from these and retouched with generative AI.
+branches are cut from these and retouched with generative AI. Manifest key:
+`vonwright`.
 
 **von Wright (FNG)** - the brothers' studies, held by the **Finnish National
 Gallery**, from
 [rawpixel](https://www.rawpixel.com/art-studio/von%20wright?path=1525%7C%24publicdomain&sort=curated).
-CC0.
+CC0. Manifest key: `vonwright-fng`.
 
-**von Wright (rawpixel folio)** - rawpixel's own scans of the folio, (the ones Commons didnt have). CC0.
+**von Wright (rawpixel folio)** - rawpixel's own scans of the folio, (the ones Commons didnt have). CC0. Manifest key: `vonwright-rawpixel`.
  
 
 **Gould** - *The Birds of Europe* by **John Gould** (1832-1837), Volumes 1-5,
 from the Commons category
 [The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould)).
-Public domain (PD-old-70-expired).
+Public domain (PD-old-70-expired). Manifest key: `gould`.
 
 **Dresser** - *A History of the Birds of Europe* by **H. E. Dresser**
 (1871-1881), plates by **J. G. Keulemans**, **Edward Neale**, **Archibald
@@ -37,9 +38,10 @@ Commons category
 [A history of the birds of Europe](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe).
 Scans from the Biodiversity Heritage Library, public domain
 (PD-scan / PD-old-70-expired), and Commons uploads offered under CC BY-SA 4.0.
+Manifest key: `dresser`.
 
 **Keulemans** - *Onze vogels in huis en tuin* by **J. G. Keulemans**
 (1869-1876), from the Biodiversity Heritage Library
 [scan on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Onze_vogels_in_huis_en_tuin_(12238985825).jpg).
 Public domain (PD-scan / PD-old-70-expired); the BHL file is also offered under
-CC BY 2.0.
+CC BY 2.0. Manifest key: `keulemans`.
