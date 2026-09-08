@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.17.0 (2026-09-08)
+
+### Features
+
+- **admin**: Link a plate's name to its source
+  ([`5222073`](https://github.com/arnegiacomo/fugleramme/commit/52220735b17c564edb08ce3cf2fdf4e60b0b4b17))
+
+
 ## v0.16.7 (2026-09-07)
 
 ### Bug Fixes
