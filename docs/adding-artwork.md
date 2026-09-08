@@ -55,6 +55,8 @@ uv run python tools/add_bird.py ~/Desktop/bird.png
 The tool asks for anything not supplied as an input parameter. Species and existing
 artist/source keys are searched interactively. It uses `fzf` if available. Attribution is required; the link to the original source is optional (but strongly recommended).
 
+Export from your editor in whatever format suits you - the tool re-encodes the asset as WebP. Transparency is kept, and the file becomes about a sixth the size of the same image as PNG.
+
 It supports dry-running:
 
 ```bash

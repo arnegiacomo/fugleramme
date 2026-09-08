@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from fugleramme.names import MANIFEST, PERCHES, normalize
+from fugleramme.names import MANIFEST, PERCHES, SUFFIXES, normalize
 
 REPO = Path(__file__).resolve().parents[1]
 IMAGES = REPO / "assets" / "artwork"
@@ -71,24 +71,30 @@ def _base(stem: str) -> str:
     return re.sub(r"-\d+$", "", stem)
 
 
+def _artwork(folder: Path) -> list[Path]:
+    """Every image under `folder` the frame would draw. Off names.SUFFIXES, so a
+    format the frame learns to read is one these guards cover too."""
+    return sorted(path for suffix in SUFFIXES for path in folder.rglob(f"*{suffix}"))
+
+
 def _plates() -> list[tuple[Path, str]]:
     """Every shipped bird plate with its species key, bare branches aside."""
     return [
-        (png, _base(png.stem))
-        for png in sorted(IMAGES.rglob("*.png"))
-        if png.parent.name != PERCHES  # perches are named for the plant
+        (plate, _base(plate.stem))
+        for plate in _artwork(IMAGES)
+        if plate.parent.name != PERCHES  # perches are named for the plant
     ]
 
 
 def test_every_artwork_name_is_a_birdnet_label_or_exception():
     labels = _labels()
     unknown = []
-    for png, stem in _plates():
+    for plate, stem in _plates():
         if "-x-" in stem:  # hybrids: BirdNET never emits these
             continue
         if stem in labels or stem in EXCEPTIONS:
             continue
-        unknown.append(png.name)
+        unknown.append(plate.name)
     assert not unknown, (
         "artwork filenames not naming a BirdNET species under its current name,\n"
         "and not listed as an exception (a superseded spelling belongs in the\n"
@@ -109,7 +115,7 @@ def test_every_detectable_plate_has_a_body_mass():
     with SIZES.open() as handle:
         masses = {normalize(row["scientific_name"]) for row in csv.DictReader(handle)}
     labels = _labels()
-    missing = sorted({stem for _png, stem in _plates() if stem in labels} - masses)
+    missing = sorted({stem for _plate, stem in _plates() if stem in labels} - masses)
     assert not missing, "shipped plates with no body mass in bird_sizes.csv:\n" + "\n".join(missing)
 
 
@@ -118,8 +124,8 @@ def test_every_artwork_image_has_attribution():
     for style in sorted(path for path in IMAGES.iterdir() if path.is_dir()):
         path = style / MANIFEST
         listed = json.loads(path.read_text()) if path.exists() else {}
-        for png in sorted(style.rglob("*.png")):
-            key = png.relative_to(style).as_posix()
+        for plate in _artwork(style):
+            key = plate.relative_to(style).as_posix()
             entry = listed.get(key)
             source = entry.get("source") if isinstance(entry, dict) else None
             if not isinstance(source, str) or not source.strip():

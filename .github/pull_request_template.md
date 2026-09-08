@@ -25,6 +25,7 @@ ran it on - I can only test the hardware I have. -->
 - [ ] Cut from a real plate, nothing AI-generated (retouching a scan is fine)
 - [ ] Licensing is public domain or compatible with the style folder's own terms
 - [ ] Added with `tools/add_bird.py`, halo per [Adding artwork](../docs/adding-artwork.md)
+- [ ] Shipped as WebP - `add_bird.py` writes it, whatever you hand it
 - [ ] `manifest.json` entry per file; `ATTRIBUTION.md` entry and manifest key if the source is new
 
 Plate(s) it came from:
