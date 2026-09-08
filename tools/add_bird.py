@@ -11,6 +11,10 @@ Usage:
     uv run python tools/add_bird.py bird.png --style custom --species "Turdus merula"
     uv run python tools/add_bird.py bird.png --preview /tmp/check.png --dry-run
 
+Give it whatever your editor exported - PNG, WebP, anything PIL opens. It writes
+the shipped plate as WebP itself, so the format is one less thing to get right by
+hand and every style ends up encoded the same way.
+
 Anything not given on the command line is asked for. The species prompt searches
 BirdNET's label list by scientific or English name - type a few letters of either.
 """
@@ -29,7 +33,7 @@ from typing import NamedTuple
 import numpy as np
 from PIL import Image
 
-from fugleramme.names import BIRDS, MANIFEST, canonical, manifest, normalize
+from fugleramme.names import BIRDS, MANIFEST, SUFFIXES, artwork_in, canonical, manifest, normalize
 from fugleramme.render.paper import paper_texture, process_sprite
 
 REPO = Path(__file__).resolve().parents[1]
@@ -38,6 +42,7 @@ LABELS = REPO / "assets" / "birdnet_labels_v2.4.txt"
 ATTRIBUTION = "ATTRIBUTION.md"
 
 CAP = 1200  # longest side of a shipped plate; nothing ever draws a bird bigger
+SUFFIX = ".webp"
 MATCHES = 12  # choices listed by the fallback search
 PREVIEW = 760  # the preview render's square, px
 _BIRD = 0.83  # longest side of the bird in it, as a fraction of the canvas
@@ -53,7 +58,7 @@ class Species(NamedTuple):
 
 def labels() -> list[Species]:
     """BirdNET v2.4's whole label list, keyed by the species' current name: a
-    plate added today is filed as "coloeus-monedula.png" even though BirdNET
+    plate added today is filed as "coloeus-monedula.webp" even though BirdNET
     still calls the bird Corvus monedula. A filename outside it fails the suite."""
     found = []
     for line in LABELS.read_text().splitlines():
@@ -156,7 +161,7 @@ def choose_style(requested: str) -> Path:
         return ARTWORK / requested
     present = styles()
     for number, name in enumerate(present, start=1):
-        count = len(list((ARTWORK / name / BIRDS).glob("*.png")))
+        count = len(artwork_in(ARTWORK / name / BIRDS))
         print(f"  {number:2}  {name}  ({count} birds)")
     answer = _ask("\nstyle (number, or a name to start a new one):")
     if not answer:
@@ -166,18 +171,35 @@ def choose_style(requested: str) -> Path:
     return ARTWORK / answer
 
 
+def _taken(birds: Path, stem: str) -> bool:
+    """Whether a stem is spoken for in any format the frame reads - numbering past
+    a PNG variant would hand two files the same number."""
+    return any((birds / f"{stem}{s}").exists() for s in SUFFIXES)
+
+
 def next_name(key: str, birds: Path) -> str:
-    """The species' next free filename: "<key>.png", then "-2", "-3", ...
+    """The species' next free filename: "<key>.webp", then "-2", "-3", ...
 
     Numbering has no gaps - `names.variants_for` walks them in order and the
     curation sheet renumbers a species whole - so the first free number is the one.
     """
-    if not (birds / f"{key}.png").exists():
-        return f"{key}.png"
+    if not _taken(birds, key):
+        return f"{key}{SUFFIX}"
     number = 2
-    while (birds / f"{key}-{number}.png").exists():
+    while _taken(birds, f"{key}-{number}"):
         number += 1
-    return f"{key}-{number}.png"
+    return f"{key}-{number}{SUFFIX}"
+
+
+def write_plate(img: Image.Image, dest: Path) -> None:
+    """Write a shipped plate, in the one encoding every style is kept in.
+
+    Alpha is lossless, so the cut-out - the part that took the work - survives
+    exactly. The RGB under it goes to q90: a sixth of PNG's size, for a
+    difference that does not reach the rendered page. The curation sheet writes
+    plates through here too, so a style cannot end up half one and half another.
+    """
+    img.save(dest, format="WEBP", quality=90, alpha_quality=100, method=6)
 
 
 def _bbox(alpha: np.ndarray) -> tuple[int, int, int, int]:
@@ -289,7 +311,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("image", type=Path, help="the cut-out to add, a transparent PNG")
+    parser.add_argument("image", type=Path, help="the cut-out to add, with transparency")
     parser.add_argument("--style", default="", help="style folder to add to; asked for if omitted")
     parser.add_argument("--species", default="", help="scientific or English name, or a search")
     parser.add_argument(
@@ -313,7 +335,7 @@ def main() -> None:
     style = choose_style(args.style)
     key = args.key or choose_species(labels(), args.species).key
     birds = style / BIRDS
-    filename = next_name(key, birds) if birds.is_dir() else f"{key}.png"
+    filename = next_name(key, birds) if birds.is_dir() else f"{key}{SUFFIX}"
     if source:
         entry = {"source": source, "url": args.url} if args.url else {"source": source}
     else:
@@ -335,7 +357,7 @@ def main() -> None:
         return
 
     birds.mkdir(parents=True, exist_ok=True)
-    img.save(dest, "PNG")
+    write_plate(img, dest)
     record(style, filename, entry)
     print("\nwritten")
 

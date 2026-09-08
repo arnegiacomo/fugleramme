@@ -2,7 +2,7 @@
 
 The detector emits scientific names capitalized and space-separated
 ("Turdus merula"); artwork files are lowercase and hyphenated
-("turdus-merula.png"). BirdNET's label taxonomy is frozen at the model's
+("turdus-merula.webp"). BirdNET's label taxonomy is frozen at the model's
 training set while BirdNET-Go reports the current name, so one bird reaches the
 frame as "Corvus monedula" and as "Coloeus monedula" both. `normalize` folds
 the pair to the current name through the vendored OpenFauna alias map, and
@@ -10,11 +10,16 @@ shipped artwork is filed under that one spelling - the same key the label
 table, the body masses and the picks all use. Names with no artwork resolve to
 None and the collage omits them.
 
+The shipped styles are WebP. It stores alpha losslessly, so a cut-out survives
+exactly, and the tree is a sixth of what the same plates cost as PNG. PNG is
+read too, and on purpose: a `custom/` folder should draw whatever you drop in
+it, and PNG is what an editor exports by default. Ship WebP, read either.
+
 Artwork is grouped by *style* into subfolders of `images_dir` ("classic", a
 user's "custom", ...), one active at a time: `available_styles` lists what is
 present and `resolve` turns a saved selection into the folder to actually draw
 from. A style is curated by hand (`scripts/curate.py`) and may keep more than
-one image for a bird, numbered "<key>-2.png", "<key>-3.png"; which of them a
+one image for a bird, numbered "<key>-2.webp", "<key>-3.webp"; which of them a
 species is currently wearing is picks.py's business, not this module's.
 
 Each style folder carries its own ATTRIBUTION.md naming the works it draws on,
@@ -34,8 +39,11 @@ from .picks import Picks
 
 BIRDS = "birds"
 PERCHES = "perches"
-MANIFEST = "manifest.json"  # a style's record: "<file>.png" -> {"source", "url"}
+MANIFEST = "manifest.json"  # a style's record: "<file>.webp" -> {"source", "url"}
 ALIASES = REPO_ROOT / "assets" / "birdnet_aliases.json"
+
+# Preference order. Anything added must be a format PIL opens and `dither` can quantize.
+SUFFIXES = (".webp", ".png")
 
 
 def _shape(scientific_name: str) -> str:
@@ -96,6 +104,33 @@ def artwork_keys(scientific_name: str) -> tuple[str, ...]:
     return (key, legacy) if legacy else (key,)
 
 
+def _by_stem(folder: Path, pattern: str = "*") -> dict[str, Path]:
+    """Matching artwork keyed on stem. One entry per stem: a folder holding both
+    formats for a bird would otherwise draw it twice and hold it as two variants."""
+    found: dict[str, Path] = {}
+    for suffix in reversed(SUFFIXES):  # preferred last: it overwrites the rest
+        for path in folder.glob(f"{pattern}{suffix}"):
+            found[path.stem] = path
+    return found
+
+
+def _artwork(folder: Path, stem: str) -> Path | None:
+    """The one file a stem resolves to, in SUFFIXES order."""
+    return next((path for s in SUFFIXES if (path := folder / f"{stem}{s}").exists()), None)
+
+
+def artwork_in(folder: Path) -> list[Path]:
+    """Every drawable file in a folder, one per stem, sorted. The curation tools
+    list a style through this so they cannot disagree with the frame."""
+    return sorted(_by_stem(folder).values())
+
+
+def _holds_artwork(folder: Path) -> bool:
+    """Whether anything drawable is in here. Short-circuits, since
+    `available_styles` runs on every admin load and a shipped style is 800 files."""
+    return any(next(folder.glob(f"*{s}"), None) is not None for s in SUFFIXES)
+
+
 def available_styles(images_dir: Path) -> list[str]:
     """Style folders under `images_dir` that actually hold artwork, sorted.
 
@@ -105,7 +140,7 @@ def available_styles(images_dir: Path) -> list[str]:
     """
     try:
         return sorted(
-            d.name for d in images_dir.iterdir() if d.is_dir() and any((d / BIRDS).glob("*.png"))
+            d.name for d in images_dir.iterdir() if d.is_dir() and _holds_artwork(d / BIRDS)
         )
     except OSError:
         return []
@@ -122,13 +157,13 @@ def resolve(requested: str, images_dir: Path) -> str:
 
 
 def variants_for(scientific_name: str, images_dir: Path, style: str) -> list[Path]:
-    """Every image the style keeps for a name: "<key>.png" plus its "<key>-N.png",
-    under each of `artwork_keys` in turn. Shipped artwork answers to the first;
-    the second only ever finds a hand-curated file (see `artwork_keys`), and
-    finding one must not hide the plates filed under the current name.
+    """Every image the style keeps for a name: "<key>" plus its "<key>-N", under
+    each of `artwork_keys` in turn. Shipped artwork answers to the first; the
+    second only ever finds a hand-curated file (see `artwork_keys`), and finding
+    one must not hide the plates filed under the current name.
 
     Numbered-only matching keeps a species key (e.g. tetrao-urogallus) from
-    picking up a hybrid file (tetrao-urogallus-x-lagopus-lagopus.png).
+    picking up a hybrid file (tetrao-urogallus-x-lagopus-lagopus.webp).
     """
     if not style:
         return []
@@ -136,8 +171,12 @@ def variants_for(scientific_name: str, images_dir: Path, style: str) -> list[Pat
     variants: list[Path] = []
     for key in artwork_keys(scientific_name):
         numbered = re.compile(rf"{re.escape(key)}-(\d+)")
-        base = [folder / f"{key}.png"] if (folder / f"{key}.png").exists() else []
-        rest = [(m, p) for p in folder.glob(f"{key}-*.png") if (m := numbered.fullmatch(p.stem))]
+        base = [path] if (path := _artwork(folder, key)) else []
+        rest = [
+            (m, p)
+            for stem, p in _by_stem(folder, f"{key}-*").items()
+            if (m := numbered.fullmatch(stem))
+        ]
         variants += base + [p for _m, p in sorted(rest, key=lambda mp: int(mp[0].group(1)))]
     return variants
 
@@ -154,10 +193,7 @@ def drawable_keys(images_dir: Path, style: str) -> set[str]:
     """
     if not style:
         return set()
-    return {
-        normalize(_NUMBERED.sub("", path.stem))
-        for path in (images_dir / style / BIRDS).glob("*.png")
-    }
+    return {normalize(_NUMBERED.sub("", stem)) for stem in _by_stem(images_dir / style / BIRDS)}
 
 
 def image_for(scientific_name: str, images_dir: Path, style: str, picks: Picks) -> Path | None:
@@ -169,7 +205,7 @@ def perches_for(images_dir: Path, style: str) -> list[Path]:
     """The style's bare branches, drawn when nothing has been heard. Style-scoped
     like the birds: a perch is drawn in the same hand as the birds it stands in
     for, so a style without any draws none rather than borrowing another's."""
-    return sorted((images_dir / style / PERCHES).glob("*.png")) if style else []
+    return artwork_in(images_dir / style / PERCHES) if style else []
 
 
 _manifests: dict[Path, tuple[float, dict[str, dict[str, str]]]] = {}
@@ -208,7 +244,7 @@ def record_of(path: Path) -> dict[str, str]:
     """An image's manifest entry, from the nearest record at or above it.
 
     A style keeps one manifest, so a file in a subfolder - a perch - is keyed by
-    its path relative to the folder the manifest sits in ("perches/oak.png").
+    its path relative to the folder the manifest sits in ("perches/oak.webp").
     """
     for folder in (path.parent, path.parent.parent):
         listed = manifest(folder)
