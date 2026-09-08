@@ -60,6 +60,8 @@ ul.species { list-style: none; padding: 0; margin: 0 0 1.75rem;
 ul.species li { padding: 0.1rem 0; }
 ul.species li.noart { color: #aaa; }
 ul.species li.noart small { color: #aaa; }
+ul.species small a { color: inherit; text-decoration-color: #bbb; }
+ul.species small a:hover { color: #446; text-decoration-color: currentColor; }
 ul.species li.empty { color: #999; }
 /* An empty list because something is wrong, not because no bird has called yet. */
 ul.species li.problem { color: #a4392f; }

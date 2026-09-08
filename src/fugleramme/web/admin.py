@@ -19,7 +19,7 @@ from ..api import probe
 from ..config import BIRDNET_PORT, DOCS_URL, WEB_HEIGHTS
 from ..languages import NONE, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
-from ..names import available_styles, image_for, source_of
+from ..names import available_styles, image_for, origin_of, source_of
 from ..render.fonts import FONTS, LABEL_SIZES
 from ..settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, lookback_order, merged
 from ..source import NEEDS_PASSWORD, Unavailable
@@ -54,14 +54,17 @@ def form_changes(form: dict[str, list[str]]) -> dict:
     return changes
 
 
-def subjects(ctx: modes.Context) -> list[tuple[str, str | None]]:
+def subjects(ctx: modes.Context) -> list[tuple[str, str | None, str]]:
     """What the current mode's page is about, each with the plate its artwork
-    was cut from, or None when it has none to draw."""
-    rows = []
+    was cut from - None when it has none to draw - and the plate's citation."""
+    rows: list[tuple[str, str | None, str]] = []
     for name in modes.subjects(ctx):
         pick = image_for(name, ctx.images_dir, ctx.style, ctx.picks)
+        if not pick:
+            rows.append((name, None, ""))
+            continue
         # Unlisted (a hand-filled style keeps no manifest): name the style itself.
-        rows.append((name, source_of(pick) or ctx.style if pick else None))
+        rows.append((name, source_of(pick) or ctx.style, origin_of(pick)))
     return rows
 
 
@@ -166,17 +169,20 @@ def _stamp(dt: datetime) -> str:
     return f'<time title="{_ago(dt)}">{local.strftime(fmt)}</time>'
 
 
-def _species_li(name: str, source: str | None) -> str:
+def _species_li(name: str, source: str | None, url: str) -> str:
     # Marks species counted in the window but omitted from the collage (#9); else
     # names the plate the artwork was cut from, per the style's manifest.
     if source is None:
         return f'<li class="noart">{name} <small>no art</small></li>'
-    return f"<li>{name} <small>{_display_name(source)}</small></li>"
+    plate = _display_name(source)
+    if url:
+        plate = f'<a href="{html.escape(url)}" target="_blank" rel="noopener">{plate}</a>'
+    return f"<li>{name} <small>{plate}</small></li>"
 
 
-def species_html(species: list[tuple[str, str | None]], name_of: Namer) -> str:
+def species_html(species: list[tuple[str, str | None, str]], name_of: Namer) -> str:
     return (
-        "".join(_species_li(name_of.inline(name), source) for name, source in species)
+        "".join(_species_li(name_of.inline(name), source, url) for name, source, url in species)
         or '<li class="empty">none yet</li>'
     )
 

@@ -73,10 +73,17 @@ def test_the_config_blob_carries_everything_admin_js_reads(tmp_path, source):
 
 def test_a_species_with_no_artwork_is_marked_rather_than_dropped(tmp_path):
     name_of = namer("sci", "", tmp_path)
-    html = admin.species_html([("Pica pica", "gould"), ("Corvus cornix", None)], name_of)
+    html = admin.species_html([("Pica pica", "gould", ""), ("Corvus cornix", None, "")], name_of)
     assert html.count("<li") == 2
     assert 'class="noart"' in html and "Corvus cornix" in html
     assert admin.species_html([], name_of) == '<li class="empty">none yet</li>'
+
+
+def test_a_plate_with_a_citation_links_to_it(tmp_path):
+    name_of = namer("sci", "", tmp_path)
+    linked = admin.species_html([("Pica pica", "gould", "https://example.org/a")], name_of)
+    assert '<a href="https://example.org/a" target="_blank" rel="noopener">Gould</a>' in linked
+    assert "<a " not in admin.species_html([("Pica pica", "gould", "")], name_of)
 
 
 def test_the_update_row_offers_the_install_only_once_a_release_is_known():
