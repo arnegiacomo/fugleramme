@@ -4,6 +4,34 @@
 
 ## v0.18.0 (2026-09-09)
 
+### Features
+
+- **admin**: Drop the render cap and default to a limit of 40
+  ([#53](https://github.com/arnegiacomo/fugleramme/issues/53),
+  [`0b2a2d9`](https://github.com/arnegiacomo/fugleramme/commit/0b2a2d92991ed4bcb5fb6ac93d66fc0d9c524d93))
+
+- **admin**: Offer 1 and 3 hour lookback windows
+  ([#59](https://github.com/arnegiacomo/fugleramme/issues/59),
+  [`0c09156`](https://github.com/arnegiacomo/fugleramme/commit/0c09156722eda56b2983beb7403c8a51d884905b))
+
+- **admin**: Rank the rarest by the whole record too
+  ([#53](https://github.com/arnegiacomo/fugleramme/issues/53),
+  [`47c3679`](https://github.com/arnegiacomo/fugleramme/commit/47c367912bc1033bd3d3e34cbc60fcb54cd4ba1e))
+
+- **admin**: Replace field parentheticals with info badges
+  ([`fa97881`](https://github.com/arnegiacomo/fugleramme/commit/fa978819e97f1f8022d4d4942f36e30fe8c18e69))
+
+- Limit and rank the collage
+  ([#57](https://github.com/arnegiacomo/fugleramme/pull/57),
+  [#53](https://github.com/arnegiacomo/fugleramme/issues/53),
+  [`f5dfc51`](https://github.com/arnegiacomo/fugleramme/commit/f5dfc51b5ae5dc81f9a4ba89674a60541c96c31c))
+
+### Refactoring
+
+- Tidy the selection helpers and trim comments
+  ([#53](https://github.com/arnegiacomo/fugleramme/issues/53),
+  [`77b061a`](https://github.com/arnegiacomo/fugleramme/commit/77b061a094e8349e169b92035badbfed796454f8))
+
 
 ## v0.17.1 (2026-09-09)
 
