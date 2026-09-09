@@ -20,7 +20,7 @@ from pathlib import Path
 from .config import DEFAULT_DETECTOR_URL, DEFAULT_WEB_RESOLUTION, WEB_HEIGHTS
 from .languages import NONE, SCIENTIFIC
 from .modes import DEFAULT_MODE, MODES
-from .render.collage import DEFAULT_RANKING, MAX_BIRDS, NO_LIMIT, RANKINGS
+from .render.collage import DEFAULT_RANKING, NO_LIMIT, RANKINGS
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
 
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
@@ -42,8 +42,11 @@ LOOKBACK_OPTIONS = (
 )
 
 
-# Page sizes offered in the admin UI (#53), NO_LIMIT first. MAX_BIRDS caps them all.
-LIMIT_OPTIONS = (NO_LIMIT, 5, 8, 10, 12, 15, 20, 30)
+# What the frame ships limited to, and the number the admin warns past (#53).
+DEFAULT_LIMIT = 40
+# Not a render budget - only so a hand-edited file cannot hand the packer a
+# number no Pi finishes.
+LIMIT_CEILING = 500
 
 
 def lookback_order(hours: int) -> float:
@@ -59,8 +62,8 @@ class Settings:
     # Shapes both outputs; only the panel actually turns the pixels.
     rotation: int = 0
     lookback_hours: int = 24
-    # Which birds make the page (#53); no limit leaves an existing frame alone.
-    species_limit: int = NO_LIMIT
+    # Which birds make the page (#53); NO_LIMIT is every species the window holds.
+    species_limit: int = DEFAULT_LIMIT
     ranking: str = DEFAULT_RANKING
     # Active artwork style folder; empty means "whichever is present" (resolved
     # against the filesystem at render time, so it survives a renamed style).
@@ -167,7 +170,7 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         ),
         rotation=_one_of(rotation, ROTATIONS, d.rotation),
         lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, ALL_TIME, 24 * 30),
-        species_limit=_as_int(raw.get("species_limit"), d.species_limit, NO_LIMIT, MAX_BIRDS),
+        species_limit=_as_int(raw.get("species_limit"), d.species_limit, NO_LIMIT, LIMIT_CEILING),
         ranking=_one_of(str(raw.get("ranking", d.ranking)), RANKINGS, d.ranking),
         style=_style(raw, d.style),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),

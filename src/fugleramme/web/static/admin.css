@@ -20,15 +20,17 @@ small { color: #666; font-weight: 400; }
 select { font-size: 1rem; padding: 0.4rem; }
 input { font-size: 1rem; padding: 0.4rem; width: 8rem; }
 .field { margin: 0 0 1.25rem; }
-label.sub { display: block; margin: 0.6rem 0 0; font-weight: 400; }
-label.sub small { display: block; margin-bottom: 0.15rem; }
-label.sub select { width: 100%; }
-label.src { display: flex; align-items: center; gap: 0.4rem; font-weight: 400; margin: 0 0 0.3rem; }
-label.src input { width: auto; padding: 0; }
+.sub { display: block; margin: 0.6rem 0 0; font-weight: 400; }
+.sub small { display: block; margin-bottom: 0.15rem; }
+.sub select { width: 100%; }
+.src { display: flex; align-items: center; gap: 0.4rem; font-weight: 400; margin: 0 0 0.3rem; }
+.src input { width: auto; padding: 0; }
+.src .src { margin: 0; }  /* the row holding a radio and its number box */
+.src input[type=number] { width: 3.25rem; padding: 0.25rem 0.3rem; }
 button { font-size: 1rem; padding: 0.5rem 1.25rem; margin-top: 0.5rem; }
 button:disabled { opacity: 0.45; }
 /* A setting the chosen mode does not read: shown, so its value is not a surprise on the way back. */
-label.off, .field.off { opacity: 0.45; }
+.off { opacity: 0.45; }
 a { color: #446; }
 /* The bubble hangs off the label's span, not the badge, so it starts at the
    column edge and cannot run out of the 15rem form. */

@@ -38,24 +38,17 @@ How far back the collage looks, from the last 6 hours to all time. Default is
 
 ### Species on the page
 
-How many species the collage shows, and which ones it keeps when the window
-holds more than that. Default is **No limit**. Only the collage uses it.
+How many species the collage shows at once, and which it keeps when the window holds more than that. Default is **At most 40**. (Only the collage-mode uses this).
 
-A busy garden can hear thirty species in a day, and thirty birds on one sheet
-are thirty *small* birds. Set a limit and pick which end to keep:
+A busy installation can hear over thirty species in a day, and thirty birds on one sheet become very small. Set a limit and pick which to keep:
 
 | Which ones to keep | Good for |
 | --- | --- |
-| The most heard | The birds that really live around you |
-| The rarest | The one-off visitors, where the surprises are |
+| The most heard | Most detections within a window |
+| The rarest | Least detections within a window |
 
-**The rarest** is worth a try if your list is the same residents every day. A
-hoopoe that passed through once is easy to miss among thirty birds and hard to
-miss among eight.
-
-The frame draws at most 40 species whatever you pick, so **No limit** means
-"everything the window heard, up to 40" - the 40 most heard, if it comes to
-that.
+**Show all** means **all of them**. A long lookback at a busy station is yours to bound - past forty or so
+the birds get small and the labels crowd (but at least you get a cool mosaic!).
 
 ### Species names
 

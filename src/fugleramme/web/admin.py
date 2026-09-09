@@ -20,10 +20,11 @@ from ..config import BIRDNET_PORT, DOCS_URL, WEB_HEIGHTS
 from ..languages import NONE, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, origin_of, source_of
-from ..render.collage import MAX_BIRDS, NO_LIMIT, RANKINGS
+from ..render.collage import NO_LIMIT, RANKINGS
 from ..render.fonts import FONTS, LABEL_SIZES
 from ..settings import (
-    LIMIT_OPTIONS,
+    DEFAULT_LIMIT,
+    LIMIT_CEILING,
     LOOKBACK_OPTIONS,
     ROTATIONS,
     Settings,
@@ -54,9 +55,11 @@ def form_changes(form: dict[str, list[str]]) -> dict:
     and everything else missing keeps its saved value. Without that declaration
     the System form, which has no `show_names`, would read as switching names
     off. settings._coerce validates the rest."""
-    changes: dict[str, str | bool] = {k: v[0] for k, v in form.items() if k != CHECKBOXES}
+    changes: dict[str, str | bool | int] = {k: v[0] for k, v in form.items() if k != CHECKBOXES}
     for field in form.get(CHECKBOXES, [""])[0].split():
         changes[field] = field in form
+    if changes.pop("limit_mode", None) == "all":
+        changes["species_limit"] = NO_LIMIT  # the box is disabled, so it posts nothing
     if changes.get("detector_password") == PASSWORD_SET:
         del changes["detector_password"]  # untouched, so the stored one stands
     return changes
@@ -319,27 +322,28 @@ def _hint(text: str) -> str:
     return f'<span class="hint" tabindex="0" role="img" aria-label="{note}"></span>'
 
 
-def _limits(settings: Settings) -> str:
-    # A hand-edited non-preset value stays selectable so Save doesn't drop it.
-    labels = {n: ("No limit" if n == NO_LIMIT else f"{n} species") for n in LIMIT_OPTIONS}
-    labels.setdefault(settings.species_limit, f"{settings.species_limit} species")
-    return _options(sorted(labels), settings.species_limit, labels.get)
-
-
 def _species_field(settings: Settings) -> str:
     """How many species the collage shows, and which ones it keeps (#53).
 
-    The label names MAX_BIRDS even under "No limit": no setting spends past the
-    render budget. admin.js greys the ranking out until there is a limit.
+    The count is disabled under "Show all", so it posts nothing - `form_changes`
+    reads the radio instead.
     """
+    limited = settings.species_limit != NO_LIMIT
+    count = settings.species_limit if limited else DEFAULT_LIMIT
     return (
         f'<div class="field" id="limit">'
-        f"<span>Species on the page {_hint(f'At most {MAX_BIRDS} species')}</span>"
-        f'<label class="sub"><small>How many</small><select name="species_limit">'
-        f"{_limits(settings)}</select></label>"
-        f'<label class="sub" id="ranking"><small>Which ones to keep</small>'
-        f'<select name="ranking">{_options(RANKINGS, settings.ranking, RANKINGS.get)}</select>'
-        f"</label></div>"
+        f"<span>Species on the page "
+        f"{_hint(f'More than {DEFAULT_LIMIT} make the page very crowded')}</span>"
+        f'<div class="src"><label class="src"><input type="radio" name="limit_mode"'
+        f' value="some"{" checked" if limited else ""}> At most</label>'
+        f'<input type="number" name="species_limit" min="1" max="{LIMIT_CEILING}"'
+        f' value="{count}"{"" if limited else " disabled"}'
+        f' aria-label="How many species"></div>'
+        f'<label class="src"><input type="radio" name="limit_mode" value="all"'
+        f"{'' if limited else ' checked'}> Show all</label>"
+        f'<div class="sub" id="ranking"><small>Which ones to keep</small>'
+        f"{_radios('ranking', list(RANKINGS.items()), settings.ranking)}</div>"
+        f"</div>"
     )
 
 
@@ -382,7 +386,6 @@ def page(
                 "birdnetPort": birdnet_port,
                 "version": __version__,
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
-                "noLimit": str(NO_LIMIT),
             }
         ),
         mode_field=(

@@ -56,10 +56,8 @@ DEFAULT_RESOLUTION = (1280, 800)
 # panel and the kiosk on different pages.
 _PACK_SHORT = 1200
 _MARGIN = 0.04  # page edge to content on short side. Hardcoded now, maybe add configurability?
-MAX_BIRDS = 40  # the frame's ceiling whatever the admin asks: quick render, not a tidy page
-
-# How many species the admin lets on, and which ones (#53). NO_LIMIT means every
-# bird the window holds, still under MAX_BIRDS.
+# How many species the admin lets on, and which ones (#53). NO_LIMIT is every
+# bird the window holds - the frame keeps no ceiling of its own.
 NO_LIMIT = 0
 RANK_MOST_HEARD = "heard"
 RANK_RAREST = "rarest"
@@ -365,7 +363,7 @@ def render_collage(
     """
     canvas = blank(resolution, textured)
 
-    kept = [(name, path) for name, path in entries if path is not None][:MAX_BIRDS]
+    kept = [(name, path) for name, path in entries if path is not None]
     if not kept:
         draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
@@ -443,23 +441,19 @@ def selected_species(
 ) -> list[str]:
     """The species that make the page, in name order.
 
-    Name order because the order birds are handed over must not depend on their
-    counts - a bird merely heard again would reshuffle the whole packing. Which
-    birds are on it does depend on the counts once a limit is set, so the page's
-    key is built from this same list.
+    Name order because the packing must not depend on the counts - a bird merely
+    heard again would reshuffle the page. Which birds are on it does depend on
+    them under a limit, so the page's key is built from this same list.
 
     What the style cannot draw is dropped before the limit, so a missing plate
-    never takes one of the places. `keys` is that listing, handed over by a
-    caller that has already paid for it.
+    never takes one of the places. `keys` is that listing, already paid for.
     """
     if keys is None:
         keys = drawable_keys(images_dir, style)
     counted = [(name, n) for name, n in source.species_since(hours) if normalize(name) in keys]
-    # The admin greys the ranking out under "No limit", so a saved value there
-    # must not decide which forty a busy station gets.
-    capped = MAX_BIRDS if limit == NO_LIMIT else min(limit, MAX_BIRDS)
-    order = _rank(DEFAULT_RANKING if limit == NO_LIMIT else ranking)
-    return sorted(name for name, _n in sorted(counted, key=order)[:capped])
+    if limit == NO_LIMIT:
+        return sorted(name for name, _n in counted)  # nothing to rank: they all fit
+    return sorted(name for name, _n in sorted(counted, key=_rank(ranking))[:limit])
 
 
 def gather_entries(

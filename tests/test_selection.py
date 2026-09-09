@@ -1,8 +1,7 @@
 """Which birds make the page (#53).
 
 A busy station hears more species than one sheet can hold. The admin's limit and
-ranking decide which ones it keeps, and the frame's own ceiling - MAX_BIRDS, a
-render budget - spends itself on the most heard rather than the first by name.
+ranking decide which ones it keeps; the frame holds no ceiling of its own.
 """
 
 from __future__ import annotations
@@ -13,6 +12,7 @@ from fugleramme.names import normalize
 from fugleramme.picks import Picks
 from fugleramme.render import collage
 from fugleramme.render.collage import RANK_RAREST
+from fugleramme.settings import DEFAULT_LIMIT, Settings
 
 
 class _Counted:
@@ -41,14 +41,12 @@ def _on_page(tmp_path, names: list[str], **kwargs) -> list[str]:
     return collage.selected_species(source, tmp_path, "classic", **kwargs)
 
 
-def test_the_frames_own_ceiling_keeps_the_most_heard_not_the_first_by_name(tmp_path):
-    """Cutting by name instead retired the busiest bird in the garden for being
-    called Turdus rather than Anas."""
-    names = _garden(tmp_path, collage.MAX_BIRDS + 5)
+def test_show_all_keeps_every_species_the_window_holds(tmp_path):
+    """The removed ceiling would have trimmed this to forty."""
+    names = _garden(tmp_path, 60)
     kept = _on_page(tmp_path, names)
 
-    assert set(kept) == set(names[-collage.MAX_BIRDS :])  # the busiest, not the first
-    assert kept == sorted(kept)  # and still handed over in name order
+    assert kept == sorted(names)
 
 
 def test_a_limit_keeps_the_most_heard_by_default(tmp_path):
@@ -63,20 +61,18 @@ def test_the_rarest_ranking_keeps_the_other_end(tmp_path):
     assert _on_page(tmp_path, names, limit=5, ranking=RANK_RAREST) == sorted(names[:5])
 
 
-def test_no_limit_is_the_default_and_still_answers_to_the_frames_ceiling(tmp_path):
-    names = _garden(tmp_path, collage.MAX_BIRDS + 5)
-    assert len(_on_page(tmp_path, names)) == collage.MAX_BIRDS
-    assert len(_on_page(tmp_path, names, limit=collage.NO_LIMIT)) == collage.MAX_BIRDS
+def test_a_limit_keeps_exactly_that_many_and_a_fresh_frame_carries_one(tmp_path):
+    names = _garden(tmp_path, 60)
+    assert Settings().species_limit == DEFAULT_LIMIT
     assert len(_on_page(tmp_path, names, limit=10)) == 10
+    assert len(_on_page(tmp_path, names, limit=45)) == 45
+    assert len(_on_page(tmp_path, names, limit=collage.NO_LIMIT)) == 60
 
 
-def test_the_ranking_has_no_say_until_there_is_a_limit(tmp_path):
-    """The admin greys the ranking out under "No limit", so a saved "rarest"
-    must not quietly decide which forty a busy station gets."""
-    names = _garden(tmp_path, collage.MAX_BIRDS + 5)
-    by_default = _on_page(tmp_path, names)
-    assert _on_page(tmp_path, names, ranking=RANK_RAREST) == by_default
-    assert set(by_default) == set(names[-collage.MAX_BIRDS :])
+def test_the_ranking_has_no_say_without_a_limit(tmp_path):
+    """Every bird is on the page anyway, which is why the admin greys it out."""
+    names = _garden(tmp_path, 60)
+    assert _on_page(tmp_path, names, ranking=RANK_RAREST) == _on_page(tmp_path, names)
 
 
 def test_a_species_with_no_artwork_never_takes_a_place_from_one_that_has_it(tmp_path):

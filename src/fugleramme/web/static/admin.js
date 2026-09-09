@@ -166,7 +166,7 @@ const lookback = document.getElementById("lookback");
 const limit = document.getElementById("limit");
 const ranking = document.getElementById("ranking");
 function dim(el, on) {
-  el.querySelectorAll("select").forEach((s) => { s.disabled = !on; });
+  el.querySelectorAll("select, input").forEach((c) => { c.disabled = !on; });
   el.classList.toggle("off", !on);
 }
 function syncMode() {
@@ -175,7 +175,8 @@ function syncMode() {
   dim(lookback, on);
   dim(limit, on);
   // Nothing to rank while every bird the window heard is already on the page.
-  const capped = form.querySelector("select[name=species_limit]").value !== cfg.noLimit;
+  const capped = form.querySelector("input[name=limit_mode]:checked")?.value === "some";
+  form.querySelector("input[name=species_limit]").disabled = !(on && capped);  // after dim(limit)
   dim(ranking, on && capped);
 }
 
