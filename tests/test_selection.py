@@ -42,9 +42,8 @@ def _on_page(tmp_path, names: list[str], **kwargs) -> list[str]:
 
 
 def test_the_frames_own_ceiling_keeps_the_most_heard_not_the_first_by_name(tmp_path):
-    """MAX_BIRDS is a render budget, so which birds it spends on is a real
-    choice. Cutting by name instead retired the busiest bird in the garden for
-    being called Turdus rather than Anas."""
+    """Cutting by name instead retired the busiest bird in the garden for being
+    called Turdus rather than Anas."""
     names = _garden(tmp_path, collage.MAX_BIRDS + 5)
     kept = _on_page(tmp_path, names)
 

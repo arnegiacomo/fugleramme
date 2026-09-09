@@ -42,6 +42,10 @@ LOOKBACK_OPTIONS = (
 )
 
 
+# Page sizes offered in the admin UI (#53), NO_LIMIT first. MAX_BIRDS caps them all.
+LIMIT_OPTIONS = (NO_LIMIT, 5, 8, 10, 12, 15, 20, 30)
+
+
 def lookback_order(hours: int) -> float:
     """Sort key: ALL_TIME is the longest window, not the shortest."""
     return float("inf") if hours == ALL_TIME else hours

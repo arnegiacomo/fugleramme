@@ -56,19 +56,16 @@ DEFAULT_RESOLUTION = (1280, 800)
 # panel and the kiosk on different pages.
 _PACK_SHORT = 1200
 _MARGIN = 0.04  # page edge to content on short side. Hardcoded now, maybe add configurability?
-# The frame's own ceiling whatever the admin asks for: a render is ~90% packing
-# and the Pi has to finish it. Keeps the render quick, not the page tidy.
-MAX_BIRDS = 40
+MAX_BIRDS = 40  # the frame's ceiling whatever the admin asks: quick render, not a tidy page
 
-# How many species the admin lets on, and which ones (#53). NO_LIMIT still means
-# "every bird the window holds", not "however long the Pi takes to draw them".
+# How many species the admin lets on, and which ones (#53). NO_LIMIT means every
+# bird the window holds, still under MAX_BIRDS.
 NO_LIMIT = 0
-LIMIT_OPTIONS = (NO_LIMIT, 5, 8, 10, 12, 15, 20, 30)
 RANK_MOST_HEARD = "heard"
 RANK_RAREST = "rarest"
 RANKINGS = {
     RANK_MOST_HEARD: "The most heard",
-    RANK_RAREST: "The rarest",  # at a busy station the visitor is the interesting one
+    RANK_RAREST: "The rarest",
 }
 DEFAULT_RANKING = RANK_MOST_HEARD
 _ALPHA_CUTOFF = 24
@@ -428,8 +425,8 @@ def _at(at: tuple[int, int], scale: float) -> tuple[int, int]:
 
 
 def _rank(ranking: str):
-    """Sort key that puts the birds the admin asked to keep first. Ties break on
-    the name, so a page at its limit does not flicker between two equal birds."""
+    """Sort key for the birds the admin asked to keep. Ties break on the name, so
+    a page at its limit does not flicker between two equally-heard birds."""
     if ranking == RANK_RAREST:
         return lambda pair: (pair[1], pair[0])
     return lambda pair: (-pair[1], pair[0])
@@ -442,6 +439,7 @@ def selected_species(
     hours: int = 24,
     limit: int = NO_LIMIT,
     ranking: str = DEFAULT_RANKING,
+    keys: set[str] | None = None,
 ) -> list[str]:
     """The species that make the page, in name order.
 
@@ -450,20 +448,18 @@ def selected_species(
     birds are on it does depend on the counts once a limit is set, so the page's
     key is built from this same list.
 
-    The ranking only applies under a limit, as the admin says: with none set the
-    frame's own ceiling keeps the most heard, whatever the greyed-out field holds.
-
-    What the style cannot draw is dropped before the limit, so a plate the frame
-    does not have never takes one of the places. One directory listing, not a
-    probe per species: the loop asks for this on every poll, and so does the
-    kiosk.
+    What the style cannot draw is dropped before the limit, so a missing plate
+    never takes one of the places. `keys` is that listing, handed over by a
+    caller that has already paid for it.
     """
-    keys = drawable_keys(images_dir, style)
+    if keys is None:
+        keys = drawable_keys(images_dir, style)
     counted = [(name, n) for name, n in source.species_since(hours) if normalize(name) in keys]
-    if limit == NO_LIMIT:
-        limit, ranking = MAX_BIRDS, DEFAULT_RANKING
-    ranked = sorted(counted, key=_rank(ranking))
-    return sorted(name for name, _n in ranked[: min(limit, MAX_BIRDS)])
+    # The admin greys the ranking out under "No limit", so a saved value there
+    # must not decide which forty a busy station gets.
+    capped = MAX_BIRDS if limit == NO_LIMIT else min(limit, MAX_BIRDS)
+    order = _rank(DEFAULT_RANKING if limit == NO_LIMIT else ranking)
+    return sorted(name for name, _n in sorted(counted, key=order)[:capped])
 
 
 def gather_entries(

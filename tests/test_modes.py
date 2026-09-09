@@ -138,9 +138,8 @@ def test_a_limit_keeps_the_most_heard_and_the_ranking_takes_the_other_end(tmp_pa
 def test_a_bird_crossing_the_limit_repaints_although_the_window_never_moved(
     tmp_path, images, detector
 ):
-    """The reason the key reads the page rather than the window. Under a limit
-    two birds can trade places across it while the set of species heard sits
-    perfectly still - and the picture changes."""
+    """Under a limit two birds can trade places across the page while the set of
+    species heard sits perfectly still - and the picture changes."""
     rows = [_row(3, TIT, 1), _row(2, BLACKBIRD, 1), _row(1, BLACKBIRD, 2)]
     url, _httpd = detector(rows=rows)
     detections = ApiSource(url)

@@ -124,9 +124,9 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
     )
 
 
-def _selected(ctx: Context) -> list[str]:
-    """The species on the collage, in name order. Asked on every poll by the key
-    and the render alike, and cheap enough for it."""
+def _selected(ctx: Context, keys: set[str] | None = None) -> list[str]:
+    """The species on the collage, in name order. This runs on every poll, so a
+    caller that already listed the style hands `keys` over."""
     return selected_species(
         ctx.source,
         ctx.images_dir,
@@ -134,13 +134,13 @@ def _selected(ctx: Context) -> list[str]:
         ctx.lookback_hours,
         ctx.species_limit,
         ctx.ranking,
+        keys,
     )
 
 
 def _collage_key(ctx: Context) -> tuple:
-    # The species actually on the page, in name order (no re-render when the
-    # ranking reorders them). Not the window's: under a limit two birds trading
-    # places across it change the picture while the window's own set sits still.
+    # The page's species, not the window's: under a limit two birds can trade
+    # places across it while the set of species heard sits still.
     species = tuple(_selected(ctx))
     return (species, day_ordinal() if not species else None)
 
@@ -230,25 +230,18 @@ def _one(species) -> list[str]:
 
 def _collage_subjects(ctx: Context) -> list[str]:
     """What is on the page, plus every species the window counted that this style
-    cannot draw - the admin marks those as counted but not drawn (#9), which is
-    how a missing plate gets reported. Species the limit left out are not listed:
-    that is not a gap in the frame, it is the admin asking for a shorter page.
+    cannot draw - the admin marks those as counted but not drawn (#9). Ones the
+    limit left out are not listed: that is a shorter page, not a missing plate.
     """
     keys = ctx.drawable()
     counted = ctx.source.species_since(ctx.lookback_hours)
     artless = [name for name, _ in counted if normalize(name) not in keys]
-    return sorted(_selected(ctx) + artless)
+    return sorted(_selected(ctx, keys) + artless)
 
 
 # Insertion order is the order button A walks.
 MODES: dict[str, Mode] = {
-    "collage": Mode(
-        "Collage (default)",
-        _collage,
-        _collage_key,
-        _collage_subjects,
-        windowed=True,
-    ),
+    "collage": Mode("Collage (default)", _collage, _collage_key, _collage_subjects, windowed=True),
     "latest": Mode(
         "Latest bird",
         _latest_page,

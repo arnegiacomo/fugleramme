@@ -20,9 +20,16 @@ from ..config import BIRDNET_PORT, DOCS_URL, WEB_HEIGHTS
 from ..languages import NONE, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, origin_of, source_of
-from ..render.collage import LIMIT_OPTIONS, MAX_BIRDS, NO_LIMIT, RANKINGS
+from ..render.collage import MAX_BIRDS, NO_LIMIT, RANKINGS
 from ..render.fonts import FONTS, LABEL_SIZES
-from ..settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, lookback_order, merged
+from ..settings import (
+    LIMIT_OPTIONS,
+    LOOKBACK_OPTIONS,
+    ROTATIONS,
+    Settings,
+    lookback_order,
+    merged,
+)
 from ..source import NEEDS_PASSWORD, Unavailable
 from ..status import Status
 from . import STATIC_DIR, hostinfo
@@ -314,9 +321,8 @@ def _limits(settings: Settings) -> str:
 def _species_field(settings: Settings) -> str:
     """How many species the collage shows, and which ones it keeps (#53).
 
-    "No limit" still names MAX_BIRDS, because that is the honest answer: it is
-    the render budget and no setting spends past it. admin.js greys the ranking
-    out until there is a limit, with nothing to choose between before that.
+    The label names MAX_BIRDS even under "No limit": no setting spends past the
+    render budget. admin.js greys the ranking out until there is a limit.
     """
     return (
         f'<div class="field" id="limit">'
