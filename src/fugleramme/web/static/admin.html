@@ -19,12 +19,12 @@
   <form class="settings" method="post" action="/admin">
     <input type="hidden" name="$checkboxes" value="show_names">
     $mode_field
-    <label><span>Resolution <small>(web view only)</small></span>
+    <label><span>Resolution <span class="hint" tabindex="0" role="img" aria-label="Web view only"></span></span>
       <select name="web_resolution">$resolutions</select></label>
-    <label><span>Rotation <small>(how the frame hangs)</small></span>
+    <label><span>Rotation <span class="hint" tabindex="0" role="img" aria-label="How the frame hangs"></span></span>
       <select name="rotation">$rotations</select></label>
     <label id="lookback"$lookback_off>
-      <span>Lookback window <small>(how far back the frame looks)</small></span>
+      <span>Lookback window <span class="hint" tabindex="0" role="img" aria-label="How far back the frame looks"></span></span>
       <select name="lookback_hours"$lookback_disabled>$lookbacks</select></label>
     $limit_field
     $names_field

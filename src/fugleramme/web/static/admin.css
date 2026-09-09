@@ -30,6 +30,21 @@ button:disabled { opacity: 0.45; }
 /* A setting the chosen mode does not read: shown, so its value is not a surprise on the way back. */
 label.off, .field.off { opacity: 0.45; }
 a { color: #446; }
+/* The bubble hangs off the label's span, not the badge, so it starts at the
+   column edge and cannot run out of the 15rem form. */
+label > span, .field > span { position: relative; }
+/* Bottom margin: `middle` aligns to the x-height, a Title Case label to the cap. */
+.hint { display: inline-flex; align-items: center; justify-content: center;
+        width: 0.9rem; height: 0.9rem; margin: 0 0 0.125rem 0.05em; vertical-align: middle;
+        font-size: 0.78rem; font-weight: 700; line-height: 1; color: #6b675f;
+        border: 1px solid #aaa59c; border-radius: 50%; cursor: help; user-select: none; }
+.hint::before { content: "i"; }
+.hint:hover, .hint:focus { color: #446; border-color: #446; }
+.hint::after { content: attr(aria-label); position: absolute; left: 0; top: 100%; z-index: 2;
+               width: max-content; max-width: 13rem; margin-top: 0.3rem;
+               padding: 0.35rem 0.55rem; border-radius: 4px; background: #446; color: #fff;
+               font: 400 0.85rem/1.35 system-ui, sans-serif; visibility: hidden; }
+.hint:hover::after, .hint:focus::after { visibility: visible; }
 dl.status { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
             background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }
 dl.status dt { color: #666; }

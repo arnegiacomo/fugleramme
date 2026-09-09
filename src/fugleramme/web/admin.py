@@ -311,6 +311,14 @@ def _lookbacks(settings: Settings) -> str:
     return _options(sorted(labels, key=lookback_order), settings.lookback_hours, labels.get)
 
 
+def _hint(text: str) -> str:
+    """The note beside a field label. A span, not a button: a <label> may hold
+    only one labelable element and that is the select. admin.css draws the
+    bubble from `aria-label`, so one attribute is both the text and the name."""
+    note = html.escape(text, quote=True)
+    return f'<span class="hint" tabindex="0" role="img" aria-label="{note}"></span>'
+
+
 def _limits(settings: Settings) -> str:
     # A hand-edited non-preset value stays selectable so Save doesn't drop it.
     labels = {n: ("No limit" if n == NO_LIMIT else f"{n} species") for n in LIMIT_OPTIONS}
@@ -326,7 +334,7 @@ def _species_field(settings: Settings) -> str:
     """
     return (
         f'<div class="field" id="limit">'
-        f"<span>Species on the page <small>(at most {MAX_BIRDS})</small></span>"
+        f"<span>Species on the page {_hint(f'At most {MAX_BIRDS} species')}</span>"
         f'<label class="sub"><small>How many</small><select name="species_limit">'
         f"{_limits(settings)}</select></label>"
         f'<label class="sub" id="ranking"><small>Which ones to keep</small>'
