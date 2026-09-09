@@ -61,9 +61,11 @@ _MARGIN = 0.04  # page edge to content on short side. Hardcoded now, maybe add c
 NO_LIMIT = 0
 RANK_MOST_HEARD = "heard"
 RANK_RAREST = "rarest"
+RANK_RAREST_EVER = "rarest_ever"
 RANKINGS = {
     RANK_MOST_HEARD: "The most heard",
-    RANK_RAREST: "The rarest",
+    RANK_RAREST: "The rarest in the window",
+    RANK_RAREST_EVER: "The rarest all time",
 }
 DEFAULT_RANKING = RANK_MOST_HEARD
 _ALPHA_CUTOFF = 24
@@ -425,9 +427,9 @@ def _at(at: tuple[int, int], scale: float) -> tuple[int, int]:
 def _rank(ranking: str):
     """Sort key for the birds the admin asked to keep. Ties break on the name, so
     a page at its limit does not flicker between two equally-heard birds."""
-    if ranking == RANK_RAREST:
-        return lambda pair: (pair[1], pair[0])
-    return lambda pair: (-pair[1], pair[0])
+    if ranking == RANK_MOST_HEARD:
+        return lambda pair: (-pair[1], pair[0])
+    return lambda pair: (pair[1], pair[0])  # both rarest rankings
 
 
 def selected_species(
@@ -453,6 +455,10 @@ def selected_species(
     counted = [(name, n) for name, n in source.species_since(hours) if normalize(name) in keys]
     if limit == NO_LIMIT:
         return sorted(name for name, _n in counted)  # nothing to rank: they all fit
+    if ranking == RANK_RAREST_EVER:
+        # A resident heard twice today is not a rarity; a first-timer is.
+        ever = dict(source.species_since(0))  # 0 hours: the whole record
+        counted = [(name, ever.get(name, n)) for name, n in counted]
     return sorted(name for name, _n in sorted(counted, key=_rank(ranking))[:limit])
 
 

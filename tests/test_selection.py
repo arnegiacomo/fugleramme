@@ -11,18 +11,21 @@ from PIL import Image
 from fugleramme.names import normalize
 from fugleramme.picks import Picks
 from fugleramme.render import collage
-from fugleramme.render.collage import RANK_RAREST
+from fugleramme.render.collage import RANK_RAREST, RANK_RAREST_EVER
 from fugleramme.settings import DEFAULT_LIMIT, Settings
 
 
 class _Counted:
-    """Just enough of a Source for gather_entries: who was heard, how often."""
+    """Just enough of a Source for gather_entries: who was heard, how often,
+    and how often ever (`hours` of 0) where the two differ."""
 
-    def __init__(self, counts: dict[str, int]):
+    def __init__(self, counts: dict[str, int], ever: dict[str, int] | None = None):
         self._counts = counts
+        self._ever = ever or counts
 
     def species_since(self, hours: int = 24) -> list[tuple[str, int]]:
-        return sorted(self._counts.items(), key=lambda kv: (-kv[1], kv[0]))
+        counts = self._ever if hours == 0 else self._counts
+        return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
 
 def _garden(tmp_path, count: int, drawn: int | None = None) -> list[str]:
@@ -59,6 +62,21 @@ def test_the_rarest_ranking_keeps_the_other_end(tmp_path):
     visitor worth seeing is the one at the bottom of the list."""
     names = _garden(tmp_path, 20)
     assert _on_page(tmp_path, names, limit=5, ranking=RANK_RAREST) == sorted(names[:5])
+
+
+def test_the_all_time_rarest_ranks_on_the_record_not_the_window(tmp_path):
+    """Heard equally today, the surprise is the one the station has barely ever
+    logged - which only the record knows."""
+    names = _garden(tmp_path, 4)
+    lately = dict.fromkeys(names, 2)  # nothing to separate them in the window
+    ever = dict.fromkeys(names, 500) | {names[1]: 3}
+    source = _Counted(lately, ever)
+
+    def kept(ranking):
+        return collage.selected_species(source, tmp_path, "classic", limit=1, ranking=ranking)
+
+    assert kept(RANK_RAREST_EVER) == [names[1]]
+    assert kept(RANK_RAREST) == [names[0]]  # a window tie falls back to the name
 
 
 def test_a_limit_keeps_exactly_that_many_and_a_fresh_frame_carries_one(tmp_path):
