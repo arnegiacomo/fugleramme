@@ -163,11 +163,20 @@ async function loadSpecies(query, id) {
 // Settings the chosen mode ignores go dim and stop being submitted, so the
 // saved value survives a trip through a mode that has no use for it.
 const lookback = document.getElementById("lookback");
+const limit = document.getElementById("limit");
+const ranking = document.getElementById("ranking");
+function dim(el, on) {
+  el.querySelectorAll("select").forEach((s) => { s.disabled = !on; });
+  el.classList.toggle("off", !on);
+}
 function syncMode() {
   const mode = form.querySelector("input[name=mode]:checked");
   const on = !mode || cfg.windowedModes.includes(mode.value);
-  lookback.querySelector("select").disabled = !on;
-  lookback.classList.toggle("off", !on);
+  dim(lookback, on);
+  dim(limit, on);
+  // Nothing to rank while every bird the window heard is already on the page.
+  const capped = form.querySelector("select[name=species_limit]").value !== cfg.noLimit;
+  dim(ranking, on && capped);
 }
 
 // Capture, so a mode change settles which fields still submit before the shared

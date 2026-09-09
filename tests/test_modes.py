@@ -13,11 +13,13 @@ from PIL import Image
 from fugleramme import fake, modes
 from fugleramme.api import ApiSource
 from fugleramme.languages import namer
+from fugleramme.names import normalize
 from fugleramme.picks import Picks
 from fugleramme.settings import Settings
 
 NOW = datetime.now().astimezone()
 BLACKBIRD, TIT = "Turdus merula", "Parus major"
+ROBIN = "Erithacus rubecula"
 
 
 def _row(id_: int, name: str, ago_hours: float) -> fake.Detection:
@@ -41,6 +43,13 @@ def images(tmp_path):
     (style / "perches").mkdir()
     Image.new("RGBA", (80, 60), (20, 20, 20, 255)).save(style / "perches" / "twig.png")
     return tmp_path
+
+
+def _draw(images, name: str) -> None:
+    """Give a species a plate, so it can hold a place on the page."""
+    Image.new("RGBA", (120, 90), (40, 40, 40, 255)).save(
+        images / "classic" / "birds" / f"{normalize(name)}.png"
+    )
 
 
 def _ctx(source, images, tmp_path, mode, **overrides):
@@ -117,6 +126,54 @@ def test_the_collage_holds_the_page_when_a_bird_already_on_it_calls_again(
 
     assert detections.species_since()[0][0] == BLACKBIRD  # the ranking did flip
     assert modes.state_key(_ctx(detections, images, tmp_path, "collage")) == before
+
+
+def test_a_limit_keeps_the_most_heard_and_the_ranking_takes_the_other_end(tmp_path, images, source):
+    detections = source(rows=[_row(3, TIT, 1), _row(2, BLACKBIRD, 1), _row(1, BLACKBIRD, 2)])
+    for ranking, expected in (("heard", BLACKBIRD), ("rarest", TIT)):
+        ctx = _ctx(detections, images, tmp_path, "collage", species_limit=1, ranking=ranking)
+        assert modes._selected(ctx) == [expected]
+
+
+def test_a_bird_crossing_the_limit_repaints_although_the_window_never_moved(
+    tmp_path, images, detector
+):
+    """The reason the key reads the page rather than the window. Under a limit
+    two birds can trade places across it while the set of species heard sits
+    perfectly still - and the picture changes."""
+    rows = [_row(3, TIT, 1), _row(2, BLACKBIRD, 1), _row(1, BLACKBIRD, 2)]
+    url, _httpd = detector(rows=rows)
+    detections = ApiSource(url)
+
+    def ctx():
+        return _ctx(detections, images, tmp_path, "collage", species_limit=1)
+
+    window = {name for name, _ in detections.species_since()}
+    before = modes.state_key(ctx())
+    assert modes._selected(ctx()) == [BLACKBIRD]
+
+    for id_ in range(4, 9):
+        _heard(detections, rows, _row(id_, TIT, 0))
+
+    assert {name for name, _ in detections.species_since()} == window  # same birds heard
+    assert modes._selected(ctx()) == [TIT]  # different bird on the page
+    assert modes.state_key(ctx()) != before  # so the panel is told about it
+
+
+def test_the_admin_lists_a_bird_with_no_plate_but_not_one_the_limit_left_out(
+    tmp_path, images, source
+):
+    (images / "classic" / "birds" / "parus-major.png").unlink()  # counted, cannot be drawn
+    _draw(images, ROBIN)
+    rows = [_row(4, TIT, 1), _row(3, ROBIN, 1), _row(2, BLACKBIRD, 1), _row(1, BLACKBIRD, 2)]
+    detections = source(rows=rows)
+
+    every = modes.subjects(_ctx(detections, images, tmp_path, "collage"))
+    assert every == sorted([BLACKBIRD, ROBIN, TIT])
+
+    # One place, and the blackbird is the most heard, so the robin loses it.
+    limited = modes.subjects(_ctx(detections, images, tmp_path, "collage", species_limit=1))
+    assert limited == sorted([BLACKBIRD, TIT])  # the tit for having no plate, not for losing
 
 
 def test_the_newest_arrival_is_the_latest_first_ever(tmp_path, images, source):

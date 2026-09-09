@@ -28,7 +28,7 @@ label.src input { width: auto; padding: 0; }
 button { font-size: 1rem; padding: 0.5rem 1.25rem; margin-top: 0.5rem; }
 button:disabled { opacity: 0.45; }
 /* A setting the chosen mode does not read: shown, so its value is not a surprise on the way back. */
-label.off { opacity: 0.45; }
+label.off, .field.off { opacity: 0.45; }
 a { color: #446; }
 dl.status { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
             background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }

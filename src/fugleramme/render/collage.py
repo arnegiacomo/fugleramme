@@ -31,7 +31,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
 
-from ..names import image_for
+from ..names import drawable_keys, image_for, normalize
 from ..picks import Picks
 from ..source import Source
 from . import fonts
@@ -56,7 +56,21 @@ DEFAULT_RESOLUTION = (1280, 800)
 # panel and the kiosk on different pages.
 _PACK_SHORT = 1200
 _MARGIN = 0.04  # page edge to content on short side. Hardcoded now, maybe add configurability?
-_MAX_BIRDS = 40  # keeps the render quick, not the page tidy
+# The frame's own ceiling whatever the admin asks for: a render is ~90% packing
+# and the Pi has to finish it. Keeps the render quick, not the page tidy.
+MAX_BIRDS = 40
+
+# How many species the admin lets on, and which ones (#53). NO_LIMIT still means
+# "every bird the window holds", not "however long the Pi takes to draw them".
+NO_LIMIT = 0
+LIMIT_OPTIONS = (NO_LIMIT, 5, 8, 10, 12, 15, 20, 30)
+RANK_MOST_HEARD = "heard"
+RANK_RAREST = "rarest"
+RANKINGS = {
+    RANK_MOST_HEARD: "The most heard",
+    RANK_RAREST: "The rarest",  # at a busy station the visitor is the interesting one
+}
+DEFAULT_RANKING = RANK_MOST_HEARD
 _ALPHA_CUTOFF = 24
 _OVERLAP_PX = 2  # erode the collision mask slightly so birds nestle into
 # each other's (invisible on paper) halos. No rotation:
@@ -354,7 +368,7 @@ def render_collage(
     """
     canvas = blank(resolution, textured)
 
-    kept = [(name, path) for name, path in entries if path is not None][:_MAX_BIRDS]
+    kept = [(name, path) for name, path in entries if path is not None][:MAX_BIRDS]
     if not kept:
         draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
@@ -413,19 +427,57 @@ def _at(at: tuple[int, int], scale: float) -> tuple[int, int]:
     return round(at[0] * scale), round(at[1] * scale)
 
 
+def _rank(ranking: str):
+    """Sort key that puts the birds the admin asked to keep first. Ties break on
+    the name, so a page at its limit does not flicker between two equal birds."""
+    if ranking == RANK_RAREST:
+        return lambda pair: (pair[1], pair[0])
+    return lambda pair: (-pair[1], pair[0])
+
+
+def selected_species(
+    source: Source,
+    images_dir: Path,
+    style: str,
+    hours: int = 24,
+    limit: int = NO_LIMIT,
+    ranking: str = DEFAULT_RANKING,
+) -> list[str]:
+    """The species that make the page, in name order.
+
+    Name order because the order birds are handed over must not depend on their
+    counts - a bird merely heard again would reshuffle the whole packing. Which
+    birds are on it does depend on the counts once a limit is set, so the page's
+    key is built from this same list.
+
+    The ranking only applies under a limit, as the admin says: with none set the
+    frame's own ceiling keeps the most heard, whatever the greyed-out field holds.
+
+    What the style cannot draw is dropped before the limit, so a plate the frame
+    does not have never takes one of the places. One directory listing, not a
+    probe per species: the loop asks for this on every poll, and so does the
+    kiosk.
+    """
+    keys = drawable_keys(images_dir, style)
+    counted = [(name, n) for name, n in source.species_since(hours) if normalize(name) in keys]
+    if limit == NO_LIMIT:
+        limit, ranking = MAX_BIRDS, DEFAULT_RANKING
+    ranked = sorted(counted, key=_rank(ranking))
+    return sorted(name for name, _n in ranked[: min(limit, MAX_BIRDS)])
+
+
 def gather_entries(
     source: Source,
     images_dir: Path,
     style: str,
     picks: Picks,
     hours: int = 24,
+    limit: int = NO_LIMIT,
+    ranking: str = DEFAULT_RANKING,
 ) -> list[tuple[str, Path | None]]:
-    """Recent-window species paired with the artwork each is wearing, or None.
-
-    In name order, matching the collage's cache key: the page is a function of
-    the species set alone, so a count moving must not reshuffle the layout.
-    """
+    """The page's species paired with the artwork each is wearing. The None only
+    stands for a file that vanished between `selected_species` and here."""
     return [
         (name, image_for(name, images_dir, style, picks))
-        for name, _count in sorted(source.species_since(hours))
+        for name in selected_species(source, images_dir, style, hours, limit, ranking)
     ]

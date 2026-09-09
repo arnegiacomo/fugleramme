@@ -27,7 +27,7 @@ from PIL import Image
 from .languages import Namer
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
-from .render.collage import gather_entries, render_collage
+from .render.collage import gather_entries, render_collage, selected_species
 from .render.page import day_ordinal
 from .render.plate import render_plate
 from .source import Source, Species
@@ -56,6 +56,8 @@ class Context:
     lookback_hours: int
     font_key: str
     label_size: str
+    species_limit: int
+    ranking: str
     textured: bool = True
 
     def perches(self):
@@ -88,6 +90,8 @@ def context(
         lookback_hours=settings.lookback_hours,
         font_key=settings.label_font,
         label_size=settings.label_size,
+        species_limit=settings.species_limit,
+        ranking=settings.ranking,
         textured=textured,
     )
 
@@ -120,15 +124,38 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
     )
 
 
+def _selected(ctx: Context) -> list[str]:
+    """The species on the collage, in name order. Asked on every poll by the key
+    and the render alike, and cheap enough for it."""
+    return selected_species(
+        ctx.source,
+        ctx.images_dir,
+        ctx.style,
+        ctx.lookback_hours,
+        ctx.species_limit,
+        ctx.ranking,
+    )
+
+
 def _collage_key(ctx: Context) -> tuple:
-    # Sorted to keep key constant for the same bird set (avoid re-renders on order change)
-    species = tuple(sorted(name for name, _ in ctx.source.species_since(ctx.lookback_hours)))
+    # The species actually on the page, in name order (no re-render when the
+    # ranking reorders them). Not the window's: under a limit two birds trading
+    # places across it change the picture while the window's own set sits still.
+    species = tuple(_selected(ctx))
     return (species, day_ordinal() if not species else None)
 
 
 def _collage(ctx: Context) -> Image.Image:
     return render_collage(
-        gather_entries(ctx.source, ctx.images_dir, ctx.style, ctx.picks, ctx.lookback_hours),
+        gather_entries(
+            ctx.source,
+            ctx.images_dir,
+            ctx.style,
+            ctx.picks,
+            ctx.lookback_hours,
+            ctx.species_limit,
+            ctx.ranking,
+        ),
         ctx.resolution,
         ctx.show_names,
         ctx.textured,
@@ -202,14 +229,26 @@ def _one(species) -> list[str]:
 
 
 def _collage_subjects(ctx: Context) -> list[str]:
-    # The whole window, art-less species included: the admin marks those as
-    # counted but not drawn.
-    return [name for name, _ in ctx.source.species_since(ctx.lookback_hours)]
+    """What is on the page, plus every species the window counted that this style
+    cannot draw - the admin marks those as counted but not drawn (#9), which is
+    how a missing plate gets reported. Species the limit left out are not listed:
+    that is not a gap in the frame, it is the admin asking for a shorter page.
+    """
+    keys = ctx.drawable()
+    counted = ctx.source.species_since(ctx.lookback_hours)
+    artless = [name for name, _ in counted if normalize(name) not in keys]
+    return sorted(_selected(ctx) + artless)
 
 
 # Insertion order is the order button A walks.
 MODES: dict[str, Mode] = {
-    "collage": Mode("Collage (default)", _collage, _collage_key, _collage_subjects, windowed=True),
+    "collage": Mode(
+        "Collage (default)",
+        _collage,
+        _collage_key,
+        _collage_subjects,
+        windowed=True,
+    ),
     "latest": Mode(
         "Latest bird",
         _latest_page,

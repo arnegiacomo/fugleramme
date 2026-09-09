@@ -20,6 +20,7 @@ from ..config import BIRDNET_PORT, DOCS_URL, WEB_HEIGHTS
 from ..languages import NONE, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, origin_of, source_of
+from ..render.collage import LIMIT_OPTIONS, MAX_BIRDS, NO_LIMIT, RANKINGS
 from ..render.fonts import FONTS, LABEL_SIZES
 from ..settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, lookback_order, merged
 from ..source import NEEDS_PASSWORD, Unavailable
@@ -303,6 +304,31 @@ def _lookbacks(settings: Settings) -> str:
     return _options(sorted(labels, key=lookback_order), settings.lookback_hours, labels.get)
 
 
+def _limits(settings: Settings) -> str:
+    # A hand-edited non-preset value stays selectable so Save doesn't drop it.
+    labels = {n: ("No limit" if n == NO_LIMIT else f"{n} species") for n in LIMIT_OPTIONS}
+    labels.setdefault(settings.species_limit, f"{settings.species_limit} species")
+    return _options(sorted(labels), settings.species_limit, labels.get)
+
+
+def _species_field(settings: Settings) -> str:
+    """How many species the collage shows, and which ones it keeps (#53).
+
+    "No limit" still names MAX_BIRDS, because that is the honest answer: it is
+    the render budget and no setting spends past it. admin.js greys the ranking
+    out until there is a limit, with nothing to choose between before that.
+    """
+    return (
+        f'<div class="field" id="limit">'
+        f"<span>Species on the page <small>(at most {MAX_BIRDS})</small></span>"
+        f'<label class="sub"><small>How many</small><select name="species_limit">'
+        f"{_limits(settings)}</select></label>"
+        f'<label class="sub" id="ranking"><small>Which ones to keep</small>'
+        f'<select name="ranking">{_options(RANKINGS, settings.ranking, RANKINGS.get)}</select>'
+        f"</label></div>"
+    )
+
+
 def page(
     ctx: modes.Context,
     settings: Settings,
@@ -342,6 +368,7 @@ def page(
                 "birdnetPort": birdnet_port,
                 "version": __version__,
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
+                "noLimit": str(NO_LIMIT),
             }
         ),
         mode_field=(
@@ -359,6 +386,7 @@ def page(
         lookback_off="" if windowed else ' class="off"',
         lookback_disabled="" if windowed else " disabled",
         lookbacks=_lookbacks(settings),
+        limit_field=_species_field(settings),
         names_field=_names_field(settings, languages, names_failure),
         style_field=(
             f'<div class="field"><span>Artwork style</span>'
