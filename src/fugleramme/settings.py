@@ -32,6 +32,8 @@ ALL_TIME = 0
 
 # Lookback windows offered in the admin UI, as (hours, label), shortest-first.
 LOOKBACK_OPTIONS = (
+    (1, "Last hour"),
+    (3, "Last 3 hours"),
     (6, "Last 6 hours"),
     (12, "Last 12 hours"),
     (24, "Today (24 hours)"),

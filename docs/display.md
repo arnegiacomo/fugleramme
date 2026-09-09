@@ -31,7 +31,7 @@ Heard nothing at all in the lookback window? The page draws a bare perch.
 
 ### Lookback window
 
-How far back the collage looks, from the last 6 hours to all time. Default is
+How far back the collage looks, from the last hour to all time. Default is
 **Today (24 hours)**. Only the collage uses it.
 
 **All time** never drops a species, so the page only grows.
