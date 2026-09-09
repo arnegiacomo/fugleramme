@@ -24,7 +24,7 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 ./run.sh                                    # Pi only: converge an existing checkout (BirdNET-Go + services)
 ```
 
-**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, how many species and which ones, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`), persisted to `--config` (default `detector/data/settings.json`). The detector's address and password are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`; `--detector` only supplies the default for a settings file that carries no `detector_url` of its own. The panel's own size is never a setting.
+**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, how many species and which ones, what sizes them, the panel's breath, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`), persisted to `--config` (default `detector/data/settings.json`). The detector's address and password are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`; `--detector` only supplies the default for a settings file that carries no `detector_url` of its own. The panel's own size is never a setting.
 
 ## Architecture
 
@@ -39,6 +39,8 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 **Render once, fan out** (`service.py`).
 
 - The loop re-renders only when its inputs change: the species on the page, panel size, style, rotation, names + language + typeface.
+- A key has two halves (`modes.state_key` / `modes.steady_key`). The steady half must reach the glass at once; the emphasis half - how loud each bird has been - may be held back for `settings.breath_minutes`, and by default is held until the steady half moves anyway. The rule for the panel: a refresh you notice should mean the frame actually heard a new bird.
+- The breath is the panel's alone: `run` passes 0 with no panel, so a web-only frame is as live as it was before the setting existed. On a panelled frame the kiosk can read a size change up to one breath before the glass does - the only place the two outputs are allowed to differ, and only ever in how large a bird is, never in which birds are on the page.
 - It dithers to 6 colors and pushes to the panel; the kiosk serves the same page full-color at its own pixel count. No panel means web-only, the same path as `--preview`.
 
 **The panel sizes itself** (`panel.py`).
@@ -73,6 +75,8 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 - Packing is ~90% of a render and both outputs pack identically, so `_placements` caches it (`_layouts`, keyed on the species and their artwork, the pack size, and the resolved label strings). The loop's panel render pays for the kiosk's: 5.4s to 0.5s here. The lock is held across the pack so the second caller waits rather than packing its own copy.
 - No-artwork species are omitted. An empty window draws one branch from the style's own `perches/`, chosen by day (`collage.perch_day`, in both cache keys).
 - `selected_species` is the single answer to which birds are on the page: it drops what the style cannot draw, then applies the admin's limit under the admin's ranking, then `MAX_BIRDS` as the frame's own render budget - spent on the most heard, since the ranking only applies under a limit. The key reads *that* list, not the window's - under a limit two birds can trade places across it while the set of species heard sits still.
+- Size and centrality are one number, never two: a bird's weight decides how big it is drawn, and the sort by weight decides how early it goes down on the centre-out spiral. Body mass is one input to it (`sizes.SIZE_EXPONENT`) and, when the admin asks, how often the bird was heard is the other (`sizes.TIER_STEP`). The two are tuned to about the same strength so neither flattens the other, and both are divided by the present set's geometric mean so the cluster still fills the page.
+- Counts reach the layout as broad bands, never as counts (`sizes.count_tiers`). The layout is a function of its cache key and the loop repaints when that key moves, so a raw count in it would repack the page on every single detection.
 - A label's box joins its bird's collision mask, so it tucks under the body and never lands on a neighbour. A second language stacks below in parentheses.
 - On the panel labels are hard-thresholded to pure black: antialiased grey dithers into colour speckle.
 

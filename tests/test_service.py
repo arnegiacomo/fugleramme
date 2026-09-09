@@ -4,19 +4,35 @@ BirdNET-Go restarts is worse than one that is a few minutes stale."""
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import numpy as np
 import pytest
 from PIL import Image
 
-from fugleramme import api, modes, service
+from fugleramme import api, fake, modes, service
 from fugleramme.config import Config
-from fugleramme.settings import Settings, SettingsStore
+from fugleramme.panel import Panel
+from fugleramme.settings import WITH_THE_BIRDS, Settings, SettingsStore
+
+BLACKBIRD, TIT = "Turdus merula", "Parus major"
 
 
 class _Stop(Exception):
     """Breaks the otherwise endless loop from inside its own sleep."""
+
+
+class _Glass:
+    """An Inky that costs nothing to refresh, so the loop takes the panel path."""
+
+    resolution = (1600, 1200)
+
+    def set_image(self, image):
+        pass
+
+    def show(self):
+        pass
 
 
 @pytest.fixture
@@ -65,6 +81,56 @@ def test_the_loop_holds_its_last_page_when_the_detector_goes_away(
     assert render.call_count == 1  # and did not draw an empty page over it
     assert len(set(ticks)) == 1  # and the file they would have written it to is untouched
     assert np.asarray(Image.open(config.output_path)).std() > 1  # birds, not bare paper
+
+
+@pytest.mark.parametrize(("panelled", "renders"), [(False, 2), (True, 1)])
+def test_only_a_frame_with_a_panel_holds_its_breath(
+    tmp_path, images, detector, monkeypatch, panelled, renders
+):
+    """The breath is buying a 20-30s e-ink refresh. A web-only frame has none to
+    buy, so a size change reaches it as directly as it did before the setting -
+    holding a browser page back would cost the reader and save nobody."""
+    now = datetime.now().astimezone()
+    rows = [fake.Detection(40, now - timedelta(hours=1), TIT, 0.9, False)]
+    rows += [
+        fake.Detection(i, now - timedelta(hours=1), BLACKBIRD, 0.9, False) for i in range(1, 40)
+    ]
+    url, _httpd = detector(rows=rows)
+    monkeypatch.setattr(api, "_TTL", 0)  # the loop must see the new detections
+    SettingsStore(tmp_path / "settings.json", Settings()).update(
+        detector_url=url, size_by="heard", breath_minutes=WITH_THE_BIRDS
+    )
+    config = Config(
+        images_dir=images,
+        detector_url=url,
+        output_path=tmp_path / "frame.png",
+        host="127.0.0.1",
+        port=0,
+        config_path=tmp_path / "settings.json",
+    )
+    ticks: list[int] = []
+
+    def sleep(_seconds):
+        ticks.append(1)
+        if len(ticks) == 1:
+            # Enough to lift the tit a band, and not a single new species: the
+            # steady key does not move, so only the breath decides.
+            for id_ in (41, 42):
+                rows.insert(0, fake.Detection(id_, now, TIT, 0.9, False))
+        if len(ticks) == 3:
+            raise _Stop
+
+    with (
+        patch.object(service, "init_panel", return_value=Panel(_Glass()) if panelled else None),
+        patch.object(service.buttons, "watch"),
+        patch.object(service.updates, "available", return_value=None),
+        patch.object(service.modes, "render", side_effect=modes.render) as render,
+        patch.object(service.time, "sleep", sleep),
+        pytest.raises(_Stop),
+    ):
+        service.run(config)
+
+    assert render.call_count == renders
 
 
 def test_the_configured_detector_is_rebuilt_only_when_the_settings_name_another(tmp_path, detector):

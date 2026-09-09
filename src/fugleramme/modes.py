@@ -7,6 +7,10 @@ species set for the collage, the run the latest bird is on rather than its last
 call. The key is what makes a slow e-ink page bearable: a busy feeder must not
 spend the day refreshing.
 
+A key comes in two halves: `Mode.key` is the whole of it, `Mode.steady` the part
+that has to reach the glass at once. The difference is how often each bird has
+been heard, which drifts all day on its own - see `service._breathing`.
+
 Only the collage reads the lookback window; the rest look at the whole record,
 which is why the admin greys the setting out for them.
 """
@@ -30,6 +34,7 @@ from .picks import Picks
 from .render.collage import gather_entries, render_collage, selected_species
 from .render.page import day_ordinal
 from .render.plate import render_plate
+from .render.sizes import SIZE_BY_HEARD, count_tiers
 from .source import Source, Species
 
 if TYPE_CHECKING:
@@ -56,6 +61,7 @@ class Context:
     lookback_hours: int
     font_key: str
     label_size: str
+    size_by: str
     species_limit: int
     ranking: str
     textured: bool = True
@@ -90,6 +96,7 @@ def context(
         lookback_hours=settings.lookback_hours,
         font_key=settings.label_font,
         label_size=settings.label_size,
+        size_by=settings.size_by,
         species_limit=settings.species_limit,
         ranking=settings.ranking,
         textured=textured,
@@ -106,6 +113,8 @@ class Mode:
     # Driven by the lookback window: the admin offers the setting, and the loop
     # prunes artwork picks to it.
     windowed: bool = False
+    # The part of `key` that must reach the glass at once; None means all of it.
+    steady: Callable[[Context], tuple] | None = None
 
 
 def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = None) -> Image.Image:
@@ -125,8 +134,8 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
 
 
 def _selected(ctx: Context) -> list[str]:
-    """The species on the collage, in name order. Asked on every poll by the key
-    and the render alike, and cheap enough for it."""
+    """The species on the collage, in name order. Asked on every poll by the key,
+    the emphasis and the render alike, and cheap enough for it."""
     return selected_species(
         ctx.source,
         ctx.images_dir,
@@ -137,12 +146,35 @@ def _selected(ctx: Context) -> list[str]:
     )
 
 
-def _collage_key(ctx: Context) -> tuple:
+def _emphasis(ctx: Context) -> tuple[tuple[str, int], ...]:
+    """How often each species has been heard, in broad bands, or empty when the
+    frame sizes by body mass alone (the default) or is on a plate mode - those
+    draw one bird off the whole record, so there is nothing to band.
+
+    The one input to the page that moves on its own all day, and so the only
+    thing `_collage_key` has that `_collage_steady` does not.
+    """
+    if ctx.size_by != SIZE_BY_HEARD or not mode_of(ctx.mode).windowed:
+        return ()
+    # Banded against the birds on the page, not the window: the ten rarest are
+    # all quiet next to the resident crow, and would come out ten of a size.
+    on_page = set(_selected(ctx))
+    counted = [
+        (name, n) for name, n in ctx.source.species_since(ctx.lookback_hours) if name in on_page
+    ]
+    return tuple(sorted(count_tiers(counted).items()))
+
+
+def _collage_steady(ctx: Context) -> tuple:
     # The species actually on the page, in name order (no re-render when the
     # ranking reorders them). Not the window's: under a limit two birds trading
     # places across it change the picture while the window's own set sits still.
     species = tuple(_selected(ctx))
     return (species, day_ordinal() if not species else None)
+
+
+def _collage_key(ctx: Context) -> tuple:
+    return _collage_steady(ctx) + (_emphasis(ctx),)
 
 
 def _collage(ctx: Context) -> Image.Image:
@@ -163,6 +195,7 @@ def _collage(ctx: Context) -> Image.Image:
         ctx.label_size,
         ctx.namer.label,
         ctx.perches(),
+        dict(_emphasis(ctx)),
     )
 
 
@@ -248,6 +281,7 @@ MODES: dict[str, Mode] = {
         _collage_key,
         _collage_subjects,
         windowed=True,
+        steady=_collage_steady,
     ),
     "latest": Mode(
         "Latest bird",
@@ -265,10 +299,9 @@ def mode_of(key: str) -> Mode:
     return MODES.get(key, MODES[DEFAULT_MODE])
 
 
-def state_key(ctx: Context) -> tuple:
-    """Everything the page is a function of: the render cache key, and what the
-    kiosk polls to know the picture changed."""
-    mode = mode_of(ctx.mode)
+def _key(ctx: Context, mode_part: tuple) -> tuple:
+    """The settings half of a key, the mode's own half on the end. One builder for
+    both keys below, so they cannot drift apart in what they cover."""
     return (
         ctx.mode,
         ctx.style,
@@ -277,8 +310,22 @@ def state_key(ctx: Context) -> tuple:
         ctx.font_key,
         ctx.label_size,
         ctx.namer.key,
-        mode.key(ctx),
+        ctx.size_by,
+        mode_part,
     )
+
+
+def state_key(ctx: Context) -> tuple:
+    """Everything the page is a function of: the render cache key, and what the
+    kiosk polls to know the picture changed."""
+    return _key(ctx, mode_of(ctx.mode).key(ctx))
+
+
+def steady_key(ctx: Context) -> tuple:
+    """The part of `state_key` that may not be made to wait: equal here but not
+    there means the same birds at sizes that have drifted."""
+    mode = mode_of(ctx.mode)
+    return _key(ctx, (mode.steady or mode.key)(ctx))
 
 
 def token(key: tuple) -> str:

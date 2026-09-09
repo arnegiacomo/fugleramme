@@ -13,6 +13,9 @@ names are off). The name label is an admin toggle, on by default, and reads in
 the admin's chosen language(s); it packs as part of its bird, tucked up under
 the silhouette, so a name can never land on a neighbour or clip.
 
+Size and centrality are one number, not two: whatever makes a bird bigger also
+places it earlier on the spiral. What feeds that number is sizes.py's business.
+
 Nothing here rolls dice per render: a species holds its artwork for as long as
 it is in the window (picks.py) and the mirror is a hash of the name, so a bird
 is unaffected by which other birds are on the page, or by a restart.
@@ -24,7 +27,7 @@ import hashlib
 import logging
 import math
 import threading
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -46,7 +49,7 @@ from .page import (
     trim,
 )
 from .paper import PAD, process_sprite
-from .sizes import SIZE_EXPONENT, mass_of
+from .sizes import SIZE_EXPONENT, TIER_STEP, mass_of
 
 log = logging.getLogger(__name__)
 
@@ -221,12 +224,26 @@ def _flip(name: str) -> bool:
     return hashlib.blake2b(name.encode(), digest_size=1).digest()[0] < 128
 
 
-def _size_weights(names: list[str]) -> list[float]:
-    """Per-bird display weight from real mass, centered on the present set's
-    geometric mean and compressed by SIZE_EXPONENT."""
+def _geometric(values: list[float]) -> float:
+    return math.exp(sum(math.log(v) for v in values) / len(values))
+
+
+def _size_weights(names: list[str], tiers: Mapping[str, int]) -> list[float]:
+    """Per-bird display weight from real mass, optionally multiplied by how often
+    the bird has been heard (`tiers`; empty means mass alone).
+
+    Each factor is divided by the set's geometric mean, so it only ever says how
+    a bird compares to its neighbours. That is what keeps the two composable and
+    keeps `base`, which sizes the cluster to the page, from drifting.
+    """
     masses = [mass_of(n) for n in names]
-    geo = math.exp(sum(math.log(m) for m in masses) / len(masses))
-    return [(m / geo) ** SIZE_EXPONENT for m in masses]
+    geo = _geometric(masses)
+    weights = [(m / geo) ** SIZE_EXPONENT for m in masses]
+    if not tiers:
+        return weights
+    heard = [float(TIER_STEP ** tiers.get(n, 0)) for n in names]
+    loud = _geometric(heard)
+    return [w * h / loud for w, h in zip(weights, heard, strict=True)]
 
 
 def _layout(
@@ -291,6 +308,7 @@ def _placements(
     key: tuple,
     arts: list[Image.Image],
     names: list[str],
+    tiers: Mapping[str, int],
     flips: list[bool],
     width: int,
     height: int,
@@ -307,10 +325,11 @@ def _placements(
         if hit is not None:
             return hit
 
-        # Each bird's target size scales with its real mass (compressed); the whole
-        # set then overshoots and shrinks to the first fit that fills the canvas.
-        # Placing biggest-first on the center-out spiral keeps large birds central.
-        weights = _size_weights(names)
+        # Each bird's target size scales with its real mass (compressed), and
+        # optionally with how often it was heard; the whole set then overshoots
+        # and shrinks to the first fit. Biggest-first on the spiral keeps the
+        # birds that earned the most size central.
+        weights = _size_weights(names, tiers)
         order = sorted(range(len(names)), key=lambda i: -weights[i])
         base = min(
             math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
@@ -358,6 +377,7 @@ def render_collage(
     label_size: str = fonts.DEFAULT_LABEL_SIZE,
     label_text: Callable[[str], str] = str,
     perches: Sequence[Path] = (),
+    tiers: Mapping[str, int] | None = None,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
@@ -365,6 +385,8 @@ def render_collage(
     would otherwise turn the grain into noise. It also picks the label ink.
     label_text: scientific name -> what the label reads; str leaves it alone.
     perches: the active style's bare branches, for a page with no birds on it.
+    tiers: how often each species was heard, in bands (sizes.count_tiers);
+    empty sizes the page by body mass alone, which is the default.
     """
     canvas = blank(resolution, textured)
 
@@ -379,6 +401,8 @@ def render_collage(
     width, height = round(resolution[0] / scale), round(resolution[1] / scale)
 
     names = [name for name, _ in kept]
+    # Narrowed to the birds actually drawn; the window's bands cover more.
+    heard = {name: tiers[name] for name in names if name in tiers} if tiers else {}
     flips = [_flip(name) for name in names]
     name_px = label_px(width, height, label_size)
     labels = tuple(label_text(name) for name in names) if show_names else None
@@ -389,11 +413,14 @@ def render_collage(
         font_key if show_names else None,
         name_px,
         labels,
+        # In the key because they change the sizes, and so the whole packing.
+        tuple(sorted(heard.items())),
     )
     placed, used_px = _placements(
         key,
         arts,
         names,
+        heard,
         flips,
         width,
         height,

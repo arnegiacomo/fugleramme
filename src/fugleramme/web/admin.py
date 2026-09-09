@@ -22,7 +22,15 @@ from ..modes import MODES
 from ..names import available_styles, image_for, origin_of, source_of
 from ..render.collage import LIMIT_OPTIONS, MAX_BIRDS, NO_LIMIT, RANKINGS
 from ..render.fonts import FONTS, LABEL_SIZES
-from ..settings import LOOKBACK_OPTIONS, ROTATIONS, Settings, lookback_order, merged
+from ..render.sizes import SIZE_BY_HEARD, SIZE_BY_OPTIONS
+from ..settings import (
+    BREATH_OPTIONS,
+    LOOKBACK_OPTIONS,
+    ROTATIONS,
+    Settings,
+    lookback_order,
+    merged,
+)
 from ..source import NEEDS_PASSWORD, Unavailable
 from ..status import Status
 from . import STATIC_DIR, hostinfo
@@ -329,6 +337,28 @@ def _species_field(settings: Settings) -> str:
     )
 
 
+def _breaths(settings: Settings) -> str:
+    # Declaration order, not numeric: the longest wait of all is a negative
+    # number. A hand-edited value stays selectable so Save doesn't drop it.
+    labels = dict(BREATH_OPTIONS)
+    labels.setdefault(settings.breath_minutes, f"After {settings.breath_minutes} minutes")
+    return _options(labels, settings.breath_minutes, labels.get)
+
+
+def _emphasis_field(settings: Settings) -> str:
+    """What the collage sizes birds by, and how central it therefore puts them.
+    The breath sits under it because it exists only for the second option;
+    admin.js greys it out for the first, and on a frame with no panel."""
+    return (
+        f'<div class="field" id="emphasis"><span>Bird size <small>(and how central)</small></span>'
+        f'<label class="sub"><small>Decided by</small><select name="size_by">'
+        f"{_options(SIZE_BY_OPTIONS, settings.size_by, SIZE_BY_OPTIONS.get)}</select></label>"
+        f'<label class="sub" id="breath"><small>Redraw the panel for a size change</small>'
+        f'<select name="breath_minutes">{_breaths(settings)}</select></label>'
+        f"</div>"
+    )
+
+
 def page(
     ctx: modes.Context,
     settings: Settings,
@@ -368,7 +398,9 @@ def page(
                 "birdnetPort": birdnet_port,
                 "version": __version__,
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
+                "sizeByHeard": SIZE_BY_HEARD,
                 "noLimit": str(NO_LIMIT),
+                "panel": detected,
             }
         ),
         mode_field=(
@@ -387,6 +419,7 @@ def page(
         lookback_disabled="" if windowed else " disabled",
         lookbacks=_lookbacks(settings),
         limit_field=_species_field(settings),
+        emphasis_field=_emphasis_field(settings),
         names_field=_names_field(settings, languages, names_failure),
         style_field=(
             f'<div class="field"><span>Artwork style</span>'

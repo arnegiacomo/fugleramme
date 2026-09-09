@@ -128,6 +128,51 @@ def test_the_collage_holds_the_page_when_a_bird_already_on_it_calls_again(
     assert modes.state_key(_ctx(detections, images, tmp_path, "collage")) == before
 
 
+def test_sizing_by_how_often_heard_is_off_until_the_admin_asks(tmp_path, images, source):
+    detections = source(rows=[_row(2, TIT, 2), _row(1, BLACKBIRD, 1)])
+    by_mass = _ctx(detections, images, tmp_path, "collage")
+    by_heard = _ctx(detections, images, tmp_path, "collage", size_by="heard")
+
+    assert modes._emphasis(by_mass) == ()
+    assert modes._emphasis(by_heard)
+    # Changing the setting is the admin asking for a new page, not a drift, so
+    # both keys move and the panel redraws at once.
+    assert modes.state_key(by_mass) != modes.state_key(by_heard)
+    assert modes.steady_key(by_mass) != modes.steady_key(by_heard)
+
+
+def test_only_the_collage_bands_its_birds(tmp_path, images, source):
+    detections = source(rows=[_row(2, TIT, 2), _row(1, BLACKBIRD, 1)])
+    for mode in modes.MODES:
+        ctx = _ctx(detections, images, tmp_path, mode, size_by="heard")
+        assert bool(modes._emphasis(ctx)) is modes.mode_of(mode).windowed
+
+
+def test_a_bird_changing_band_moves_the_state_key_but_not_the_steady_one(
+    tmp_path, images, detector
+):
+    """The one difference between the two keys, and so the only change the
+    render loop may sit on. A new species moves both and goes straight through.
+    """
+    rows = [_row(i, BLACKBIRD, 1) for i in range(1, 40)] + [_row(40, TIT, 1)]
+    url, _httpd = detector(rows=rows)
+    detections = ApiSource(url)
+
+    def ctx():
+        return _ctx(detections, images, tmp_path, "collage", size_by="heard")
+
+    state, steady = modes.state_key(ctx()), modes.steady_key(ctx())
+    for id_ in (41, 42):
+        _heard(detections, rows, _row(id_, TIT, 0))
+
+    assert modes.state_key(ctx()) != state  # the tit grew
+    assert modes.steady_key(ctx()) == steady  # but it is the same page of birds
+
+    _draw(images, ROBIN)
+    _heard(detections, rows, _row(43, ROBIN, 0))
+    assert modes.steady_key(ctx()) != steady  # a newcomer never waits
+
+
 def test_a_limit_keeps_the_most_heard_and_the_ranking_takes_the_other_end(tmp_path, images, source):
     detections = source(rows=[_row(3, TIT, 1), _row(2, BLACKBIRD, 1), _row(1, BLACKBIRD, 2)])
     for ranking, expected in (("heard", BLACKBIRD), ("rarest", TIT)):
@@ -149,7 +194,7 @@ def test_a_bird_crossing_the_limit_repaints_although_the_window_never_moved(
         return _ctx(detections, images, tmp_path, "collage", species_limit=1)
 
     window = {name for name, _ in detections.species_since()}
-    before = modes.state_key(ctx())
+    steady = modes.steady_key(ctx())
     assert modes._selected(ctx()) == [BLACKBIRD]
 
     for id_ in range(4, 9):
@@ -157,7 +202,7 @@ def test_a_bird_crossing_the_limit_repaints_although_the_window_never_moved(
 
     assert {name for name, _ in detections.species_since()} == window  # same birds heard
     assert modes._selected(ctx()) == [TIT]  # different bird on the page
-    assert modes.state_key(ctx()) != before  # so the panel is told about it
+    assert modes.steady_key(ctx()) != steady  # so the panel is told about it
 
 
 def test_the_admin_lists_a_bird_with_no_plate_but_not_one_the_limit_left_out(

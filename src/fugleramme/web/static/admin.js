@@ -165,6 +165,8 @@ async function loadSpecies(query, id) {
 const lookback = document.getElementById("lookback");
 const limit = document.getElementById("limit");
 const ranking = document.getElementById("ranking");
+const emphasis = document.getElementById("emphasis");
+const breath = document.getElementById("breath");
 function dim(el, on) {
   el.querySelectorAll("select").forEach((s) => { s.disabled = !on; });
   el.classList.toggle("off", !on);
@@ -174,9 +176,15 @@ function syncMode() {
   const on = !mode || cfg.windowedModes.includes(mode.value);
   dim(lookback, on);
   dim(limit, on);
+  dim(emphasis, on);
   // Nothing to rank while every bird the window heard is already on the page.
   const capped = form.querySelector("select[name=species_limit]").value !== cfg.noLimit;
   dim(ranking, on && capped);
+  // The breath only holds back a size that drifts, so sizing by body mass -
+  // which never drifts - has nothing for it to hold. Nor has a frame with no
+  // panel: it is the slow e-ink refresh that the wait is buying.
+  const heard = form.querySelector("select[name=size_by]").value === cfg.sizeByHeard;
+  dim(breath, on && heard && cfg.panel);
 }
 
 // Capture, so a mode change settles which fields still submit before the shared

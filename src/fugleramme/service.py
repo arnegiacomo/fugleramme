@@ -6,6 +6,10 @@ colors. The loop re-renders the panel image only when the mode's own key changes
 - see modes.py - a natural debounce for the slow e-ink refresh. The web view
 renders fresh per request, at the panel's shape and its own pixel count.
 
+`_breathing` is the second debounce, and the glass's alone: a page differing
+only in how loud each bird has been may be made to wait out the admin's breath.
+A frame with no panel never breathes, so web-only is as live as it ever was.
+
 Panel-absent is not a special case: init_panel returns None and we skip the
 push, the same path as the preview.
 """
@@ -33,6 +37,19 @@ from .web.server import serve
 log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 5  # one query per tick; re-renders only on change, so e-ink stays the bottleneck
+
+
+def _breathing(steady: tuple, last: tuple | None, painted_at: float, minutes: int) -> bool:
+    """True when the page has moved only in how often the birds have been heard,
+    and the panel has not held the current one long enough yet.
+
+    Only that ever waits: a new species, a settings change and a button press all
+    move the steady key and go straight to the glass. 0 turns it off; the default
+    WITH_THE_BIRDS is negative and lets go only when the birds themselves change.
+    """
+    if last is None or minutes == 0 or steady != last:
+        return False
+    return minutes < 0 or time.monotonic() - painted_at < minutes * 60
 
 
 def detector(config: Config) -> tuple[SettingsStore, Configured]:
@@ -109,6 +126,8 @@ def run(config: Config) -> None:
     log.info("Reading detections from %s", source.base_url)
 
     last_key: tuple | None = None
+    last_steady: tuple | None = None
+    painted_at = 0.0
     pending = None  # rendered but not yet on the glass; survives a failed push
     unreachable = False
     while True:
@@ -131,16 +150,26 @@ def run(config: Config) -> None:
         try:
             key = (modes.state_key(ctx), settings.rotation)
             if key != last_key:
-                if modes.mode_of(ctx.mode).windowed:
-                    # The loop owns the window, so it is the only caller that may forget
-                    # a departed bird's artwork - the kiosk may be previewing another one.
-                    picks.retain(name for name, _ in source.species_since(settings.lookback_hours))
-                panel_image = dither(modes.render(ctx))
-                panel_image.save(config.output_path)
-                log.info("Rendered %s page at %dx%d", ctx.mode, *size)
-                status.rendered()
-                last_key = key
-                pending = (panel_image, settings.rotation) if panel is not None else None
+                steady = (modes.steady_key(ctx), settings.rotation)
+                # No panel, no slow refresh to protect, so nothing to wait for.
+                breath = settings.breath_minutes if panel is not None else 0
+                if _breathing(steady, last_steady, painted_at, breath):
+                    # last_key stays put: the change is deferred, not dropped.
+                    log.debug("Holding the page: only the emphasis moved")
+                else:
+                    if modes.mode_of(ctx.mode).windowed:
+                        # The loop owns the window, so it is the only caller that may forget
+                        # a departed bird's artwork - the kiosk may be previewing another one.
+                        picks.retain(
+                            name for name, _ in source.species_since(settings.lookback_hours)
+                        )
+                    panel_image = dither(modes.render(ctx))
+                    panel_image.save(config.output_path)
+                    log.info("Rendered %s page at %dx%d", ctx.mode, *size)
+                    status.rendered()
+                    last_key, last_steady = key, steady
+                    painted_at = time.monotonic()
+                    pending = (panel_image, settings.rotation) if panel is not None else None
             if unreachable:
                 log.info("Detector reachable again")
                 unreachable = False

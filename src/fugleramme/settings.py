@@ -22,6 +22,7 @@ from .languages import NONE, SCIENTIFIC
 from .modes import DEFAULT_MODE, MODES
 from .render.collage import DEFAULT_RANKING, MAX_BIRDS, NO_LIMIT, RANKINGS
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
+from .render.sizes import DEFAULT_SIZE_BY, SIZE_BY_OPTIONS
 
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
 ROTATIONS = (0, 90, 180, 270)
@@ -40,6 +41,23 @@ LOOKBACK_OPTIONS = (
     (720, "Last 30 days"),
     (ALL_TIME, "All time"),
 )
+
+
+# How long the panel holds a page before a size change alone may repaint it
+# (`service._breathing`). The default holds until the birds themselves change,
+# which is the panel's rule (discussion #37): a refresh you notice should mean
+# the frame actually heard a new bird.
+WITH_THE_BIRDS = -1
+BREATH_OPTIONS = (
+    (WITH_THE_BIRDS, "Only when the birds change"),
+    (0, "Straight away"),
+    (5, "After 5 minutes"),
+    (15, "After 15 minutes"),
+    (30, "After 30 minutes"),
+    (60, "After 1 hour"),
+    (180, "After 3 hours"),
+)
+DEFAULT_BREATH_MINUTES = WITH_THE_BIRDS
 
 
 def lookback_order(hours: int) -> float:
@@ -61,6 +79,9 @@ class Settings:
     # Active artwork style folder; empty means "whichever is present" (resolved
     # against the filesystem at render time, so it survives a renamed style).
     style: str = ""
+    # What the collage sizes and centres birds by; only the collage reads it.
+    size_by: str = DEFAULT_SIZE_BY
+    breath_minutes: int = DEFAULT_BREATH_MINUTES
     auto_update: bool = False
     show_names: bool = True
     # Species-name languages: BirdNET-Go dictionary locales, resolved
@@ -166,6 +187,10 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         species_limit=_as_int(raw.get("species_limit"), d.species_limit, NO_LIMIT, MAX_BIRDS),
         ranking=_one_of(str(raw.get("ranking", d.ranking)), RANKINGS, d.ranking),
         style=_style(raw, d.style),
+        size_by=_one_of(str(raw.get("size_by", d.size_by)), SIZE_BY_OPTIONS, d.size_by),
+        breath_minutes=_as_int(
+            raw.get("breath_minutes"), d.breath_minutes, WITH_THE_BIRDS, 24 * 60
+        ),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
         show_names=_as_bool(raw.get("show_names"), d.show_names),
         # A primary language is required: an empty pick means the scientific name.
