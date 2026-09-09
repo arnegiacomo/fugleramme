@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.17.1 (2026-09-09)
+
+### Bug Fixes
+
+- **assets**: Add Apus pallidus ([#55](https://github.com/arnegiacomo/fugleramme/pull/55),
+  [`43b461a`](https://github.com/arnegiacomo/fugleramme/commit/43b461a4d7cd8f5ac8aa31986c56dafc576ae91e))
+
+
 ## v0.17.0 (2026-09-08)
 
 ### Features
