@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v0.18.1 (2026-09-10)
+
+### Bug Fixes
+
+- #65 fold a reclassified species' two names into one bird
+  ([`1993eb6`](https://github.com/arnegiacomo/fugleramme/commit/1993eb6c62bf725935713488a61b6a543a5d480c))
+
+- **assets**: Add Branta Canadensis
+  ([`c5b201f`](https://github.com/arnegiacomo/fugleramme/commit/c5b201fe7bff74a017d81e37654b39c9f7ac2a47))
+
+### Documentation
+
+- Fill in the v0.18.0 changelog entry
+  ([`532b24d`](https://github.com/arnegiacomo/fugleramme/commit/532b24da1dfaabb2e96ba83dcd04d229ed64ca72))
+
+
 ## v0.18.0 (2026-09-09)
 
 ### Features
