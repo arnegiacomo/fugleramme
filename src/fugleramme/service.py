@@ -71,6 +71,19 @@ def _update(status: Status, auto: bool) -> bool:
         return False
 
 
+def _log_artless(ctx: modes.Context, last: list[str] | None) -> list[str]:
+    """Name the window's species this style cannot draw, so a missing plate is
+    readable from the journal. Logged on change, not on every poll."""
+    artless = modes.artless(ctx)
+    if artless == last:
+        return artless
+    if artless:
+        log.info("No artwork for %d species: %s", len(artless), ", ".join(artless))
+    else:
+        log.info("Artwork found for every species in the window")
+    return artless
+
+
 def run(config: Config) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     # `kill -USR1 <pid>` dumps every thread's stack to the journal - for when it wedges.
@@ -109,6 +122,7 @@ def run(config: Config) -> None:
     log.info("Reading detections from %s", source.base_url)
 
     last_key: tuple | None = None
+    last_artless: list[str] | None = None
     pending = None  # rendered but not yet on the glass; survives a failed push
     unreachable = False
     while True:
@@ -129,6 +143,7 @@ def run(config: Config) -> None:
             textured=False,
         )
         try:
+            last_artless = _log_artless(ctx, last_artless)
             key = (modes.state_key(ctx), settings.rotation)
             if key != last_key:
                 if modes.mode_of(ctx.mode).windowed:

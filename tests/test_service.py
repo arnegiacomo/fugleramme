@@ -4,6 +4,7 @@ BirdNET-Go restarts is worse than one that is a few minutes stale."""
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import patch
 
 import numpy as np
@@ -100,3 +101,40 @@ def test_the_frame_reads_through_the_wrapper_not_a_captured_source(tmp_path, det
     assert source.species_since(0) == []  # answered, and genuinely no birds
     store.update(detector_url=second)
     assert source.species_since(0)
+
+
+def test_the_loop_names_the_species_it_has_no_artwork_for(
+    tmp_path, images, detector, monkeypatch, caplog
+):
+    """The admin marks a missing plate only while you are looking at it; the
+    journal keeps it, one line per change rather than per poll."""
+    caplog.set_level(logging.INFO, logger="fugleramme.service")
+    url, _httpd = detector(count=40, seed=0)
+    monkeypatch.setattr(api, "_TTL", 0)
+    config = Config(
+        images_dir=images,
+        detector_url=url,
+        output_path=tmp_path / "frame.png",
+        host="127.0.0.1",
+        port=0,
+        config_path=tmp_path / "settings.json",
+    )
+    ticks = 0
+
+    def sleep(_seconds):
+        nonlocal ticks
+        ticks += 1
+        if ticks == 3:
+            raise _Stop
+
+    with (
+        patch.object(service.updates, "available", return_value=None),
+        patch.object(service.time, "sleep", sleep),
+        pytest.raises(_Stop),
+    ):
+        service.run(config)
+
+    lines = [m for r in caplog.records if (m := r.getMessage()).startswith("No artwork")]
+    assert len(lines) == 1  # three ticks, one unchanged list
+    assert "Pica pica" in lines[0]  # counted by the window, undrawable by the style
+    assert "Turdus merula" not in lines[0]

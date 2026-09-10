@@ -228,15 +228,19 @@ def _one(species) -> list[str]:
     return [species.scientific_name] if species else []
 
 
-def _collage_subjects(ctx: Context) -> list[str]:
-    """What is on the page, plus every species the window counted that this style
-    cannot draw - the admin marks those as counted but not drawn (#9). Ones the
-    limit left out are not listed: that is a shorter page, not a missing plate.
-    """
-    keys = ctx.drawable()
+def artless(ctx: Context, keys: set[str] | None = None) -> list[str]:
+    """Species the window counted that this style cannot draw, in name order.
+    The admin marks these as counted but not drawn; the loop logs them."""
+    keys = ctx.drawable() if keys is None else keys
     counted = ctx.source.species_since(ctx.lookback_hours)
-    artless = [name for name, _ in counted if normalize(name) not in keys]
-    return sorted(_selected(ctx, keys) + artless)
+    return sorted(name for name, _ in counted if normalize(name) not in keys)
+
+
+def _collage_subjects(ctx: Context) -> list[str]:
+    """What is on the page, plus the window's artless species. Ones the limit
+    left out are not listed: that is a shorter page, not a missing plate."""
+    keys = ctx.drawable()
+    return sorted(_selected(ctx, keys) + artless(ctx, keys))
 
 
 # Insertion order is the order button A walks.

@@ -1,5 +1,15 @@
 # Adding artwork
 
+## Find what is missing
+
+The admin page marks every species the window counted that the style cannot
+draw as counted but not drawn. The frame also writes the list to its log
+whenever it changes, so you can catch the ones you were not watching for:
+
+```bash
+journalctl -u fugleramme-frame | grep "No artwork"
+```
+
 ## Source an image
 
 Wikimedia Commons is a good place to find public domain artwork. Search for the scientific
