@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.19.1 (2026-09-10)
+
+### Bug Fixes
+
+- **admin**: Open the hint bubble on tap
+  ([`a0463b6`](https://github.com/arnegiacomo/fugleramme/commit/a0463b6c8d553ce0af4bb75ed1c296bec236a3cc))
+
+
 ## v0.19.0 (2026-09-10)
 
 ### Documentation
