@@ -51,3 +51,6 @@ Manifest key: `dresser`.
 [scan on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Onze_vogels_in_huis_en_tuin_(12238985825).jpg).
 Public domain (PD-scan / PD-old-70-expired); the BHL file is also offered under
 CC BY 2.0. Manifest key: `keulemans`.
+
+**Morris** - *British Game Birds and Waterfowl* by **Beverley R. Morris** (1855), from the Biodiversity Heritage Library [scan on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:British_game_birds_and_wildfowl_(Plate_32)_(8093637854).jpg). Public domain (PD-scan / PD-old-70-expired); the BHL file is also offered under
+CC BY 2.0. Manifest key: `morris`.
