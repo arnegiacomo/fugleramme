@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.18.2 (2026-09-10)
+
+### Bug Fixes
+
+- Log the species a style cannot draw
+  ([`82e3d3a`](https://github.com/arnegiacomo/fugleramme/commit/82e3d3a2ae2fe9468b8aa13c4d759b11cec00238))
+
+
 ## v0.18.1 (2026-09-10)
 
 ### Bug Fixes
