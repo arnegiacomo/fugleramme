@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.19.0 (2026-09-10)
+
+### Documentation
+
+- Simplify the missing-artwork note
+  ([`30bf104`](https://github.com/arnegiacomo/fugleramme/commit/30bf1041d1e9819067ac30dbe6e0313555c4855e))
+
+### Features
+
+- Draw only birds, ignoring the detector's other taxa
+  ([`93791f3`](https://github.com/arnegiacomo/fugleramme/commit/93791f32d45f5c64f451f9b8752a46f105821f0a))
+
+
 ## v0.18.2 (2026-09-10)
 
 ### Bug Fixes
