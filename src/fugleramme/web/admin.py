@@ -46,7 +46,7 @@ _LOOPBACK = ("127.0.0.1", "localhost", "::1", "0.0.0.0")
 _ASPECT = {0: "(landscape)", 90: "(portrait)"}
 
 # Style and plate names that don't title-case into something readable.
-_NAMES = {"vonwright": "von Wright", "gould": "Gould"}
+_NAMES = {"vonwright": "von Wright", "gould": "Gould", "morris": "Morris"}
 
 
 def form_changes(form: dict[str, list[str]]) -> dict:
