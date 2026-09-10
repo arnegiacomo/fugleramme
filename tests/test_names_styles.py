@@ -12,6 +12,7 @@ from fugleramme.names import (
     MANIFEST,
     PERCHES,
     available_styles,
+    drawable_keys,
     image_for,
     origin_of,
     perches_for,
@@ -81,6 +82,24 @@ def test_variants_exclude_a_hybrid_file(tmp_path):
     _make(tmp_path, "classic", "tetrao-urogallus", "tetrao-urogallus-x-lagopus-lagopus")
     assert [p.stem for p in variants_for("Tetrao urogallus", tmp_path, "classic")] == [
         "tetrao-urogallus"
+    ]
+
+
+def test_variants_fall_back_to_a_birdnet_synonym(tmp_path):
+    _make(tmp_path, "classic", "coloeus-monedula", "coloeus-monedula-2")
+    assert [p.stem for p in variants_for("Corvus monedula", tmp_path, "classic")] == [
+        "coloeus-monedula",
+        "coloeus-monedula-2",
+    ]
+    # The non-windowed modes use this one directory listing rather than
+    # variants_for, so it has to expose the detector spelling as drawable too.
+    assert "corvus-monedula" in drawable_keys(tmp_path, "classic")
+
+
+def test_variants_prefer_the_detector_name_when_both_synonyms_have_artwork(tmp_path):
+    _make(tmp_path, "classic", "corvus-monedula", "coloeus-monedula")
+    assert [p.stem for p in variants_for("Corvus monedula", tmp_path, "classic")] == [
+        "corvus-monedula"
     ]
 
 
