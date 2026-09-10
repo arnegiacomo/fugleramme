@@ -1,10 +1,11 @@
 """Map a detector's scientific name to a bird artwork file.
 
-The detector emits modern eBird names, capitalized and space-separated
+The detector emits scientific names capitalized and space-separated
 ("Turdus merula"); artwork files are lowercase and hyphenated
-("turdus-merula.png"). Since the files are named with modern taxonomy, the
-lookup is just format normalization plus an exact filename match - no alias
-table. Names with no artwork resolve to None and the collage omits them.
+("turdus-merula.png"). Taxonomy changes can put a detector and a hand-curated
+plate under synonymous genera, so an exact filename match is preferred and the
+vendored BirdNET/OpenFauna synonym list is the fallback. Names with no artwork
+resolve to None and the collage omits them.
 
 Artwork is grouped by *style* into subfolders of `images_dir` ("classic", a
 user's "custom", ...), one active at a time: `available_styles` lists what is
@@ -25,16 +26,47 @@ import json
 import re
 from pathlib import Path
 
+from .config import REPO_ROOT
 from .picks import Picks
 
 BIRDS = "birds"
 PERCHES = "perches"
 MANIFEST = "manifest.json"  # a style's record: "<file>.png" -> {"source", "url"}
+ALIASES = REPO_ROOT / "assets" / "birdnet_aliases.json"
 
 
 def normalize(scientific_name: str) -> str:
     """ "Turdus merula" -> "turdus-merula" (the file-key shape)."""
     return scientific_name.strip().lower().replace(" ", "-")
+
+
+def _aliases() -> dict[str, str]:
+    """Synonym keys in both directions, read once from the vendored source."""
+    try:
+        loaded = json.loads(ALIASES.read_text())
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(loaded, dict):
+        return {}
+    aliases: dict[str, str] = {}
+    for old, current in loaded.items():
+        if not isinstance(old, str) or not isinstance(current, str):
+            continue
+        old_key, current_key = normalize(old), normalize(current)
+        if old_key != current_key:
+            aliases[old_key] = current_key
+            aliases[current_key] = old_key
+    return aliases
+
+
+_ALIASES = _aliases()
+
+
+def artwork_keys(scientific_name: str) -> tuple[str, ...]:
+    """Filename keys to try, with the detector's name before its synonym."""
+    key = normalize(scientific_name)
+    alias = _ALIASES.get(key)
+    return (key, alias) if alias else (key,)
 
 
 def available_styles(images_dir: Path) -> list[str]:
@@ -70,13 +102,15 @@ def variants_for(scientific_name: str, images_dir: Path, style: str) -> list[Pat
     """
     if not style:
         return []
-    key = normalize(scientific_name)
     folder = images_dir / style / BIRDS
-    numbered = re.compile(rf"{re.escape(key)}-(\d+)")
-    base = [folder / f"{key}.png"] if (folder / f"{key}.png").exists() else []
-    rest = [(m, p) for p in folder.glob(f"{key}-*.png") if (m := numbered.fullmatch(p.stem))]
-    # By number, not lexically: "-2" sorts before the bare key on a plain sort.
-    return base + [p for _m, p in sorted(rest, key=lambda mp: int(mp[0].group(1)))]
+    for key in artwork_keys(scientific_name):
+        numbered = re.compile(rf"{re.escape(key)}-(\d+)")
+        base = [folder / f"{key}.png"] if (folder / f"{key}.png").exists() else []
+        rest = [(m, p) for p in folder.glob(f"{key}-*.png") if (m := numbered.fullmatch(p.stem))]
+        variants = base + [p for _m, p in sorted(rest, key=lambda mp: int(mp[0].group(1)))]
+        if variants:
+            return variants
+    return []
 
 
 _NUMBERED = re.compile(r"-\d+$")
@@ -91,7 +125,8 @@ def drawable_keys(images_dir: Path, style: str) -> set[str]:
     """
     if not style:
         return set()
-    return {_NUMBERED.sub("", path.stem) for path in (images_dir / style / BIRDS).glob("*.png")}
+    keys = {_NUMBERED.sub("", path.stem) for path in (images_dir / style / BIRDS).glob("*.png")}
+    return keys | {alias for key in keys if (alias := _ALIASES.get(key))}
 
 
 def image_for(scientific_name: str, images_dir: Path, style: str, picks: Picks) -> Path | None:

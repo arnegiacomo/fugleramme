@@ -97,6 +97,9 @@ From a blank SD card, see the full [install guide](docs/install.md).
 - Bird sizes (`assets/bird_sizes.csv`): body mass from AVONET (Tobias et al.
   2022, Ecology Letters, [doi:10.1111/ele.13898](https://doi.org/10.1111/ele.13898)),
   CC BY 4.0.
+- BirdNET scientific-name aliases (`assets/birdnet_aliases.json`):
+  [OpenFauna](https://github.com/tphakala/openfauna)'s compiled taxonomic alias
+  map, CC BY-SA 4.0 - see [`assets/ATTRIBUTION.md`](assets/ATTRIBUTION.md).
 
 ## Prebuilt frames
 
