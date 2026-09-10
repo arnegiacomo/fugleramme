@@ -41,12 +41,14 @@ label > span, .field > span { position: relative; }
         font-size: 0.78rem; font-weight: 700; line-height: 1; color: #6b675f;
         border: 1px solid #aaa59c; border-radius: 50%; cursor: help; user-select: none; }
 .hint::before { content: "i"; }
-.hint:hover, .hint:focus { color: #446; border-color: #446; }
+/* `focus-visible`: a mouse click focuses the span too, and the bubble would
+   then outlive the tap that closed it. */
+.hint:hover, .hint:focus-visible, .hint.open { color: #446; border-color: #446; }
 .hint::after { content: attr(aria-label); position: absolute; left: 0; top: 100%; z-index: 2;
                width: max-content; max-width: 13rem; margin-top: 0.3rem;
                padding: 0.35rem 0.55rem; border-radius: 4px; background: #446; color: #fff;
                font: 400 0.85rem/1.35 system-ui, sans-serif; visibility: hidden; }
-.hint:hover::after, .hint:focus::after { visibility: visible; }
+.hint:hover::after, .hint:focus-visible::after, .hint.open::after { visibility: visible; }
 dl.status { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
             background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }
 dl.status dt { color: #666; }

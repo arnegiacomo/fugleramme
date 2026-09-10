@@ -44,6 +44,28 @@ for (const link of document.querySelectorAll("a[data-tab]")) {
   link.addEventListener("click", () => showTab(link.dataset.tab));
 }
 
+// A hint is a span inside its <label>, so a touch has no hover to open the bubble
+// with and the label passes the tap on to its select. Cancelling the click stops that.
+let openHint = null;
+function closeHint() {
+  if (openHint) openHint.classList.remove("open");
+  openHint = null;
+}
+for (const hint of document.querySelectorAll(".hint")) {
+  hint.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const opening = hint !== openHint;
+    closeHint();
+    if (opening) {
+      hint.classList.add("open");
+      openHint = hint;
+    }
+  });
+}
+document.addEventListener("click", closeHint);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeHint(); });
+
 // The check runs inside its own POST, so the spinner only has to outlive the navigation.
 const check = document.querySelector("dd.update form.check");
 if (check) {
