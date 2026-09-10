@@ -2,9 +2,8 @@
 
 ## Find what is missing
 
-The admin page marks every species the window counted that the style cannot
-draw as counted but not drawn. The frame also writes the list to its log
-whenever it changes, so you can catch the ones you were not watching for:
+The admin page marks a bird the current style cannot draw with "no art". The
+frame logs the same list whenever re-renders:
 
 ```bash
 journalctl -u fugleramme-frame | grep "No artwork"
