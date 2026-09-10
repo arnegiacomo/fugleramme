@@ -51,6 +51,15 @@ A busy installation can hear over thirty species in a day, and thirty birds on o
 **Show all** means **all of them**. A long lookback at a busy station is yours to bound - past forty or so
 the birds get small and the labels crowd (but at least you get a cool mosaic!).
 
+**Only birds**, whatever the setting. BirdNET-Go's labels also cover frogs,
+crickets and squirrels, and a bat model adds bats - the frame leaves all of it
+out. They are still detected, and still on its own dashboard at `:8090`. The
+log names each one the first time it is heard:
+
+```bash
+journalctl -u fugleramme-frame | grep "Not a bird"
+```
+
 ### Species names
 
 **Show species names** turns the labels on and off, same as **B** on the panel.

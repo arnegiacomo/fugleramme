@@ -93,7 +93,7 @@ def test_recent_is_newest_first_and_respects_limit(api):
 
     moments = [f"{row['date']} {row['time']}" for row in rows]
     assert moments == sorted(moments, reverse=True)
-    assert rows[0]["scientificName"] in fake.SPECIES
+    assert rows[0]["scientificName"] in fake.HEARD
     assert rows[0]["commonName"]
 
 

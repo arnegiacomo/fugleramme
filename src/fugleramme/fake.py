@@ -42,6 +42,16 @@ SPECIES = [
     "Corvus cornix",
 ]
 
+# Heard among the birds, so everything running against the fake exercises the
+# filter: the bat is outside v2.4 and the other two are labels within it.
+NON_BIRDS = {
+    "Myotis daubentonii": "Daubenton's Bat",
+    "Sciurus carolinensis": "Eastern Gray Squirrel",
+    "Human vocal": "Human vocal",
+}
+
+HEARD = SPECIES + list(NON_BIRDS)
+
 # Two languages for those species, as BirdNET-Go's own dictionaries give them:
 # lowercase in Norwegian, titled in English. code -> (display name, {species: name})
 NAMES: dict[str, tuple[str, dict[str, str]]] = {
@@ -113,7 +123,7 @@ class Detection:
 
 
 def _common(scientific: str) -> str:
-    return NAMES["en"][1].get(scientific, "")
+    return NAMES["en"][1].get(scientific) or NON_BIRDS.get(scientific, "")
 
 
 def generate(count: int, seed: int | None = None) -> list[Detection]:
@@ -125,7 +135,7 @@ def generate(count: int, seed: int | None = None) -> list[Detection]:
         Detection(
             id=count - i,
             at=now - _NEWEST * span ** (i / max(count - 1, 1)),
-            scientific_name=rng.choice(SPECIES),
+            scientific_name=rng.choice(HEARD),
             confidence=round(rng.uniform(0.6, 0.98), 2),
             false_positive=rng.random() < _FALSE_POSITIVE_RATE,
         )

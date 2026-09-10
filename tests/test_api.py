@@ -18,6 +18,7 @@ import pytest
 from fugleramme import api, fake
 from fugleramme.api import ApiSource
 from fugleramme.source import Unavailable
+from fugleramme.taxa import is_bird
 
 WINDOW = 6
 _SUMMARY = "/analytics/species/summary"
@@ -79,7 +80,12 @@ def test_a_sub_day_window_is_counted_from_the_feed_without_false_positives(detec
     ]
     assert any(row["verified"] == "false_positive" for row in rows)  # else this proves nothing
 
-    heard = Counter(row["scientificName"] for row in rows if row["verified"] != "false_positive")
+    # The station hears non-birds too, and the source drops them.
+    heard = Counter(
+        row["scientificName"]
+        for row in rows
+        if row["verified"] != "false_positive" and is_bird(row["scientificName"])
+    )
     assert ApiSource(url).species_since(WINDOW) == sorted(
         heard.items(), key=lambda pair: (-pair[1], pair[0])
     )

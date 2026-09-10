@@ -6,6 +6,9 @@ be the container beside it or an install elsewhere on the network:
     GET /analytics/species/summary   -> per-species aggregate, false positives dropped
     GET /detections/recent           -> the newest rows, false positives included
 
+Both are filtered to birds on the way in (`taxa.is_bird`), so a station that also
+classifies bats or noise offers nothing above this module that it cannot draw.
+
 `Security.PrivateMode` gates the whole API behind a session cookie, so with
 credentials configured a 401 triggers one login and one retry.
 """
@@ -30,6 +33,7 @@ from urllib.request import HTTPCookieProcessor, HTTPRedirectHandler, Request, bu
 from .names import canonical, normalize
 from .settings import SettingsStore
 from .source import NEEDS_PASSWORD, Detection, Species, Unavailable
+from .taxa import is_bird
 
 log = logging.getLogger(__name__)
 
@@ -191,6 +195,18 @@ class ApiSource:
         self._opener = build_opener(_NoRedirect, HTTPCookieProcessor(CookieJar()))
         self._lock = threading.RLock()
         self._cache: dict[tuple, tuple[float, Any]] = {}
+        self._not_birds: set[str] = set()
+
+    def _is_bird(self, name: str) -> bool:
+        """`taxa.is_bird`, naming what it drops the first time it sees it. Once
+        per species rather than per poll, and a bird that vanishes because the
+        alias map is behind the detector says so here or nowhere."""
+        if is_bird(name):
+            return True
+        if name not in self._not_birds:
+            self._not_birds.add(name)
+            log.info("Not a bird, ignoring detections of %s", name)
+        return False
 
     # -- transport ---------------------------------------------------------
 
@@ -287,9 +303,13 @@ class ApiSource:
     def _summary(self, start: str = "", end: str = "") -> list[dict]:
         return self._cached(
             ("summary", start, end),
-            lambda: _merged(
-                self._get("/analytics/species/summary", start_date=start, end_date=end)
-            ),
+            lambda: [
+                row
+                for row in _merged(
+                    self._get("/analytics/species/summary", start_date=start, end_date=end)
+                )
+                if self._is_bird(row["scientific_name"])
+            ],
         )
 
     def _feed(self, limit: int) -> list[dict]:
@@ -314,10 +334,12 @@ class ApiSource:
     def recent(self, limit: int = 20) -> list[Detection]:
         offset = self._offset()
         try:
+            # Not in `_feed`: `_counted` reads the raw row count to spot a feed
+            # that ran out before reaching its cutoff.
             return [
                 _detection(row, offset)
                 for row in self._feed(limit)
-                if row.get("verified") != "false_positive"
+                if row.get("verified") != "false_positive" and self._is_bird(row["scientificName"])
             ]
         except (KeyError, TypeError, ValueError) as error:
             raise Unavailable(f"unreadable detections: {error}") from error
