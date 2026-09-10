@@ -24,14 +24,14 @@ import hashlib
 import logging
 import math
 import threading
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageFilter
 
-from ..names import drawable_keys, image_for, normalize
+from ..names import canonical, drawable_keys, image_for, normalize
 from ..picks import Picks
 from ..source import Source
 from . import fonts
@@ -432,6 +432,17 @@ def _rank(ranking: str):
     return lambda pair: (pair[1], pair[0])  # both rarest rankings
 
 
+def _by_species(counts: Iterable[tuple[str, int]]) -> dict[str, int]:
+    """Counts under one name per bird. `api` already folds a reclassified
+    species' two summary rows together; this is what stops anything else that
+    hands the page both spellings from drawing the bird twice."""
+    folded: dict[str, int] = {}
+    for name, count in counts:
+        current = canonical(name)
+        folded[current] = folded.get(current, 0) + count
+    return folded
+
+
 def selected_species(
     source: Source,
     images_dir: Path,
@@ -452,12 +463,13 @@ def selected_species(
     """
     if keys is None:
         keys = drawable_keys(images_dir, style)
-    counted = [(name, n) for name, n in source.species_since(hours) if normalize(name) in keys]
+    heard = _by_species(source.species_since(hours))
+    counted = [(name, n) for name, n in heard.items() if normalize(name) in keys]
     if limit == NO_LIMIT:
         return sorted(name for name, _n in counted)  # nothing to rank: they all fit
     if ranking == RANK_RAREST_EVER:
         # A resident heard twice today is not a rarity; a first-timer is.
-        ever = dict(source.species_since(0))  # 0 hours: the whole record
+        ever = _by_species(source.species_since(0))  # 0 hours: the whole record
         counted = [(name, ever.get(name, n)) for name, n in counted]
     return sorted(name for name, _n in sorted(counted, key=_rank(ranking))[:limit])
 

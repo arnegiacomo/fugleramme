@@ -27,6 +27,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urljoin
 from urllib.request import HTTPCookieProcessor, HTTPRedirectHandler, Request, build_opener
 
+from .names import canonical, normalize
 from .settings import SettingsStore
 from .source import NEEDS_PASSWORD, Detection, Species, Unavailable
 
@@ -118,10 +119,58 @@ def _detection(row: dict, offset: tzinfo) -> Detection:
     return Detection(
         id=int(row.get("id") or 0),
         detected_at=at,
-        scientific_name=row["scientificName"],
+        scientific_name=canonical(row["scientificName"]),
         confidence=float(row.get("confidence") or 0.0),
         clip_path=row.get("clipName") or None,
     )
+
+
+def _at(value: Any) -> datetime:
+    """A summary stamp for ordering. An unreadable one sorts oldest, so a parse
+    failure can never win `last_heard` nor lose `first_heard`."""
+    stamp = _time(value) if isinstance(value, str) else None
+    return stamp or datetime.min.replace(tzinfo=UTC)
+
+
+def _fold(into: dict, row: dict) -> None:
+    """Add a legacy-named row's totals to the current-named row it belongs to."""
+    into["count"] = into.get("count", 0) + row.get("count", 0)
+    if (best := row.get("max_confidence")) is not None:
+        held = into.get("max_confidence")
+        into["max_confidence"] = best if held is None else max(held, best)
+    for field, keep in (("first_heard", min), ("last_heard", max)):
+        stamps = [value for value in (into.get(field), row.get(field)) if value]
+        if stamps:
+            into[field] = keep(stamps, key=_at)
+
+
+def _merged(rows: Any) -> Any:
+    """One row per bird, still most detections first.
+
+    BirdNET-Go canonicalizes a scientific name as it stores a detection but
+    leaves what it already stored alone, so a station upgraded across a
+    reclassification serves one bird as two species forever.
+
+    A row the merge cannot read passes through untouched rather than dropped:
+    the callers' own guards are what turn a malformed summary into Unavailable.
+    """
+    if not isinstance(rows, list):
+        return rows
+    merged: dict[str, dict] = {}
+    passed: list[Any] = []
+    for row in rows:
+        name = row.get("scientific_name") if isinstance(row, dict) else None
+        if not isinstance(name, str):
+            passed.append(row)
+            continue
+        key = normalize(name)
+        held = merged.get(key)
+        if held is None:
+            merged[key] = {**row, "scientific_name": canonical(name)}
+            continue
+        _fold(held, row)
+    ordered = sorted(merged.values(), key=lambda row: -(row.get("count") or 0))
+    return ordered + passed
 
 
 class ApiSource:
@@ -238,7 +287,9 @@ class ApiSource:
     def _summary(self, start: str = "", end: str = "") -> list[dict]:
         return self._cached(
             ("summary", start, end),
-            lambda: self._get("/analytics/species/summary", start_date=start, end_date=end),
+            lambda: _merged(
+                self._get("/analytics/species/summary", start_date=start, end_date=end)
+            ),
         )
 
     def _feed(self, limit: int) -> list[dict]:
@@ -307,7 +358,7 @@ class ApiSource:
         return sorted(species, key=lambda s: (s.first_seen, s.scientific_name))
 
     def stats(self) -> dict:
-        rows = self._summary()  # upstream orders it most detections first
+        rows = self._summary()  # most detections first, as _merged leaves them
         return {
             "total": sum(row["count"] for row in rows),
             "species": len(rows),

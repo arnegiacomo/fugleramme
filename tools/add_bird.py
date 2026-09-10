@@ -29,7 +29,7 @@ from typing import NamedTuple
 import numpy as np
 from PIL import Image
 
-from fugleramme.names import BIRDS, MANIFEST, manifest, normalize
+from fugleramme.names import BIRDS, MANIFEST, canonical, manifest, normalize
 from fugleramme.render.paper import paper_texture, process_sprite
 
 REPO = Path(__file__).resolve().parents[1]
@@ -52,12 +52,14 @@ class Species(NamedTuple):
 
 
 def labels() -> list[Species]:
-    """BirdNET v2.4's whole label list. A filename outside it fails the suite."""
+    """BirdNET v2.4's whole label list, keyed by the species' current name: a
+    plate added today is filed as "coloeus-monedula.png" even though BirdNET
+    still calls the bird Corvus monedula. A filename outside it fails the suite."""
     found = []
     for line in LABELS.read_text().splitlines():
         if "_" in line:
             sci, common = line.split("_", 1)
-            found.append(Species(normalize(sci), sci.strip(), common.strip()))
+            found.append(Species(normalize(sci), canonical(sci.strip()), common.strip()))
     return found
 
 

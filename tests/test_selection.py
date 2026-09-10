@@ -115,3 +115,14 @@ def test_the_entries_carry_the_artwork_each_selected_bird_is_wearing(tmp_path):
 
     assert [name for name, _path in entries] == sorted(names[-3:])
     assert all(path is not None for _name, path in entries)
+
+
+def test_a_reclassified_species_takes_one_place_on_the_page(tmp_path):
+    """One plate, one bird - even handed both of its names. `api` folds the two
+    summary rows into one already; this is the second line, since a page keyed on
+    the spelling would spend two of the places under a limit."""
+    birds = tmp_path / "classic" / "birds"
+    birds.mkdir(parents=True)
+    Image.new("RGBA", (20, 16), (30, 30, 30, 255)).save(birds / "corvus-monedula.png")
+    source = _Counted({"Corvus monedula": 12, "Coloeus monedula": 3})
+    assert collage.selected_species(source, tmp_path, "classic") == ["Coloeus monedula"]

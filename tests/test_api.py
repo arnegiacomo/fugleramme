@@ -240,3 +240,48 @@ def test_a_response_header_is_found_whatever_case_it_arrived_in(detector):
     url, _httpd = detector()
     _status, headers, _body = api.ApiSource(url).request("/species/dictionary/nb")
     assert headers["etag"]
+
+
+# -- a reclassified species ---------------------------------------------------
+#
+# BirdNET-Go rewrites a scientific name to its current form as it stores a
+# detection but leaves rows it already stored alone, so a station upgraded
+# across a reclassification serves one bird as two species, forever.
+
+JACKDAW_WAS, JACKDAW_IS = "Corvus monedula", "Coloeus monedula"
+
+
+def _split_station(old: int, new: int) -> list[fake.Detection]:
+    """`old` detections filed before the detector was upgraded, `new` after."""
+    now = datetime.now().astimezone()
+    rows = [
+        fake.Detection(
+            id=i,
+            at=now - timedelta(days=180 if name == JACKDAW_WAS else 0, minutes=i),
+            scientific_name=name,
+            confidence=0.8,
+            false_positive=False,
+        )
+        for i, name in enumerate([JACKDAW_WAS] * old + [JACKDAW_IS] * new, start=1)
+    ]
+    return sorted(rows, key=lambda row: row.at, reverse=True)
+
+
+def test_a_reclassified_species_is_one_bird(source):
+    heard = source(rows=_split_station(old=12, new=3))
+    assert heard.species_since(0) == [(JACKDAW_IS, 15)]
+    assert [s.scientific_name for s in heard.life_list()] == [JACKDAW_IS]
+    assert heard.stats()["species"] == 1
+
+
+def test_a_reclassified_species_keeps_its_first_ever_date(source):
+    """The plate would otherwise date the bird to the day the detector was
+    upgraded and call a resident the newest arrival."""
+    heard = source(rows=_split_station(old=12, new=3))
+    first = heard.life_list()[0].first_seen
+    assert (datetime.now().astimezone() - first) > timedelta(days=90)
+
+
+def test_the_feed_reports_a_reclassified_species_under_its_current_name(source):
+    heard = source(rows=_split_station(old=12, new=3))
+    assert {d.scientific_name for d in heard.recent(50)} == {JACKDAW_IS}
