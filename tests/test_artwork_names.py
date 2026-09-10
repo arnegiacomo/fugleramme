@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from fugleramme.names import MANIFEST, PERCHES
+from fugleramme.names import MANIFEST, PERCHES, normalize
 
 REPO = Path(__file__).resolve().parents[1]
 IMAGES = REPO / "assets" / "artwork"
@@ -46,10 +46,15 @@ EXCEPTIONS = {
 
 
 def _labels() -> set[str]:
+    """Every label as a filename key, under both the name BirdNET uses and the
+    current one. Plates predate the reclassifications and are filed under the
+    label; `normalize` folds the pair to one key, so either spelling is a
+    filename `variants_for` will find."""
     keys = set()
     for line in LABELS.read_text().splitlines():
         if "_" in line:
-            keys.add(line.split("_", 1)[0].strip().lower().replace(" ", "-"))
+            label = line.split("_", 1)[0].strip().lower().replace(" ", "-")
+            keys |= {label, normalize(label)}
     return keys
 
 

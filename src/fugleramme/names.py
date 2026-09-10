@@ -2,10 +2,12 @@
 
 The detector emits scientific names capitalized and space-separated
 ("Turdus merula"); artwork files are lowercase and hyphenated
-("turdus-merula.png"). Taxonomy changes can put a detector and a hand-curated
-plate under synonymous genera, so an exact filename match is preferred and the
-vendored BirdNET/OpenFauna synonym list is the fallback. Names with no artwork
-resolve to None and the collage omits them.
+("turdus-merula.png"). Artwork is curated under BirdNET's own label, whose
+taxonomy is frozen at the model's training set, while BirdNET-Go reports the
+current name - so one bird reaches the frame as "Corvus monedula" and its plate
+is filed as "coloeus-monedula". `normalize` folds both to the current name and
+`variants_for` reaches back through the vendored OpenFauna alias map to find the
+file. Names with no artwork resolve to None and the collage omits them.
 
 Artwork is grouped by *style* into subfolders of `images_dir` ("classic", a
 user's "custom", ...), one active at a time: `available_styles` lists what is
@@ -35,13 +37,14 @@ MANIFEST = "manifest.json"  # a style's record: "<file>.png" -> {"source", "url"
 ALIASES = REPO_ROOT / "assets" / "birdnet_aliases.json"
 
 
-def normalize(scientific_name: str) -> str:
-    """ "Turdus merula" -> "turdus-merula" (the file-key shape)."""
+def _shape(scientific_name: str) -> str:
+    """ "Turdus merula" -> "turdus-merula" (the file-key shape), name as given."""
     return scientific_name.strip().lower().replace(" ", "-")
 
 
 def _aliases() -> dict[str, str]:
-    """Synonym keys in both directions, read once from the vendored source."""
+    """The vendored legacy -> current map, read once. Valued with the name as
+    written, since `canonical` hands it to the dictionary and to a label."""
     try:
         loaded = json.loads(ALIASES.read_text())
     except (OSError, ValueError):
@@ -49,24 +52,40 @@ def _aliases() -> dict[str, str]:
     if not isinstance(loaded, dict):
         return {}
     aliases: dict[str, str] = {}
-    for old, current in loaded.items():
-        if not isinstance(old, str) or not isinstance(current, str):
+    for legacy, current in loaded.items():
+        if not isinstance(legacy, str) or not isinstance(current, str):
             continue
-        old_key, current_key = normalize(old), normalize(current)
-        if old_key != current_key:
-            aliases[old_key] = current_key
-            aliases[current_key] = old_key
+        if _shape(legacy) != _shape(current):
+            aliases[_shape(legacy)] = current.strip()
     return aliases
 
 
-_ALIASES = _aliases()
+_CURRENT_NAME = _aliases()
+_CURRENT_KEY = {legacy: _shape(name) for legacy, name in _CURRENT_NAME.items()}
+# No current name has two legacy ones, so a plain inversion is the whole reverse.
+_LEGACY_KEY = {current: legacy for legacy, current in _CURRENT_KEY.items()}
+
+
+def normalize(scientific_name: str) -> str:
+    """ "Turdus merula" -> "turdus-merula" (the file-key shape), under the name
+    the detector reports today. Artwork keys, body mass and the species on the
+    page all compare through here, so folding a reclassified bird's two names to
+    one key is what makes them one bird everywhere above."""
+    key = _shape(scientific_name)
+    return _CURRENT_KEY.get(key, key)
+
+
+def canonical(scientific_name: str) -> str:
+    """The current name for a species, keeping the "Genus species" shape."""
+    return _CURRENT_NAME.get(_shape(scientific_name), scientific_name.strip())
 
 
 def artwork_keys(scientific_name: str) -> tuple[str, ...]:
-    """Filename keys to try, with the detector's name before its synonym."""
+    """Filename keys to try: the current name, then the label BirdNET still uses
+    - a plate curated under either name is found under both."""
     key = normalize(scientific_name)
-    alias = _ALIASES.get(key)
-    return (key, alias) if alias else (key,)
+    legacy = _LEGACY_KEY.get(key)
+    return (key, legacy) if legacy else (key,)
 
 
 def available_styles(images_dir: Path) -> list[str]:
@@ -125,8 +144,10 @@ def drawable_keys(images_dir: Path, style: str) -> set[str]:
     """
     if not style:
         return set()
-    keys = {_NUMBERED.sub("", path.stem) for path in (images_dir / style / BIRDS).glob("*.png")}
-    return keys | {alias for key in keys if (alias := _ALIASES.get(key))}
+    return {
+        normalize(_NUMBERED.sub("", path.stem))
+        for path in (images_dir / style / BIRDS).glob("*.png")
+    }
 
 
 def image_for(scientific_name: str, images_dir: Path, style: str, picks: Picks) -> Path | None:

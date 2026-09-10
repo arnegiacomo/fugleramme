@@ -85,22 +85,30 @@ def test_variants_exclude_a_hybrid_file(tmp_path):
     ]
 
 
-def test_variants_fall_back_to_a_birdnet_synonym(tmp_path):
-    _make(tmp_path, "classic", "coloeus-monedula", "coloeus-monedula-2")
-    assert [p.stem for p in variants_for("Corvus monedula", tmp_path, "classic")] == [
-        "coloeus-monedula",
-        "coloeus-monedula-2",
-    ]
-    # The non-windowed modes use this one directory listing rather than
-    # variants_for, so it has to expose the detector spelling as drawable too.
-    assert "corvus-monedula" in drawable_keys(tmp_path, "classic")
+def test_variants_reach_back_to_the_birdnet_label(tmp_path):
+    # Artwork is curated under BirdNET's frozen label; the detector reports the
+    # current name. Either spelling has to find the plate.
+    _make(tmp_path, "classic", "corvus-monedula", "corvus-monedula-2")
+    for reported in ("Corvus monedula", "Coloeus monedula"):
+        assert [p.stem for p in variants_for(reported, tmp_path, "classic")] == [
+            "corvus-monedula",
+            "corvus-monedula-2",
+        ]
 
 
-def test_variants_prefer_the_detector_name_when_both_synonyms_have_artwork(tmp_path):
+def test_variants_prefer_the_current_name_when_both_spellings_have_artwork(tmp_path):
     _make(tmp_path, "classic", "corvus-monedula", "coloeus-monedula")
     assert [p.stem for p in variants_for("Corvus monedula", tmp_path, "classic")] == [
-        "corvus-monedula"
+        "coloeus-monedula"
     ]
+
+
+def test_drawable_keys_name_a_reclassified_bird_once(tmp_path):
+    """One bird, one key - whichever spelling it is filed under. The non-windowed
+    modes match against this one listing, and both spellings in it would let a
+    station that has heard the bird under each draw it twice."""
+    _make(tmp_path, "classic", "corvus-monedula", "turdus-merula")
+    assert drawable_keys(tmp_path, "classic") == {"coloeus-monedula", "turdus-merula"}
 
 
 def test_image_for_is_none_when_the_active_style_has_nothing(tmp_path):
