@@ -2,7 +2,9 @@
 The title is the commit message - PRs are squashed. Conventional commits, with
 the issue number if there is one:
 
-  fix(assets): #44 add Sturnus unicolor
+  chore(assets): add Sturnus unicolor     <- artwork is chore, never fix
+  feat: #23 add a mic-less display mode
+  fix: #44 keep long names from clipping the label
   docs: fix the passepartout measurements
 -->
 

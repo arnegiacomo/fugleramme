@@ -3,7 +3,14 @@ name: release
 on:
   push:
     branches: [main]
+  # Artwork lands as `chore`, which releases nothing. `force` ships that queue.
   workflow_dispatch:
+    inputs:
+      force:
+        description: Bump with no releasable commit
+        type: choice
+        default: none
+        options: [none, patch, minor]
 
 permissions:
   contents: write
@@ -26,6 +33,8 @@ jobs:
       # Run through uv, not the official action: that one is a Docker action whose
       # image has no uv, and `build_command = "uv lock"` needs it. `version` commits,
       # tags, pushes and cuts the GitHub release on its own.
-      - run: uv run --with "python-semantic-release>=10,<11" semantic-release version
+      - run: uv run --with "python-semantic-release>=10,<11" semantic-release version $FORCE
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Unquoted above so `none` expands to no argument at all.
+          FORCE: ${{ inputs.force != '' && inputs.force != 'none' && format('--{0}', inputs.force) || '' }}

@@ -86,6 +86,7 @@ Applies to docs, commit messages, code comments, and the kiosk and admin UI alik
 - Reference the issue as `#1`, not `#gh-1`: `feat: #1 add render`, `refactor(api): #56 fold reclassified rows`. If no issue is apparent, ask; omit the ref if there is none
 - Subject line only, no body, unless a body is asked for
 - Commit types drive releases: python-semantic-release tags every push to `main` carrying a `feat` (minor) or `fix`/`perf` (patch), bumps `pyproject.toml` + `__init__.py`, and writes `CHANGELOG.md`. A `fix: #N` closes issue N on push, so check that is intended before pushing one
+- **Artwork is `chore(assets)`, never `fix`** - a plate is not a new version, and it rides the next release. `release.yml`'s `workflow_dispatch` forces a bump when a queue of art is worth shipping alone
 
 ## Workflow
 
