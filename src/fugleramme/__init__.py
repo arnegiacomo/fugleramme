@@ -1,3 +1,3 @@
 """Fugleramme frame service: render the latest bird detection and serve stats."""
 
-__version__ = "0.20.2"
+__version__ = "0.21.0"

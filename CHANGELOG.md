@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v0.21.0 (2026-09-11)
+
+### Chores
+
+- #68 land artwork as chore, and expand the artwork docs
+  ([`e06433f`](https://github.com/arnegiacomo/fugleramme/commit/e06433fe6bd307f43f353461642191f2a165c321))
+
+### Documentation
+
+- Split AGENTS.md into breadcrumbs and tighten the conventions
+  ([`bca0326`](https://github.com/arnegiacomo/fugleramme/commit/bca0326d227c8ac86f8b812b844ce56959f6af2b))
+
+### Features
+
+- #39 ship a container image for the headless kiosk
+  ([`b9c3741`](https://github.com/arnegiacomo/fugleramme/commit/b9c3741a5517a62b6b16c26205e64709d52d9f16))
+
+### Performance Improvements
+
+- #39 ship artwork as WebP
+  ([`b704ba2`](https://github.com/arnegiacomo/fugleramme/commit/b704ba259ee5af4d6c7a970aa2450fd11d48089c))
+
+
 ## v0.20.2 (2026-09-11)
 
 ### Bug Fixes
