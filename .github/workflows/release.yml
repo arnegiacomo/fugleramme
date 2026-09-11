@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: write
+  actions: write  # to dispatch image.yml
 
 concurrency:
   group: release
@@ -27,6 +28,8 @@ jobs:
         with:
           fetch-depth: 0  # history back to the last tag
           token: ${{ secrets.GITHUB_TOKEN }}
+      - id: before
+        run: echo "tag=$(git describe --tags --abbrev=0 || true)" >> "$GITHUB_OUTPUT"
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
       - run: uv run pytest -q
@@ -38,3 +41,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Unquoted above so `none` expands to no argument at all.
           FORCE: ${{ inputs.force != '' && inputs.force != 'none' && format('--{0}', inputs.force) || '' }}
+      # Dispatch, not `image.yml`'s tag trigger: a tag pushed with GITHUB_TOKEN
+      # starts no workflow run. Never fails a release that is already tagged.
+      - name: Build the image for the tag just cut
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ steps.before.outputs.tag }}
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+          if [ "$tag" = "$BEFORE" ]; then
+            echo "No release was cut, nothing to build."
+            exit 0
+          fi
+          gh workflow run image.yml --ref "$tag"

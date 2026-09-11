@@ -1,7 +1,8 @@
-# The container image, built on the tag `release.yml` has just pushed.
+# The container image for a release tag, dispatched by `release.yml`. Separate
+# from it so a slow or broken build cannot fail a version bump.
 #
-# Deliberately not a job in that workflow: its one job is to cut the tag, and a
-# slow or broken image build must never hold up or fail a version bump.
+# The tag trigger below only catches a tag pushed by hand: one pushed with
+# GITHUB_TOKEN starts no workflow run.
 name: image
 
 on:
@@ -18,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Private until made public once, by hand, under the repo's Packages settings.
+  # Public: the package inherited the repo's visibility when it was created.
   IMAGE: ghcr.io/arnegiacomo/fugleramme
 
 jobs:
