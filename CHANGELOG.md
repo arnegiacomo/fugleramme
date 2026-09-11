@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.20.1 (2026-09-11)
+
+### Bug Fixes
+
+- **assets**: Add Myiopsitta monachus ([#70](https://github.com/arnegiacomo/fugleramme/pull/70),
+  [`a492ea4`](https://github.com/arnegiacomo/fugleramme/commit/a492ea4ff84db9ada00fefbf70992c5a7711f049))
+
+
 ## v0.20.0 (2026-09-11)
 
 ### Chores
