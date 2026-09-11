@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.20.0 (2026-09-11)
+
+### Chores
+
+- **logs**: Name dropped species in common and scientific
+  ([`7d1775f`](https://github.com/arnegiacomo/fugleramme/commit/7d1775f0b3803495cb413602a5362af5c4ce4e20))
+
+### Features
+
+- #64 add a panel refresh floor and sub-hour lookback windows
+  ([`8220ec7`](https://github.com/arnegiacomo/fugleramme/commit/8220ec7b8b65f1fffa8ae3a8e20d2b0273e7a7ba))
+
+
 ## v0.19.3 (2026-09-11)
 
 ### Bug Fixes
