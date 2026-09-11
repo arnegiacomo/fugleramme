@@ -36,6 +36,7 @@ nav:
   - Home: index.md
   - Hardware: hardware.md
   - Install: install.md
+  - Container: container.md
   - Display: display.md
   - Adding artwork: adding-artwork.md
   - Operations: operations.md

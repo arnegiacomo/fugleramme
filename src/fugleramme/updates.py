@@ -1,7 +1,8 @@
 """Release checks and the self-update, driven by GitHub tags.
 
 `Restart=always` on the unit means updating needs no privileges: check out the
-tag, sync, exit, and systemd brings the new code up.
+tag, sync, exit, and systemd brings the new code up. A container has neither a
+checkout nor systemd, so there it only ever checks: the image is the unit.
 """
 
 from __future__ import annotations
@@ -29,6 +30,8 @@ _OK_TTL = 3600  # unauthenticated GitHub allows 60 requests/hour per IP
 _FAIL_TTL = 300
 _next_check = 0.0
 _result: str | None = None
+
+CONTAINER_COMMAND = "docker compose pull && docker compose up -d"
 
 _STALL_SECONDS = 300  # a big release is slow, not stuck: every progress line resets it
 _PROGRESS = re.compile(r"^(?:remote: )?([A-Za-z][A-Za-z ]+):\s+(\d+)%")
@@ -69,8 +72,19 @@ def available(force: bool = False) -> str | None:
     return _result
 
 
+def in_container() -> bool:
+    """Whether the frame is an image rather than a checkout. The image sets the
+    variable itself; the two files catch one built somewhere else."""
+    return bool(os.environ.get("FUGLERAMME_CONTAINER")) or any(
+        Path(marker).exists() for marker in ("/.dockerenv", "/run/.containerenv")
+    )
+
+
 def apply(tag: str, progress: Progress | None = None) -> None:
     """Move the checkout onto `tag`. Raises on failure; the caller exits on success."""
+    if in_container():
+        # Handing the frame the docker socket is the only way round this, for a button.
+        raise RuntimeError(f"Running in a container: update with `{CONTAINER_COMMAND}`")
     # One tag, shallow: a full fetch would pull every past version of the artwork.
     _run(
         ["git", "fetch", "--progress", "--depth", "1", REPO_HTTPS_URL, "tag", tag, "--force"],

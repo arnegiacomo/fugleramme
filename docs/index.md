@@ -36,6 +36,7 @@ For more display options see [Display](display.md).
 
 - **[Hardware](hardware.md)** - the parts, and what's swappable
 - **[Install](install.md)** - from a blank SD card to a running frame
+- **[Container](container.md)** - running Fugleramme with Docker
 - **[Display](display.md)** - modes, settings and names
 - **[Operations](operations.md)** - buttons, services, logs and updates
 - **[Configuring BirdNET-Go](birdnetgo-config.md)** - avoiding incorrect detections

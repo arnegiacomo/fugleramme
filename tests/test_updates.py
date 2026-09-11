@@ -5,6 +5,7 @@ storm against a broken release would restart the frame every five seconds."""
 
 from __future__ import annotations
 
+import html
 import io
 import json
 import re
@@ -14,6 +15,7 @@ import sys
 import threading
 import urllib.request
 from http.server import ThreadingHTTPServer
+from pathlib import Path
 from unittest.mock import DEFAULT, patch
 
 import pytest
@@ -22,9 +24,12 @@ from fugleramme import service, updates
 from fugleramme.api import ApiSource
 from fugleramme.config import BIRDNET_PORT, DEFAULT_DETECTOR_URL, DEFAULT_PORT, REPO_ROOT
 from fugleramme.picks import Picks
-from fugleramme.settings import SettingsStore
+from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import Status
-from fugleramme.web import server
+from fugleramme.web import admin, hostinfo, server
+
+# Captured before the fixture below hides it: one test wants the real probe.
+_PROBE = updates.in_container
 
 
 @pytest.fixture(autouse=True)
@@ -32,6 +37,13 @@ def _clear_cache():
     updates._next_check, updates._result = 0.0, None
     yield
     updates._next_check, updates._result = 0.0, None
+
+
+@pytest.fixture(autouse=True)
+def _a_checkout(monkeypatch):
+    """Pinned rather than probed, so running the suite inside a container does
+    not turn every self-update test into the container case."""
+    monkeypatch.setattr(updates, "in_container", lambda: False)
 
 
 def _release(tag: str):
@@ -319,3 +331,63 @@ def test_a_detector_env_from_before_the_port_was_a_choice_still_publishes_8090()
     has, which carries no BIRDNET_PORT - the inline default is what holds it."""
     compose = (REPO_ROOT / "detector" / "docker-compose.yml").read_text()
     assert f'"${{BIRDNET_PORT:-{BIRDNET_PORT}}}:8080"' in compose
+
+
+# A container has no checkout to move onto a tag and no systemd to restart it.
+# The check still runs: knowing a release is out is the half that still works.
+
+
+@pytest.fixture
+def _in_a_container(monkeypatch):
+    monkeypatch.setattr(updates, "in_container", lambda: True)
+
+
+def test_the_image_is_recognised_by_its_own_marker(monkeypatch):
+    monkeypatch.delenv("FUGLERAMME_CONTAINER", raising=False)
+    assert _PROBE() == any(
+        Path(marker).exists() for marker in ("/.dockerenv", "/run/.containerenv")
+    )
+    monkeypatch.setenv("FUGLERAMME_CONTAINER", "1")
+    assert _PROBE() is True
+
+
+def test_applying_a_tag_in_a_container_refuses_before_touching_git(_in_a_container):
+    with (
+        patch.object(updates, "_run") as run,
+        pytest.raises(RuntimeError, match=updates.CONTAINER_COMMAND),
+    ):
+        updates.apply("v0.2.0")
+    assert not run.called
+
+
+def test_auto_update_in_a_container_checks_but_never_installs(_in_a_container):
+    with (
+        patch.object(service.updates, "available", return_value="v0.2.0"),
+        patch.object(service.updates, "apply") as apply,
+    ):
+        status = Status()
+        assert service._update(status, auto=True) is False
+        assert status.update_available == "v0.2.0"  # the admin still says one is out
+        assert not apply.called
+        assert status.update_requested is None
+        assert not status.update_error  # refusing is not a failure to report
+
+
+def test_the_admin_offers_the_pull_instead_of_an_install_button(_in_a_container):
+    status = Status()
+    status.update_available = "v0.2.0"
+    row = admin._update(status)
+    assert "v0.2.0 available" in row
+    assert html.escape(updates.CONTAINER_COMMAND) in row
+    assert 'value="update"' not in row
+
+    # Nothing in here installs one on a schedule either.
+    assert "disabled" in admin._auto_update(Settings())
+
+
+def test_a_containers_host_row_is_not_dressed_up_as_an_address(monkeypatch):
+    """The id resolves nowhere, and the way in - the host's address and its
+    published port - is not visible from inside."""
+    monkeypatch.setattr(hostinfo.socket, "gethostname", lambda: "0470e75b0cb3")
+    assert hostinfo.lan_address(container=True).startswith("container 0470e75b0cb3")
+    assert hostinfo.lan_address().startswith("0470e75b0cb3.local")

@@ -76,9 +76,13 @@ def _probe_detector(url: str) -> tuple[str, str]:
         return "down", ""
 
 
-def lan_address() -> str:
+def lan_address(container: bool = False) -> str:
     host = socket.gethostname()
-    if "." not in host:
+    if container:
+        # Docker's own id, which resolves nowhere: the way in is the host's
+        # address and its published port, neither visible from in here.
+        host = f"container {host}"
+    elif "." not in host:
         host += ".local"  # avahi publishes it; the Pi's bare hostname does not resolve off-box
     try:
         # Connecting a UDP socket sends nothing; it just picks the outbound interface.

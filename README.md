@@ -81,6 +81,33 @@ stays blank after that, see
 
 From a blank SD card, see the full [install guide](docs/install.md).
 
+## Run in a container
+
+```bash
+docker run -d -p 8080:8080 -v fugleramme:/data \
+  -e FUGLERAMME_DETECTOR_URL=http://birdnet.local:8080 \
+  ghcr.io/arnegiacomo/fugleramme
+```
+
+Or build the image from a checkout:
+
+```bash
+docker build -t fugleramme .
+docker run --rm -p 8080:8080 -v fugleramme:/data \
+  -e FUGLERAMME_DETECTOR_URL=http://birdnet.local:8080 fugleramme
+```
+
+Kiosk on `:8080`, admin on `:8080/admin`, everything it persists in `/data`.
+
+On a Linux box with a USB mic, this brings up BirdNET-Go alongside it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/examples/docker-compose.yml -o docker-compose.yml
+docker compose up -d
+```
+
+See **[Container](docs/container.md)** for more info.
+
 ## License
 
 - Code: MIT - see [`LICENSE`](LICENSE).

@@ -17,7 +17,7 @@ from typing import Any
 from . import languages
 from .api import ApiSource, probe
 from .config import DEFAULT_CONFIG_PATH, DEFAULT_DETECTOR_URL
-from .settings import Settings, SettingsStore
+from .settings import SettingsStore, from_env
 from .source import Unavailable
 
 _OK, _FAIL = "ok  ", "FAIL"
@@ -93,7 +93,8 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     args = parser.parse_args()
 
-    saved = SettingsStore(args.config, Settings(detector_url=DEFAULT_DETECTOR_URL)).get()
+    # Same seeds as the service, so the check reports the detector it would use.
+    saved = SettingsStore(args.config, from_env()).get()
     sys.exit(
         run(
             args.detector or saved.detector_url,

@@ -15,6 +15,7 @@ from fugleramme.settings import (
     LOOKBACK_OPTIONS,
     Settings,
     SettingsStore,
+    from_env,
     lookback_order,
 )
 
@@ -230,3 +231,40 @@ def test_the_launch_flag_only_fills_in_a_url_the_file_lacks(tmp_path):
 
     path.write_text(json.dumps({"detector_url": "http://saved:8090"}))
     assert SettingsStore(path, flagged).get().detector_url == "http://saved:8090"
+
+
+# The environment seeds the same defaults the launch flag does, so the file wins
+# the moment it carries the key.
+
+
+def test_the_environment_seeds_every_field_of_settings(monkeypatch):
+    monkeypatch.setenv("FUGLERAMME_STYLE", "classic")
+    monkeypatch.setenv("FUGLERAMME_ROTATION", "90")
+    monkeypatch.setenv("FUGLERAMME_SHOW_NAMES", "false")
+    monkeypatch.setenv("FUGLERAMME_LOOKBACK_HOURS", "0.5")
+    monkeypatch.setenv("FUGLERAMME_DETECTOR_URL", "http://birdnet.local:8080/")
+    seeded = from_env()
+    assert seeded.style == "classic"
+    assert seeded.rotation == 90
+    assert seeded.show_names is False
+    assert seeded.lookback_hours == 0.5
+    assert seeded.detector_url == "http://birdnet.local:8080"  # coerced like the file is
+
+
+def test_an_unset_or_unusable_variable_leaves_the_default(monkeypatch):
+    monkeypatch.delenv("FUGLERAMME_ROTATION", raising=False)
+    monkeypatch.setenv("FUGLERAMME_MODE", "not-a-mode")
+    monkeypatch.setenv("FUGLERAMME_DETECTOR_URL", "birdnet.local")
+    seeded = from_env()
+    assert seeded.rotation == Settings().rotation
+    assert seeded.mode == Settings().mode
+    assert seeded.detector_url == DEFAULT_DETECTOR_URL
+
+
+def test_the_environment_is_a_seed_and_the_saved_file_still_wins(tmp_path, monkeypatch):
+    monkeypatch.setenv("FUGLERAMME_STYLE", "classic")
+    path = tmp_path / "s.json"
+    assert SettingsStore(path, from_env()).get().style == "classic"
+
+    path.write_text(json.dumps({"style": "custom"}))
+    assert SettingsStore(path, from_env()).get().style == "custom"

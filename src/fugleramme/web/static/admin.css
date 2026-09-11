@@ -57,12 +57,17 @@ dl.status dd span { display: inline; font-weight: inherit; margin: 0; }
 dl.status dd.update { display: flex; align-items: center; gap: 0.5rem; }
 dl.status dd.update button { margin: 0; }
 time { border-bottom: 1px dotted #bbb; cursor: help; }
+/* White, not the panel's own #f4f2ee, or the box vanishes into it. `user-select:
+   all` takes the whole line in one click - plain http has no clipboard API. */
+pre.cmd { font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+          background: #fff; border: 1px solid #e5e2dc; border-radius: 4px;
+          padding: 0.15rem 0.5rem; margin: 0; user-select: all; overflow-x: auto; }
 .ok, .bad, .warn { display: inline; font-weight: inherit; margin: 0; }
 .ok { color: #3a7d44; }
 .bad { color: #a4392f; }
 .warn { color: #8a6d1f; }
 p.note { display: block; font-size: 0.9rem; margin: 0.6rem 0 0; }
-form.block { margin: 0 0 1.75rem; }  /* the Save button carries no bottom margin of its own */
+.block { margin: 0 0 1.75rem; }  /* the Save button carries no bottom margin of its own */
 form.detector input { width: 100%; max-width: 22rem; }
 form.detector button { margin-right: 0.5rem; }
 form.detector summary { cursor: pointer; color: #446; }

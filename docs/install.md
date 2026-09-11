@@ -2,6 +2,9 @@
 
 From a blank SD card to a running frame.
 
+> [!TIP]
+> Just want the collage, without the e-ink panel and want to run it as a container (e.g. on your homelab)? See [Container](container.md).
+
 ## 1. Flash the OS
 
 **Raspberry Pi OS Lite (64-bit)**, Trixie or newer (to support gadget mode).

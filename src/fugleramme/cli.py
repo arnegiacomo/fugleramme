@@ -15,7 +15,6 @@ from pathlib import Path
 from . import modes
 from .config import (
     DEFAULT_CONFIG_PATH,
-    DEFAULT_DETECTOR_URL,
     DEFAULT_HOST,
     DEFAULT_PORT,
     REPO_ROOT,
@@ -38,8 +37,8 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--detector",
-        default=DEFAULT_DETECTOR_URL,
-        help="BirdNET-Go base URL; only used when the settings file names none",
+        help="BirdNET-Go base URL; only used when the settings file names none. "
+        "Wins over FUGLERAMME_DETECTOR_URL, which wins over the built-in default",
     )
     parser.add_argument(
         "--config", type=Path, default=DEFAULT_CONFIG_PATH, help="settings file (#2)"

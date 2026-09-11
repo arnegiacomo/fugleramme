@@ -14,7 +14,7 @@ from pathlib import Path
 from string import Template
 from urllib.parse import urlparse
 
-from .. import __version__, modes
+from .. import __version__, modes, updates
 from ..api import probe
 from ..config import BIRDNET_PORT, DOCS_URL, WEB_HEIGHTS
 from ..languages import NONE, Namer, catalog, catalog_failure, ordered
@@ -99,10 +99,10 @@ def _radios(field: str, options: list[tuple[str, str]], active: str) -> str:
     )
 
 
-def _checkbox(field: str, label: str, checked: bool) -> str:
+def _checkbox(field: str, label: str, checked: bool, disabled: bool = False) -> str:
     return (
         f'<label class="src"><input type="checkbox" name="{field}"'
-        f"{' checked' if checked else ''}> {label}</label>"
+        f"{' checked' if checked else ''}{' disabled' if disabled else ''}> {label}</label>"
     )
 
 
@@ -225,11 +225,28 @@ def _update(status: Status) -> str:
     if status.update_error:
         return f'<span class="bad">{status.update_error}</span>{_action("check", "Retry")}'
     if status.update_available:
-        return (
-            f'<span class="warn">{status.update_available} available</span>'
-            f"{_action('update', 'Install')}"
+        # The command stands in for the button: the image is the host's to replace.
+        install = (
+            f'·<pre class="cmd">{html.escape(updates.CONTAINER_COMMAND)}</pre>'
+            if updates.in_container()
+            else _action("update", "Install")
         )
+        return f'<span class="warn">{status.update_available} available</span>{install}'
     return f'<span id="state">up to date</span>{_action("check", "Check")}'
+
+
+def _auto_update(settings: Settings) -> str:
+    """The auto-install toggle, shown disabled in a container: nothing in here can
+    pull an image, and a switch that does nothing is worse than no switch."""
+    if updates.in_container():
+        label = "Install new releases automatically <small>· disabled in container mode</small>"
+        return f'<div class="block off">{_checkbox("auto_update", label, False, True)}</div>'
+    return (
+        '<form class="block" method="post" action="/admin">'
+        f'<input type="hidden" name="{CHECKBOXES}" value="auto_update">'
+        f"{_checkbox('auto_update', 'Install new releases automatically', settings.auto_update)}"
+        '<button type="submit">Save</button></form>'
+    )
 
 
 def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: str) -> str:
@@ -424,13 +441,11 @@ def page(
             else f'<li class="problem">{_fix(_outage(detector_state))}</li>'
         ),
         update=_update(status),
-        auto_update=_checkbox(
-            "auto_update", "Install new releases automatically", settings.auto_update
-        ),
+        auto_update=_auto_update(settings),
         panel=f"detected · {glass}" if detected else f"not detected · assuming {glass}",
         birdnet=_detector(detector_state, detector_version, rows is not None, names_failure),
         detector_field=_detector_field(settings),
-        host=hostinfo.lan_address(),
+        host=hostinfo.lan_address(updates.in_container()),
         online=_state(online, "online", "offline") + (f" · {iface}" if iface else ""),
         disk=hostinfo.disk_free(names_dir),
         started=_stamp(status.started_at),

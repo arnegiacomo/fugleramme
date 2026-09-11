@@ -22,9 +22,12 @@ uv run fugleramme-check                     # does a detector answer everything 
 uv run python scripts/curate.py             # workstation only: contact sheet on :8081
 ./install.sh                                # Pi only: one-time bootstrap (curl'able; deps, clone, gadget, reboot)
 ./run.sh                                    # Pi only: converge an existing checkout (BirdNET-Go + services)
+docker build -t fugleramme .                # the kiosk image: no panel, no detector (docs/container.md)
 ```
 
-**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, the panel's refresh floor, how many species and which ones, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`), persisted to `--config` (default `detector/data/settings.json`). The detector's address and password are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`; `--detector` only supplies the default for a settings file that carries no `detector_url` of its own. The panel's own size is never a setting.
+**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, the panel's refresh floor, how many species and which ones, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`), persisted to `--config` (default `detector/data/settings.json`). The detector's address and password are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`. The panel's own size is never a setting.
+
+**The environment seeds settings; it never overrides them** (`settings.from_env`). `FUGLERAMME_<FIELD>` for any field of `Settings`, read off the dataclass so a new setting needs nothing added. It exists for the container image, where a fresh `/data` has no `settings.json` and the detector's address has to come from somewhere. These become the store's *defaults*, exactly as `--detector` does: a key the file carries wins, so a variable goes quiet from the first Save on. Override-on-boot instead and the admin page - which offers to change every one of them - would be lying. Precedence is `settings.json` > `--detector` > environment > built-in default.
 
 ## Architecture
 
@@ -123,6 +126,16 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 - New machine-specific values must be detected or prompted for and written to gitignored per-Pi configuration, not hardcoded in tracked defaults.
 - BirdNET-Go must run with the host user's UID and GID so its mounted config and data remain writable without changing checkout ownership.
 - USB gadget access is documented in troubleshooting; do not assume `10.12.194.1` when macOS Internet Sharing may assign a leased address.
+
+**The image is the kiosk alone** (`Dockerfile`, `.dockerignore`, `.github/workflows/image.yml`).
+
+- Pull it, point it at a BirdNET-Go you already run, read the collage on a web page. No panel (SPI, I2C and the buttons are the Pi's) and `install.sh` knows nothing about it - both their own follow-ups, not gaps to fill in passing.
+- The *image* is the kiosk alone; `examples/docker-compose.yml` is what brings a detector up beside it, for a machine with a mic and no panel. It is documentation, curl'able straight from `main`, so it pins the same BirdNET-Go tag `detector/docker-compose.yml` does - `tests/test_container.py` holds the two together, since the pin only moves after it is tested on the Pi.
+- **The checkout's shape has to survive into the image.** `config.REPO_ROOT` is derived from the package's own file, and the artwork, the fonts, the labels and `bird_sizes.csv` all hang off it, so the project is installed editable at `/app` with `/app/src/fugleramme` beside `/app/assets`. A build-time `RUN python -c` asserts it: fail the build, not the first render.
+- The plates are split across a COPY layer per letter range so a release adding a species re-pulls that range instead of all 165 MB - the registry serves blobs by digest, so the letters that did not move are already on disk. The ranges must leave no letter out, and a range matching nothing fails the build; `tests/test_container.py` reads the globs back out of the Dockerfile and holds them to both.
+- Everything mutable already derives from `--config`'s parent, so one volume at `/data` is the whole persistence story and no code knows about it. A fresh one is configured through `FUGLERAMME_<FIELD>`, which seeds and never overrides - see the settings rule above.
+- **`updates.apply` refuses in a container** (`updates.in_container`, the image's own `FUGLERAMME_CONTAINER`): there is no checkout to move onto a tag, no systemd to restart it, and handing the frame the docker socket buys a button. `available()` still runs - knowing a release is out is the half that works - and the admin drops the Install button, shows the auto-update toggle disabled, and prints `updates.CONTAINER_COMMAND` in its place.
+- `image.yml` is a separate workflow from `release.yml`, fired by the tag that one pushes. The release's job is to cut the tag; a slow or broken image build must never delay or fail a version bump. Native runners per architecture, pushed by digest, with a merge job for the manifest list.
 
 ## Workflow
 

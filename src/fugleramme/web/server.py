@@ -248,7 +248,7 @@ def make_handler(
             if action == "check":
                 status.update_error = None
                 status.update_available = updates.available(force=True)
-            elif action == "update" and status.update_available:
+            elif action == "update" and status.update_available and not updates.in_container():
                 # The loop installs it: exiting mid-render or mid-push is not safe here.
                 status.update_requested = status.update_available
             else:
