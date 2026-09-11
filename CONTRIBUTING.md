@@ -120,6 +120,12 @@ Then, for the style folder it lands in:
 - **`ATTRIBUTION.md` names the works and their terms, and gives each one its
   manifest key** (``Manifest key: `gould`.``). A new source means a new entry -
   the test suite fails a manifest key no entry names.
+- **An entry describes a work, not a plate.** Three or four lines: title,
+  creators, dates, where the scans came from, terms, manifest key. No volume or
+  plate numbers, no per-plate engravers or printers - the manifest already links
+  the plate page, which carries all of that. A bird from a work already listed
+  touches `manifest.json` alone, and a key exists to separate terms, so don't
+  add one for a source an existing entry already covers.
 
 ## Docs
 

@@ -7,7 +7,8 @@ restrictive of the sources below:
 > Digital restorations, edited for this project.
 > [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
-`manifest.json` links each file to the plate it came from.
+`manifest.json` links each file to the plate it came from, so an entry below
+describes a work and its terms, never a single plate.
 
 ## Sources
 
@@ -18,13 +19,11 @@ restrictive of the sources below:
 branches are cut from these and retouched with generative AI. Manifest key:
 `vonwright`.
 
-**von Wright (FNG)** - the brothers' studies, held by the **Finnish National
-Gallery**, from
+**von Wright (rawpixel)** - the brothers' studies held by the **Finnish
+National Gallery**, and rawpixel's own scans of the folio (the ones Commons
+didn't have), both from
 [rawpixel](https://www.rawpixel.com/art-studio/von%20wright?path=1525%7C%24publicdomain&sort=curated).
-CC0. Manifest key: `vonwright-fng`.
-
-**von Wright (rawpixel folio)** - rawpixel's own scans of the folio, (the ones Commons didnt have). CC0. Manifest key: `vonwright-rawpixel`.
- 
+CC0. Manifest key: `vonwright-rawpixel`.
 
 **Gould** - *The Birds of Europe* by **John Gould** (1832-1837), Volumes 1-5,
 from the Commons category
@@ -32,9 +31,8 @@ from the Commons category
 Public domain (PD-old-70-expired). Manifest key: `gould`.
 
 **Gould (Birds of Asia)** - *The Birds of Asia* by **John Gould** and **Richard
-Bowdler Sharpe** (1850-1883), Volume 5, plate drawn and lithographed by **John
-Gould** and **William Hart**, printed by **Walter**, from the Commons category
-[The Birds of Asia (John Gould), Volume 5](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould),_Volume_5).
+Bowdler Sharpe** (1850-1883), from the Commons category
+[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)).
 Public domain (PD-Art, PD-old-100). Manifest key: `gould-asia`.
 
 **Dresser** - *A History of the Birds of Europe* by **H. E. Dresser**
@@ -47,19 +45,19 @@ Scans from the Biodiversity Heritage Library, public domain
 Manifest key: `dresser`.
 
 **Keulemans** - *Onze vogels in huis en tuin* by **J. G. Keulemans**
-(1869-1876), from the Biodiversity Heritage Library
-[scan on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Onze_vogels_in_huis_en_tuin_(12238985825).jpg).
-Public domain (PD-scan / PD-old-70-expired); the BHL file is also offered under
-CC BY 2.0. Manifest key: `keulemans`.
+(1869-1876), Biodiversity Heritage Library scans from the Commons category
+[Onze vogels in huis en tuin](https://commons.wikimedia.org/wiki/Category:Onze_vogels_in_huis_en_tuin)
+and the Internet Archive. Public domain (PD-scan / PD-old-70-expired); the BHL
+files are also offered under CC BY 2.0. Manifest key: `keulemans`.
 
-**Morris** - *British Game Birds and Waterfowl* by **Beverley R. Morris** (1855), from the Biodiversity Heritage Library [scan on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:British_game_birds_and_wildfowl_(Plate_32)_(8093637854).jpg). Public domain (PD-scan / PD-old-70-expired); the BHL file is also offered under
-CC BY 2.0. Manifest key: `morris`.
+**Morris** - *British Game Birds and Wildfowl* by **Beverley R. Morris**
+(1855), Biodiversity Heritage Library scans from the Commons category
+[British game birds and wildfowl](https://commons.wikimedia.org/wiki/Category:British_game_birds_and_wildfowl).
+Public domain (PD-scan / PD-old-70-expired); the BHL files are also offered
+under CC BY 2.0. Manifest key: `morris`.
 
-**Greene** - *Parrots in Captivity* by **W. T. Greene** (1884-1887), with notes by
-**F. G. Dutton**, Volume 3, Plate 7, drawn by **A. F. Lydon**, engraved and printed
-by **Benjamin Fawcett**. Cut from the Smithsonian Libraries'
-[full-resolution scan on the Internet Archive](https://archive.org/details/ParrotscaptivitIIIGree/page/n53/mode/1up);
-the Biodiversity Heritage Library's
-[copy on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Parrots_in_captivity_(Vol._3._PL._07)_Quaker_Grey_Breasted_or_Monte_Video_Parrakeet_(8527254257).jpg)
-is the same scan at half the size. Public domain (PD-scan / PD-old-70-expired).
-Manifest key: `greene`.
+**Greene** - *Parrots in Captivity* by **W. T. Greene** (1884-1887), with notes
+by **F. G. Dutton**, plates by **A. F. Lydon**, engraved and printed by
+**Benjamin Fawcett**, from the Commons category
+[Parrots in captivity](https://commons.wikimedia.org/wiki/Category:Parrots_in_captivity).
+Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
