@@ -447,7 +447,7 @@ def selected_species(
     source: Source,
     images_dir: Path,
     style: str,
-    hours: int = 24,
+    hours: float = 24,
     limit: int = NO_LIMIT,
     ranking: str = DEFAULT_RANKING,
     keys: set[str] | None = None,
@@ -479,7 +479,7 @@ def gather_entries(
     images_dir: Path,
     style: str,
     picks: Picks,
-    hours: int = 24,
+    hours: float = 24,
     limit: int = NO_LIMIT,
     ranking: str = DEFAULT_RANKING,
 ) -> list[tuple[str, Path | None]]:

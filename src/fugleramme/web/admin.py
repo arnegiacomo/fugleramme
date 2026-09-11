@@ -26,6 +26,7 @@ from ..settings import (
     DEFAULT_LIMIT,
     LIMIT_CEILING,
     LOOKBACK_OPTIONS,
+    REFRESH_OPTIONS,
     ROTATIONS,
     Settings,
     lookback_order,
@@ -314,6 +315,12 @@ def _lookbacks(settings: Settings) -> str:
     return _options(sorted(labels, key=lookback_order), settings.lookback_hours, labels.get)
 
 
+def _refreshes(settings: Settings) -> str:
+    labels = dict(REFRESH_OPTIONS)
+    labels.setdefault(settings.refresh_minutes, f"At most every {settings.refresh_minutes} minutes")
+    return _options(sorted(labels), settings.refresh_minutes, labels.get)
+
+
 def _hint(text: str) -> str:
     """The note beside a field label. A span, not a button: a <label> may hold
     only one labelable element and that is the select. admin.css draws the
@@ -400,6 +407,7 @@ def page(
             ),
         ),
         rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
+        refreshes=_refreshes(settings),
         lookback_off="" if windowed else ' class="off"',
         lookback_disabled="" if windowed else " disabled",
         lookbacks=_lookbacks(settings),

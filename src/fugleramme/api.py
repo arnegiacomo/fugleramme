@@ -95,7 +95,7 @@ def _time(value: str) -> datetime | None:
         return None
 
 
-def _window(hours: int) -> tuple[str, str]:
+def _window(hours: float) -> tuple[str, str]:
     """The summary filters on whole dates, so a window of hours becomes the days
     it touches. It rounds outwards: a day-long window is never short."""
     if hours <= 0:
@@ -347,18 +347,18 @@ class ApiSource:
         except (KeyError, TypeError, ValueError) as error:
             raise Unavailable(f"unreadable detections: {error}") from error
 
-    def _counted(self, hours: int) -> list[tuple[str, int]] | None:
+    def _counted(self, hours: float) -> list[tuple[str, int]] | None:
         """A sub-day window counted off the feed, or None when the feed ran out
         before reaching the cutoff and the count would be short."""
         since = datetime.now(UTC) - timedelta(hours=hours)
         heard = self.recent(_WINDOW_SCAN)
         oldest = min((d.detected_at for d in heard), default=since)
         if oldest > since and len(self._feed(_WINDOW_SCAN)) >= _WINDOW_SCAN:
-            log.warning("The %d newest detections do not reach %dh back", _WINDOW_SCAN, hours)
+            log.warning("The %d newest detections do not reach %gh back", _WINDOW_SCAN, hours)
             return None
         return _ranked(Counter(d.scientific_name for d in heard if d.detected_at >= since).items())
 
-    def species_since(self, hours: int = 24) -> list[tuple[str, int]]:
+    def species_since(self, hours: float = 24) -> list[tuple[str, int]]:
         if 0 < hours < 24 and (counted := self._counted(hours)) is not None:
             return counted
         since = datetime.now(UTC) - timedelta(hours=hours) if hours > 0 else None
@@ -436,7 +436,7 @@ class Configured:
     def recent(self, limit: int = 20) -> list[Detection]:
         return self.source.recent(limit)
 
-    def species_since(self, hours: int = 24) -> list[tuple[str, int]]:
+    def species_since(self, hours: float = 24) -> list[tuple[str, int]]:
         return self.source.species_since(hours)
 
     def life_list(self) -> list[Species]:

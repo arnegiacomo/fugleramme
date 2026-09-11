@@ -45,6 +45,11 @@ def detector(config: Config) -> tuple[SettingsStore, Configured]:
     return store, source
 
 
+def _due(minutes: int, last: float | None) -> bool:
+    """Whether the birds may change the page again yet. 0 minutes is no floor."""
+    return last is None or time.monotonic() - last >= minutes * 60
+
+
 def _update(status: Status, auto: bool) -> bool:
     """Refresh the release check and install if asked. True once the tag is checked out."""
     status.update_available = updates.available()
@@ -132,6 +137,8 @@ def run(config: Config) -> None:
     log.info("Reading detections from %s", source.base_url)
 
     last_key: tuple | None = None
+    last_settings: Settings | None = None
+    last_render: float | None = None
     last_artless: list[str] | None = None
     pending = None  # rendered but not yet on the glass; survives a failed push
     unreachable = False
@@ -155,7 +162,10 @@ def run(config: Config) -> None:
         try:
             last_artless = _log_artless(ctx, last_artless)
             key = (modes.state_key(ctx), settings.rotation)
-            if key != last_key:
+            # The floor paces the birds alone; a saved setting goes straight through.
+            if key != last_key and (
+                settings != last_settings or _due(settings.refresh_minutes, last_render)
+            ):
                 if modes.mode_of(ctx.mode).windowed:
                     # The loop owns the window, so it is the only caller that may forget
                     # a departed bird's artwork - the kiosk may be previewing another one.
@@ -164,7 +174,7 @@ def run(config: Config) -> None:
                 panel_image.save(config.output_path)
                 log.info("Rendered %s page at %dx%d", ctx.mode, *size)
                 status.rendered()
-                last_key = key
+                last_key, last_settings, last_render = key, settings, time.monotonic()
                 pending = (panel_image, settings.rotation) if panel is not None else None
             if unreachable:
                 log.info("Detector reachable again")

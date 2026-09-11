@@ -24,7 +24,7 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 ./run.sh                                    # Pi only: converge an existing checkout (BirdNET-Go + services)
 ```
 
-**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, how many species and which ones, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`), persisted to `--config` (default `detector/data/settings.json`). The detector's address and password are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`; `--detector` only supplies the default for a settings file that carries no `detector_url` of its own. The panel's own size is never a setting.
+**Settings are runtime, flags are launch-only.** Display mode, kiosk resolution, rotation, lookback, the panel's refresh floor, how many species and which ones, style, names (on/off, primary + optional second language, typeface, size) and auto-update all live in the admin UI (`:8080/admin`), persisted to `--config` (default `detector/data/settings.json`). The detector's address and password are settings too, so a frame can be re-pointed without a restart. The flags are `--detector`, `--images`, `--config`, `--output`, `--host`, `--port`, `--preview`; `--detector` only supplies the default for a settings file that carries no `detector_url` of its own. The panel's own size is never a setting.
 
 ## Architecture
 
@@ -42,6 +42,7 @@ uv run python scripts/curate.py             # workstation only: contact sheet on
 **Render once, fan out** (`service.py`).
 
 - The loop re-renders only when its inputs change: the species on the page, panel size, style, rotation, names + language + typeface.
+- `settings.refresh_minutes` floors how often the *birds* may change the page (#64): at a busy station the species either side of the limit's cutoff trade on every call, and each trade is a full e-ink refresh. A changed `Settings` bypasses the floor, so a save is never held back by it.
 - It dithers to 6 colors and pushes to the panel; the kiosk serves the same page full-color at its own pixel count. No panel means web-only, the same path as `--preview`.
 
 **The panel sizes itself** (`panel.py`).

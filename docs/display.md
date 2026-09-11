@@ -31,10 +31,14 @@ Heard nothing at all in the lookback window? The page draws a bare perch.
 
 ### Lookback window
 
-How far back the collage looks, from the last hour to all time. Default is
+How far back the collage looks, from the last 15 minutes to all time. Default is
 **Today (24 hours)**. Only the collage uses it.
 
 **All time** never drops a species, so the page only grows.
+
+### Panel refresh
+
+The shortest time the panel holds a render before newly heard birds may change it. Default is **As soon as it changes**. This is a floor and not a timer, and affects all modes. If you have a busy station, you can use this to avoid constant redraws.
 
 ### Species on the page
 

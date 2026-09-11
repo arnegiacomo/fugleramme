@@ -32,6 +32,8 @@ ALL_TIME = 0
 
 # Lookback windows offered in the admin UI, as (hours, label), shortest-first.
 LOOKBACK_OPTIONS = (
+    (0.25, "Last 15 minutes"),
+    (0.5, "Last 30 minutes"),
     (1, "Last hour"),
     (3, "Last 3 hours"),
     (6, "Last 6 hours"),
@@ -51,7 +53,19 @@ DEFAULT_LIMIT = 40
 LIMIT_CEILING = 500
 
 
-def lookback_order(hours: int) -> float:
+# How long the panel holds a page before the birds may change it, as (minutes,
+# label). A floor, not a timer: nothing repaints until the page differs (#64).
+REFRESH_OPTIONS = (
+    (0, "As soon as it changes"),
+    (5, "At most every 5 minutes"),
+    (10, "At most every 10 minutes"),
+    (15, "At most every 15 minutes"),
+    (30, "At most every 30 minutes"),
+    (60, "At most every hour"),
+)
+
+
+def lookback_order(hours: float) -> float:
     """Sort key: ALL_TIME is the longest window, not the shortest."""
     return float("inf") if hours == ALL_TIME else hours
 
@@ -63,7 +77,8 @@ class Settings:
     web_resolution: str = DEFAULT_WEB_RESOLUTION
     # Shapes both outputs; only the panel actually turns the pixels.
     rotation: int = 0
-    lookback_hours: int = 24
+    lookback_hours: float = 24
+    refresh_minutes: int = 0
     # Which birds make the page (#53); NO_LIMIT is every species the window holds.
     species_limit: int = DEFAULT_LIMIT
     ranking: str = DEFAULT_RANKING
@@ -101,6 +116,16 @@ def _as_int(value, default: int, lo: int, hi: int) -> int:
         return max(lo, min(hi, int(value)))
     except (TypeError, ValueError):
         return default
+
+
+def _as_hours(value, default: float) -> float:
+    """Fractional so the admin can offer minutes; a whole number stays an int, so
+    the settings file reads as plain hours."""
+    try:
+        hours = max(ALL_TIME, min(24 * 30, float(value)))
+    except (TypeError, ValueError):
+        return default
+    return int(hours) if hours == int(hours) else hours
 
 
 def _as_bool(value, default: bool) -> bool:
@@ -171,7 +196,8 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
             str(raw.get("web_resolution", d.web_resolution)), WEB_HEIGHTS, d.web_resolution
         ),
         rotation=_one_of(rotation, ROTATIONS, d.rotation),
-        lookback_hours=_as_int(raw.get("lookback_hours"), d.lookback_hours, ALL_TIME, 24 * 30),
+        lookback_hours=_as_hours(raw.get("lookback_hours"), d.lookback_hours),
+        refresh_minutes=_as_int(raw.get("refresh_minutes"), d.refresh_minutes, 0, 24 * 60),
         species_limit=_as_int(raw.get("species_limit"), d.species_limit, NO_LIMIT, LIMIT_CEILING),
         ranking=_one_of(str(raw.get("ranking", d.ranking)), RANKINGS, d.ranking),
         style=_style(raw, d.style),
