@@ -69,6 +69,9 @@ Releases are cut straight from these:
 
 PRs are squashed, so the title is the message that counts.
 
+**Artwork is `chore`, not `fix`** - `chore(assets): add Sturnus unicolor`. A new
+bird isn't a new version of the software, so it is added to the next release rather than cutting one of its own.
+
 ## Artwork
 
 Half the point of this project is showing off amazing public-domain natural-history illustration, so every bird has to be cut from a real plate. Nothing AI-generated.
@@ -86,7 +89,7 @@ Some things no tool can check, so they're what an artwork PR gets read for:
 whether the licensing is A-ok, the illustration looks good and fits the styles, and whether the cut-out blends nicely on the page.
 
 The rest is mechanical. `assets/artwork/custom/README.md` covers the file
-itself: a transparent PNG, named for the scientific name exactly as BirdNET-Go
+itself: a transparent WebP or PNG, named for the scientific name exactly as BirdNET-Go
 emits it (`assets/birdnet_labels_v2.4.txt`), with `-2`, `-3` for more of the
 same bird. A name that isn't an existing label fails the test suite.
 
@@ -111,8 +114,8 @@ Then, for the style folder it lands in:
 
 - **The licensing has to work.** Public domain, or terms compatible with the
   folder's own. `classic` is CC BY-SA 4.0.
-- **The folder's `manifest.json` names each PNG's source and links its
-  plate** (`"bird.png": {"source": "gould", "url": ...}`). A new file means a
+- **The folder's `manifest.json` names each file's source and links its
+  plate** (`"bird.webp": {"source": "gould", "url": ...}`). A new file means a
   new entry.
 - **`ATTRIBUTION.md` names the works and their terms, and gives each one its
   manifest key** (``Manifest key: `gould`.``). A new source means a new entry -
