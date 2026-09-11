@@ -197,15 +197,17 @@ class ApiSource:
         self._cache: dict[tuple, tuple[float, Any]] = {}
         self._not_birds: set[str] = set()
 
-    def _is_bird(self, name: str) -> bool:
+    def _is_bird(self, name: str, common: str = "") -> bool:
         """`taxa.is_bird`, naming what it drops the first time it sees it. Once
         per species rather than per poll, and a bird that vanishes because the
-        alias map is behind the detector says so here or nowhere."""
+        alias map is behind the detector says so here or nowhere. The common name
+        is the row's own: another model's label has none here to look up."""
         if is_bird(name):
             return True
         if name not in self._not_birds:
             self._not_birds.add(name)
-            log.info("Not a bird, ignoring detections of %s", name)
+            named = f"{common} ({name})" if common else name
+            log.info("Not a bird, ignoring detections of %s", named)
         return False
 
     # -- transport ---------------------------------------------------------
@@ -308,7 +310,7 @@ class ApiSource:
                 for row in _merged(
                     self._get("/analytics/species/summary", start_date=start, end_date=end)
                 )
-                if self._is_bird(row["scientific_name"])
+                if self._is_bird(row["scientific_name"], row.get("common_name") or "")
             ],
         )
 
@@ -339,7 +341,8 @@ class ApiSource:
             return [
                 _detection(row, offset)
                 for row in self._feed(limit)
-                if row.get("verified") != "false_positive" and self._is_bird(row["scientificName"])
+                if row.get("verified") != "false_positive"
+                and self._is_bird(row["scientificName"], row.get("commonName") or "")
             ]
         except (KeyError, TypeError, ValueError) as error:
             raise Unavailable(f"unreadable detections: {error}") from error

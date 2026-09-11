@@ -45,16 +45,24 @@ NON_BIRD_GENERA = frozenset(_GENERA.split())
 
 
 @cache
-def _labels() -> frozenset[str]:
-    """Every v2.4 name as an artwork key, so a reclassified species answers to the
-    label's spelling and the detector's alike. Empty if the file cannot be read,
-    which turns the allowlist off rather than emptying the page."""
+def _labels() -> dict[str, str]:
+    """Every v2.4 name as an artwork key, against the common name beside it in the
+    file, so a reclassified species answers to the label's spelling and the
+    detector's alike. Empty if the file cannot be read, which turns the allowlist
+    off rather than emptying the page."""
     try:
         text = LABELS.read_text()
     except OSError as error:
         log.warning("No label list at %s (%s): only the genus check applies", LABELS, error)
-        return frozenset()
-    return frozenset(normalize(line.split("_", 1)[0]) for line in text.splitlines() if line)
+        return {}
+    rows = (line.split("_", 1) for line in text.splitlines() if line)
+    return {normalize(row[0]): row[-1] if len(row) > 1 else "" for row in rows}
+
+
+def common_of(scientific_name: str) -> str:
+    """The label's own English common name, or "" for a name v2.4 never emitted.
+    Needs no detector and no dictionary, unlike every other name here."""
+    return _labels().get(normalize(scientific_name), "")
 
 
 def is_bird(scientific_name: str) -> bool:

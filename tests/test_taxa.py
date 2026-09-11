@@ -151,6 +151,6 @@ def test_the_source_names_a_non_bird_once_rather_than_every_poll(source, caplog,
 
     named = [r.getMessage() for r in caplog.records if "Not a bird" in r.msg]
     assert sorted(named) == [
-        f"Not a bird, ignoring detections of {VOICES}",
-        f"Not a bird, ignoring detections of {BAT}",
+        f"Not a bird, ignoring detections of {fake.NON_BIRDS[BAT]} ({BAT})",
+        f"Not a bird, ignoring detections of {fake.NON_BIRDS[VOICES]} ({VOICES})",
     ]

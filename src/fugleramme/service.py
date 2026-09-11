@@ -18,7 +18,7 @@ import signal
 import threading
 import time
 
-from . import __version__, buttons, languages, modes, updates
+from . import __version__, buttons, languages, modes, taxa, updates
 from .api import Configured
 from .config import Config
 from .languages import namer
@@ -71,6 +71,15 @@ def _update(status: Status, auto: bool) -> bool:
         return False
 
 
+def _both_names(ctx: modes.Context, scientific: str) -> str:
+    """`Common (Scientific)`, so a missing plate reads from the journal without a
+    lookup. The admin's language, falling back to the label's English."""
+    common = ctx.namer.parts(scientific)[0]
+    if common == scientific:
+        common = taxa.common_of(scientific)
+    return f"{common} ({scientific})" if common else scientific
+
+
 def _log_artless(ctx: modes.Context, last: list[str] | None) -> list[str]:
     """Name the window's species this style cannot draw, so a missing plate is
     readable from the journal. Logged on change, not on every poll."""
@@ -78,7 +87,8 @@ def _log_artless(ctx: modes.Context, last: list[str] | None) -> list[str]:
     if artless == last:
         return artless
     if artless:
-        log.info("No artwork for %d species: %s", len(artless), ", ".join(artless))
+        named = ", ".join(_both_names(ctx, name) for name in artless)
+        log.info("No artwork for %d species: %s", len(artless), named)
     else:
         log.info("Artwork found for every species in the window")
     return artless
