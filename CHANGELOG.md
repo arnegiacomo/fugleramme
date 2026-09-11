@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.19.2 (2026-09-11)
+
+### Bug Fixes
+
+- **assets**: Add Estrilda astrild ([#72](https://github.com/arnegiacomo/fugleramme/pull/72),
+  [`02f6922`](https://github.com/arnegiacomo/fugleramme/commit/02f6922fc71e8d60791e70ce5368fe69d2699395))
+
+
 ## v0.19.1 (2026-09-10)
 
 ### Bug Fixes
