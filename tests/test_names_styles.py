@@ -96,11 +96,16 @@ def test_variants_reach_back_to_the_birdnet_label(tmp_path):
         ]
 
 
-def test_variants_prefer_the_current_name_when_both_spellings_have_artwork(tmp_path):
-    _make(tmp_path, "classic", "corvus-monedula", "coloeus-monedula")
-    assert [p.stem for p in variants_for("Corvus monedula", tmp_path, "classic")] == [
-        "coloeus-monedula"
-    ]
+def test_variants_merge_both_spellings_when_each_has_artwork(tmp_path):
+    # A plate added under the current name must not hide the ones curated under
+    # the label: the species wears all of them, the current name's plates first.
+    _make(tmp_path, "classic", "corvus-monedula", "corvus-monedula-2", "coloeus-monedula")
+    for reported in ("Corvus monedula", "Coloeus monedula"):
+        assert [p.stem for p in variants_for(reported, tmp_path, "classic")] == [
+            "coloeus-monedula",
+            "corvus-monedula",
+            "corvus-monedula-2",
+        ]
 
 
 def test_drawable_keys_name_a_reclassified_bird_once(tmp_path):
