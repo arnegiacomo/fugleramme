@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.21.1 (2026-09-11)
+
+### Bug Fixes
+
+- #39 dispatch the image build from the release workflow
+  ([`ca40a55`](https://github.com/arnegiacomo/fugleramme/commit/ca40a558e1e326bd1a45b92a3061396de6b0d650))
+
+
 ## v0.21.0 (2026-09-11)
 
 ### Chores
