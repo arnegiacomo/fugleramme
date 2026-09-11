@@ -1,0 +1,54 @@
+# Fugleramme and BirdNET-Go together, for a machine with a USB mic and no e-ink
+# panel: BirdNET-Go listens, the frame draws what it hears.
+# https://arnegiacomo.dev/fugleramme/container/
+#
+# The mic reaches the container through /dev/snd, so this is Linux only - Docker
+# on macOS or Windows cannot get at the host's audio.
+
+services:
+  fugleramme:
+    image: ghcr.io/arnegiacomo/fugleramme:latest
+    container_name: fugleramme
+    restart: unless-stopped
+    environment:
+      # The service name below - compose puts both on one network.
+      FUGLERAMME_DETECTOR_URL: http://birdnet-go:8080
+      TZ: ${TZ:-Europe/Oslo}
+    ports:
+      - "8080:8080"
+    volumes:
+      - fugleramme:/data
+    depends_on:
+      - birdnet-go
+
+  birdnet-go:
+    # Upstream tags by date. Pinned, not :latest, so an unattended pull cannot
+    # swap the detector under a working install.
+    image: ghcr.io/tphakala/birdnet-go:20260823
+    container_name: birdnet-go
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Oslo}
+      # The entrypoint chowns its config and data to this user.
+      BIRDNET_UID: ${BIRDNET_UID:-1000}
+      BIRDNET_GID: ${BIRDNET_GID:-1000}
+      # Set if the host has several cards and the wrong one is picked - `arecord -l`.
+      ALSA_CARD: ${ALSA_CARD:-}
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - audio  # or the number from `getent group audio`, if the name does not resolve
+    volumes:
+      - birdnet-config:/config
+      - birdnet-data:/data
+    # Debug logs run to a 26GB ceiling at BirdNET-Go's defaults; HLS is churn.
+    tmpfs:
+      - /data/logs:size=128M,uid=${BIRDNET_UID:-1000},gid=${BIRDNET_GID:-1000},mode=0755
+      - /config/hls:exec,size=50M,uid=${BIRDNET_UID:-1000},gid=${BIRDNET_GID:-1000},mode=0755
+    ports:
+      - "8090:8080"
+
+volumes:
+  fugleramme:
+  birdnet-config:
+  birdnet-data:  # the detections live here - keep it

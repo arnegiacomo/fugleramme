@@ -14,7 +14,7 @@ import json
 import os
 import re
 import threading
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
 from .config import DEFAULT_DETECTOR_URL, DEFAULT_WEB_RESOLUTION, WEB_HEIGHTS
@@ -217,6 +217,26 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
 def merged(base: Settings, **changes) -> Settings:
     """Validated Settings from a base plus overrides, without persisting."""
     return _coerce({**asdict(base), **changes})
+
+
+ENV_PREFIX = "FUGLERAMME_"
+
+
+def from_env(base: Settings | None = None) -> Settings:
+    """Settings seeded from the environment: `FUGLERAMME_<FIELD>` for any field
+    of `Settings`, read off the dataclass so a new setting needs nothing here.
+
+    **A seed, not an override.** These are the store's defaults, so a key the file
+    already carries wins and the variable is inert from the first Save on. The
+    container image is the only reason for it: one that reset the style on every
+    recreate would make the admin page, which offers to change it, a liar.
+    """
+    raw = {
+        field.name: os.environ[key]
+        for field in fields(Settings)
+        if (key := ENV_PREFIX + field.name.upper()) in os.environ
+    }
+    return _coerce(raw, base)
 
 
 class SettingsStore:

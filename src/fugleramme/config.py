@@ -57,7 +57,7 @@ DEFAULT_CONFIG_PATH = REPO_ROOT / "detector" / "data" / "settings.json"
 @dataclass(frozen=True)
 class Config:
     images_dir: Path
-    detector_url: str
+    detector_url: str | None  # the --detector flag; None leaves the env or the default
     output_path: Path
     host: str
     port: int

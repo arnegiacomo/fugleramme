@@ -17,6 +17,7 @@ import logging
 import signal
 import threading
 import time
+from dataclasses import replace
 
 from . import __version__, buttons, languages, modes, taxa, updates
 from .api import Configured
@@ -25,7 +26,7 @@ from .languages import namer
 from .panel import init_panel, resolution_of
 from .picks import FILENAME as PICKS_FILE, Picks
 from .render.dither import dither
-from .settings import Settings, SettingsStore
+from .settings import Settings, SettingsStore, from_env
 from .source import Unavailable
 from .status import Status
 from .web.server import serve
@@ -36,10 +37,12 @@ _POLL_SECONDS = 5  # one query per tick; re-renders only on change, so e-ink sta
 
 
 def detector(config: Config) -> tuple[SettingsStore, Configured]:
-    """The settings store and the detector they name. settings.json wins when it
-    carries a detector_url; --detector only supplies the default for a file that
-    does not."""
-    store = SettingsStore(config.config_path, Settings(detector_url=config.detector_url))
+    """The settings store and the detector they name. settings.json wins over
+    both of the seeds below whenever it carries the key itself."""
+    defaults = from_env()
+    if config.detector_url:
+        defaults = replace(defaults, detector_url=config.detector_url)  # --detector beats the env
+    store = SettingsStore(config.config_path, defaults)
     source = Configured(store)
     languages.use(source)
     return store, source
@@ -53,6 +56,8 @@ def _due(minutes: int, last: float | None) -> bool:
 def _update(status: Status, auto: bool) -> bool:
     """Refresh the release check and install if asked. True once the tag is checked out."""
     status.update_available = updates.available()
+    if updates.in_container():
+        return False  # the release check is still worth having; the install is the host's
     if auto and status.update_available and not status.update_error:
         status.update_requested = status.update_available
     if not status.update_requested:

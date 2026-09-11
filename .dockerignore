@@ -1,0 +1,14 @@
+# The context is the whole repo, and .git alone is over a gigabyte of artwork
+# history. Deny everything, then name what the image needs - README.md and
+# LICENSE among them, since hatchling reads both for the wheel's metadata.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!src
+!assets
+
+# Re-excluded from the trees above.
+**/__pycache__
+**/*.pyc
