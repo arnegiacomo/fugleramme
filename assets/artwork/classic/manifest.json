@@ -11,18 +11,6 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIMealy_Redpole.jpg"
   },
-  "birds/accipiter-gentilis-2.png": {
-    "source": "vonwright",
-    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00300.jpg"
-  },
-  "birds/accipiter-gentilis-3.png": {
-    "source": "vonwright",
-    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00299.jpg"
-  },
-  "birds/accipiter-gentilis.png": {
-    "source": "gould",
-    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIGoshawk.jpg"
-  },
   "birds/accipiter-nisus-2.png": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00031.jpg"
@@ -130,6 +118,14 @@
   "birds/alopochen-aegyptiaca.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVEgyptian_Goose.jpg"
+  },
+  "birds/anarhynchus-alexandrinus-2.png": {
+    "source": "vonwright",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00332.jpg"
+  },
+  "birds/anarhynchus-alexandrinus.png": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVKentish_Plover.jpg"
   },
   "birds/anas-acuta-2.png": {
     "source": "vonwright",
@@ -251,10 +247,6 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBean_Goose.jpg"
   },
-  "birds/anthropoides-virgo.png": {
-    "source": "gould",
-    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVNumidian_Demoiselle.jpg"
-  },
   "birds/anthus-campestris-2.png": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00219.jpg"
@@ -310,10 +302,6 @@
   "birds/apus-apus.png": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00010.jpg"
-  },
-  "birds/apus-melba.png": {
-    "source": "gould",
-    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIWhite-bellied_Swift.jpg"
   },
   "birds/apus-pallidus.png": {
     "source": "dresser",
@@ -391,6 +379,18 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Asio_otus_by_John_Gould.jpg"
   },
+  "birds/astur-gentilis-2.png": {
+    "source": "vonwright",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00300.jpg"
+  },
+  "birds/astur-gentilis-3.png": {
+    "source": "vonwright",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00299.jpg"
+  },
+  "birds/astur-gentilis.png": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIGoshawk.jpg"
+  },
   "birds/athene-noctua.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILittle_Owl.jpg"
@@ -462,6 +462,10 @@
   "birds/botaurus-lentiginosus.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVAmerican_Bittern.jpg"
+  },
+  "birds/botaurus-minutus.png": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Bittern.jpg"
   },
   "birds/botaurus-stellaris-2.png": {
     "source": "vonwright",
@@ -787,37 +791,9 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISilky_Warbler.jpg"
   },
-  "birds/charadrius-alexandrinus-2.png": {
-    "source": "vonwright",
-    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00332.jpg"
-  },
-  "birds/charadrius-alexandrinus.png": {
-    "source": "gould",
-    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVKentish_Plover.jpg"
-  },
-  "birds/charadrius-dubius-2.png": {
-    "source": "vonwright",
-    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00333.jpg"
-  },
-  "birds/charadrius-dubius-3.png": {
-    "source": "vonwright-fng",
-    "url": "https://www.rawpixel.com/image/8864509/image-public-domain-bird-animal"
-  },
-  "birds/charadrius-dubius.png": {
-    "source": "gould",
-    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Ring-Dottrell.jpg"
-  },
   "birds/charadrius-hiaticula.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVRingDottrell.jpg"
-  },
-  "birds/charadrius-morinellus-2.png": {
-    "source": "vonwright",
-    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00335.jpg"
-  },
-  "birds/charadrius-morinellus.png": {
-    "source": "gould",
-    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVDottrell.jpg"
   },
   "birds/chelidon-rustica-x-hirundo-urbica.png": {
     "source": "vonwright",
@@ -975,6 +951,18 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Coccyzus_Americanus_by_John_Gould.jpg"
   },
+  "birds/coloeus-monedula-2.png": {
+    "source": "vonwright",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00244.jpg"
+  },
+  "birds/coloeus-monedula-3.png": {
+    "source": "vonwright-fng",
+    "url": "https://www.rawpixel.com/image/8864271/jackdaw-1828-1838-magnus-von-wright"
+  },
+  "birds/coloeus-monedula.png": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14752000105).jpg"
+  },
   "birds/columba-livia.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVRock_Dove.jpg"
@@ -1038,18 +1026,6 @@
   "birds/corvus-frugilegus.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIRook.jpg"
-  },
-  "birds/corvus-monedula-2.png": {
-    "source": "vonwright",
-    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00244.jpg"
-  },
-  "birds/corvus-monedula-3.png": {
-    "source": "vonwright-fng",
-    "url": "https://www.rawpixel.com/image/8864271/jackdaw-1828-1838-magnus-von-wright"
-  },
-  "birds/corvus-monedula.png": {
-    "source": "gould",
-    "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14752000105).jpg"
   },
   "birds/coturnix-coturnix-2.png": {
     "source": "vonwright",
@@ -1327,6 +1303,14 @@
     "source": "keulemans",
     "url": "https://archive.org/details/onzevogelsinhuis01keul/page/n299/mode/1up"
   },
+  "birds/eudromias-morinellus-2.png": {
+    "source": "vonwright",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00335.jpg"
+  },
+  "birds/eudromias-morinellus.png": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVDottrell.jpg"
+  },
   "birds/falco-biarmicus.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILanner_Falcon.jpg"
@@ -1599,6 +1583,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVCommon_Crane.jpg"
   },
+  "birds/grus-virgo.png": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVNumidian_Demoiselle.jpg"
+  },
   "birds/gulosus-aristotelis-2.png": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00075.jpg"
@@ -1698,10 +1686,6 @@
   "birds/ichthyaetus-melanocephalus.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack-headed_Gull.jpg"
-  },
-  "birds/ixobrychus-minutus.png": {
-    "source": "gould",
-    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Bittern.jpg"
   },
   "birds/jynx-torquilla-2.png": {
     "source": "vonwright",
@@ -3019,6 +3003,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVLittle_Grebe.jpg"
   },
+  "birds/tachymarptis-melba.png": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIWhite-bellied_Swift.jpg"
+  },
   "birds/tadorna-ferruginea.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVRuddy_Sheldrake.jpg"
@@ -3090,6 +3078,18 @@
   "birds/thalasseus-sandvicensis.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVSandwich_Tern.jpg"
+  },
+  "birds/thinornis-dubius-2.png": {
+    "source": "vonwright",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00333.jpg"
+  },
+  "birds/thinornis-dubius-3.png": {
+    "source": "vonwright-fng",
+    "url": "https://www.rawpixel.com/image/8864509/image-public-domain-bird-animal"
+  },
+  "birds/thinornis-dubius.png": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Ring-Dottrell.jpg"
   },
   "birds/tringa-erythropus-2.png": {
     "source": "vonwright",
