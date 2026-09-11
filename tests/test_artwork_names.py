@@ -9,6 +9,7 @@ something maps it to terms and a licence.
 
 from __future__ import annotations
 
+import csv
 import json
 import re
 from pathlib import Path
@@ -20,6 +21,7 @@ from fugleramme.names import MANIFEST, PERCHES, normalize
 REPO = Path(__file__).resolve().parents[1]
 IMAGES = REPO / "assets" / "artwork"
 LABELS = REPO / "assets" / "birdnet_labels_v2.4.txt"
+SIZES = REPO / "assets" / "bird_sizes.csv"
 ATTRIBUTION = "ATTRIBUTION.md"
 # Curation priority list: workstation-only tooling, so absent from a clone.
 PRIORITY = REPO / "scripts" / "bergen_species.txt"
@@ -46,15 +48,21 @@ EXCEPTIONS = {
 
 
 def _labels() -> set[str]:
-    """Every label as a filename key, under both the name BirdNET uses and the
-    current one. Plates predate the reclassifications and are filed under the
-    label; `normalize` folds the pair to one key, so either spelling is a
-    filename `variants_for` will find."""
+    """Every label as a filename key, under the species' current name.
+
+    v2.4's label set is frozen at its training taxonomy, so 236 of its 6522
+    labels now name a species the detector reports under a newer name.
+    `normalize` folds both spellings to the current one, which is what every
+    other table in the frame is keyed on - so that is the one spelling a
+    shipped plate may use. `variants_for` still reads the label's spelling for
+    the sake of a user's own style folder, which no test ever sees; accepting
+    it here too would leave the convention unenforced and shipped assets free
+    to drift back into two namesets.
+    """
     keys = set()
     for line in LABELS.read_text().splitlines():
         if "_" in line:
-            label = line.split("_", 1)[0].strip().lower().replace(" ", "-")
-            keys |= {label, normalize(label)}
+            keys.add(normalize(line.split("_", 1)[0]))
     return keys
 
 
@@ -63,21 +71,46 @@ def _base(stem: str) -> str:
     return re.sub(r"-\d+$", "", stem)
 
 
+def _plates() -> list[tuple[Path, str]]:
+    """Every shipped bird plate with its species key, bare branches aside."""
+    return [
+        (png, _base(png.stem))
+        for png in sorted(IMAGES.rglob("*.png"))
+        if png.parent.name != PERCHES  # perches are named for the plant
+    ]
+
+
 def test_every_artwork_name_is_a_birdnet_label_or_exception():
     labels = _labels()
     unknown = []
-    for png in sorted(IMAGES.rglob("*.png")):
-        if png.parent.name == PERCHES:  # bare branches, named for the plant
-            continue
-        stem = _base(png.stem)
+    for png, stem in _plates():
         if "-x-" in stem:  # hybrids: BirdNET never emits these
             continue
         if stem in labels or stem in EXCEPTIONS:
             continue
         unknown.append(png.name)
     assert not unknown, (
-        "artwork filenames not matching a BirdNET label or exception:\n" + "\n".join(unknown)
+        "artwork filenames not naming a BirdNET species under its current name,\n"
+        "and not listed as an exception (a superseded spelling belongs in the\n"
+        "rename, not here):\n" + "\n".join(unknown)
     )
+
+
+def test_every_detectable_plate_has_a_body_mass():
+    """A plate the detector can put on the page must have a size to draw it at.
+
+    `sizes.mass_of` falls back to the dataset median rather than raising, so a
+    missing row costs no crash and no blank frame - the bird is simply drawn at
+    35g whatever it really weighs, which for a large one is half the size it
+    should be. Membership of the label set is the test: a hybrid or a species
+    v2.4 has no label for can never be detected, so its fallback is unreachable
+    and AVONET has no row for it to find anyway.
+    """
+    with SIZES.open() as handle:
+        masses = {normalize(row["scientific_name"]) for row in csv.DictReader(handle)}
+    labels = _labels()
+    missing = sorted({stem for _png, stem in _plates() if stem in labels} - masses)
+    assert not missing, "shipped plates with no body mass in bird_sizes.csv:\n" + "\n".join(missing)
 
 
 def test_every_artwork_image_has_attribution():
