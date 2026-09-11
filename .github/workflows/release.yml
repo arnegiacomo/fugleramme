@@ -1,7 +1,10 @@
 name: release
 
 on:
-  push:
+  # Gate on ci, not the push: a red commit releases nothing.
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
     branches: [main]
   # Artwork lands as `chore`, which releases nothing. `force` ships that queue.
   workflow_dispatch:
@@ -21,7 +24,12 @@ concurrency:
 
 jobs:
   release:
-    if: github.actor != 'github-actions[bot]'  # belt and braces against a bump loop
+    # The actor check is belt and braces against a bump loop.
+    if: >-
+      github.actor != 'github-actions[bot]'
+      && (github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.event == 'push'
+      && github.event.workflow_run.conclusion == 'success'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +40,6 @@ jobs:
         run: echo "tag=$(git describe --tags --abbrev=0 || true)" >> "$GITHUB_OUTPUT"
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
-      - run: uv run pytest -q
       # Run through uv, not the official action: that one is a Docker action whose
       # image has no uv, and `build_command = "uv lock"` needs it. `version` commits,
       # tags, pushes and cuts the GitHub release on its own.
