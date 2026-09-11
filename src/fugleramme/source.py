@@ -50,7 +50,7 @@ class Source(Protocol):
 
     def recent(self, limit: int = 20) -> list[Detection]: ...
 
-    def species_since(self, hours: int = 24) -> list[tuple[str, int]]:
+    def species_since(self, hours: float = 24) -> list[tuple[str, int]]:
         """Species heard in the last `hours` with their detection count, most
         frequent first then by name. `hours` of 0 or less is not a window:
         every species ever heard."""

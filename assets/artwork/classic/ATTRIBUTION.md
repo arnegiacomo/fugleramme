@@ -54,3 +54,12 @@ CC BY 2.0. Manifest key: `keulemans`.
 
 **Morris** - *British Game Birds and Waterfowl* by **Beverley R. Morris** (1855), from the Biodiversity Heritage Library [scan on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:British_game_birds_and_wildfowl_(Plate_32)_(8093637854).jpg). Public domain (PD-scan / PD-old-70-expired); the BHL file is also offered under
 CC BY 2.0. Manifest key: `morris`.
+
+**Greene** - *Parrots in Captivity* by **W. T. Greene** (1884-1887), with notes by
+**F. G. Dutton**, Volume 3, Plate 7, drawn by **A. F. Lydon**, engraved and printed
+by **Benjamin Fawcett**. Cut from the Smithsonian Libraries'
+[full-resolution scan on the Internet Archive](https://archive.org/details/ParrotscaptivitIIIGree/page/n53/mode/1up);
+the Biodiversity Heritage Library's
+[copy on Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Parrots_in_captivity_(Vol._3._PL._07)_Quaker_Grey_Breasted_or_Monte_Video_Parrakeet_(8527254257).jpg)
+is the same scan at half the size. Public domain (PD-scan / PD-old-70-expired).
+Manifest key: `greene`.

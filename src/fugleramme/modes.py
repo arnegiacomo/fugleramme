@@ -53,7 +53,7 @@ class Context:
     namer: Namer
     resolution: tuple[int, int]
     show_names: bool
-    lookback_hours: int
+    lookback_hours: float
     font_key: str
     label_size: str
     species_limit: int

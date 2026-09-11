@@ -1323,6 +1323,10 @@
     "source": "dresser",
     "url": "https://commons.wikimedia.org/wiki/File:A_history_of_the_birds_of_Europe_(Pl._644)_(6989225270).jpg"
   },
+  "birds/estrilda-astrild.png": {
+    "source": "keulemans",
+    "url": "https://archive.org/details/onzevogelsinhuis01keul/page/n299/mode/1up"
+  },
   "birds/falco-biarmicus.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILanner_Falcon.jpg"
@@ -2202,6 +2206,10 @@
   "birds/muscicapa-striata.png": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISpotted_Flycatcher.jpg"
+  },
+  "birds/myiopsitta-monachus.png": {
+    "source": "greene",
+    "url": "https://commons.wikimedia.org/wiki/File:Parrots_in_captivity_(Vol._3._PL._07)_Quaker_Grey_Breasted_or_Monte_Video_Parrakeet_(8527254257).jpg"
   },
   "birds/neophron-percnopterus.png": {
     "source": "gould",

@@ -158,6 +158,22 @@ def test_all_time_sorts_as_the_longest_window():
     assert sorted(hours, key=lookback_order) == sorted(h for h in hours if h) + [ALL_TIME]
 
 
+def test_a_window_of_minutes_survives_the_form_and_the_file(tmp_path):
+    """The window is fractional so the admin can offer minutes (#64) - but a whole
+    one stays an int, or settings.json fills up with 24.0."""
+    store = SettingsStore(tmp_path / "settings.json")
+    assert store.update(lookback_hours="0.25").lookback_hours == 0.25
+    assert json.loads(store.path.read_text())["lookback_hours"] == 0.25
+    assert isinstance(store.update(lookback_hours="24").lookback_hours, int)
+
+
+def test_the_refresh_floor_clamps_to_a_day(tmp_path):
+    store = SettingsStore(tmp_path / "settings.json")
+    assert store.update(refresh_minutes="10").refresh_minutes == 10
+    assert store.update(refresh_minutes="100000").refresh_minutes == 24 * 60
+    assert store.update(refresh_minutes="-5").refresh_minutes == 0
+
+
 def test_a_negative_lookback_clamps_to_all_time(tmp_path):
     path = tmp_path / "settings.json"
     path.write_text(json.dumps({"lookback_hours": -5}))

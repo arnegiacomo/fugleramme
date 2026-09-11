@@ -18,7 +18,7 @@ import signal
 import threading
 import time
 
-from . import __version__, buttons, languages, modes, updates
+from . import __version__, buttons, languages, modes, taxa, updates
 from .api import Configured
 from .config import Config
 from .languages import namer
@@ -43,6 +43,11 @@ def detector(config: Config) -> tuple[SettingsStore, Configured]:
     source = Configured(store)
     languages.use(source)
     return store, source
+
+
+def _due(minutes: int, last: float | None) -> bool:
+    """Whether the birds may change the page again yet. 0 minutes is no floor."""
+    return last is None or time.monotonic() - last >= minutes * 60
 
 
 def _update(status: Status, auto: bool) -> bool:
@@ -71,6 +76,15 @@ def _update(status: Status, auto: bool) -> bool:
         return False
 
 
+def _both_names(ctx: modes.Context, scientific: str) -> str:
+    """`Common (Scientific)`, so a missing plate reads from the journal without a
+    lookup. The admin's language, falling back to the label's English."""
+    common = ctx.namer.parts(scientific)[0]
+    if common == scientific:
+        common = taxa.common_of(scientific)
+    return f"{common} ({scientific})" if common else scientific
+
+
 def _log_artless(ctx: modes.Context, last: list[str] | None) -> list[str]:
     """Name the window's species this style cannot draw, so a missing plate is
     readable from the journal. Logged on change, not on every poll."""
@@ -78,7 +92,8 @@ def _log_artless(ctx: modes.Context, last: list[str] | None) -> list[str]:
     if artless == last:
         return artless
     if artless:
-        log.info("No artwork for %d species: %s", len(artless), ", ".join(artless))
+        named = ", ".join(_both_names(ctx, name) for name in artless)
+        log.info("No artwork for %d species: %s", len(artless), named)
     else:
         log.info("Artwork found for every species in the window")
     return artless
@@ -122,6 +137,8 @@ def run(config: Config) -> None:
     log.info("Reading detections from %s", source.base_url)
 
     last_key: tuple | None = None
+    last_settings: Settings | None = None
+    last_render: float | None = None
     last_artless: list[str] | None = None
     pending = None  # rendered but not yet on the glass; survives a failed push
     unreachable = False
@@ -145,7 +162,10 @@ def run(config: Config) -> None:
         try:
             last_artless = _log_artless(ctx, last_artless)
             key = (modes.state_key(ctx), settings.rotation)
-            if key != last_key:
+            # The floor paces the birds alone; a saved setting goes straight through.
+            if key != last_key and (
+                settings != last_settings or _due(settings.refresh_minutes, last_render)
+            ):
                 if modes.mode_of(ctx.mode).windowed:
                     # The loop owns the window, so it is the only caller that may forget
                     # a departed bird's artwork - the kiosk may be previewing another one.
@@ -154,7 +174,7 @@ def run(config: Config) -> None:
                 panel_image.save(config.output_path)
                 log.info("Rendered %s page at %dx%d", ctx.mode, *size)
                 status.rendered()
-                last_key = key
+                last_key, last_settings, last_render = key, settings, time.monotonic()
                 pending = (panel_image, settings.rotation) if panel is not None else None
             if unreachable:
                 log.info("Detector reachable again")

@@ -6,8 +6,8 @@ The detector emits scientific names capitalized and space-separated
 taxonomy is frozen at the model's training set, while BirdNET-Go reports the
 current name - so one bird reaches the frame as "Corvus monedula" and its plate
 is filed as "coloeus-monedula". `normalize` folds both to the current name and
-`variants_for` reaches back through the vendored OpenFauna alias map to find the
-file. Names with no artwork resolve to None and the collage omits them.
+`variants_for` gathers the files under both names through the vendored OpenFauna
+alias map. Names with no artwork resolve to None and the collage omits them.
 
 Artwork is grouped by *style* into subfolders of `images_dir` ("classic", a
 user's "custom", ...), one active at a time: `available_styles` lists what is
@@ -81,8 +81,8 @@ def canonical(scientific_name: str) -> str:
 
 
 def artwork_keys(scientific_name: str) -> tuple[str, ...]:
-    """Filename keys to try: the current name, then the label BirdNET still uses
-    - a plate curated under either name is found under both."""
+    """Filename keys a species' artwork is filed under: the current name, then the
+    label BirdNET still uses - a plate curated under either name is found under both."""
     key = normalize(scientific_name)
     legacy = _LEGACY_KEY.get(key)
     return (key, legacy) if legacy else (key,)
@@ -114,7 +114,9 @@ def resolve(requested: str, images_dir: Path) -> str:
 
 
 def variants_for(scientific_name: str, images_dir: Path, style: str) -> list[Path]:
-    """Every image the style keeps for a name: "<key>.png" plus its "<key>-N.png".
+    """Every image the style keeps for a name: "<key>.png" plus its "<key>-N.png",
+    under the current name first, then the label BirdNET still uses. A plate added
+    under the current name must not hide the ones already curated under the label.
 
     Numbered-only matching keeps a species key (e.g. tetrao-urogallus) from
     picking up a hybrid file (tetrao-urogallus-x-lagopus-lagopus.png).
@@ -122,14 +124,13 @@ def variants_for(scientific_name: str, images_dir: Path, style: str) -> list[Pat
     if not style:
         return []
     folder = images_dir / style / BIRDS
+    variants: list[Path] = []
     for key in artwork_keys(scientific_name):
         numbered = re.compile(rf"{re.escape(key)}-(\d+)")
         base = [folder / f"{key}.png"] if (folder / f"{key}.png").exists() else []
         rest = [(m, p) for p in folder.glob(f"{key}-*.png") if (m := numbered.fullmatch(p.stem))]
-        variants = base + [p for _m, p in sorted(rest, key=lambda mp: int(mp[0].group(1)))]
-        if variants:
-            return variants
-    return []
+        variants += base + [p for _m, p in sorted(rest, key=lambda mp: int(mp[0].group(1)))]
+    return variants
 
 
 _NUMBERED = re.compile(r"-\d+$")

@@ -2,6 +2,44 @@
 
 <!-- version list -->
 
+## v0.20.1 (2026-09-11)
+
+### Bug Fixes
+
+- **assets**: Add Myiopsitta monachus ([#70](https://github.com/arnegiacomo/fugleramme/pull/70),
+  [`a492ea4`](https://github.com/arnegiacomo/fugleramme/commit/a492ea4ff84db9ada00fefbf70992c5a7711f049))
+
+
+## v0.20.0 (2026-09-11)
+
+### Chores
+
+- **logs**: Name dropped species in common and scientific
+  ([`7d1775f`](https://github.com/arnegiacomo/fugleramme/commit/7d1775f0b3803495cb413602a5362af5c4ce4e20))
+
+### Features
+
+- #64 add a panel refresh floor and sub-hour lookback windows
+  ([`8220ec7`](https://github.com/arnegiacomo/fugleramme/commit/8220ec7b8b65f1fffa8ae3a8e20d2b0273e7a7ba))
+
+
+## v0.19.3 (2026-09-11)
+
+### Bug Fixes
+
+- #65 take a reclassified bird's plates from both names
+  ([#71](https://github.com/arnegiacomo/fugleramme/pull/71),
+  [`b164a84`](https://github.com/arnegiacomo/fugleramme/commit/b164a8421f1d2b49df9bb5930fe0d9486ea7d843))
+
+
+## v0.19.2 (2026-09-11)
+
+### Bug Fixes
+
+- **assets**: Add Estrilda astrild ([#72](https://github.com/arnegiacomo/fugleramme/pull/72),
+  [`02f6922`](https://github.com/arnegiacomo/fugleramme/commit/02f6922fc71e8d60791e70ce5368fe69d2699395))
+
+
 ## v0.19.1 (2026-09-10)
 
 ### Bug Fixes
