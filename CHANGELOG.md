@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v0.20.2 (2026-09-11)
+
+### Bug Fixes
+
+- **asset**: Add Psittacula krameri ([#74](https://github.com/arnegiacomo/fugleramme/pull/74),
+  [`7ea7dde`](https://github.com/arnegiacomo/fugleramme/commit/7ea7dde098d2c9a6e3b939c2d6de5d25819f94c4))
+
+- **assets**: Add Psittacula krameri #44 ([#74](https://github.com/arnegiacomo/fugleramme/pull/74),
+  [`7ea7dde`](https://github.com/arnegiacomo/fugleramme/commit/7ea7dde098d2c9a6e3b939c2d6de5d25819f94c4))
+
+### Chores
+
+- #65 file shipped plates under the species' current name
+  ([#73](https://github.com/arnegiacomo/fugleramme/pull/73),
+  [`c056d7c`](https://github.com/arnegiacomo/fugleramme/commit/c056d7cdf5d3ad644cf09642d650453f4756e856))
+
+
 ## v0.20.1 (2026-09-11)
 
 ### Bug Fixes
