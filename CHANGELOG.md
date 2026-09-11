@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v0.19.3 (2026-09-11)
+
+### Bug Fixes
+
+- #65 take a reclassified bird's plates from both names
+  ([#71](https://github.com/arnegiacomo/fugleramme/pull/71),
+  [`b164a84`](https://github.com/arnegiacomo/fugleramme/commit/b164a8421f1d2b49df9bb5930fe0d9486ea7d843))
+
+
 ## v0.19.2 (2026-09-11)
 
 ### Bug Fixes
