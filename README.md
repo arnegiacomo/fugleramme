@@ -63,24 +63,23 @@ A Raspberry Pi 5, an [Inky Impression 13.3"](https://shop.pimoroni.com/products/
 ## Art
 
 Half the point of this project is showing off some amazing public-domain natural-history
-illustrations. Every bird is cut from a real plate, hand-curated for this project (no art
-is AI-generated, though some has been retouched with AI).
+illustrations. Over 800 cut-outs covering more than 400 species, every one taken from a
+real plate and hand-curated for this project (no art is AI-generated, though some has been
+retouched with AI).
 
 Each detected species is matched to its illustration, background-removed, and packed onto
 a textured paper page with the larger birds toward the centre, sized by body mass. An empty
 window shows a bare perch.
+
+The plates are Scandinavian, British and central European, so the Nordics, the British Isles and Germany
+are best covered. Elsewhere not so much (yet). Broader European and North American
+coverage is in the works!
 
 See [Adding artwork](docs/adding-artwork.md) for manual cutout steps.
 
 | No detections | A few visitors | A full garden |
 | :---: | :---: | :---: |
 | ![No birds detected](docs/assets/empty.png) | ![A few garden birds](docs/assets/few.png) | ![Many garden birds](docs/assets/many.png) |
-
-## Known limitations
-
-- **The artwork covers Northern Europe.** The plates are Scandinavian and
-  British, so the Nordics, the British Isles and Germany are well covered. Elsewhere not so much (yet).
-- **BirdNET-Go OIDC not supported.** Currently only Basic Authentication (password) is supported. OIDC is in the works.
 
 ## Run locally (for development)
 

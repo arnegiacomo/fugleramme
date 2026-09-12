@@ -21,9 +21,8 @@ same machine or elsewhere.
 > heard in my garden (Bergen, Norway).
 
 The birds are cut-outs from historic, public-domain natural-history drawings,
-hand-curated for this project. Each detected species is matched to its
-illustration and packed onto a textured paper page - larger birds toward the
-centre, sized by real body mass.
+hand-curated for this project - over 800 of them across more than 400 species.
+Each detected species is matched to its illustration and packed onto a textured paper page - larger birds toward the centre, sized by real body mass.
 
 For more display options see [Display](display.md).
 
@@ -36,10 +35,12 @@ For more display options see [Display](display.md).
 
 - **[Hardware](hardware.md)** - the parts list with alternatives
 - **[Install](install.md)** - from a blank SD card to a running frame
-- **[Container](container.md)** - running Fugleramme with Docker
+- **[Configuring BirdNET-Go](birdnetgo-config.md)** - the mic, your location, and
+  avoiding incorrect detections
 - **[Display](display.md)** - modes, settings and names
 - **[Operations](operations.md)** - buttons, services, logs and updates
-- **[Configuring BirdNET-Go](birdnetgo-config.md)** - avoiding incorrect detections
+- **[Container](container.md)** - running Fugleramme with Docker
+- **[Adding artwork](adding-artwork.md)** - cutting a bird the frame can't draw yet
 - **[Troubleshooting](troubleshooting.md)** - symptom to cause
 
 > [!NOTE]
