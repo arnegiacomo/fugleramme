@@ -25,15 +25,14 @@ Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://ar
 
 ## How it works
 
-BirdNET-Go listens on a USB mic and records what it identifies. Fugleramme polls the BirdNET-Go api, matches each species to an illustration, then packs them onto a page, and redraws only when the birds change. There's an admin page that lets you configure what to show, and automatic updates and such.
+BirdNET-Go listens on a mic and records what it identifies. Fugleramme polls the BirdNET-Go api, matches each species to an illustration, then packs them onto a page, and redraws only when the birds change. There's an admin page that lets you configure what to show, and automatic updates and such.
 
 If you already run BirdNET-Go, point the frame at it instead - on the same machine or anywhere else reachable from your network.
 
 ## Hardware
 
 A Raspberry Pi 5, an [Inky Impression 13.3"](https://shop.pimoroni.com/products/inky-impression)
-(Spectra 6), a USB mic and an A4 frame. Full parts list, alternatives, and why
-each part: **[Hardware](docs/hardware.md)**.
+(Spectra 6), a mic and an A4 frame. Full parts list, recommendations and alternatives: **[Hardware](docs/hardware.md)**.
 
 ## Art
 
