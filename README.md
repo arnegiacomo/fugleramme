@@ -8,16 +8,33 @@ E-ink bird frame for Raspberry Pi - real-time bird detection by audio.
   <em>Sorry about the dirty window - squirrels have been stealing the bird food.</em>
 </p>
 
+<p align="center">
+  <a href="https://fugleramme.arnegiacomo.dev">
+    <img src="https://img.shields.io/website?url=https%3A%2F%2Ffugleramme.arnegiacomo.dev&style=flat-square&label=live%20demo&up_message=online&down_message=offline&up_color=brightgreen" alt="Live demo">
+  </a>
+  <a href="https://github.com/arnegiacomo/fugleramme/releases">
+    <img src="https://img.shields.io/github/v/release/arnegiacomo/fugleramme?style=flat-square&color=blue" alt="Latest release">
+  </a>
+  <a href="https://github.com/arnegiacomo/fugleramme/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/arnegiacomo/fugleramme/ci.yml?branch=main&style=flat-square&label=ci" alt="CI">
+  </a>
+  <a href="https://github.com/arnegiacomo/fugleramme/commits/main">
+    <img src="https://img.shields.io/github/last-commit/arnegiacomo/fugleramme?style=flat-square&color=blueviolet" alt="Last commit">
+  </a>
+  <br>
+  <a href="https://github.com/arnegiacomo/fugleramme/stargazers">
+    <img src="https://img.shields.io/github/stars/arnegiacomo/fugleramme?style=flat-square&color=yellow" alt="Stars">
+  </a>
+  <a href="https://github.com/arnegiacomo/fugleramme/graphs/contributors">
+    <img src="https://img.shields.io/github/contributors/arnegiacomo/fugleramme?style=flat-square&color=orange" alt="Contributors">
+  </a>
+  <a href="#license">
+    <img src="https://img.shields.io/badge/license-MIT%20%2B%20art%20CC--BY--SA-green?style=flat-square" alt="License: MIT, artwork CC BY-SA 4.0">
+  </a>
+</p>
+
 > [!NOTE]
 > Still in early development: expect the odd bug and a few unpolished edges, with plenty more features to come.
-
-Built on top of [BirdNET-Go](https://github.com/tphakala/birdnet-go), which handles
-the mic, the BirdNET classifier and the detection settings. Fugleramme reads
-the detections and renders recently-seen birds on an [Inky-Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel.
-
-> [!TIP]
-> The e-ink panel is not required, although it's recommended for the intended experience. Without one, Fugleramme runs web-only - show the
-> kiosk on a display over HDMI, or open it from any device on the network.
 
 Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** running from my kitchen window and displaying the actual birds currently heard in my garden (Bergen, Norway).
 
@@ -25,9 +42,18 @@ Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://ar
 
 ## How it works
 
-BirdNET-Go listens on a mic and records what it identifies. Fugleramme polls the BirdNET-Go api, matches each species to an illustration, then packs them onto a page, and redraws only when the birds change. There's an admin page that lets you configure what to show, and automatic updates and such.
+[BirdNET-Go](https://github.com/tphakala/birdnet-go) listens on a mic and handles the
+classifier. Fugleramme polls its api, matches each species to
+an illustration, then packs them onto a page, and redraws only when the birds change - on
+an [Inky Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel, and
+as a web kiosk serving the same view. There's an admin page that lets you configure what
+to show, and automatic updates and such.
 
 If you already run BirdNET-Go, point the frame at it instead - on the same machine or anywhere else reachable from your network.
+
+> [!TIP]
+> The e-ink panel is not required, although it's recommended for the intended experience. Without one, Fugleramme runs web-only - show the
+> kiosk on a display over HDMI, or open it from any device on the network.
 
 ## Hardware
 
@@ -36,12 +62,13 @@ A Raspberry Pi 5, an [Inky Impression 13.3"](https://shop.pimoroni.com/products/
 
 ## Art
 
-The birds are cut-outs from historic, public-domain natural-history drawings,
-hand-curated for this project. Each detected species is matched to its
-illustration, background-removed, and packed onto a textured paper page - larger
-birds toward the centre, sized by body mass. An empty window shows a bare perch.
+Half the point of this project is showing off some amazing public-domain natural-history
+illustrations. Every bird is cut from a real plate, hand-curated for this project (no art
+is AI-generated, though some has been retouched with AI).
 
-Half the point of this project is showing off some amazing public-domain natural-history illustrations: every bird is cut from a real plate, no art is AI-generated (though some has been retouched with AI).
+Each detected species is matched to its illustration, background-removed, and packed onto
+a textured paper page with the larger birds toward the centre, sized by body mass. An empty
+window shows a bare perch.
 
 See [Adding artwork](docs/adding-artwork.md) for manual cutout steps.
 
@@ -53,7 +80,6 @@ See [Adding artwork](docs/adding-artwork.md) for manual cutout steps.
 
 - **The artwork covers Northern Europe.** The plates are Scandinavian and
   British, so the Nordics, the British Isles and Germany are well covered. Elsewhere not so much (yet).
-- **The mic matters more than the Pi.** Detection is BirdNET-Go's job, and how well it does depends mostly on the mic, where you put it, how many birds are in your area and so on.
 - **BirdNET-Go OIDC not supported.** Currently only Basic Authentication (password) is supported. OIDC is in the works.
 
 ## Run locally (for development)
@@ -64,6 +90,9 @@ uv run fugleramme-fake-detector               # stand-in BirdNET-Go on :8090
 uv run fugleramme-dev                         # start service on :8080 with hot-reload
 ```
 
+The fake detector's flags, and working against a real station instead:
+[Running it without a Pi](CONTRIBUTING.md#running-it-without-a-pi).
+
 ## Install on a Raspberry Pi
 
 From the pi (assuming you have the hardware up and running):
@@ -73,10 +102,6 @@ curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install
 ```
 
 Asks where BirdNET-Go should live and which ports to use, clones the repo, installs the required deps, and starts the frame as a systemd service. **NB!** Will probably require a reboot on a fresh system.
-
-If the display
-stays blank after that, see
-[Troubleshooting](docs/troubleshooting.md#panel-stays-blank).
 
 From a blank SD card, see the full [install guide](docs/install.md).
 
