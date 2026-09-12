@@ -9,28 +9,14 @@ E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully loc
 </p>
 
 <p align="center">
-  <a href="https://fugleramme.arnegiacomo.dev">
-    <img src="https://img.shields.io/website?url=https%3A%2F%2Ffugleramme.arnegiacomo.dev&style=flat-square&label=live%20demo&up_message=online&down_message=offline&up_color=brightgreen" alt="Live demo">
-  </a>
-  <a href="https://github.com/arnegiacomo/fugleramme/releases">
-    <img src="https://img.shields.io/github/v/release/arnegiacomo/fugleramme?style=flat-square&color=blue" alt="Latest release">
-  </a>
-  <a href="https://github.com/arnegiacomo/fugleramme/actions/workflows/ci.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/arnegiacomo/fugleramme/ci.yml?branch=main&style=flat-square&label=ci" alt="CI">
-  </a>
-  <a href="https://github.com/arnegiacomo/fugleramme/commits/main">
-    <img src="https://img.shields.io/github/last-commit/arnegiacomo/fugleramme?style=flat-square&color=blueviolet" alt="Last commit">
-  </a>
+  <a href="https://fugleramme.arnegiacomo.dev"><img src="https://img.shields.io/website?url=https%3A%2F%2Ffugleramme.arnegiacomo.dev&style=flat-square&label=live%20demo&up_message=online&down_message=offline&up_color=brightgreen" alt="Live demo"></a>
+  <a href="https://github.com/arnegiacomo/fugleramme/releases"><img src="https://img.shields.io/github/v/release/arnegiacomo/fugleramme?style=flat-square&color=blue" alt="Latest release"></a>
+  <a href="https://github.com/arnegiacomo/fugleramme/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/arnegiacomo/fugleramme/ci.yml?branch=main&style=flat-square&label=ci" alt="CI"></a>
+  <a href="https://github.com/arnegiacomo/fugleramme/commits/main"><img src="https://img.shields.io/github/last-commit/arnegiacomo/fugleramme?style=flat-square&color=blueviolet" alt="Last commit"></a>
   <br>
-  <a href="https://github.com/arnegiacomo/fugleramme/stargazers">
-    <img src="https://img.shields.io/github/stars/arnegiacomo/fugleramme?style=flat-square&color=yellow" alt="Stars">
-  </a>
-  <a href="https://github.com/arnegiacomo/fugleramme/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/arnegiacomo/fugleramme?style=flat-square&color=orange" alt="Contributors">
-  </a>
-  <a href="#license">
-    <img src="https://img.shields.io/badge/license-MIT%20%2B%20art%20CC--BY--SA-green?style=flat-square" alt="License: MIT, artwork CC BY-SA 4.0">
-  </a>
+  <a href="https://github.com/arnegiacomo/fugleramme/stargazers"><img src="https://img.shields.io/github/stars/arnegiacomo/fugleramme?style=flat-square&color=yellow" alt="Stars"></a>
+  <a href="https://github.com/arnegiacomo/fugleramme/graphs/contributors"><img src="https://img.shields.io/github/contributors/arnegiacomo/fugleramme?style=flat-square&color=orange" alt="Contributors"></a>
+  <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20%2B%20art%20CC--BY--SA-green?style=flat-square" alt="License: MIT, artwork CC BY-SA 4.0"></a>
 </p>
 
 > [!NOTE]
