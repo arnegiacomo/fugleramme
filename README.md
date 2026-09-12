@@ -1,5 +1,5 @@
 # fugleramme
-E-ink bird frame for Raspberry Pi - real-time bird detection by audio.
+E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully local AI, rendered as real, hand-cut 1800s bird illustrations.
 
 <p align="center">
   <img src="docs/assets/hero.jpg" width="520"

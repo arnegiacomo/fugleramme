@@ -1,6 +1,6 @@
 # Fugleramme
 
-E-ink bird frame for Raspberry Pi - real-time bird detection by audio.
+E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully local AI, rendered as real, hand-cut 1800s bird illustrations.
 
 A mic feeds [BirdNET-Go](https://github.com/tphakala/birdnet-go), which runs
 the BirdNET classifier and owns all detection config. Fugleramme reads its
