@@ -146,6 +146,7 @@ if (test) {
 
 const preview = document.getElementById("preview");
 const shot = document.getElementById("shot");
+const mat = document.getElementById("mat");
 const caption = document.querySelector(".rendering");
 const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
@@ -156,6 +157,7 @@ const queueRender = () => {
 };
 
 function loadPreview() {
+  mat.hidden = true;  // the band only stands in until the render starts
   const query = serialize(form);
   if (query === shown) return;
   const id = ++seq;
@@ -189,10 +191,16 @@ async function loadSpecies(query, id) {
   } catch (e) {}  // the preview alone is worth showing
 }
 
-// The margin slider renders on release, not as it moves.
+// Shade the mat band on the page already on screen, so the margin can be judged
+// before the render catches up.
 const margin = form.querySelector("input[name=margin]");
 const readout = document.getElementById("margin-value");
-margin.addEventListener("input", () => { readout.textContent = margin.value + "%"; });
+margin.addEventListener("input", () => {
+  readout.textContent = margin.value + "%";
+  const box = preview.getBoundingClientRect();
+  mat.style.borderWidth = Math.min(box.width, box.height) * margin.value / 100 + "px";
+  mat.hidden = preview.classList.contains("loading");  // no page on screen to shade
+});
 margin.addEventListener("change", queueRender);  // on release, or a keyboard step
 
 // Settings the chosen mode ignores go dim and stop being submitted, so the

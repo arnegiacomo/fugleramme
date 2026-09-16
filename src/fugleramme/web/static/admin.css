@@ -101,6 +101,9 @@ ul.species li.problem { color: #a4392f; }
            width: min(100%, calc(60vh * var(--aspect)));
            display: flex; align-items: center; justify-content: center;
            margin: 0 0 1.75rem; position: relative; }
+/* The band a mat would cover, shaded over the page while the margin is dragged. */
+.mat { position: absolute; inset: 0; pointer-events: none;
+       border: 0 solid rgba(70, 60, 50, 0.45); border-radius: 6px; }
 .preview.loading .rendering { display: flex; }
 .preview.loading img { display: none; }
 /* margin: undoes the page-wide `span` rule, which offsets it from the caption. */
