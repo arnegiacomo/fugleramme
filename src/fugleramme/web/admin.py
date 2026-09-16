@@ -22,6 +22,7 @@ from ..modes import MODES
 from ..names import available_styles, image_for, origin_of, source_of
 from ..render.collage import NO_LIMIT, RANKINGS
 from ..render.fonts import FONTS, LABEL_SIZES
+from ..render.packing import LAYOUTS
 from ..settings import (
     DEFAULT_LIMIT,
     LIMIT_CEILING,
@@ -375,6 +376,21 @@ def _species_field(settings: Settings) -> str:
     )
 
 
+def _radio_field(
+    label: str, name: str, options: list[tuple[str, str]], active: str, id: str = ""
+) -> str:
+    tag = f' id="{id}"' if id else ""
+    return f'<div class="field"{tag}><span>{label}</span>{_radios(name, options, active)}</div>'
+
+
+def _layout_field(settings: Settings) -> str:
+    """How the collage packs its birds (#47). Dimmed with the lookback for the
+    modes that draw one bird."""
+    hint = "\n\n".join(f"{layout.label}: {layout.blurb}" for layout in LAYOUTS.values())
+    options = [(k, layout.label) for k, layout in LAYOUTS.items()]
+    return _radio_field(f"Layout {_hint(hint)}", "layout", options, settings.layout, id="layout")
+
+
 def page(
     ctx: modes.Context,
     settings: Settings,
@@ -416,9 +432,8 @@ def page(
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
             }
         ),
-        mode_field=(
-            f'<div class="field"><span>Mode</span>'
-            f"{_radios('mode', [(k, m.label) for k, m in MODES.items()], settings.mode)}</div>"
+        mode_field=_radio_field(
+            "Mode", "mode", [(k, m.label) for k, m in MODES.items()], settings.mode
         ),
         resolutions=_options(
             WEB_HEIGHTS,
@@ -433,10 +448,13 @@ def page(
         lookback_disabled="" if windowed else " disabled",
         lookbacks=_lookbacks(settings),
         limit_field=_species_field(settings),
+        layout_field=_layout_field(settings),
         names_field=_names_field(settings, languages, names_failure),
-        style_field=(
-            f'<div class="field"><span>Artwork style</span>'
-            f"{_radios('style', [(s, _display_name(s)) for s in available_styles(ctx.images_dir)], ctx.style)}</div>"
+        style_field=_radio_field(
+            "Artwork style",
+            "style",
+            [(s, _display_name(s)) for s in available_styles(ctx.images_dir)],
+            ctx.style,
         ),
         species_count=len(rows) if rows is not None else 0,
         species_rows=(

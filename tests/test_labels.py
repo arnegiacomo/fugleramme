@@ -11,14 +11,10 @@ import pytest
 from PIL import Image, ImageFont
 
 from fugleramme.render import collage, fonts
-from fugleramme.render.collage import _pack, _probes, _Sprite, _with_label, render_collage
+from fugleramme.render.collage import _Sprite, _with_label, render_collage
+from fugleramme.render.packing import _probes, spiral
 from fugleramme.render.page import INK, PANEL_INK, label_px, stamp, text_mask
 from fugleramme.render.paper import TARGET_PAPER
-
-
-@pytest.fixture(autouse=True)
-def _no_cached_layouts():
-    collage._layouts.clear()
 
 
 def _ink(font, text="Turdus merula") -> float:
@@ -136,7 +132,7 @@ def test_packing_never_overlaps_a_label():
         _with_label(n, 30, np.ones((30, 30), dtype=bool), Image.new("L", (60, 10), 255), gap=4)
         for n in range(6)
     ]
-    placed = _pack(sprites, 400, 400)
+    placed = spiral(sprites, 400, 400)
     assert placed is not None
 
     occupied = np.zeros((400, 400), dtype=bool)
@@ -152,26 +148,18 @@ def test_sprite_without_a_label_is_just_the_bird():
     assert sprite.art_at == (0, 0)
 
 
-def _crowded(tmp_path, count=40):
-    """A full page of species, each with its own artwork file."""
-    art = Image.new("RGBA", (200, 150), (40, 40, 40, 255))
-    path = tmp_path / "bird.png"
-    art.save(path)
-    return [(f"Genus species{n}", path) for n in range(count)]
-
-
-def test_a_page_too_full_to_name_still_draws_the_birds(tmp_path, caplog):
+def test_a_page_too_full_to_name_still_draws_the_birds(tmp_path, caplog, crowded):
     # Names used to be rasterised at a fixed size while only the birds shrank, so
     # a full page could not converge and rendered as blank paper.
     page = render_collage(
-        _crowded(tmp_path), (400, 300), show_names=True, label_size="xlarge", textured=False
+        crowded(), (400, 300), show_names=True, label_size="xlarge", textured=False
     )
     assert np.asarray(page).std() > 1  # something was drawn
 
 
-def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog):
+def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog, crowded):
     page = render_collage(
-        _crowded(tmp_path, count=12),
+        crowded(12),
         (700, 500),
         show_names=True,
         label_size="large",
@@ -181,7 +169,7 @@ def test_names_shrink_with_the_birds_rather_than_being_dropped(tmp_path, caplog)
     assert "No layout fits" not in caplog.text
 
 
-def test_the_same_page_packs_identically_at_every_output_size(tmp_path):
+def test_the_same_page_packs_identically_at_every_output_size(tmp_path, crowded):
     """The panel and the kiosk draw the same page at different pixel counts, and
     the packer works in whole pixels, so it runs at one size and the placements
     are scaled. Packing at the output size used to swap birds between the two."""
@@ -195,7 +183,7 @@ def test_the_same_page_packs_identically_at_every_output_size(tmp_path):
         )
         return placed, px
 
-    entries = _crowded(tmp_path, count=8)
+    entries = crowded(8)
     with patch.object(collage, "_layout", spy):
         for size in ((1600, 1200), (1920, 1440), (800, 600), (2880, 2160)):
             collage._layouts.clear()  # the cache would otherwise answer for all four
@@ -205,10 +193,10 @@ def test_the_same_page_packs_identically_at_every_output_size(tmp_path):
     assert packed.count(packed[0]) == 4
 
 
-def test_the_panel_and_the_kiosk_share_one_pack(tmp_path):
+def test_the_panel_and_the_kiosk_share_one_pack(tmp_path, crowded):
     """Packing is the whole cost of a render and both outputs pack the same, so
     whichever draws first pays for both."""
-    entries = _crowded(tmp_path, count=8)
+    entries = crowded(8)
     calls = 0
     real = collage._layout
 
@@ -224,12 +212,12 @@ def test_the_panel_and_the_kiosk_share_one_pack(tmp_path):
 
     # A different page still packs: the key is the species and their artwork.
     with patch.object(collage, "_layout", spy):
-        render_collage(_crowded(tmp_path, count=6), (1600, 1200), show_names=True, textured=False)
+        render_collage(crowded(6), (1600, 1200), show_names=True, textured=False)
     assert calls == 2
 
 
-def test_nothing_is_drawn_against_the_page_edge(tmp_path):
-    page = render_collage(_crowded(tmp_path, count=12), (700, 500), show_names=True, textured=False)
+def test_nothing_is_drawn_against_the_page_edge(tmp_path, crowded):
+    page = render_collage(crowded(12), (700, 500), show_names=True, textured=False)
     margin = round(min(page.size) * collage._MARGIN)
     band = np.asarray(page).copy()
     band[margin:-margin, margin:-margin] = TARGET_PAPER

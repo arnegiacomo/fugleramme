@@ -157,6 +157,16 @@ def test_saving_the_form_untouched_leaves_the_password_standing(tmp_path):
     assert store.update(**admin.form_changes(form)).detector_password == "hunter2"
 
 
+def test_the_layout_field_renders_and_a_plate_mode_save_leaves_it_alone(tmp_path, source):
+    assert 'name="layout"' in _page(tmp_path, source())
+
+    # admin.js disables the collage-only fields outside the collage mode, so a
+    # plate-mode post carries no layout - and a field that is absent keeps its value.
+    store = SettingsStore(tmp_path / "s.json")
+    store.update(layout="voids")
+    assert store.update(**admin.form_changes({"mode": ["latest"]})).layout == "voids"
+
+
 @pytest.mark.parametrize(
     "url,expected",
     [

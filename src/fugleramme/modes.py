@@ -58,6 +58,7 @@ class Context:
     label_size: str
     species_limit: int
     ranking: str
+    layout: str
     textured: bool = True
 
     def perches(self):
@@ -92,6 +93,7 @@ def context(
         label_size=settings.label_size,
         species_limit=settings.species_limit,
         ranking=settings.ranking,
+        layout=settings.layout,
         textured=textured,
     )
 
@@ -163,6 +165,7 @@ def _collage(ctx: Context) -> Image.Image:
         ctx.label_size,
         ctx.namer.label,
         ctx.perches(),
+        ctx.layout,
     )
 
 
@@ -273,6 +276,7 @@ def state_key(ctx: Context) -> tuple:
         ctx.show_names,
         ctx.font_key,
         ctx.label_size,
+        ctx.layout if mode.windowed else None,
         ctx.namer.key,
         mode.key(ctx),
     )

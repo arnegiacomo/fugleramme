@@ -4,9 +4,11 @@ a real detector serves."""
 from __future__ import annotations
 
 import pytest
+from PIL import Image
 
 from fugleramme import fake, languages
 from fugleramme.api import ApiSource
+from fugleramme.render import collage
 
 
 @pytest.fixture(autouse=True)
@@ -15,6 +17,20 @@ def _clean_language_caches(monkeypatch):
     monkeypatch.setattr(languages, "_source", None)
     monkeypatch.setattr(languages, "_catalog", None)
     monkeypatch.setattr(languages, "_dicts", {})
+
+
+@pytest.fixture(autouse=True)
+def _no_cached_layouts():
+    """A module global, so one test's packing must not answer for the next."""
+    collage._layouts.clear()
+
+
+@pytest.fixture
+def crowded(tmp_path):
+    """A page of `count` species, all drawn from one artwork file."""
+    art = tmp_path / "bird.png"
+    Image.new("RGBA", (200, 150), (40, 40, 40, 255)).save(art)
+    return lambda count=40: [(f"Genus species{n}", art) for n in range(count)]
 
 
 @pytest.fixture

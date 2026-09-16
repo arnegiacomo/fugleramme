@@ -4,9 +4,10 @@ This is the web/kiosk view (also dithered onto the panel). It uses the source
 PNGs at full color and packs them by their silhouettes: opaque pixels never
 overlap and nothing clips off screen, but the transparent margins are free to
 overlap so birds nestle closely. Birds are sized by their real body mass
-(compressed, see sizes.py) and placed largest-first on an outward spiral from
-the centre, so big birds land in the middle; the whole set is then scaled to
-fill the canvas.
+(compressed, see sizes.py) and placed largest-first by the packer
+`settings.layout` picks (packing.py); the default spiral works outward from the
+centre, so big birds land in the middle. The whole set is then scaled to fill
+the canvas.
 
 Species with no artwork are omitted (there is nothing to draw for them once
 names are off). The name label is an admin toggle, on by default, and reads in
@@ -26,6 +27,7 @@ import math
 import threading
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 
 import numpy as np
@@ -34,7 +36,7 @@ from PIL import Image, ImageFilter
 from ..names import canonical, drawable_keys, image_for, normalize
 from ..picks import Picks
 from ..source import Source
-from . import fonts
+from . import fonts, packing
 from .page import (
     MIN_LABEL_PX,
     blank,
@@ -72,7 +74,6 @@ _ALPHA_CUTOFF = 24
 _OVERLAP_PX = 2  # erode the collision mask slightly so birds nestle into
 # each other's (invisible on paper) halos. No rotation:
 # it tilts the ground/water on birds drawn with terrain.
-_STEP = 6
 _ATTEMPTS = 20
 
 
@@ -110,63 +111,6 @@ class _Sprite:
     art_at: tuple[int, int] = (0, 0)
     label_at: tuple[int, int] | None = None
     label_w: int = 0  # the reserved box; the redrawn name is centred in it
-
-
-def _spiral(cx: float, cy: float, max_r: float):
-    yield cx, cy
-    r = _STEP
-    while r <= max_r:
-        count = max(8, int(2 * math.pi * r / _STEP))
-        for i in range(count):
-            a = 2 * math.pi * i / count
-            yield cx + r * math.cos(a), cy + r * math.sin(a)
-        r += _STEP
-
-
-_PROBE_BANDS = 3
-
-
-def _probes(mask: np.ndarray) -> list[tuple[int, np.ndarray]]:
-    """One row per horizontal band of a sprite, tested before its whole footprint.
-    Most candidate positions on a filling page collide, and a row costs a
-    hundredth of the box. Banded rather than simply the densest rows, which all
-    land in the body and catch the same collisions as each other."""
-    density = mask.sum(axis=1)
-    probes = []
-    for band in np.array_split(np.arange(len(density)), _PROBE_BANDS):
-        if band.size and density[band].max():
-            row = int(band[int(np.argmax(density[band]))])
-            probes.append((row, mask[row]))
-    return probes
-
-
-def _pack(sprites: list[_Sprite], width: int, height: int):
-    """Place every sprite with no opaque overlap and fully on-screen, or return
-    None if one does not fit. Sprites should be pre-sorted largest-first."""
-    occ = np.zeros((height, width), dtype=bool)
-    placed = []
-    max_r = math.hypot(width, height)
-    for sprite in sprites:
-        h, w = sprite.mask.shape
-        probes = _probes(sprite.mask)
-        spot = None
-        for px, py in _spiral(width / 2, height / 2, max_r):
-            x, y = int(px - w / 2), int(py - h / 2)
-            if x < 0 or y < 0 or x + w > width or y + h > height:
-                continue
-            # A colliding probe row is a real collision, so this only ever skips
-            # the box test for positions it would have rejected anyway.
-            if any((occ[y + r, x : x + w] & row).any() for r, row in probes):
-                continue
-            if not (occ[y : y + h, x : x + w] & sprite.mask).any():
-                spot = (x, y)
-                break
-        if spot is None:
-            return None
-        x, y = spot
-        occ[y : y + h, x : x + w] |= sprite.mask
-        placed.append((sprite, x, y))
-    return placed
 
 
 def _center(placed, width: int, height: int):
@@ -237,23 +181,26 @@ def _layout(
     height: int,
     font_key: str | None,
     name_px: int,
-    label_text: Callable[[str], str] = str,
+    label_text: Callable[[str], str],
+    layout: str,
 ):
-    """Shrink the set to the first size where every bird, name included, fits,
-    and return the placements with the name size they were reserved at. Names
-    have to shrink too: a fixed-size name never yields, so a full page of them
-    cannot converge at all."""
-    labels: list[Image.Image] = []
-    last_px = gap = 0
-    for attempt in range(_ATTEMPTS):
-        shrink = 0.9**attempt
-        if font_key:
-            px = max(MIN_LABEL_PX, round(name_px * shrink))
-            if px != last_px:
-                font = fonts.load(font_key, px)
-                # Only the size is packed; the draw pass re-rasterizes.
-                labels = [text_mask(label_text(names[i]), font, False) for i in order]
-                last_px, gap = px, round(px * 0.35)
+    """Shrink the set until every bird, name included, fits, then bisect back
+    toward the size that failed, for as many steps as the layout affords.
+    Returns the placements with the name size they were reserved at. Names have
+    to shrink too: a fixed-size name never yields, so a full page of them cannot
+    converge at all."""
+    chosen = packing.layout_of(layout)
+
+    @cache  # a midpoint often lands back on a size already rasterized
+    def rasterize(px: int) -> tuple[list[Image.Image], int]:
+        if not font_key:
+            return [], 0
+        font = fonts.load(font_key, px)  # only the size is packed; the draw pass re-rasterizes
+        return [text_mask(label_text(names[i]), font, False) for i in order], round(px * 0.35)
+
+    def attempt(shrink: float):
+        px = max(MIN_LABEL_PX, round(name_px * shrink)) if font_key else 0
+        labels, gap = rasterize(px)
         sprites = []
         for n, i in enumerate(order):
             dim = max(24, int(base * shrink * weights[i]))
@@ -261,10 +208,33 @@ def _layout(
             sprites.append(
                 _with_label(i, dim, mask, labels[n], gap) if font_key else _Sprite(i, dim, mask)
             )
-        placed = _pack(sprites, width, height)
-        if placed is not None:
-            return _center(placed, width, height), last_px
-    return None, 0
+        placed = chosen.pack(sprites, width, height)
+        return None if placed is None else (_center(placed, width, height), px)
+
+    fit = None
+    failed = None  # the smallest size that did not fit, if any did
+    for step in range(_ATTEMPTS):
+        shrink = 0.9**step
+        fit = attempt(shrink)
+        if fit is not None:
+            break
+        failed = shrink
+    if fit is None:
+        return None, 0
+    if failed is None:
+        return fit  # nothing failed: `base` was already the ceiling
+
+    # The descent lands up to a tenth under what the page could hold, and the
+    # gap is bare paper, so bisect back into the size that failed.
+    small, large = shrink, failed
+    for _ in range(chosen.refine):
+        middle = (small + large) / 2
+        got = attempt(middle)
+        if got is None:
+            large = middle
+        else:
+            fit, small = got, middle
+    return fit
 
 
 @dataclass(frozen=True)
@@ -294,6 +264,7 @@ def _placements(
     font_key: str | None,
     name_px: int,
     label_text: Callable[[str], str],
+    layout: str,
 ) -> tuple[tuple[_Placed, ...], int]:
     """Pack the page, or return the cached packing. The panel and the kiosk pack
     identically - only `scale` and the paper differ - so whichever renders first
@@ -305,8 +276,7 @@ def _placements(
             return hit
 
         # Each bird's target size scales with its real mass (compressed); the whole
-        # set then overshoots and shrinks to the first fit that fills the canvas.
-        # Placing biggest-first on the center-out spiral keeps large birds central.
+        # set then overshoots and shrinks until it fits the canvas, biggest first.
         weights = _size_weights(names)
         order = sorted(range(len(names)), key=lambda i: -weights[i])
         base = min(
@@ -320,10 +290,10 @@ def _placements(
         alphas = [img.getchannel("A") for img in arts]
         args = (names, alphas, order, weights, flips, base, *box)
 
-        placed, used_px = _layout(*args, font_key, name_px, label_text=label_text)
-        if placed is None and font_key:
+        placed, used_px = _layout(*args, font_key, name_px, label_text, layout)
+        if placed is None and font_key:  # birds beat blank paper
             log.warning("No layout fits %d species with names at %dx%d", len(names), *box)
-            placed, used_px = _layout(*args, None, name_px)  # birds beat blank paper
+            placed, used_px = _layout(*args, None, name_px, label_text, layout)
 
         result = (
             tuple(
@@ -355,6 +325,7 @@ def render_collage(
     label_size: str = fonts.DEFAULT_LABEL_SIZE,
     label_text: Callable[[str], str] = str,
     perches: Sequence[Path] = (),
+    layout: str = packing.DEFAULT_LAYOUT,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
@@ -362,6 +333,7 @@ def render_collage(
     would otherwise turn the grain into noise. It also picks the label ink.
     label_text: scientific name -> what the label reads; str leaves it alone.
     perches: the active style's bare branches, for a page with no birds on it.
+    layout: how the birds are packed (packing.LAYOUTS).
     """
     canvas = blank(resolution, textured)
 
@@ -386,6 +358,7 @@ def render_collage(
         font_key if show_names else None,
         name_px,
         labels,
+        layout,
     )
     placed, used_px = _placements(
         key,
@@ -397,6 +370,7 @@ def render_collage(
         font_key if show_names else None,
         name_px,
         label_text,
+        layout,
     )
 
     for p in placed:
