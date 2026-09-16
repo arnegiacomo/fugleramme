@@ -159,6 +159,9 @@ function loadPreview() {
   const query = serialize(form);
   if (query === shown) return;
   const id = ++seq;
+  const [w, h] = cfg.panel;
+  // Turned now rather than when the render lands, so the box does not jump.
+  preview.style.setProperty("--aspect", form.rotation.value % 180 ? `${h} / ${w}` : `${w} / ${h}`);
   preview.classList.add("loading");
   caption.innerHTML = captionHTML;
   const next = new Image();  // decode off-screen, so the img is never stale or broken

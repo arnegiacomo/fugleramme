@@ -431,6 +431,7 @@ def page(
                 "birdnetPort": birdnet_port,
                 "version": __version__,
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
+                "panel": [max(panel_size), min(panel_size)],  # landscape, as oriented() reads it
             }
         ),
         mode_field=_radio_field(
