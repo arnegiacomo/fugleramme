@@ -8,4 +8,5 @@ Covers the `web/` package.
 
 - `admin.html` is a `string.Template`; the kiosk page needs no substitution at all.
 - `admin.js` is static and cached: it reads its server values from a JSON blob in the page rather than being built per request.
+- The Margin field is a range slider. `admin.js` renders its preview on `change` (release, or a keyboard step), never on `input`, so a drag costs one render.
 - The admin is used from a remote browser against a headless Pi. Do not design flows around `file://` URLs, opening a browser on the server, or other local-GUI assumptions.

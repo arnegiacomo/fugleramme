@@ -150,6 +150,10 @@ const caption = document.querySelector(".rendering");
 const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
 let shown = null, seq = 0, timer = null;
+const queueRender = () => {
+  clearTimeout(timer);  // debounced: a render is expensive on the Pi
+  timer = setTimeout(loadPreview, 500);
+};
 
 function loadPreview() {
   const query = serialize(form);
@@ -182,6 +186,12 @@ async function loadSpecies(query, id) {
   } catch (e) {}  // the preview alone is worth showing
 }
 
+// The margin slider renders on release, not as it moves.
+const margin = form.querySelector("input[name=margin]");
+const readout = document.getElementById("margin-value");
+margin.addEventListener("input", () => { readout.textContent = margin.value + "%"; });
+margin.addEventListener("change", queueRender);  // on release, or a keyboard step
+
 // Settings the chosen mode ignores go dim and stop being submitted, so the
 // saved value survives a trip through a mode that has no use for it.
 const lookback = document.getElementById("lookback");
@@ -206,10 +216,10 @@ function syncMode() {
 
 // Capture, so a mode change settles which fields still submit before the shared
 // dirty check reads them - a round trip back to the saved mode is not a change.
-form.addEventListener("input", () => {
+form.addEventListener("input", (e) => {
   syncMode();
-  clearTimeout(timer);  // debounced: a render is expensive on the Pi
-  timer = setTimeout(loadPreview, 500);
+  if (e.target === margin) return clearTimeout(timer);  // a drag renders on release only
+  queueRender();
 }, true);
 
 // An untouched form is never dirty, so this only fires over edits the user

@@ -19,6 +19,7 @@ span { display: block; font-weight: 600; margin-bottom: 0.25rem; }
 small { color: #666; font-weight: 400; }
 select { font-size: 1rem; padding: 0.4rem; }
 input { font-size: 1rem; padding: 0.4rem; width: 8rem; }
+input[type=range] { width: 100%; padding: 0; margin: 0; }
 .field { margin: 0 0 1.25rem; }
 .sub { display: block; margin: 0.6rem 0 0; font-weight: 400; }
 .sub small { display: block; margin-bottom: 0.15rem; }

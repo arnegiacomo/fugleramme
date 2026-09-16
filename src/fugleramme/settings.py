@@ -20,7 +20,7 @@ from pathlib import Path
 from .config import DEFAULT_DETECTOR_URL, DEFAULT_WEB_RESOLUTION, WEB_HEIGHTS
 from .languages import NONE, SCIENTIFIC
 from .modes import DEFAULT_MODE, MODES
-from .render.collage import DEFAULT_RANKING, NO_LIMIT, RANKINGS
+from .render.collage import DEFAULT_MARGIN, DEFAULT_RANKING, NO_LIMIT, RANKINGS
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
 from .render.packing import DEFAULT_LAYOUT, LAYOUTS
 
@@ -66,6 +66,10 @@ REFRESH_OPTIONS = (
 )
 
 
+# A quarter off each edge already leaves half the page, so margin stops here.
+MARGIN_CEILING = 25
+
+
 def lookback_order(hours: float) -> float:
     """Sort key: ALL_TIME is the longest window, not the shortest."""
     return float("inf") if hours == ALL_TIME else hours
@@ -80,6 +84,8 @@ class Settings:
     rotation: int = 0
     lookback_hours: float = 24
     refresh_minutes: int = 0
+    # The collage's own default, as a percent.
+    margin: int = round(DEFAULT_MARGIN * 100)
     # Which birds make the page (#53); NO_LIMIT is every species the window holds.
     species_limit: int = DEFAULT_LIMIT
     ranking: str = DEFAULT_RANKING
@@ -201,6 +207,7 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         rotation=_one_of(rotation, ROTATIONS, d.rotation),
         lookback_hours=_as_hours(raw.get("lookback_hours"), d.lookback_hours),
         refresh_minutes=_as_int(raw.get("refresh_minutes"), d.refresh_minutes, 0, 24 * 60),
+        margin=_as_int(raw.get("margin"), d.margin, 0, MARGIN_CEILING),
         species_limit=_as_int(raw.get("species_limit"), d.species_limit, NO_LIMIT, LIMIT_CEILING),
         ranking=_one_of(str(raw.get("ranking", d.ranking)), RANKINGS, d.ranking),
         style=_style(raw, d.style),

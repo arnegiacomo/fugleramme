@@ -14,6 +14,7 @@ from fugleramme.render.packing import DEFAULT_LAYOUT
 from fugleramme.settings import (
     ALL_TIME,
     LOOKBACK_OPTIONS,
+    MARGIN_CEILING,
     Settings,
     SettingsStore,
     from_env,
@@ -99,6 +100,14 @@ def test_label_font_and_size_fall_back_to_defaults(tmp_path):
     assert settings.label_font == DEFAULT_FONT
     assert settings.label_size == DEFAULT_LABEL_SIZE
     assert settings.show_names is False
+
+
+def test_the_margin_is_clamped_to_the_ceiling(tmp_path):
+    path = tmp_path / "s.json"
+    path.write_text(json.dumps({"margin": 90}))
+    assert SettingsStore(path).get().margin == MARGIN_CEILING
+    path.write_text(json.dumps({"margin": "wide"}))
+    assert SettingsStore(path).get().margin == Settings().margin
 
 
 def test_unknown_layout_falls_back_to_the_default(tmp_path):

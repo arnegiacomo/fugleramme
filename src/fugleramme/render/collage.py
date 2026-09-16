@@ -57,7 +57,7 @@ DEFAULT_RESOLUTION = (1280, 800)
 # packer works in whole pixels, so packing at the output size would put the
 # panel and the kiosk on different pages.
 _PACK_SHORT = 1200
-_MARGIN = 0.04  # page edge to content on short side. Hardcoded now, maybe add configurability?
+DEFAULT_MARGIN = 0.04  # page edge to content, fraction of the short side (settings.margin)
 # How many species the admin lets on, and which ones (#53). NO_LIMIT is every
 # bird the window holds - the frame keeps no ceiling of its own.
 NO_LIMIT = 0
@@ -265,6 +265,7 @@ def _placements(
     name_px: int,
     label_text: Callable[[str], str],
     layout: str,
+    margin: float,
 ) -> tuple[tuple[_Placed, ...], int]:
     """Pack the page, or return the cached packing. The panel and the kiosk pack
     identically - only `scale` and the paper differ - so whichever renders first
@@ -285,8 +286,8 @@ def _placements(
         )
         # Pack inside the margin but size off the whole page, so only a set that
         # doesn't fit has to shrink.
-        margin = round(min(width, height) * _MARGIN)
-        box = (width - 2 * margin, height - 2 * margin)
+        inset = round(min(width, height) * margin)
+        box = (width - 2 * inset, height - 2 * inset)
         alphas = [img.getchannel("A") for img in arts]
         args = (names, alphas, order, weights, flips, base, *box)
 
@@ -300,10 +301,10 @@ def _placements(
                 _Placed(
                     s.index,
                     s.dim,
-                    (x + margin + s.art_at[0], y + margin + s.art_at[1]),
+                    (x + inset + s.art_at[0], y + inset + s.art_at[1]),
                     None
                     if s.label_at is None
-                    else (x + margin + s.label_at[0], y + margin + s.label_at[1]),
+                    else (x + inset + s.label_at[0], y + inset + s.label_at[1]),
                     s.label_w,
                 )
                 for s, x, y in placed or ()
@@ -326,6 +327,7 @@ def render_collage(
     label_text: Callable[[str], str] = str,
     perches: Sequence[Path] = (),
     layout: str = packing.DEFAULT_LAYOUT,
+    margin: float = DEFAULT_MARGIN,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
@@ -334,6 +336,7 @@ def render_collage(
     label_text: scientific name -> what the label reads; str leaves it alone.
     perches: the active style's bare branches, for a page with no birds on it.
     layout: how the birds are packed (packing.LAYOUTS).
+    margin: bare paper along the edge, as a fraction of the short side.
     """
     canvas = blank(resolution, textured)
 
@@ -359,6 +362,7 @@ def render_collage(
         name_px,
         labels,
         layout,
+        margin,
     )
     placed, used_px = _placements(
         key,
@@ -371,6 +375,7 @@ def render_collage(
         name_px,
         label_text,
         layout,
+        margin,
     )
 
     for p in placed:

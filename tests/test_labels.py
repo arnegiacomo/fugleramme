@@ -222,11 +222,15 @@ def test_the_panel_and_the_kiosk_share_one_pack(tmp_path, crowded):
     assert calls == 2
 
 
-def test_nothing_is_drawn_against_the_page_edge(tmp_path, crowded):
-    page = render_collage(crowded(12), (700, 500), show_names=True, textured=False)
-    margin = round(min(page.size) * collage._MARGIN)
+@pytest.mark.parametrize("margin", [collage.DEFAULT_MARGIN, 0.15])
+def test_nothing_is_drawn_against_the_page_edge(crowded, margin):
+    page = render_collage(crowded(12), (700, 500), show_names=True, textured=False, margin=margin)
+    px = round(min(page.size) * margin)
     band = np.asarray(page).copy()
-    band[margin:-margin, margin:-margin] = TARGET_PAPER
+    band[px:-px, px:-px] = TARGET_PAPER
+    assert (band == TARGET_PAPER).all()
+    band = np.asarray(page).copy()
+    band[px:-px, px:-px] = TARGET_PAPER
     assert (band == TARGET_PAPER).all()
 
 
