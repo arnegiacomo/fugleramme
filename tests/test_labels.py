@@ -142,6 +142,12 @@ def test_packing_never_overlaps_a_label():
         occupied[y : y + h, x : x + w] |= sprite.mask
 
 
+def test_a_bird_thinner_than_the_erosion_still_reserves_its_body():
+    band = Image.new("L", (24, 16), 0)
+    band.paste(255, (0, 5, 24, 11))  # six rows: gone under an erosion of four
+    assert collage._footprint(band).any()
+
+
 def test_sprite_without_a_label_is_just_the_bird():
     sprite = _Sprite(0, 10, np.ones((10, 10), dtype=bool))
     assert sprite.label_at is None

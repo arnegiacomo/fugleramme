@@ -71,7 +71,7 @@ RANKINGS = {
 }
 DEFAULT_RANKING = RANK_MOST_HEARD
 _ALPHA_CUTOFF = 24
-_OVERLAP_PX = 2  # erode the collision mask slightly so birds nestle into
+_OVERLAP_PX = 4  # erode the collision mask slightly so birds nestle into
 # each other's (invisible on paper) halos. No rotation:
 # it tilts the ground/water on birds drawn with terrain.
 _ATTEMPTS = 20
@@ -94,9 +94,9 @@ def _footprint(alpha: Image.Image) -> np.ndarray:
     """Opaque area as a bool array (True = keep clear), eroded so birds nestle
     into each other's (invisible on paper) halos. Their bodies still can't."""
     mask = alpha.point(lambda a: 255 if a > _ALPHA_CUTOFF else 0)
-    if _OVERLAP_PX:
-        mask = mask.filter(ImageFilter.MinFilter(_OVERLAP_PX * 2 + 1))
-    return np.asarray(mask, dtype=bool)
+    eroded = np.asarray(mask.filter(ImageFilter.MinFilter(_OVERLAP_PX * 2 + 1)), dtype=bool)
+    # A bird thinner than the erosion would reserve nothing and be packed over.
+    return eroded if eroded.any() else np.asarray(mask, dtype=bool)
 
 
 @dataclass(frozen=True, eq=False)  # eq: a generated __eq__ would raise on the ndarray
