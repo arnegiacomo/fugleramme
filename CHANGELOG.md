@@ -2,6 +2,39 @@
 
 <!-- version list -->
 
+## v0.22.0 (2026-09-16)
+
+### Bug Fixes
+
+- **admin**: Keep the preview box the page's shape across a render
+  ([`6425558`](https://github.com/arnegiacomo/fugleramme/commit/64255588e292d0240c379fe270c9771ccff1d04d))
+
+### Chores
+
+- **assets**: #33 add Dumetella carolinensis
+  ([#91](https://github.com/arnegiacomo/fugleramme/pull/91),
+  [`051aa85`](https://github.com/arnegiacomo/fugleramme/commit/051aa851760779a599886ea67d481384f201b8a7))
+
+### Documentation
+
+- #47 describe the layout and margin settings
+  ([`8797d22`](https://github.com/arnegiacomo/fugleramme/commit/8797d2250724e51b7ed6377d9db3424e4f8805a0))
+
+### Features
+
+- #47 choose how the collage packs its birds
+  ([`80ba0d9`](https://github.com/arnegiacomo/fugleramme/commit/80ba0d94c0ceb71c3c9bffe6ea327a0a643431d6))
+
+- #47 make the page margin a setting
+  ([`7ec71b7`](https://github.com/arnegiacomo/fugleramme/commit/7ec71b72dad938aa24163e1c752d4a52d1b10317))
+
+- #47 nestle birds twice as far into each other's halos
+  ([`2b511a2`](https://github.com/arnegiacomo/fugleramme/commit/2b511a2bb1acb3afacd8779e5edbb9bb671a1ee8))
+
+- #47 shade what a mat would cover while the margin is dragged
+  ([`41c6b91`](https://github.com/arnegiacomo/fugleramme/commit/41c6b91df788f9df15b4c563274e345570942c06))
+
+
 ## v0.21.4 (2026-09-16)
 
 ### Bug Fixes

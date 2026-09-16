@@ -15,7 +15,7 @@ from fugleramme.api import ApiSource
 from fugleramme.languages import namer
 from fugleramme.names import normalize
 from fugleramme.picks import Picks
-from fugleramme.settings import Settings
+from fugleramme.settings import MARGIN_CEILING, Settings
 
 NOW = datetime.now().astimezone()
 BLACKBIRD, TIT = "Turdus merula", "Parus major"
@@ -186,6 +186,24 @@ def test_only_the_collage_reads_the_lookback_window(tmp_path, images, source):
         short = modes.state_key(_ctx(detections, images, tmp_path, mode, lookback_hours=24))
         long = modes.state_key(_ctx(detections, images, tmp_path, mode, lookback_hours=720))
         assert (short != long) is sensitive
+
+
+@pytest.mark.parametrize("mode", ["latest", "arrival"])
+def test_the_margin_reaches_the_plate_modes(tmp_path, images, source, mode):
+    detections = source(rows=[_row(1, BLACKBIRD, 1)])
+    tight = modes.render(_ctx(detections, images, tmp_path, mode, margin=0))
+    wide = modes.render(_ctx(detections, images, tmp_path, mode, margin=MARGIN_CEILING))
+    assert tight.tobytes() != wide.tobytes()
+
+
+def test_a_margin_under_the_plates_own_does_not_change_its_key(tmp_path, images, source):
+    detections = source(rows=[_row(1, BLACKBIRD, 1)])
+    keys = [modes.state_key(_ctx(detections, images, tmp_path, "latest", margin=m)) for m in (0, 7)]
+    assert keys[0] == keys[1]
+    keys = [
+        modes.state_key(_ctx(detections, images, tmp_path, "collage", margin=m)) for m in (0, 7)
+    ]
+    assert keys[0] != keys[1]
 
 
 def test_the_key_carries_what_the_page_is_drawn_from(tmp_path, images, source):

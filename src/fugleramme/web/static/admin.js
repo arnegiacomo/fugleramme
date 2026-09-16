@@ -146,15 +146,24 @@ if (test) {
 
 const preview = document.getElementById("preview");
 const shot = document.getElementById("shot");
+const mat = document.getElementById("mat");
 const caption = document.querySelector(".rendering");
 const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
 let shown = null, seq = 0, timer = null;
+const queueRender = () => {
+  clearTimeout(timer);  // debounced: a render is expensive on the Pi
+  timer = setTimeout(loadPreview, 500);
+};
 
 function loadPreview() {
+  mat.hidden = true;  // the band only stands in until the render starts
   const query = serialize(form);
   if (query === shown) return;
   const id = ++seq;
+  const [w, h] = cfg.panel;
+  // Turned now rather than when the render lands, so the box does not jump.
+  preview.style.setProperty("--aspect", form.rotation.value % 180 ? `${h} / ${w}` : `${w} / ${h}`);
   preview.classList.add("loading");
   caption.innerHTML = captionHTML;
   const next = new Image();  // decode off-screen, so the img is never stale or broken
@@ -182,11 +191,24 @@ async function loadSpecies(query, id) {
   } catch (e) {}  // the preview alone is worth showing
 }
 
+// Shade the mat band on the page already on screen, so the margin can be judged
+// before the render catches up.
+const margin = form.querySelector("input[name=margin]");
+const readout = document.getElementById("margin-value");
+margin.addEventListener("input", () => {
+  readout.textContent = margin.value + "%";
+  const box = preview.getBoundingClientRect();
+  mat.style.borderWidth = Math.min(box.width, box.height) * margin.value / 100 + "px";
+  mat.hidden = preview.classList.contains("loading");  // no page on screen to shade
+});
+margin.addEventListener("change", queueRender);  // on release, or a keyboard step
+
 // Settings the chosen mode ignores go dim and stop being submitted, so the
 // saved value survives a trip through a mode that has no use for it.
 const lookback = document.getElementById("lookback");
 const limit = document.getElementById("limit");
 const ranking = document.getElementById("ranking");
+const layout = document.getElementById("layout");
 function dim(el, on) {
   el.querySelectorAll("select, input").forEach((c) => { c.disabled = !on; });
   el.classList.toggle("off", !on);
@@ -196,6 +218,7 @@ function syncMode() {
   const on = !mode || cfg.windowedModes.includes(mode.value);
   dim(lookback, on);
   dim(limit, on);
+  dim(layout, on);
   // Nothing to rank while every bird the window heard is already on the page.
   const capped = form.querySelector("input[name=limit_mode]:checked")?.value === "some";
   form.querySelector("input[name=species_limit]").disabled = !(on && capped);  // after dim(limit)
@@ -204,10 +227,10 @@ function syncMode() {
 
 // Capture, so a mode change settles which fields still submit before the shared
 // dirty check reads them - a round trip back to the saved mode is not a change.
-form.addEventListener("input", () => {
+form.addEventListener("input", (e) => {
   syncMode();
-  clearTimeout(timer);  // debounced: a render is expensive on the Pi
-  timer = setTimeout(loadPreview, 500);
+  if (e.target === margin) return clearTimeout(timer);  // a drag renders on release only
+  queueRender();
 }, true);
 
 // An untouched form is never dirty, so this only fires over edits the user

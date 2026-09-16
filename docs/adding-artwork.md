@@ -31,6 +31,8 @@ Use the Polygonal Selection Tool with anti-aliasing enabled.
 Select the bird or the excess. Invert the selection if necessary, then delete
 the background.
 
+Where a branch or stem (or other object) runs out of the cut, either fade it into the paper or cut it round so that it looks natural. A flat cut can be jarring.
+
 ### Add the halo
 
 The ring of paper around the bird helps us blend it to the page. The frame retones it to the sheet's own colour and feathers its edge, so the join disappears instead of reading as a cut-out pasted on. It also allows for less precise cutouts, backgrounds between legs or behind feathers, and gives some natural spacing.

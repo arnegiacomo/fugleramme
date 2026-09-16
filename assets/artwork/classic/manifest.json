@@ -599,6 +599,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIRough-legged_Buzzard.jpg"
   },
+  "birds/buteo-lineatus.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-56-red-shouldered-hawk.jpg"
+  },
   "birds/calandrella-brachydactyla.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIShort-toed_Lark.jpg"
@@ -2614,6 +2618,14 @@
   "birds/pinicola-enucleator.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISiberian_Grosbeak.jpg"
+  },
+  "birds/piranga-rubra-2.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-44-summer-red-bird.jpg?"
+  },
+  "birds/piranga-rubra.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-44-summer-red-bird.jpg?"
   },
   "birds/platalea-leucorodia.webp": {
     "source": "gould",

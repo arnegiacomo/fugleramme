@@ -19,6 +19,7 @@ span { display: block; font-weight: 600; margin-bottom: 0.25rem; }
 small { color: #666; font-weight: 400; }
 select { font-size: 1rem; padding: 0.4rem; }
 input { font-size: 1rem; padding: 0.4rem; width: 8rem; }
+input[type=range] { width: 100%; padding: 0; margin: 0; }
 .field { margin: 0 0 1.25rem; }
 .sub { display: block; margin: 0.6rem 0 0; font-weight: 400; }
 .sub small { display: block; margin-bottom: 0.15rem; }
@@ -47,7 +48,8 @@ label > span, .field > span { position: relative; }
 .hint::after { content: attr(aria-label); position: absolute; left: 0; top: 100%; z-index: 2;
                width: max-content; max-width: 13rem; margin-top: 0.3rem;
                padding: 0.35rem 0.55rem; border-radius: 4px; background: #446; color: #fff;
-               font: 400 0.85rem/1.35 system-ui, sans-serif; visibility: hidden; }
+               font: 400 0.85rem/1.35 system-ui, sans-serif; white-space: pre-line;
+               visibility: hidden; }
 .hint:hover::after, .hint:focus-visible::after, .hint.open::after { visibility: visible; }
 dl.status { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
             background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }
@@ -89,17 +91,19 @@ ul.species small a:hover { color: #446; text-decoration-color: currentColor; }
 ul.species li.empty { color: #999; }
 /* An empty list because something is wrong, not because no bird has called yet. */
 ul.species li.problem { color: #a4392f; }
-/* Sized to the image, not the column: a portrait page in a 100%-wide box would
-   draw its border around the letterboxing. */
-.preview img { display: block; max-width: 100%; max-height: 60vh;
+.preview img { display: block; width: 100%; height: 100%; box-sizing: border-box;
                border: 1px solid #ddd; border-radius: 6px; }
 .rendering { display: none; align-items: center; justify-content: center; gap: 0.6rem;
              color: #666; }
-/* The box holds its height across a re-render, so the page does not jump.
-   Left-aligned: a portrait page centred in the column leaves it lopsided
-   against the species list under it. */
-.preview { min-height: 14rem; display: flex; align-items: center; justify-content: flex-start;
-           margin: 0 0 1.75rem; }
+/* The box is the page's own shape - --aspect is the panel turned by the rotation
+   in the form - so a re-render moves the list under it only when the page would. */
+.preview { --aspect: 4 / 3; aspect-ratio: var(--aspect);
+           width: min(100%, calc(60vh * var(--aspect)));
+           display: flex; align-items: center; justify-content: center;
+           margin: 0 0 1.75rem; position: relative; }
+/* The band a mat would cover, shaded over the page while the margin is dragged. */
+.mat { position: absolute; inset: 0; pointer-events: none;
+       border: 0 solid rgba(70, 60, 50, 0.45); border-radius: 6px; }
 .preview.loading .rendering { display: flex; }
 .preview.loading img { display: none; }
 /* margin: undoes the page-wide `span` rule, which offsets it from the caption. */

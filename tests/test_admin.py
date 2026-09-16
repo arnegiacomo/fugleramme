@@ -13,7 +13,7 @@ from fugleramme import languages, modes
 from fugleramme.config import BIRDNET_PORT
 from fugleramme.languages import namer
 from fugleramme.picks import Picks
-from fugleramme.settings import Settings, SettingsStore
+from fugleramme.settings import MARGIN_CEILING, Settings, SettingsStore
 from fugleramme.source import NEEDS_PASSWORD
 from fugleramme.status import Status
 from fugleramme.web import STATIC_DIR, admin, server
@@ -155,6 +155,17 @@ def test_saving_the_form_untouched_leaves_the_password_standing(tmp_path):
         "detector_password": [admin.PASSWORD_SET],
     }
     assert store.update(**admin.form_changes(form)).detector_password == "hunter2"
+
+
+def test_the_collage_fields_render_and_a_plate_mode_save_leaves_the_layout_alone(tmp_path, source):
+    page = _page(tmp_path, source())
+    assert f'name="margin" min="0" max="{MARGIN_CEILING}"' in page and 'name="layout"' in page
+
+    # admin.js disables the collage-only fields outside the collage mode, so a
+    # plate-mode post carries no layout - and a field that is absent keeps its value.
+    store = SettingsStore(tmp_path / "s.json")
+    store.update(layout="voids")
+    assert store.update(**admin.form_changes({"mode": ["latest"]})).layout == "voids"
 
 
 @pytest.mark.parametrize(

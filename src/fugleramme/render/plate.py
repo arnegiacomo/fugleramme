@@ -26,6 +26,11 @@ _NAME_GAP = 0.5  # bird to name, em of the name
 _NOTE_GAP = 0.3
 
 
+def effective_margin(margin: float) -> float:
+    """The plate's own margin, or the admin's when that is wider."""
+    return max(_MARGIN, margin)
+
+
 def render_plate(
     art_path: Path | None,
     name: str = "",
@@ -37,6 +42,7 @@ def render_plate(
     label_size: str = fonts.DEFAULT_LABEL_SIZE,
     perches: Sequence[Path] = (),
     day: int | None = None,
+    margin: float = 0.0,
 ) -> Image.Image:
     """The page for one bird, or the empty perch when there is none to draw."""
     width, height = resolution
@@ -61,8 +67,8 @@ def render_plate(
             )
     caption = sum(mask.height + gap for mask, gap in lines)
 
-    margin = round(min(width, height) * _MARGIN)
-    art = fit(trim(art_path), (width - 2 * margin, max(1, height - 2 * margin - caption)))
+    inset = round(min(width, height) * effective_margin(margin))
+    art = fit(trim(art_path), (width - 2 * inset, max(1, height - 2 * inset - caption)))
 
     y = (height - art.height - caption) // 2
     proc = process_sprite(art, textured=textured)

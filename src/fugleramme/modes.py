@@ -29,7 +29,7 @@ from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
 from .render.collage import gather_entries, render_collage, selected_species
 from .render.page import day_ordinal
-from .render.plate import render_plate
+from .render.plate import effective_margin, render_plate
 from .source import Source, Species
 
 if TYPE_CHECKING:
@@ -58,6 +58,8 @@ class Context:
     label_size: str
     species_limit: int
     ranking: str
+    layout: str
+    margin: float  # of the short side; the setting is a percent
     textured: bool = True
 
     def perches(self):
@@ -92,6 +94,8 @@ def context(
         label_size=settings.label_size,
         species_limit=settings.species_limit,
         ranking=settings.ranking,
+        layout=settings.layout,
+        margin=settings.margin / 100,
         textured=textured,
     )
 
@@ -121,6 +125,7 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
         ctx.font_key,
         ctx.label_size,
         ctx.perches(),
+        margin=ctx.margin,
     )
 
 
@@ -163,6 +168,8 @@ def _collage(ctx: Context) -> Image.Image:
         ctx.label_size,
         ctx.namer.label,
         ctx.perches(),
+        ctx.layout,
+        ctx.margin,
     )
 
 
@@ -273,6 +280,9 @@ def state_key(ctx: Context) -> tuple:
         ctx.show_names,
         ctx.font_key,
         ctx.label_size,
+        ctx.layout if mode.windowed else None,
+        # The plate clamps to its own margin, so a nudge under it must not repaint.
+        ctx.margin if mode.windowed else effective_margin(ctx.margin),
         ctx.namer.key,
         mode.key(ctx),
     )

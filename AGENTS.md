@@ -101,7 +101,7 @@ Applies to docs, commit messages, code comments, and the kiosk and admin UI alik
 Read the breadcrumb for the area you are touching. Each records a constraint the code does not show on its face.
 
 - [`.agents/detector.md`](.agents/detector.md) - the `/api/v2` boundary: reclassified species, clashing clocks, the taxa filter, and the auth-gated language catalog
-- [`.agents/render.md`](.agents/render.md) - the render loop, panel sizing, the silhouette packer and its cache, labels, dithering, the buttons
+- [`.agents/render.md`](.agents/render.md) - the render loop, panel sizing, the silhouette packers and their cache, labels, dithering, the buttons
 - [`.agents/web.md`](.agents/web.md) - the kiosk and admin split, the static files, the headless-Pi assumptions
 - [`.agents/artwork.md`](.agents/artwork.md) - filenames to species, styles and manifests, variant picks, curation
 - [`.agents/install.md`](.agents/install.md) - the `install.sh` / `run.sh` split, self-update, the container image, and the appliance defaults they must preserve
