@@ -1,15 +1,12 @@
 // The species page's search: fuzzy over the list species.json carries, so a
 // visitor can check a bird by any of its names, with or without a frame.
 //
-// The region filter asks GBIF, not eBird: it needs no key, answers
-// cross-origin, and for birds is largely eBird re-published, so nothing
-// regional is vendored here. Rows are matched by name, and species.json
-// already carries the current spelling beside the label's, so a reclassified
-// bird is found under either and no alias map is shipped twice.
+// The region filter asks GBIF, not eBird: no key, and it answers cross-origin.
+// species.json carries each row's old spelling, so the join needs no alias map.
 (function () {
   const box = document.getElementById("species-search");
   if (!box) return;
-  const arts = document.getElementById("species-art"); // the with / without / all toggle
+  const arts = document.getElementById("species-art");
   const only = () => (arts.querySelector("input:checked") || { value: "all" }).value;
   const status = document.getElementById("species-status");
   const body = document.getElementById("species-rows");
@@ -37,6 +34,7 @@
     if (!row.label) return [row.name];
     return [row.name, document.createElement("br"), Object.assign(document.createElement("small"), { textContent: `BirdNET label: ${row.label}` })];
   };
+  // Returns the table's line; the caller owns what goes in front of it.
   const render = (rows, seen) => {
     body.replaceChildren(
       ...rows.slice(0, LIMIT).map((row) => {
@@ -45,7 +43,7 @@
         return tr;
       }),
     );
-    status.textContent = rows.length > LIMIT ? `Showing ${LIMIT} of ${rows.length} matches` : `${rows.length} ${rows.length === 1 ? "match" : "matches"}`;
+    return rows.length > LIMIT ? `Showing ${LIMIT} of ${rows.length} matches.` : `${rows.length} ${rows.length === 1 ? "match" : "matches"}.`;
   };
 
   const key = (text) => text.trim().toLowerCase().replace(/ /g, "-");
@@ -56,9 +54,7 @@
       return response.json();
     });
 
-  // A facet caps at 1200 values, so a whole country is paged and a full last
-  // page means the tail is missing. Each region is asked once and kept, so
-  // going back to a filter already looked at costs GBIF nothing.
+  // A facet caps at 1200 values: page it, and a full last page means a missing tail.
   const answers = new Map();
   const recorded = async () => {
     const where = sub.value ? { gadmGid: sub.value } : { country: country.value };
@@ -97,9 +93,7 @@
     return answer;
   };
 
-  // GADM's own subdivisions, so a country is split the way it splits itself.
-  // Clicking through the list fires one of these each time, and a slow answer
-  // must not fill the select for a country the reader has already left.
+  // A slow answer must not fill the select for a country already left.
   const splits = new Map();
   const subdivisions = () => {
     sub.replaceChildren(new Option("Anywhere in the country", ""));
@@ -131,9 +125,9 @@
         (row.label || "").split(", ").filter(Boolean).forEach((old) => byKey.set(key(old), row));
       });
       const withArt = all.filter((row) => row.plates.length).length;
-      let seen = null; // row -> records where the reader is, or null for everywhere
+      let seen = null; // row -> records here, or null for everywhere
       let summary = "";
-      let asked = 0; // a slow answer to an older region must not land on a newer one
+      let asked = 0; // a slow answer must not land on a newer region
 
       const update = () => {
         const query = box.value.trim();
@@ -142,17 +136,15 @@
         if (wanted === "with") rows = rows.filter((row) => row.plates.length);
         if (wanted === "without") rows = rows.filter((row) => !row.plates.length);
         if (seen) rows = rows.filter((row) => seen.has(row)); // seen is built in record order
-        render(rows, seen);
-        if (!query && wanted === "all" && !seen)
-          status.textContent =
-            `${withArt} of ${all.length} species have art.` +
-            (rows.length > LIMIT ? ` Showing the first ${LIMIT}.` : "");
-        if (seen && !query) status.textContent = summary;
+        const counted = render(rows, seen);
+        if (seen && !query) status.textContent = `${summary} ${counted}`;
+        else if (!query && wanted === "all") status.textContent = `${withArt} of ${all.length} species have art. ${counted}`;
+        else status.textContent = counted;
       };
 
       const locate = () => {
         seen = null;
-        const question = ++asked; // bumped before the early return, so Clear also strands a reply
+        const question = ++asked; // bumped before the early return, so Clear strands a reply too
         if (!country.value) return update();
         status.textContent = "Asking GBIF what has been seen there…";
         recorded()
@@ -161,12 +153,10 @@
             const here = new Map();
             counts.forEach((count, scientific) => {
               const row = byKey.get(key(scientific));
-              // A bird v2.4 has no label for is present but unhearable, so it is
-              // not one of the species the frame could draw from a detection.
+              // A bird v2.4 has no label for is present but unhearable.
               if (row && row.detectable !== false) here.set(row, (here.get(row) || 0) + count);
             });
-            // Most heard first, once: a Map keeps its order, so the table is
-            // sorted by inserting in it rather than on every keystroke.
+            // Sorted once here: a Map keeps its order, so keystrokes never re-sort.
             seen = new Map([...here].sort((a, b) => b[1] - a[1]));
             const where = (sub.selectedIndex > 0 ? `${sub.selectedOptions[0].text}, ` : "") + country.selectedOptions[0].text;
             const covered = [...seen.keys()].filter((row) => row.plates.length).length;
@@ -205,12 +195,18 @@
       [sub, vagrants].forEach((control) => control.addEventListener("change", settle));
       update();
 
-      json("enumeration/country")
-        .then((rows) => {
-          rows.forEach((row) => iso3.set(row.iso2, row.iso3));
-          country.append(...rows.map((row) => new Option(row.title, row.iso2)).sort((a, b) => a.text.localeCompare(b.text)));
-        })
-        .catch(() => {});
+      // Fetched on the first reach for a filter, so merely reading asks GBIF nothing.
+      let countries;
+      const listCountries = () => {
+        countries ||= json("enumeration/country")
+          .then((rows) => {
+            rows.forEach((row) => iso3.set(row.iso2, row.iso3));
+            country.append(...rows.map((row) => new Option(row.title, row.iso2)).sort((a, b) => a.text.localeCompare(b.text)));
+          })
+          .catch(() => {});
+      };
+      const filters = document.getElementById("species-filters");
+      ["pointerenter", "focusin"].forEach((event) => filters.addEventListener(event, listCountries, { once: true }));
     })
     .catch(() => {
       status.textContent = "The species list could not be loaded.";
