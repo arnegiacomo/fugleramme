@@ -3,6 +3,8 @@ a real detector serves."""
 
 from __future__ import annotations
 
+import signal
+
 import pytest
 from PIL import Image
 
@@ -17,6 +19,15 @@ def _clean_language_caches(monkeypatch):
     monkeypatch.setattr(languages, "_source", None)
     monkeypatch.setattr(languages, "_catalog", None)
     monkeypatch.setattr(languages, "_dicts", {})
+
+
+@pytest.fixture(autouse=True)
+def _restore_signal_handlers():
+    """`service.run` installs its own, so one test must not leave pytest's own bound."""
+    handlers = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+    yield
+    for sig, handler in handlers.items():
+        signal.signal(sig, handler)
 
 
 @pytest.fixture(autouse=True)

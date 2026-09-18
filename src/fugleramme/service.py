@@ -116,21 +116,26 @@ def run(config: Config) -> None:
     picks = Picks(config.config_path.parent / PICKS_FILE)
     status = Status()
 
-    server_thread = threading.Thread(
-        target=serve,
-        args=(
-            source,
-            config.images_dir,
-            config.host,
-            config.port,
-            store,
-            picks,
-            panel,
-            status,
-        ),
-        daemon=True,
+    server = serve(
+        source,
+        config.images_dir,
+        config.host,
+        config.port,
+        store,
+        picks,
+        panel,
+        status,
     )
-    server_thread.start()
+
+    def _shutdown(signum: int, frame: object) -> None:
+        log.info("Signal %s, shutting down", signum)
+        server.shutdown()
+        server.server_close()
+        raise SystemExit(0)
+
+    signal.signal(signal.SIGTERM, _shutdown)
+    signal.signal(signal.SIGINT, _shutdown)
+
     if panel is not None:  # the buttons are on the panel board
         threading.Thread(
             target=buttons.watch,

@@ -2,6 +2,77 @@
 
 <!-- version list -->
 
+## v0.22.2 (2026-09-18)
+
+### Bug Fixes
+
+- Shut down on SIGINT or SIGTERM ([#117](https://github.com/arnegiacomo/fugleramme/pull/117),
+  [`24a827a`](https://github.com/arnegiacomo/fugleramme/commit/24a827a1bc737aceaf27d07e9ad7c67f17910f3c))
+
+### Chores
+
+- Ask for a preview in the artwork PR template
+  ([`279403c`](https://github.com/arnegiacomo/fugleramme/commit/279403c6c430e32372ad5be1b0db78cec8e1eded))
+
+- **assets**: #33 - Added Bubo virginianus
+  ([#109](https://github.com/arnegiacomo/fugleramme/pull/109),
+  [`71461dc`](https://github.com/arnegiacomo/fugleramme/commit/71461dc7c70d0a98f07add87ecffb6bc41266b67))
+
+- **assets**: #33 add Cassin's female and male Haemorhous mexicanus
+  ([#111](https://github.com/arnegiacomo/fugleramme/pull/111),
+  [`b36d3f8`](https://github.com/arnegiacomo/fugleramme/commit/b36d3f83f440501f5749cc322794066f4011eddb))
+
+- **assets**: #33 add Haemorhous mexicanus
+  ([#111](https://github.com/arnegiacomo/fugleramme/pull/111),
+  [`b36d3f8`](https://github.com/arnegiacomo/fugleramme/commit/b36d3f83f440501f5749cc322794066f4011eddb))
+
+- **assets**: #33 add Junco hyemalis, Spinus psaltria, Callipepla californica, Piranga ludoviciana,
+  Pheucticus melanocephalus, Hesperiphona vespertina
+  ([#114](https://github.com/arnegiacomo/fugleramme/pull/114),
+  [`11a6649`](https://github.com/arnegiacomo/fugleramme/commit/11a664961d3149ed447bb82deadcd2e52681b8a0))
+
+- **assets**: #33 add Junco hyemalis, Spinus psaltria, Callipepla ca…
+  ([#114](https://github.com/arnegiacomo/fugleramme/pull/114),
+  [`11a6649`](https://github.com/arnegiacomo/fugleramme/commit/11a664961d3149ed447bb82deadcd2e52681b8a0))
+
+- **assets**: #33 add Pica hudsonia, Colaptes auratus, Agelaius phoeniceus
+  ([#112](https://github.com/arnegiacomo/fugleramme/pull/112),
+  [`266a76a`](https://github.com/arnegiacomo/fugleramme/commit/266a76a0ca7c70cd0652ad5de55dfb517ca36a08))
+
+- **assets**: Add Buteo jamaicensis, add Fuertes to Attribution.md
+  ([#104](https://github.com/arnegiacomo/fugleramme/pull/104),
+  [`7cd52a8`](https://github.com/arnegiacomo/fugleramme/commit/7cd52a84134d9bedc59ece15fe03a7b851e09508))
+
+- **assets**: Add melospiza melodia ([#106](https://github.com/arnegiacomo/fugleramme/pull/106),
+  [`4b3d5a5`](https://github.com/arnegiacomo/fugleramme/commit/4b3d5a59691e29deafb3ca3edf5d1204ecf97267))
+
+- **assets**: Add zenaida macroura ([#107](https://github.com/arnegiacomo/fugleramme/pull/107),
+  [`d6baeef`](https://github.com/arnegiacomo/fugleramme/commit/d6baeef3bc7209e43c18476a17112aa494288808))
+
+- **assets**: Drop four plates that duplicate another cut
+  ([`362284a`](https://github.com/arnegiacomo/fugleramme/commit/362284afee7833c4c2a98e4caa8f663e30e948fd))
+
+- **detector**: Follow the host timezone instead of pinning Europe/Oslo
+  ([#110](https://github.com/arnegiacomo/fugleramme/pull/110),
+  [`a3d0b06`](https://github.com/arnegiacomo/fugleramme/commit/a3d0b066f79b1bb2ad7867603e8371daa9a9aa89))
+
+### Documentation
+
+- **species**: Filter the species list by country and state
+  ([#103](https://github.com/arnegiacomo/fugleramme/pull/103),
+  [`3645bc7`](https://github.com/arnegiacomo/fugleramme/commit/3645bc7c9b4574e40c45187d91a6ee2aeba4ff41))
+
+### Refactoring
+
+- **render**: Hardcode the paper grain's seed
+  ([`b5e60b7`](https://github.com/arnegiacomo/fugleramme/commit/b5e60b758dde3b5fa51be475870aa27af257d845))
+
+### Testing
+
+- Guard against a plate shipping twice under two species
+  ([`7314afa`](https://github.com/arnegiacomo/fugleramme/commit/7314afa0144a23e236ecd492cf30d28d4ff55a43))
+
+
 ## v0.22.1 (2026-09-17)
 
 ### Bug Fixes

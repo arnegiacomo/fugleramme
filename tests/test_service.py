@@ -5,6 +5,7 @@ BirdNET-Go restarts is worse than one that is a few minutes stale."""
 from __future__ import annotations
 
 import logging
+import signal
 from dataclasses import replace
 from unittest.mock import patch
 
@@ -187,3 +188,43 @@ def test_no_floor_is_the_shipped_default(tmp_path):
     """A frame that updates into this keeps the behaviour it had."""
     assert SettingsStore(tmp_path / "s.json").get().refresh_minutes == 0
     assert service._due(0, service.time.monotonic())
+
+
+@pytest.mark.parametrize("signal_code", [signal.SIGINT, signal.SIGTERM])
+def test_signal_runs_the_shutdown_handler(tmp_path, images, detector, signal_code):
+    """Signal is registered and triggers the shutdown routine."""
+    url, _ = detector(count=40, seed=0)
+    config = Config(
+        images_dir=images,
+        detector_url=url,
+        output_path=tmp_path / "frame.png",
+        host="127.0.0.1",
+        port=0,
+        config_path=tmp_path / "settings.json",
+    )
+
+    class MockServer:
+        shutdown_calls = 0
+        server_close_calls = 0
+
+        def shutdown(self):
+            self.shutdown_calls += 1
+
+        def server_close(self):
+            self.server_close_calls += 1
+
+    mock_server = MockServer()
+
+    def sleep(_seconds):
+        signal.raise_signal(signal_code)
+
+    with (
+        patch.object(service.updates, "available", return_value=None),
+        patch.object(service.time, "sleep", sleep),
+        patch.object(service, "serve", return_value=mock_server),
+        pytest.raises(SystemExit, match="0"),
+    ):
+        service.run(config)
+
+    assert mock_server.shutdown_calls == 1
+    assert mock_server.server_close_calls == 1
