@@ -215,23 +215,32 @@ def _bbox(alpha: np.ndarray) -> tuple[int, int, int, int]:
 def _resize(img: Image.Image, cap: int) -> Image.Image:
     """Lanczos down to `cap` on premultiplied alpha. The pixels under a soft edge
     are whatever the cut-out left there; resampling straight RGBA drags them into
-    the halo as a dark fringe, which prints."""
+    the halo as a dark fringe, which prints.
+
+    Each channel is resized as its own float plane. `Image.resize` premultiplies
+    an RGBA image itself, so handing it premultiplied RGBA applies the alpha
+    twice, and eight bits cannot hold colour times a small alpha anyway - either
+    one leaves the soft edge the wrong colour, and `render.paper` draws that edge."""
     scale = cap / max(img.size)
     size = (max(1, round(img.width * scale)), max(1, round(img.height * scale)))
 
-    arr = np.asarray(img, dtype=np.float64)
+    arr = np.asarray(img, dtype=np.float32)
     alpha = arr[..., 3:4] / 255.0
     premul = np.concatenate([arr[..., :3] * alpha, arr[..., 3:4]], axis=-1)
-    out = np.asarray(
-        Image.fromarray(premul.round().astype(np.uint8), "RGBA").resize(
-            size, Image.Resampling.LANCZOS
-        ),
-        dtype=np.float64,
+    out = np.stack(
+        [
+            np.asarray(Image.fromarray(premul[..., c]).resize(size, Image.Resampling.LANCZOS))
+            for c in range(4)
+        ],
+        axis=-1,
     )
-    straight = np.clip(out[..., 3:4], 0, 255) / 255.0
-    rgb = np.divide(out[..., :3], straight, out=np.zeros_like(out[..., :3]), where=straight > 1e-4)
+    # Divide by the alpha Lanczos produced, overshoot and all: beside a hard edge it
+    # rings past 255 and the colour rings with it, so clipping first keeps the ring.
+    rang = out[..., 3:4] / 255.0
+    rgb = np.divide(out[..., :3], rang, out=np.zeros_like(out[..., :3]), where=rang > 1e-4)
     return Image.fromarray(
-        np.clip(np.concatenate([rgb, straight * 255], axis=-1), 0, 255).astype(np.uint8), "RGBA"
+        np.rint(np.clip(np.concatenate([rgb, out[..., 3:4]], axis=-1), 0, 255)).astype(np.uint8),
+        "RGBA",
     )
 
 
