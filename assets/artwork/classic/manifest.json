@@ -1027,10 +1027,6 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRoller.jpg"
   },
-  "birds/corvus-brachyrhynchos-2.webp": {
-    "source": "audubon",
-    "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_American_Crow,_1833,_NGA_32297.jpg"
-  },
   "birds/corvus-brachyrhynchos.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Common_American_Crow._Male._(Black_Walnut.)_(NYPL_b13559627-108485).tiff"
@@ -1170,10 +1166,6 @@
   "birds/cyanistes-cyanus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIAzure_Tit.jpg"
-  },
-  "birds/cyanocitta-cristata-2.webp": {
-    "source": "audubon",
-    "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Blue_Jay,_1831,_NGA_32243.jpg"
   },
   "birds/cyanocitta-cristata.webp": {
     "source": "audubon",
@@ -3063,10 +3055,6 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISiskin.jpg"
   },
-  "birds/spinus-tristis-2.webp": {
-    "source": "audubon",
-    "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Yellow_Bird_or_American_Goldfinch,_1828,_NGA_32174.jpg"
-  },
   "birds/spinus-tristis.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Yellow_Bird_or_American_Goldfinch,_1828,_NGA_32174.jpg"
@@ -3310,10 +3298,6 @@
   "birds/thryothorus-ludovicianus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-78-great-carolina-wren.jpg"
-  },
-  "birds/toxostoma-rufum-2.webp": {
-    "source": "audubon",
-    "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Ferruginous_Thrush,_1831,_NGA_32257.jpg"
   },
   "birds/toxostoma-rufum.webp": {
     "source": "audubon",
