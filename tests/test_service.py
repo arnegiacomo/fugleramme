@@ -190,10 +190,7 @@ def test_no_floor_is_the_shipped_default(tmp_path):
     assert service._due(0, service.time.monotonic())
 
 
-@pytest.mark.parametrize(
-    "signal_code",
-    [2, 15],
-)
+@pytest.mark.parametrize("signal_code", [signal.SIGINT, signal.SIGTERM])
 def test_signal_runs_the_shutdown_handler(tmp_path, images, detector, signal_code):
     """Signal is registered and triggers the shutdown routine."""
     url, _ = detector(count=40, seed=0)

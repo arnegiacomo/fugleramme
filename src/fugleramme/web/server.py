@@ -285,13 +285,9 @@ def serve(
     panel: Panel | None = None,
     status: Status | None = None,
 ) -> ThreadingHTTPServer:
-    """Non-blocking server loop."""
+    """Start the kiosk on a daemon thread. Port 0 asks the OS for one - read it
+    back from `server_address[1]`."""
     handler = make_handler(source, images_dir, store, picks, panel, status or Status())
     httpd = ThreadingHTTPServer((host, port), handler)
-    server_thread = threading.Thread(
-        target=httpd.serve_forever,
-        daemon=True,
-    )
-    server_thread.start()
-
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd
