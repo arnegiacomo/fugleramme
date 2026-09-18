@@ -127,14 +127,14 @@ def run(config: Config) -> None:
         status,
     )
 
-    def shutdown(signum, frame):
+    def _shutdown(signum, frame):
         print(f"Received signal {signum}, shutting down")
         server.shutdown()
         server.server_close()
         raise SystemExit(0)
 
-    signal.signal(signal.SIGTERM, shutdown)
-    signal.signal(signal.SIGINT, shutdown)
+    signal.signal(signal.SIGTERM, _shutdown)
+    signal.signal(signal.SIGINT, _shutdown)
 
     if panel is not None:  # the buttons are on the panel board
         threading.Thread(
