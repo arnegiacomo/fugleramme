@@ -26,6 +26,7 @@ import hashlib
 import io
 import json
 import logging
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import ClassVar
@@ -283,8 +284,14 @@ def serve(
     picks: Picks,
     panel: Panel | None = None,
     status: Status | None = None,
-) -> None:
-    """Blocking server loop."""
+) -> ThreadingHTTPServer:
+    """Non-blocking server loop."""
     handler = make_handler(source, images_dir, store, picks, panel, status or Status())
     httpd = ThreadingHTTPServer((host, port), handler)
-    httpd.serve_forever()
+    server_thread = threading.Thread(
+        target=httpd.serve_forever,
+        daemon=True,
+    )
+    server_thread.start()
+
+    return httpd

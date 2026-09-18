@@ -15,7 +15,6 @@ from __future__ import annotations
 import faulthandler
 import logging
 import signal
-import sys
 import threading
 import time
 from dataclasses import replace
@@ -117,28 +116,22 @@ def run(config: Config) -> None:
     picks = Picks(config.config_path.parent / PICKS_FILE)
     status = Status()
 
-    server_thread = threading.Thread(
-        target=serve,
-        args=(
-            source,
-            config.images_dir,
-            config.host,
-            config.port,
-            store,
-            picks,
-            panel,
-            status,
-        ),
-        daemon=True,
+    server = serve(
+        source,
+        config.images_dir,
+        config.host,
+        config.port,
+        store,
+        picks,
+        panel,
+        status,
     )
-    server_thread.start()
 
     def shutdown(signum, frame):
         print(f"Received signal {signum}, shutting down")
-        server_thread.join(timeout=2)  # 2 seconds
-        if server_thread.is_alive():
-            sys.exit(1)
-        sys.exit(0)
+        server.shutdown()
+        server.server_close()
+        raise SystemExit(0)
 
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGINT, shutdown)
