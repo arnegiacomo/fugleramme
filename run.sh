@@ -108,13 +108,17 @@ ensure_config() {
 # mic ALSA's default card (HDMI takes cards 0/1, which have no capture stream) so
 # BirdNET-Go can enumerate it. The mic itself is picked in the BirdNET-Go UI.
 write_env() {
-  local card
+  local card tz
   card="$(arecord -l 2>/dev/null | sed -nE 's/^card [0-9]+: ([^ ]+) \[.*/\1/p' | head -1)"
+  # An unconfigured host reports "n/a", and an invalid TZ silently means UTC.
+  tz="$(timedatectl show -p Timezone --value 2>/dev/null)"
+  [[ -f /usr/share/zoneinfo/$tz ]] || tz=""
   cat > "$REPO_ROOT/detector/.env" <<EOF
 BIRDNET_UID=$(id -u)
 BIRDNET_GID=$(id -g)
 ALSA_CARD=$card
 BIRDNET_PORT=$BIRDNET_PORT
+TZ=${tz:-Europe/Oslo}
 EOF
 }
 
