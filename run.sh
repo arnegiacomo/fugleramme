@@ -110,8 +110,7 @@ ensure_config() {
 write_env() {
   local card tz
   card="$(arecord -l 2>/dev/null | sed -nE 's/^card [0-9]+: ([^ ]+) \[.*/\1/p' | head -1)"
-  # timedatectl is the zone Go's time.Local actually uses, but it reports "n/a" on
-  # an unconfigured host and an invalid TZ leaves the container silently on UTC.
+  # An unconfigured host reports "n/a", and an invalid TZ silently means UTC.
   tz="$(timedatectl show -p Timezone --value 2>/dev/null)"
   [[ -f /usr/share/zoneinfo/$tz ]] || tz=""
   cat > "$REPO_ROOT/detector/.env" <<EOF

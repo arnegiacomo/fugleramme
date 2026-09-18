@@ -5,9 +5,8 @@ services:
     container_name: birdnet-go
     restart: unless-stopped
     environment:
-      # BirdNET-Go's local day boundaries / logs. run.sh derives it from the host;
-      # the default is the old hardcoded value, so an existing frame's day does
-      # not move under it on update.
+      # BirdNET-Go's local day boundaries / logs; run.sh derives it from the host.
+      # The default is the old hardcoded one, so an update cannot move a frame's day.
       - TZ=${TZ:-Europe/Oslo}
       # Run as the host user so the entrypoint's chown of /config and /data
       # doesn't leave the bind-mounted files owned by a foreign uid. run.sh sets these.
