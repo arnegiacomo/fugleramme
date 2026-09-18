@@ -135,7 +135,7 @@ def run(config: Config) -> None:
 
     def shutdown(signum, frame):
         print(f"Received signal {signum}, shutting down")
-        server_thread.join(timeout="2")  # 2 seconds
+        server_thread.join(timeout=2)  # 2 seconds
         sys.exit(0)
 
     signal.signal(signal.SIGTERM, shutdown)
