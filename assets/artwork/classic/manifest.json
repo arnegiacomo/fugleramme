@@ -735,6 +735,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIGorget_Warbler.jpg"
   },
+  "birds/callipepla-californica.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/california-partridge"
+  },
   "birds/caprimulgus-europaeus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Magnus_von_Wright_-_Caprimulgus_europaeus,_Sphinx_ligustri.jpg"
@@ -1719,6 +1723,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIICreeping_Locustelle.jpg"
   },
+  "birds/hesperiphona-vespertina-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/evening-grosbeak-and-spotted-grosbeak"
+  },
+  "birds/hesperiphona-vespertina.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/evening-grosbeak-and-spotted-grosbeak"
+  },
   "birds/hieraaetus-pennatus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIBooted_Eagle.jpg"
@@ -1794,6 +1806,14 @@
   "birds/iduna-pallida.webp": {
     "source": "bree",
     "url": "https://commons.wikimedia.org/wiki/File:A_history_of_the_birds_of_Europe_(Plate_47)_(8157837690).jpg"
+  },
+  "birds/junco-hyemalis-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/snow-bird"
+  },
+  "birds/junco-hyemalis.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/snow-bird"
   },
   "birds/jynx-torquilla-2.webp": {
     "source": "vonwright",
@@ -2543,6 +2563,14 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-127-rose-breasted-grosbeak.jpg"
   },
+  "birds/pheucticus-melanocephalus-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/evening-grosbeak-and-spotted-grosbeak"
+  },
+  "birds/pheucticus-melanocephalus.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/evening-grosbeak-and-spotted-grosbeak"
+  },
   "birds/phoenicopterus-roseus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVCommon_Flamingo.jpg"
@@ -2646,6 +2674,18 @@
   "birds/pinicola-enucleator.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISiberian_Grosbeak.jpg"
+  },
+  "birds/piranga-ludoviciana-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/louisiana-tanager-and-scarlet-tanager"
+  },
+  "birds/piranga-ludoviciana-3.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/arkansaw-siskin-mealy-red-poll-louisiana-tanager-townsends-bunting-buff"
+  },
+  "birds/piranga-ludoviciana.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/louisiana-tanager-and-scarlet-tanager"
   },
   "birds/piranga-rubra-2.webp": {
     "source": "audubon",
@@ -3026,6 +3066,10 @@
   "birds/spatula-querquedula.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVGargany_Teal.jpg"
+  },
+  "birds/spinus-psaltria.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/arkansaw-siskin-mealy-red-poll-louisiana-tanager-townsends-bunting-buff"
   },
   "birds/spinus-spinus-2.webp": {
     "source": "vonwright",
