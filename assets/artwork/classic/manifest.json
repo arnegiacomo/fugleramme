@@ -87,6 +87,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeICinerousVulture.jpg"
   },
+  "birds/agelaius-phoeniceus-2.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-67-red-winged-starling.jpg"
+  },
   "birds/agelaius-phoeniceus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-67-red-winged-starling.jpg"
@@ -986,6 +990,10 @@
   "birds/coccyzus-americanus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Coccyzus_Americanus_by_John_Gould.jpg"
+  },
+  "birds/colaptes-auratus-2.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-37-golden-winged-woodpecker.jpg"
   },
   "birds/colaptes-auratus.webp": {
     "source": "audubon",
@@ -2606,6 +2614,10 @@
   "birds/phylloscopus-trochilus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIYellow_Willow_Wren.jpg"
+  },
+  "birds/pica-hudsonia-2.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-357-american-magpie.jpg"
   },
   "birds/pica-hudsonia.webp": {
     "source": "audubon",
