@@ -128,7 +128,7 @@ def run(config: Config) -> None:
     )
 
     def _shutdown(signum, frame):
-        print(f"Received signal {signum}, shutting down")
+        log.info(f"Received signal {signum}, shutting down")
         server.shutdown()
         server.server_close()
         raise SystemExit(0)
