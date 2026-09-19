@@ -4,10 +4,15 @@
 frame draws, so it may crop and shrink and nothing else. The soft edge is where
 that goes wrong unseen: its pixels are nearly transparent in an editor, but
 `render.paper` treats anything over alpha 24 as the plate and prints it.
+
+`forget_box` is the other silent one: a bird box is normalised to the trimmed
+cut-out, so a plate re-cut under its box is sized off a patch of paper and the
+page says nothing about it.
 """
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -65,3 +70,31 @@ def test_prepare_leaves_a_cut_out_under_the_cap_alone(tmp_path: Path) -> None:
         source = opened.convert("RGBA")
     expected = np.asarray(source.crop(source.getchannel("A").getbbox()))
     assert np.array_equal(np.asarray(add_bird.prepare(path)), expected)
+
+
+def _boxed(style: Path, listed: dict[str, list[float]]) -> Path:
+    (style / add_bird.BIRDS).mkdir(parents=True)
+    record = style / add_bird.GEOMETRY
+    record.write_text(json.dumps(listed, indent=1, sort_keys=True) + "\n")
+    return record
+
+
+def test_forget_box_drops_the_one_entry(tmp_path: Path) -> None:
+    kept = {"birds/keep.webp": [0.1, 0.2, 0.3, 0.4]}
+    record = _boxed(tmp_path / "scratch", {**kept, "birds/recut.webp": [0.5, 0.6, 0.7, 0.8]})
+    add_bird.forget_box(tmp_path / "scratch", "recut.webp")
+    assert json.loads(record.read_text()) == kept
+
+
+def test_forget_box_leaves_the_file_alone_for_a_plate_it_has_no_box_for(tmp_path: Path) -> None:
+    record = _boxed(tmp_path / "scratch", {"birds/keep.webp": [0.1, 0.2, 0.3, 0.4]})
+    before = record.read_bytes()
+    add_bird.forget_box(tmp_path / "scratch", "brand-new.webp")
+    assert record.read_bytes() == before, "a plate with no box rewrote the whole record"
+
+
+def test_forget_box_is_a_no_op_for_a_style_that_keeps_no_boxes(tmp_path: Path) -> None:
+    style = tmp_path / "scratch"
+    (style / add_bird.BIRDS).mkdir(parents=True)
+    add_bird.forget_box(style, "anything.webp")
+    assert not (style / add_bird.GEOMETRY).exists()
