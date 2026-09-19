@@ -212,27 +212,50 @@ def _bbox(alpha: np.ndarray) -> tuple[int, int, int, int]:
     )
 
 
+def _shrink_plane(plane: np.ndarray, size: tuple[int, int]) -> np.ndarray:
+    """One channel of floats, Lanczos-resized. A float plane is the point: Pillow
+    neither rounds it nor applies alpha to it, and `_resize` needs both left alone."""
+    return np.asarray(Image.fromarray(plane).resize(size, Image.Resampling.LANCZOS))
+
+
 def _resize(img: Image.Image, cap: int) -> Image.Image:
-    """Lanczos down to `cap` on premultiplied alpha. The pixels under a soft edge
-    are whatever the cut-out left there; resampling straight RGBA drags them into
-    the halo as a dark fringe, which prints."""
+    """Lanczos down to `cap`, keeping a soft edge the colour it came in with.
+
+    Premultiply the colour by alpha, shrink, divide the alpha back out. Shrinking
+    straight RGBA instead would average in whatever colour the cut-out left under
+    its transparent pixels, and drag it into the halo as a dark fringe.
+
+    Two ways this goes wrong, both printed by `render.paper` as a ring round the bird:
+
+    - Shrinking the premultiplied pixels as one RGBA image. `Image.resize` premultiplies
+      RGBA itself, so the alpha lands twice, and eight bits cannot hold a colour times a
+      small alpha in any case. Hence one float plane per channel.
+    - Clipping the shrunk alpha before dividing by it. Lanczos overshoots beside a hard
+      edge, the premultiplied colour overshoots with it, and only the unclipped alpha
+      cancels that out. Clip once, at the end.
+    """
     scale = cap / max(img.size)
     size = (max(1, round(img.width * scale)), max(1, round(img.height * scale)))
 
-    arr = np.asarray(img, dtype=np.float64)
-    alpha = arr[..., 3:4] / 255.0
-    premul = np.concatenate([arr[..., :3] * alpha, arr[..., 3:4]], axis=-1)
-    out = np.asarray(
-        Image.fromarray(premul.round().astype(np.uint8), "RGBA").resize(
-            size, Image.Resampling.LANCZOS
-        ),
-        dtype=np.float64,
+    pixels = np.asarray(img, dtype=np.float32)
+    colour, alpha = pixels[..., :3], pixels[..., 3]
+    premultiplied = colour * (alpha / 255.0)[..., None]
+
+    small_premultiplied = np.stack(
+        [_shrink_plane(premultiplied[..., channel], size) for channel in range(3)], axis=-1
     )
-    straight = np.clip(out[..., 3:4], 0, 255) / 255.0
-    rgb = np.divide(out[..., :3], straight, out=np.zeros_like(out[..., :3]), where=straight > 1e-4)
-    return Image.fromarray(
-        np.clip(np.concatenate([rgb, straight * 255], axis=-1), 0, 255).astype(np.uint8), "RGBA"
+    small_alpha = _shrink_plane(alpha, size)
+
+    coverage = (small_alpha / 255.0)[..., None]
+    small_colour = np.divide(
+        small_premultiplied,
+        coverage,
+        out=np.zeros_like(small_premultiplied),
+        where=coverage > 1e-4,  # fully transparent: no colour to recover, leave it black
     )
+
+    rgba = np.concatenate([small_colour, small_alpha[..., None]], axis=-1)
+    return Image.fromarray(np.rint(np.clip(rgba, 0, 255)).astype(np.uint8), "RGBA")
 
 
 def prepare(path: Path, cap: int = CAP) -> Image.Image:

@@ -355,6 +355,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVCommon_Heron.jpg"
   },
+  "birds/ardea-herodias.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/great-blue-heron"
+  },
   "birds/ardea-purpurea.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVPurple_Heron.jpg"
@@ -795,6 +799,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00019.jpg"
   },
+  "birds/cathartes-aura.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/turkey-buzzard"
+  },
   "birds/cecropis-daurica.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRufous_Swallow.jpg"
@@ -842,6 +850,14 @@
   "birds/charadrius-hiaticula.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVRingDottrell.jpg"
+  },
+  "birds/charadrius-vociferus-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/kildeer-plover"
+  },
+  "birds/charadrius-vociferus.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/kildeer-plover"
   },
   "birds/chelidon-rustica-x-hirundo-urbica.webp": {
     "source": "vonwright",
@@ -934,6 +950,10 @@
   "birds/circus-cyaneus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIHen_Harrier.jpg"
+  },
+  "birds/circus-hudsonius.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/marsh-hawk"
   },
   "birds/circus-macrourus-2.webp": {
     "source": "vonwright",
@@ -1058,6 +1078,14 @@
   "birds/coracias-garrulus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRoller.jpg"
+  },
+  "birds/corthylio-calendula-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/ruby-crowned-wren"
+  },
+  "birds/corthylio-calendula.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/ruby-crowned-wren"
   },
   "birds/corvus-corax-2.webp": {
     "source": "vonwright",
@@ -1463,6 +1491,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIJer_Falcon.jpg"
   },
+  "birds/falco-sparverius.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/american-sparrow-hawk"
+  },
   "birds/falco-subbuteo-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00081.jpg"
@@ -1570,6 +1602,10 @@
   "birds/fringilla-montifringilla.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIBramble_Finch.jpg"
+  },
+  "birds/fulica-americana.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/american-coot"
   },
   "birds/fulica-atra-2.webp": {
     "source": "vonwright",
@@ -2158,6 +2194,14 @@
   "birds/mareca-strepera.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVGadwall.jpg"
+  },
+  "birds/megaceryle-alcyon-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/belted-kingfisher"
+  },
+  "birds/megaceryle-alcyon.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/belted-kingfisher"
   },
   "birds/melanerpes-carolinus.webp": {
     "source": "audubon",
@@ -3027,6 +3071,18 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISerin_Finch.jpg"
   },
+  "birds/setophaga-coronata-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
+  },
+  "birds/setophaga-coronata.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
+  },
+  "birds/setophaga-petechia.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/blue-eyed-yellow-warbler"
+  },
   "birds/sialia-sialis-2.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-113-blue-bird.jpg"
@@ -3034,6 +3090,10 @@
   "birds/sialia-sialis.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-113-blue-bird.jpg"
+  },
+  "birds/sitta-canadensis.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/red-breasted-nuthatch"
   },
   "birds/sitta-carolinensis.webp": {
     "source": "audubon",
@@ -3098,6 +3158,10 @@
   "birds/spatula-querquedula.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVGargany_Teal.jpg"
+  },
+  "birds/spinus-pinus.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/pine-finch"
   },
   "birds/spinus-psaltria.webp": {
     "source": "audubon",
@@ -3562,6 +3626,10 @@
   "birds/zenaida-macroura.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Zenaida_macrouraAWP17AA.jpg"
+  },
+  "birds/zonotrichia-leucophrys.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/white-crowned-sparrow"
   },
   "birds/zoothera-aurea.webp": {
     "source": "gould",
