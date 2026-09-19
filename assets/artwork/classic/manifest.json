@@ -75,6 +75,14 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00249.jpg"
   },
+  "birds/aegolius-acadicus-2.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-199-little-owl.jpg"
+  },
+  "birds/aegolius-acadicus.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-199-little-owl.jpg"
+  },
   "birds/aegolius-funereus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00184.jpg"
@@ -407,6 +415,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIGoshawk.jpg"
   },
+  "birds/athene-cunicularia.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-432-burrowing-owl.jpg"
+  },
   "birds/athene-noctua.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILittle_Owl.jpg"
@@ -458,6 +470,10 @@
   "birds/aythya-nyroca.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVWhite-eyed_Duck.jpg"
+  },
+  "birds/baeolophus-bicolor.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:39_Crested_Titmouse.jpg"
   },
   "birds/bartramia-longicauda.webp": {
     "source": "gould",
@@ -2626,6 +2642,10 @@
   "birds/phylloscopus-collybita.webp": {
     "source": "vonwright-rawpixel",
     "url": "https://www.rawpixel.com/image/8864154/image-public-domain-bird-animal"
+  },
+  "birds/phylloscopus-humei.webp": {
+    "source": "keulemans",
+    "url": "https://commons.wikimedia.org/wiki/File:PhylloscopusKeulemans.jpg"
   },
   "birds/phylloscopus-inornatus-2.webp": {
     "source": "dresser",

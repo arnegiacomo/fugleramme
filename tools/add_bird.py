@@ -17,6 +17,14 @@ hand and every style ends up encoded the same way.
 
 Anything not given on the command line is asked for. The species prompt searches
 BirdNET's label list by scientific or English name - type a few letters of either.
+
+A finished add ends in the box editor (`tools/bird_box.py`), where you drag the box
+round the bird itself so the collage knows how much of the plate is bird. It opens on
+a box the detector proposed (`tools/bird_boxes.py`), so there is usually only a nudge
+to make. The detector is a 2 GB download the first time and you are asked before it
+happens. `--no-detect` skips the asking and starts from the whole plate, `--no-box`
+skips the editor, and a plate nobody boxes is sized as the whole cut-out - which is
+what every plate did before boxes existed.
 """
 
 from __future__ import annotations
@@ -35,6 +43,7 @@ from PIL import Image
 
 from fugleramme.names import BIRDS, MANIFEST, SUFFIXES, artwork_in, canonical, manifest, normalize
 from fugleramme.render.paper import PAD, paper_texture, process_sprite
+from fugleramme.render.sizes import GEOMETRY
 
 REPO = Path(__file__).resolve().parents[1]
 ARTWORK = REPO / "assets" / "artwork"
@@ -212,27 +221,50 @@ def _bbox(alpha: np.ndarray) -> tuple[int, int, int, int]:
     )
 
 
+def _shrink_plane(plane: np.ndarray, size: tuple[int, int]) -> np.ndarray:
+    """One channel of floats, Lanczos-resized. A float plane is the point: Pillow
+    neither rounds it nor applies alpha to it, and `_resize` needs both left alone."""
+    return np.asarray(Image.fromarray(plane).resize(size, Image.Resampling.LANCZOS))
+
+
 def _resize(img: Image.Image, cap: int) -> Image.Image:
-    """Lanczos down to `cap` on premultiplied alpha. The pixels under a soft edge
-    are whatever the cut-out left there; resampling straight RGBA drags them into
-    the halo as a dark fringe, which prints."""
+    """Lanczos down to `cap`, keeping a soft edge the colour it came in with.
+
+    Premultiply the colour by alpha, shrink, divide the alpha back out. Shrinking
+    straight RGBA instead would average in whatever colour the cut-out left under
+    its transparent pixels, and drag it into the halo as a dark fringe.
+
+    Two ways this goes wrong, both printed by `render.paper` as a ring round the bird:
+
+    - Shrinking the premultiplied pixels as one RGBA image. `Image.resize` premultiplies
+      RGBA itself, so the alpha lands twice, and eight bits cannot hold a colour times a
+      small alpha in any case. Hence one float plane per channel.
+    - Clipping the shrunk alpha before dividing by it. Lanczos overshoots beside a hard
+      edge, the premultiplied colour overshoots with it, and only the unclipped alpha
+      cancels that out. Clip once, at the end.
+    """
     scale = cap / max(img.size)
     size = (max(1, round(img.width * scale)), max(1, round(img.height * scale)))
 
-    arr = np.asarray(img, dtype=np.float64)
-    alpha = arr[..., 3:4] / 255.0
-    premul = np.concatenate([arr[..., :3] * alpha, arr[..., 3:4]], axis=-1)
-    out = np.asarray(
-        Image.fromarray(premul.round().astype(np.uint8), "RGBA").resize(
-            size, Image.Resampling.LANCZOS
-        ),
-        dtype=np.float64,
+    pixels = np.asarray(img, dtype=np.float32)
+    colour, alpha = pixels[..., :3], pixels[..., 3]
+    premultiplied = colour * (alpha / 255.0)[..., None]
+
+    small_premultiplied = np.stack(
+        [_shrink_plane(premultiplied[..., channel], size) for channel in range(3)], axis=-1
     )
-    straight = np.clip(out[..., 3:4], 0, 255) / 255.0
-    rgb = np.divide(out[..., :3], straight, out=np.zeros_like(out[..., :3]), where=straight > 1e-4)
-    return Image.fromarray(
-        np.clip(np.concatenate([rgb, straight * 255], axis=-1), 0, 255).astype(np.uint8), "RGBA"
+    small_alpha = _shrink_plane(alpha, size)
+
+    coverage = (small_alpha / 255.0)[..., None]
+    small_colour = np.divide(
+        small_premultiplied,
+        coverage,
+        out=np.zeros_like(small_premultiplied),
+        where=coverage > 1e-4,  # fully transparent: no colour to recover, leave it black
     )
+
+    rgba = np.concatenate([small_colour, small_alpha[..., None]], axis=-1)
+    return Image.fromarray(np.rint(np.clip(rgba, 0, 255)).astype(np.uint8), "RGBA")
 
 
 def prepare(path: Path, cap: int = CAP) -> Image.Image:
@@ -308,6 +340,67 @@ def record(style: Path, filename: str, entry: dict[str, str]) -> None:
     os.replace(tmp, path)
 
 
+def forget_box(style: Path, filename: str) -> None:
+    """Drop the file's bird box, if the style keeps one, rewritten like the manifest.
+
+    A box is normalised to the trimmed cut-out, so a plate written over an older
+    one leaves its box measuring a crop that has moved. No box is safe; a stale
+    one sizes the bird off a patch of paper and says nothing about it.
+    """
+    path = style / GEOMETRY
+    try:
+        listed = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return
+    key = f"{BIRDS}/{filename}"
+    if not isinstance(listed, dict) or key not in listed:
+        return
+    kept = {name: box for name, box in listed.items() if name != key}
+    tmp = path.with_suffix(".tmp")
+    # indent 1, as the record is written: dropping one box must not reflow the rest.
+    tmp.write_text(json.dumps(kept, indent=1, sort_keys=True) + "\n")
+    os.replace(tmp, path)
+
+
+def wants_detector() -> bool:
+    """Whether to go looking for the bird, asking first if that means downloading.
+
+    Nobody adding one plate should meet two gigabytes a tool chose for them, and
+    declining costs only the proposal - the editor opens on the whole plate.
+    """
+    import bird_boxes  # module level is cheap; it only reaches for torch inside detect
+
+    if bird_boxes.downloaded():
+        return True
+    print("\n  The bird detector is not on this machine yet, and fetching it takes")
+    print("  about 2 GB. Say no and you draw the box yourself, from the whole plate.")
+    return _ask("  fetch it? [y/N]").lower().startswith("y")
+
+
+def propose_box(plate: Path) -> tuple[float, float, float, float] | None:
+    """Where the detector thinks the bird is, or None when it cannot say.
+
+    Through `uv run`, which builds the script's own dependencies: torch belongs
+    in neither this project's lock nor the Pi. A failure only costs the proposal.
+    """
+    script = Path(__file__).with_name("bird_boxes.py")
+    try:
+        found = subprocess.run(
+            ["uv", "run", "--script", str(script), str(plate)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        box = (json.loads(found.stdout or "{}").get(plate.name) or {}).get("box")
+    except (OSError, ValueError, subprocess.CalledProcessError) as failure:
+        print(f"  no box proposed: {failure}")
+        return None
+    if not isinstance(box, list) or len(box) != 4:
+        return None
+    x0, y0, x1, y1 = (float(value) for value in box)
+    return (x0, y0, x1, y1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -324,6 +417,12 @@ def main() -> None:
     parser.add_argument("--cap", type=int, default=CAP, help=f"longest side, px (default {CAP})")
     parser.add_argument(
         "--dry-run", action="store_true", help="say what would happen, leave the style alone"
+    )
+    parser.add_argument(
+        "--no-box", action="store_true", help="skip the box editor; the plate sizes as a whole"
+    )
+    parser.add_argument(
+        "--no-detect", action="store_true", help="do not propose a box; start from the whole plate"
     )
     args = parser.parse_args()
 
@@ -358,9 +457,24 @@ def main() -> None:
         return
 
     birds.mkdir(parents=True, exist_ok=True)
+    # Before the plate lands: a crash between the two leaves no box, never a stale one.
+    forget_box(style, filename)
     write_plate(img, dest)
     record(style, filename, entry)
     print("\nwritten")
+
+    import bird_box  # the editor and its server, which no other path here needs
+
+    if not args.no_detect and wants_detector():
+        print("\nlooking for the bird")
+        proposed = propose_box(dest)
+        if proposed is not None:
+            bird_box.save_box(style, filename, proposed)
+
+    if args.no_box:
+        return
+    print(f"\nbox the bird in {filename} - ctrl-c when you are done")
+    bird_box.serve(style, [dest])
 
 
 if __name__ == "__main__":
