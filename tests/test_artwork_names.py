@@ -18,6 +18,7 @@ import re
 from pathlib import Path
 
 from fugleramme.names import BIRDS, MANIFEST, PERCHES, SUFFIXES, normalize
+from fugleramme.render.page import trim
 from fugleramme.render.sizes import GEOMETRY
 
 REPO = Path(__file__).resolve().parents[1]
@@ -191,6 +192,27 @@ def test_every_bird_box_is_well_formed():
     assert not malformed, (
         "bird boxes that are not four ordered coordinates plus a cut:\n" + "\n".join(malformed)
     )
+
+
+def test_every_bird_box_was_drawn_on_the_plate_it_is_filed_under():
+    """The recorded cut is the size of the plate as it is now.
+
+    `sizes.span_ratio` ignores a box whose cut has moved, which keeps a stale box
+    from mis-scaling a bird and also keeps it from ever being noticed: the plate
+    draws at 1.0, smaller than it was boxed to, and nothing says so. `forget_box`
+    covers a plate re-added through `add_bird`; this covers every other route -
+    a plate retouched by hand, a bulk re-cut, a box merged in beside a newer file.
+    A missing plate or a malformed entry is for the tests above to report.
+    """
+    stale = []
+    for style, key, entry in _bird_boxes():
+        plate = style / key
+        if not plate.exists() or not isinstance(entry, dict) or "cut" not in entry:
+            continue
+        size = trim(plate).size
+        if tuple(entry["cut"]) != size:
+            stale.append(f"{style.name}/{key}: boxed at {tuple(entry['cut'])}, plate is {size}")
+    assert not stale, "bird boxes drawn on a crop that has since moved:\n" + "\n".join(stale)
 
 
 def test_every_artwork_image_has_attribution():
