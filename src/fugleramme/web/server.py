@@ -26,6 +26,7 @@ import hashlib
 import io
 import json
 import logging
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import ClassVar
@@ -283,8 +284,10 @@ def serve(
     picks: Picks,
     panel: Panel | None = None,
     status: Status | None = None,
-) -> None:
-    """Blocking server loop."""
+) -> ThreadingHTTPServer:
+    """Start the kiosk on a daemon thread. Port 0 asks the OS for one - read it
+    back from `server_address[1]`."""
     handler = make_handler(source, images_dir, store, picks, panel, status or Status())
     httpd = ThreadingHTTPServer((host, port), handler)
-    httpd.serve_forever()
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    return httpd
