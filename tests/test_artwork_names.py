@@ -18,7 +18,6 @@ import re
 from pathlib import Path
 
 from fugleramme.names import BIRDS, MANIFEST, PERCHES, SUFFIXES, normalize
-from fugleramme.render.page import trim
 from fugleramme.render.sizes import GEOMETRY
 
 REPO = Path(__file__).resolve().parents[1]
@@ -194,7 +193,7 @@ def test_every_bird_box_is_well_formed():
     )
 
 
-def test_every_bird_box_was_drawn_on_the_plate_it_is_filed_under():
+def test_every_bird_box_was_drawn_on_the_plate_it_is_filed_under(library):
     """The recorded cut is the size of the plate as it is now.
 
     `sizes.span_ratio` ignores a box whose cut has moved, which keeps a stale box
@@ -206,12 +205,12 @@ def test_every_bird_box_was_drawn_on_the_plate_it_is_filed_under():
     """
     stale = []
     for style, key, entry in _bird_boxes():
-        plate = style / key
-        if not plate.exists() or not isinstance(entry, dict) or "cut" not in entry:
+        cut = entry.get("cut") if isinstance(entry, dict) else None
+        plate = library.get(style / key)
+        if plate is None or not isinstance(cut, list) or len(cut) != 2:
             continue
-        size = trim(plate).size
-        if tuple(entry["cut"]) != size:
-            stale.append(f"{style.name}/{key}: boxed at {tuple(entry['cut'])}, plate is {size}")
+        if tuple(cut) != plate.size:
+            stale.append(f"{style.name}/{key}: boxed at {tuple(cut)}, plate is {plate.size}")
     assert not stale, "bird boxes drawn on a crop that has since moved:\n" + "\n".join(stale)
 
 
