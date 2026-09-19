@@ -79,3 +79,13 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
 **Cassin** - *Illustrations of the Birds of California, Texas, Oregon, British and Russian America* by **John Cassin** (Philadelphia: J. B. Lippincott & Co., 1862), plates drawn by **George G. White**, put on stone by **William E. Hitchcock**, lithographed, printed and colored by **J. T. Bowen**, Biodiversity Heritage Library scans from the Commons category [Illustrations of the birds of California, Texas, Oregon, British and Russian America](https://commons.wikimedia.org/wiki/Category:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America). Public domain (PD-scan / PD-old-70-expired). Manifest key: `cassin`.
+
+**Gould (Birds of Australia)** - *The Birds of Australia* by **John Gould** (1840-1848),
+illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**.
+Scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524).
+Public domain. Manifest key: `gould-australia`.
+
+**Legge (Birds of Ceylon)** - *A history of the birds of Ceylon* by **W. Vincent Legge**
+(1878-1880), plates lithographed by **John Gerrard Keulemans**, printed by **Hanhart**.
+Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via [Internet Archive](https://archive.org/details/historyofbirdsof02legg).
+Public domain. Manifest key: `legge-ceylon`.
