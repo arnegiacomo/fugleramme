@@ -193,6 +193,27 @@ def test_every_bird_box_is_well_formed():
     )
 
 
+def test_every_bird_box_was_drawn_on_the_plate_it_is_filed_under(library):
+    """The recorded cut is the size of the plate as it is now.
+
+    `sizes.span_ratio` ignores a box whose cut has moved, which keeps a stale box
+    from mis-scaling a bird and also keeps it from ever being noticed: the plate
+    draws at 1.0, smaller than it was boxed to, and nothing says so. `forget_box`
+    covers a plate re-added through `add_bird`; this covers every other route -
+    a plate retouched by hand, a bulk re-cut, a box merged in beside a newer file.
+    A missing plate or a malformed entry is for the tests above to report.
+    """
+    stale = []
+    for style, key, entry in _bird_boxes():
+        cut = entry.get("cut") if isinstance(entry, dict) else None
+        plate = library.get(style / key)
+        if plate is None or not isinstance(cut, list) or len(cut) != 2:
+            continue
+        if tuple(cut) != plate.size:
+            stale.append(f"{style.name}/{key}: boxed at {tuple(cut)}, plate is {plate.size}")
+    assert not stale, "bird boxes drawn on a crop that has since moved:\n" + "\n".join(stale)
+
+
 def test_every_artwork_image_has_attribution():
     missing = []
     for style in sorted(path for path in IMAGES.iterdir() if path.is_dir()):
