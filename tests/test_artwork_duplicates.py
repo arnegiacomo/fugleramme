@@ -10,18 +10,14 @@ species that was never there.
 from __future__ import annotations
 
 import json
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
 
 from fugleramme.names import MANIFEST, SUFFIXES
 
 REPO = Path(__file__).resolve().parents[1]
 IMAGES = REPO / "assets" / "artwork"
-
-GRID = 64
 
 # Silhouette overlap, intersection over union; closest unrelated pair is 0.97.
 OUTLINE = 0.90
@@ -38,29 +34,14 @@ def _plates(style: Path) -> list[Path]:
     return sorted(path for suffix in SUFFIXES for path in style.rglob(f"*{suffix}"))
 
 
-def _outline_and_ink(path: Path) -> tuple[np.ndarray, np.ndarray]:
-    """The cut's silhouette as a flat bool grid, and its ink as flat grey levels."""
-    image = Image.open(path).convert("RGBA")
-    paper = Image.new("RGBA", image.size, (255, 255, 255, 255))
-    grey = Image.alpha_composite(paper, image).convert("L").resize((GRID, GRID), Image.BILINEAR)
-    alpha = image.getchannel("A").resize((GRID, GRID), Image.BILINEAR)
-    return np.asarray(alpha, dtype=np.uint8).flatten() > 127, np.asarray(
-        grey, dtype=np.float32
-    ).flatten()
-
-
-def test_no_plate_is_another_plate_cut_twice():
+def test_no_plate_is_another_plate_cut_twice(library):
     twins = []
     for style in _styles():
         plates = _plates(style)
         if len(plates) < 2:
             continue
-        # Decoding the library is four fifths of this test and Pillow drops the
-        # GIL to do it, so it is worth the pool.
-        with ThreadPoolExecutor(max_workers=8) as pool:
-            outlines, inks = zip(*pool.map(_outline_and_ink, plates), strict=True)
-        outlines = np.array(outlines)
-        inks = np.array(inks)
+        outlines = np.array([library[plate].outline for plate in plates])
+        inks = np.array([library[plate].ink for plate in plates])
 
         overlap = outlines.astype(np.uint16) @ outlines.T.astype(np.uint16)
         area = outlines.sum(axis=1)

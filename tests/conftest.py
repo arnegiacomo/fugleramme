@@ -1,16 +1,65 @@
 """The fake BirdNET-Go, as a fixture: the tests reach it over the same /api/v2
-a real detector serves."""
+a real detector serves. Plus the shipped artwork, decoded once for the guards
+that read the whole library."""
 
 from __future__ import annotations
 
 import signal
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from typing import NamedTuple
 
+import numpy as np
 import pytest
 from PIL import Image
 
 from fugleramme import fake, languages
 from fugleramme.api import ApiSource
+from fugleramme.names import SUFFIXES
 from fugleramme.render import collage
+
+ARTWORK = Path(__file__).resolve().parents[1] / "assets" / "artwork"
+
+# The grids the duplicate guard compares on; its thresholds are tuned to this size.
+GRID = 64
+
+
+class Plate(NamedTuple):
+    """One decode of a shipped cut-out, holding what every guard reads off it.
+
+    `size` is the alpha-trimmed crop, which is what a bird box is fractions of;
+    `outline` is the silhouette as a flat bool grid and `ink` its grey levels.
+    """
+
+    size: tuple[int, int]
+    outline: np.ndarray
+    ink: np.ndarray
+
+
+def _decode(path: Path) -> Plate:
+    image = Image.open(path).convert("RGBA")
+    alpha = image.getchannel("A")
+    bbox = alpha.getbbox()  # trim by alpha, not by RGB, exactly as `page.trim` does
+    paper = Image.new("RGBA", image.size, (255, 255, 255, 255))
+    grey = Image.alpha_composite(paper, image).convert("L").resize((GRID, GRID), Image.BILINEAR)
+    return Plate(
+        (bbox[2] - bbox[0], bbox[3] - bbox[1]) if bbox else image.size,
+        np.asarray(alpha.resize((GRID, GRID), Image.BILINEAR), dtype=np.uint8).flatten() > 127,
+        np.asarray(grey, dtype=np.float32).flatten(),
+    )
+
+
+@pytest.fixture(scope="session")
+def library() -> dict[Path, Plate]:
+    """Every shipped plate, decoded once.
+
+    Two guards walk the whole library and decoding it is nearly all of both, so
+    they share one pass rather than paying for it twice. Pillow drops the GIL to
+    decode, which is what makes the pool worth having.
+    """
+    paths = sorted(path for suffix in SUFFIXES for path in ARTWORK.rglob(f"*{suffix}"))
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return dict(zip(paths, pool.map(_decode, paths), strict=True))
 
 
 @pytest.fixture(autouse=True)
