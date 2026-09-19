@@ -12,12 +12,14 @@ the rectangle, is what says whether a box is right.
 
 Usage:
     uv run python tools/bird_box.py
+    uv run python tools/bird_box.py assets/artwork/classic/birds/strix-aluco.webp
     uv run python tools/bird_box.py --only ~/Desktop/wrong.txt
     uv run python tools/bird_box.py --style custom --port 8090
 
-`--only` takes a file of plate filenames, one per line ("cyanistes-caeruleus.webp"),
-which is the review queue; with none given the whole style is the queue. Edits are
-saved as you make them, so there is nothing to confirm and Ctrl-C is the way out.
+Plates named on the command line are the review queue, or `--only` takes a file of
+them, one per line ("cyanistes-caeruleus.webp"); with neither the whole style is the
+queue. Edits are saved as you make them, so there is nothing to confirm and Ctrl-C is
+the way out.
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ import os
 import re
 import sys
 import webbrowser
+from collections.abc import Iterable
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
@@ -50,6 +53,7 @@ ARTWORK = REPO / "assets" / "artwork"
 
 HOST = "127.0.0.1"  # a workstation GUI that writes to the tree: never off this machine
 DEFAULT_PORT = 8081  # 8080 is the kiosk's
+DEFAULT_STYLE = "classic"
 
 HTML = "text/html; charset=utf-8"
 JSON = "application/json"
@@ -183,22 +187,52 @@ def check_png(style: Path, name: str, box: Box) -> bytes:
     return _png(page)
 
 
-def named(birds: Path, only: Path) -> list[Path]:
+def lookup(birds: Path, names: Iterable[str]) -> list[Path]:
     """The plates a list names, by filename or by path - `git ls-files` gives one,
-    a hand-written list the other. `-` reads the list from stdin."""
-    text = sys.stdin.read() if str(only) == "-" else only.read_text()
-    names = dict.fromkeys(Path(line.strip()).name for line in text.splitlines() if line.strip())
-    unknown = [name for name in names if not (birds / name).exists()]
+    a hand-written list the other. Order is kept, repeats are dropped."""
+    wanted = dict.fromkeys(Path(name.strip()).name for name in names if name.strip())
+    unknown = [name for name in wanted if not (birds / name).exists()]
     if unknown:
         sys.exit(f"not in {birds.parent.name}: {', '.join(unknown)}")
-    return [birds / name for name in names]
+    return [birds / name for name in wanted]
 
 
-def queue(style: Path, only: Path | None, unboxed: bool) -> list[Path]:
-    """The plates to work through: the listed ones, or the whole style, narrowed
-    to those with no usable box if asked - which includes one gone stale."""
+def named(birds: Path, only: Path) -> list[Path]:
+    """The plates a file names, one per line. `-` reads the list from stdin."""
+    text = sys.stdin.read() if str(only) == "-" else only.read_text()
+    return lookup(birds, text.splitlines())
+
+
+def style_of(plates: list[str], chosen: str | None) -> str:
+    """The style to review: `--style`, or the one the given paths sit in.
+
+    A plate pasted out of a diff carries its style in the path, and reviewing it
+    against a different style's boxes is never what was meant. A bare filename
+    says nothing, so it falls back to the default.
+    """
+    if chosen is not None:
+        return chosen
+    styles = {
+        path.parts[-3]
+        for path in map(Path, plates)
+        if len(path.parts) >= 3 and path.parts[-2] == BIRDS
+    }
+    if len(styles) > 1:
+        sys.exit(f"plates from more than one style: {', '.join(sorted(styles))}")
+    return styles.pop() if styles else DEFAULT_STYLE
+
+
+def queue(style: Path, given: list[str], only: Path | None, unboxed: bool) -> list[Path]:
+    """The plates to work through: the ones named, the ones a file names, or the
+    whole style, narrowed to those with no usable box if asked - which includes
+    one gone stale."""
     birds = style / BIRDS
-    plates = artwork_in(birds) if only is None else named(birds, only)
+    if given:
+        plates = lookup(birds, given)
+    elif only is not None:
+        plates = named(birds, only)
+    else:
+        plates = artwork_in(birds)
     return [path for path in plates if saved_box(style, path.name) == FULL] if unboxed else plates
 
 
@@ -298,7 +332,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("--style", default="classic", help="style folder to review")
+    parser.add_argument(
+        "plates", nargs="*", help="plates to review, by path or filename; default the whole style"
+    )
+    parser.add_argument("--style", help=f"style folder to review (default {DEFAULT_STYLE})")
     parser.add_argument(
         "--only", type=Path, help="file listing the plates to review, one per line; - for stdin"
     )
@@ -310,10 +347,12 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    style = ARTWORK / args.style
+    if args.plates and args.only:
+        sys.exit("name the plates or give --only, not both")
+    style = ARTWORK / style_of(args.plates, args.style)
     if not (style / BIRDS).is_dir():
         sys.exit(f"no such style: {style}")
-    plates = queue(style, args.only, args.missing)
+    plates = queue(style, args.plates, args.only, args.missing)
     if not plates:
         sys.exit(f"no plates to review in {style.name}")
     serve(style, plates, args.port)
