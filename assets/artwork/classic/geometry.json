@@ -383,6 +383,18 @@
    730
   ]
  },
+ "birds/alectoris-chukar.webp": {
+  "box": [
+   0.205,
+   0.0035,
+   0.9925,
+   0.9093
+  ],
+  "cut": [
+   1200,
+   1147
+  ]
+ },
  "birds/alectoris-rufa.webp": {
   "box": [
    0.1608011077699207,
@@ -2303,6 +2315,18 @@
    1200
   ]
  },
+ "birds/calonectris-diomedea.webp": {
+  "box": [
+   0.03,
+   0.0289,
+   0.9233,
+   0.8206
+  ],
+  "cut": [
+   1200,
+   864
+  ]
+ },
  "birds/caprimulgus-europaeus-2.webp": {
   "box": [
    0.17832454681396484,
@@ -2924,6 +2948,18 @@
   ],
   "cut": [
    1010,
+   1200
+  ]
+ },
+ "birds/clanga-pomarina.webp": {
+  "box": [
+   0.2014,
+   0.005,
+   0.8588,
+   0.7833
+  ],
+  "cut": [
+   864,
    1200
   ]
  },
@@ -4161,6 +4197,30 @@
   "cut": [
    637,
    1200
+  ]
+ },
+ "birds/emberiza-melanocephala.webp": {
+  "box": [
+   0.007,
+   0.004,
+   0.967,
+   0.973
+  ],
+  "cut": [
+   570,
+   762
+  ]
+ },
+ "birds/emberiza-pusilla.webp": {
+  "box": [
+   0.0038,
+   0.44,
+   0.5814,
+   0.9473
+  ],
+  "cut": [
+   1056,
+   759
   ]
  },
  "birds/emberiza-rustica.webp": {
@@ -5807,6 +5867,18 @@
    826
   ]
  },
+ "birds/lanius-nubicus.webp": {
+  "box": [
+   0.0083,
+   0.0117,
+   0.9917,
+   0.9922
+  ],
+  "cut": [
+   1200,
+   1030
+  ]
+ },
  "birds/lanius-senator.webp": {
   "box": [
    0.14020950798173845,
@@ -6899,6 +6971,18 @@
    1200
   ]
  },
+ "birds/monticola-saxatilis.webp": {
+  "box": [
+   0.108,
+   0.0075,
+   0.989,
+   0.647
+  ],
+  "cut": [
+   953,
+   1200
+  ]
+ },
  "birds/monticola-solitarius.webp": {
   "box": [
    0.18898684328252618,
@@ -6909,6 +6993,18 @@
   "cut": [
    1056,
    1200
+  ]
+ },
+ "birds/montifringilla-nivalis.webp": {
+  "box": [
+   0.008,
+   0.008,
+   0.987,
+   0.978
+  ],
+  "cut": [
+   1152,
+   589
   ]
  },
  "birds/morus-bassanus-2.webp": {
@@ -7295,6 +7391,18 @@
    791
   ]
  },
+ "birds/nymphicus-hollandicus.webp": {
+  "box": [
+   0.01,
+   0.005,
+   0.993,
+   0.995
+  ],
+  "cut": [
+   790,
+   1200
+  ]
+ },
  "birds/oenanthe-hispanica-2.webp": {
   "box": [
    0.0702668809890747,
@@ -7317,6 +7425,18 @@
   "cut": [
    1200,
    1040
+  ]
+ },
+ "birds/oenanthe-isabellina.webp": {
+  "box": [
+   0.0028,
+   0.0027,
+   0.9966,
+   0.9535
+  ],
+  "cut": [
+   1168,
+   1200
   ]
  },
  "birds/oenanthe-leucura.webp": {
@@ -7535,6 +7655,18 @@
    1143
   ]
  },
+ "birds/passer-italiae.webp": {
+  "box": [
+   0.005,
+   0.004,
+   0.994,
+   0.628
+  ],
+  "cut": [
+   843,
+   1200
+  ]
+ },
  "birds/passer-montanus.webp": {
   "box": [
    0.028760018348693846,
@@ -7569,6 +7701,18 @@
   "cut": [
    1200,
    1121
+  ]
+ },
+ "birds/pavo-cristatus.webp": {
+  "box": [
+   0.0075,
+   0.018,
+   0.956,
+   0.957
+  ],
+  "cut": [
+   1200,
+   556
   ]
  },
  "birds/pelecanus-crispus.webp": {
@@ -7689,6 +7833,18 @@
   "cut": [
    920,
    1200
+  ]
+ },
+ "birds/petronia-petronia.webp": {
+  "box": [
+   0.026,
+   0.018,
+   0.988,
+   0.796
+  ],
+  "cut": [
+   1195,
+   757
   ]
  },
  "birds/phalacrocorax-carbo-2.webp": {
@@ -7916,6 +8072,18 @@
   ],
   "cut": [
    806,
+   1200
+  ]
+ },
+ "birds/phylloscopus-bonelli.webp": {
+  "box": [
+   0.0032,
+   0.1333,
+   0.9979,
+   0.6575
+  ],
+  "cut": [
+   949,
    1200
   ]
  },
@@ -9417,6 +9585,18 @@
   "cut": [
    1200,
    730
+  ]
+ },
+ "birds/spilopelia-senegalensis.webp": {
+  "box": [
+   0.0118,
+   0.0126,
+   0.9882,
+   0.7925
+  ],
+  "cut": [
+   1186,
+   1113
   ]
  },
  "birds/spinus-psaltria.webp": {
