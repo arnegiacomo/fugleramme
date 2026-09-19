@@ -29,6 +29,7 @@ ran it on - I can only test the hardware I have. -->
 - [ ] Added with `tools/add_bird.py`, halo per [Adding artwork](../docs/adding-artwork.md)
 - [ ] Shipped as WebP - `add_bird.py` writes it, whatever you hand it
 - [ ] `manifest.json` entry per file; `ATTRIBUTION.md` entry and manifest key if the source is new
+- [ ] `geometry.json` entry per file, boxing the main bird alone - not the perch, the ground or a second bird
 - [ ] A preview of each bird you are adding, dropped in below
 
 Plate(s) it came from:

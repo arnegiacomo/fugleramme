@@ -2,6 +2,47 @@
 
 <!-- version list -->
 
+## v0.23.0 (2026-09-19)
+
+### Chores
+
+- **assets**: #113 add a bird box for every classic plate
+  ([`c474af7`](https://github.com/arnegiacomo/fugleramme/commit/c474af7fae15f08ab646394cfae661b8e5f6cb93))
+
+- **assets**: #121 repaint the halo rim on sixteen corrupted plates
+  ([`8cc5fdc`](https://github.com/arnegiacomo/fugleramme/commit/8cc5fdc8c4035105b34cd0976748ca3dd196474e))
+
+- **assets**: Add baeolophus bicolor ([#120](https://github.com/arnegiacomo/fugleramme/pull/120),
+  [`11b54d2`](https://github.com/arnegiacomo/fugleramme/commit/11b54d2884a857702284d1e3fc2629b6c655bc79))
+
+- **tools**: #113 add the bird box editor and detector
+  ([`287f659`](https://github.com/arnegiacomo/fugleramme/commit/287f6591a2395db7cf93ea10b1083a76d617bb89))
+
+- **tools**: #121 fix soft edge handling in add-bird
+  ([`ed806c1`](https://github.com/arnegiacomo/fugleramme/commit/ed806c16c8b9cd2902c6c3701fac7c89d989812f))
+
+- **tools**: #121 resize cut-outs on float planes, keep the soft edge its colour
+  ([`ed806c1`](https://github.com/arnegiacomo/fugleramme/commit/ed806c16c8b9cd2902c6c3701fac7c89d989812f))
+
+### Documentation
+
+- #113 document the bird box step
+  ([`17dd735`](https://github.com/arnegiacomo/fugleramme/commit/17dd7358bb69826997b4dd4b77c8414d1417957e))
+
+- **artwork**: #121 trim the resampling note to the constraint
+  ([`ed806c1`](https://github.com/arnegiacomo/fugleramme/commit/ed806c16c8b9cd2902c6c3701fac7c89d989812f))
+
+### Features
+
+- #113 size birds by the bird box in their plate
+  ([`b39cd03`](https://github.com/arnegiacomo/fugleramme/commit/b39cd035e5ffd1c5a6d42f556aa761276daf966b))
+
+### Testing
+
+- #113 hold geometry.json and the plates to each other
+  ([`37b224f`](https://github.com/arnegiacomo/fugleramme/commit/37b224f27424b28a931388a4d81e3d4f0aa085cb))
+
+
 ## v0.22.2 (2026-09-18)
 
 ### Bug Fixes
