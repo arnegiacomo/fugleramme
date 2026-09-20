@@ -1091,6 +1091,18 @@
    1200
   ]
  },
+ "birds/ardea-herodias.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.999
+  ],
+  "cut": [
+   961,
+   1200
+  ]
+ },
  "birds/ardea-purpurea.webp": {
   "box": [
    0.04219326019287109,
@@ -2423,6 +2435,18 @@
    889
   ]
  },
+ "birds/cathartes-aura.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.998,
+   0.978
+  ],
+  "cut": [
+   1200,
+   882
+  ]
+ },
  "birds/cecropis-daurica.webp": {
   "box": [
    0.03504570484161377,
@@ -2565,6 +2589,30 @@
   "cut": [
    1200,
    560
+  ]
+ },
+ "birds/charadrius-vociferus-2.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.999
+  ],
+  "cut": [
+   1200,
+   917
+  ]
+ },
+ "birds/charadrius-vociferus.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.999
+  ],
+  "cut": [
+   1200,
+   806
   ]
  },
  "birds/chelidon-rustica-x-hirundo-urbica.webp": {
@@ -2841,6 +2889,18 @@
   "cut": [
    1200,
    920
+  ]
+ },
+ "birds/circus-hudsonius.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.993,
+   0.998
+  ],
+  "cut": [
+   991,
+   1200
   ]
  },
  "birds/circus-macrourus-2.webp": {
@@ -3213,6 +3273,30 @@
   "cut": [
    1024,
    1200
+  ]
+ },
+ "birds/corthylio-calendula-2.webp": {
+  "box": [
+   0.002,
+   0.002,
+   0.952,
+   0.857
+  ],
+  "cut": [
+   624,
+   525
+  ]
+ },
+ "birds/corthylio-calendula.webp": {
+  "box": [
+   0.003,
+   0.005,
+   0.995,
+   0.952
+  ],
+  "cut": [
+   664,
+   413
   ]
  },
  "birds/corvus-corax-2.webp": {
@@ -4427,6 +4511,18 @@
    1200
   ]
  },
+ "birds/falco-sparverius.webp": {
+  "box": [
+   0.108,
+   0.001,
+   0.936,
+   0.976
+  ],
+  "cut": [
+   975,
+   1200
+  ]
+ },
  "birds/falco-subbuteo-2.webp": {
   "box": [
    0.032014994621276854,
@@ -4749,6 +4845,18 @@
   "cut": [
    678,
    1200
+  ]
+ },
+ "birds/fulica-americana.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.999
+  ],
+  "cut": [
+   1200,
+   551
   ]
  },
  "birds/fulica-atra-2.webp": {
@@ -6513,6 +6621,30 @@
   "cut": [
    1200,
    817
+  ]
+ },
+ "birds/megaceryle-alcyon-2.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.999
+  ],
+  "cut": [
+   1200,
+   765
+  ]
+ },
+ "birds/megaceryle-alcyon.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.889
+  ],
+  "cut": [
+   1200,
+   746
   ]
  },
  "birds/melanerpes-carolinus.webp": {
@@ -9131,6 +9263,42 @@
    1200
   ]
  },
+ "birds/setophaga-coronata-2.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.731
+  ],
+  "cut": [
+   1200,
+   1062
+  ]
+ },
+ "birds/setophaga-coronata.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.836
+  ],
+  "cut": [
+   1200,
+   917
+  ]
+ },
+ "birds/setophaga-petechia.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.722
+  ],
+  "cut": [
+   1043,
+   1114
+  ]
+ },
  "birds/sialia-sialis-2.webp": {
   "box": [
    0.0043288588523864744,
@@ -9153,6 +9321,18 @@
   "cut": [
    1125,
    1200
+  ]
+ },
+ "birds/sitta-canadensis.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.999
+  ],
+  "cut": [
+   1113,
+   802
   ]
  },
  "birds/sitta-carolinensis.webp": {
@@ -9345,6 +9525,18 @@
   "cut": [
    1200,
    730
+  ]
+ },
+ "birds/spinus-pinus.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.999
+  ],
+  "cut": [
+   671,
+   755
   ]
  },
  "birds/spinus-psaltria.webp": {
@@ -10737,6 +10929,18 @@
   "cut": [
    851,
    743
+  ]
+ },
+ "birds/zonotrichia-leucophrys.webp": {
+  "box": [
+   0.001,
+   0.001,
+   0.999,
+   0.8
+  ],
+  "cut": [
+   1200,
+   895
   ]
  },
  "birds/zoothera-aurea.webp": {
