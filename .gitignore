@@ -33,3 +33,6 @@ frame.env
 
 # Built docs site
 site/
+
+# Agent scratch: local harness settings and the worktrees it checks out
+.claude/
