@@ -491,6 +491,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14565285848).jpg"
   },
+  "birds/bostrychia-hagedash.webp": {
+    "source": "finchdavies",
+    "url": "https://commons.wikimedia.org/wiki/File:HagedashiaHagedashDavies.jpg"
+  },
   "birds/botaurus-lentiginosus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVAmerican_Bittern.jpg"
@@ -1286,6 +1290,10 @@
   "birds/dendrocoptes-medius.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00188.jpg"
+  },
+  "birds/dessonornis-caffer.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Bessonornis_bicolor_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300353.tif"
   },
   "birds/dryobates-minor-2.webp": {
     "source": "vonwright",
@@ -2931,6 +2939,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVManks_Shearwater.jpg"
   },
+  "birds/pycnonotus-barbatus.webp": {
+    "source": "keulemans",
+    "url": "https://commons.wikimedia.org/wiki/File:PycnonotusKeulemans.jpg"
+  },
   "birds/pyrrhocorax-graculus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIAlpine_Chough.jpg"
@@ -3143,6 +3155,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVGargany_Teal.jpg"
   },
+  "birds/spilopelia-senegalensis.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Turtur_senegalensis_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15600401.tif"
+  },
   "birds/spinus-psaltria.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/arkansaw-siskin-mealy-red-poll-louisiana-tanager-townsends-bunting-buff"
@@ -3238,6 +3254,10 @@
   "birds/streptopelia-orientalis.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00339.jpg"
+  },
+  "birds/streptopelia-semitorquata.webp": {
+    "source": "ruppell",
+    "url": "https://commons.wikimedia.org/wiki/File:Turtur_semitorquatus_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15600407.tif"
   },
   "birds/streptopelia-turtur.webp": {
     "source": "gould",
@@ -3618,6 +3638,10 @@
   "birds/zoothera-aurea.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIWhitesThrush.jpg"
+  },
+  "birds/zosterops-virens.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Zosterops_capensis_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ19200081.tif"
   },
   "perches/alder-catkins.webp": {
     "source": "vonwright",
