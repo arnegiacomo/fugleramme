@@ -763,15 +763,13 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIGorget_Warbler.jpg"
   },
-<<<<<<< HEAD
-  "birds/canachites-canadensis.webp": {
-    "source": "fuertes",
-    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)#/media/File:Annual_report_(1909)_(14776306752).jpg"
-=======
   "birds/callipepla-californica.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/california-partridge"
->>>>>>> upstream/main
+  },
+  "birds/canachites-canadensis.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)#/media/File:Annual_report_(1909)_(14776306752).jpg"
   },
   "birds/caprimulgus-europaeus-2.webp": {
     "source": "vonwright",
@@ -1769,13 +1767,13 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIICreeping_Locustelle.jpg"
   },
-  "birds/hesperiphona-vespertina-3.webp": {
-    "source": "fuertes",
-    "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(17806766574).jpg"
-  },
   "birds/hesperiphona-vespertina-2.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/evening-grosbeak-and-spotted-grosbeak"
+  },
+  "birds/hesperiphona-vespertina-3.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1909)_(14776306752).jpg"
   },
   "birds/hesperiphona-vespertina.webp": {
     "source": "audubon",
