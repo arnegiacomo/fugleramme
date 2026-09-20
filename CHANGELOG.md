@@ -2,6 +2,118 @@
 
 <!-- version list -->
 
+## v0.23.0 (2026-09-19)
+
+### Chores
+
+- **assets**: #113 add a bird box for every classic plate
+  ([`c474af7`](https://github.com/arnegiacomo/fugleramme/commit/c474af7fae15f08ab646394cfae661b8e5f6cb93))
+
+- **assets**: #121 repaint the halo rim on sixteen corrupted plates
+  ([`8cc5fdc`](https://github.com/arnegiacomo/fugleramme/commit/8cc5fdc8c4035105b34cd0976748ca3dd196474e))
+
+- **assets**: Add baeolophus bicolor ([#120](https://github.com/arnegiacomo/fugleramme/pull/120),
+  [`11b54d2`](https://github.com/arnegiacomo/fugleramme/commit/11b54d2884a857702284d1e3fc2629b6c655bc79))
+
+- **tools**: #113 add the bird box editor and detector
+  ([`287f659`](https://github.com/arnegiacomo/fugleramme/commit/287f6591a2395db7cf93ea10b1083a76d617bb89))
+
+- **tools**: #121 fix soft edge handling in add-bird
+  ([`ed806c1`](https://github.com/arnegiacomo/fugleramme/commit/ed806c16c8b9cd2902c6c3701fac7c89d989812f))
+
+- **tools**: #121 resize cut-outs on float planes, keep the soft edge its colour
+  ([`ed806c1`](https://github.com/arnegiacomo/fugleramme/commit/ed806c16c8b9cd2902c6c3701fac7c89d989812f))
+
+### Documentation
+
+- #113 document the bird box step
+  ([`17dd735`](https://github.com/arnegiacomo/fugleramme/commit/17dd7358bb69826997b4dd4b77c8414d1417957e))
+
+- **artwork**: #121 trim the resampling note to the constraint
+  ([`ed806c1`](https://github.com/arnegiacomo/fugleramme/commit/ed806c16c8b9cd2902c6c3701fac7c89d989812f))
+
+### Features
+
+- #113 size birds by the bird box in their plate
+  ([`b39cd03`](https://github.com/arnegiacomo/fugleramme/commit/b39cd035e5ffd1c5a6d42f556aa761276daf966b))
+
+### Testing
+
+- #113 hold geometry.json and the plates to each other
+  ([`37b224f`](https://github.com/arnegiacomo/fugleramme/commit/37b224f27424b28a931388a4d81e3d4f0aa085cb))
+
+
+## v0.22.2 (2026-09-18)
+
+### Bug Fixes
+
+- Shut down on SIGINT or SIGTERM ([#117](https://github.com/arnegiacomo/fugleramme/pull/117),
+  [`24a827a`](https://github.com/arnegiacomo/fugleramme/commit/24a827a1bc737aceaf27d07e9ad7c67f17910f3c))
+
+### Chores
+
+- Ask for a preview in the artwork PR template
+  ([`279403c`](https://github.com/arnegiacomo/fugleramme/commit/279403c6c430e32372ad5be1b0db78cec8e1eded))
+
+- **assets**: #33 - Added Bubo virginianus
+  ([#109](https://github.com/arnegiacomo/fugleramme/pull/109),
+  [`71461dc`](https://github.com/arnegiacomo/fugleramme/commit/71461dc7c70d0a98f07add87ecffb6bc41266b67))
+
+- **assets**: #33 add Cassin's female and male Haemorhous mexicanus
+  ([#111](https://github.com/arnegiacomo/fugleramme/pull/111),
+  [`b36d3f8`](https://github.com/arnegiacomo/fugleramme/commit/b36d3f83f440501f5749cc322794066f4011eddb))
+
+- **assets**: #33 add Haemorhous mexicanus
+  ([#111](https://github.com/arnegiacomo/fugleramme/pull/111),
+  [`b36d3f8`](https://github.com/arnegiacomo/fugleramme/commit/b36d3f83f440501f5749cc322794066f4011eddb))
+
+- **assets**: #33 add Junco hyemalis, Spinus psaltria, Callipepla californica, Piranga ludoviciana,
+  Pheucticus melanocephalus, Hesperiphona vespertina
+  ([#114](https://github.com/arnegiacomo/fugleramme/pull/114),
+  [`11a6649`](https://github.com/arnegiacomo/fugleramme/commit/11a664961d3149ed447bb82deadcd2e52681b8a0))
+
+- **assets**: #33 add Junco hyemalis, Spinus psaltria, Callipepla ca…
+  ([#114](https://github.com/arnegiacomo/fugleramme/pull/114),
+  [`11a6649`](https://github.com/arnegiacomo/fugleramme/commit/11a664961d3149ed447bb82deadcd2e52681b8a0))
+
+- **assets**: #33 add Pica hudsonia, Colaptes auratus, Agelaius phoeniceus
+  ([#112](https://github.com/arnegiacomo/fugleramme/pull/112),
+  [`266a76a`](https://github.com/arnegiacomo/fugleramme/commit/266a76a0ca7c70cd0652ad5de55dfb517ca36a08))
+
+- **assets**: Add Buteo jamaicensis, add Fuertes to Attribution.md
+  ([#104](https://github.com/arnegiacomo/fugleramme/pull/104),
+  [`7cd52a8`](https://github.com/arnegiacomo/fugleramme/commit/7cd52a84134d9bedc59ece15fe03a7b851e09508))
+
+- **assets**: Add melospiza melodia ([#106](https://github.com/arnegiacomo/fugleramme/pull/106),
+  [`4b3d5a5`](https://github.com/arnegiacomo/fugleramme/commit/4b3d5a59691e29deafb3ca3edf5d1204ecf97267))
+
+- **assets**: Add zenaida macroura ([#107](https://github.com/arnegiacomo/fugleramme/pull/107),
+  [`d6baeef`](https://github.com/arnegiacomo/fugleramme/commit/d6baeef3bc7209e43c18476a17112aa494288808))
+
+- **assets**: Drop four plates that duplicate another cut
+  ([`362284a`](https://github.com/arnegiacomo/fugleramme/commit/362284afee7833c4c2a98e4caa8f663e30e948fd))
+
+- **detector**: Follow the host timezone instead of pinning Europe/Oslo
+  ([#110](https://github.com/arnegiacomo/fugleramme/pull/110),
+  [`a3d0b06`](https://github.com/arnegiacomo/fugleramme/commit/a3d0b066f79b1bb2ad7867603e8371daa9a9aa89))
+
+### Documentation
+
+- **species**: Filter the species list by country and state
+  ([#103](https://github.com/arnegiacomo/fugleramme/pull/103),
+  [`3645bc7`](https://github.com/arnegiacomo/fugleramme/commit/3645bc7c9b4574e40c45187d91a6ee2aeba4ff41))
+
+### Refactoring
+
+- **render**: Hardcode the paper grain's seed
+  ([`b5e60b7`](https://github.com/arnegiacomo/fugleramme/commit/b5e60b758dde3b5fa51be475870aa27af257d845))
+
+### Testing
+
+- Guard against a plate shipping twice under two species
+  ([`7314afa`](https://github.com/arnegiacomo/fugleramme/commit/7314afa0144a23e236ecd492cf30d28d4ff55a43))
+
+
 ## v0.22.1 (2026-09-17)
 
 ### Bug Fixes

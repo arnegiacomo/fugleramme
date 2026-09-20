@@ -34,6 +34,7 @@ One package, `src/fugleramme/`, mostly flat. Two folders earn a boundary: `web/`
 - **A transport failure raises `Unavailable`; an empty list means there were no birds.** Never collapse the two - a source returning `[]` on a timeout puts a bare perch on the glass at the first blip.
 - **Render once, fan out** (`service.py`). One loop re-renders only when its inputs change, dithers to six colours for the panel, and the kiosk serves the same page full-colour at its own pixel count. No panel means web-only.
 - **Only birds come off the source** (`taxa.py`). A station can also classify bats, frogs and noise.
+- **A plate's size comes from a hand-drawn box** (`render/sizes.py`). Mass says how big the bird should be, `geometry.json` how much of the file is bird. Fractions mean nothing without the crop they were measured on, so every entry records it and a box outliving a re-cut is ignored rather than believed.
 - **`updates.apply` never re-runs `run.sh`.** A Pi that auto-updates keeps its old systemd unit, `detector/.env` and `settings.json`, so every default a release introduces must reproduce the previous one's behaviour. Get this wrong and working appliances break on update, the one failure nobody can recover from remotely.
 
 ## Working style

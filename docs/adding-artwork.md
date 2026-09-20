@@ -75,6 +75,39 @@ uv run python tools/add_bird.py ~/Desktop/bird.png \
 Run `uv run python tools/add_bird.py --help` for options such as `--style`,
 `--species`, `--source`, and `--url`.
 
+## Box the bird
+
+The frame renders bird sizes based on real mass, so it needs to know what part of an image is a bird. On a plate carrying several birds or foliage, the bird would be rendered very small.
+
+`add_bird` tries to spot the bird and draw a bounding box. Then it opens an editor in your browser so you can adjust any inaccuracies and compare it to other birds. (It autosaves your changes)
+
+![The box editor, with the box drawn round the upper redpoll](assets/bird-box.png)
+
+This can be performed on many at the time:
+
+```bash
+# one plate, by path or by filename
+uv run python tools/bird_box.py assets/artwork/classic/birds/strix-aluco.webp
+
+# the ones with no boudning box yet
+uv run python tools/bird_box.py --missing
+
+# everything added or changed but not yet committed
+git ls-files -om --exclude-standard 'assets/artwork/classic/birds/*' \
+  | uv run python tools/bird_box.py --only -
+
+# a list you wrote yourself, one plate per line
+uv run python tools/bird_box.py --only ~/Desktop/wrong.txt
+
+# the whole style
+uv run python tools/bird_box.py
+```
+
+Named plates and `--only` both take filenames or paths, so anything that prints a list of plates can feed it.
+
+Finding the bird runs an object detector on your own machine. The first run downloads PyTorch and the model's weights (~2 GB). You will be prompted before download.
+`--no-detect` skips it and just selects the whole plate, `--no-box` skips the editor. A plate nobody boxes falls back to the whole image.
+
 ## Tips
 
 - Hand-drawn birds on paper cut out best. Painted scenery doesn't, because the background bleeds into the feathers and there's no clean edge to follow.

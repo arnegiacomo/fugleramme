@@ -26,6 +26,7 @@ HALO_REACH = 24  # px from the cut
 HALO_BLOCK = 4  # px, resolution of the local tone
 HALO_SMOOTH = 1  # blocks either side
 HALO_SHIFT = 6  # levels, cap
+HALO_FADE = 8  # steps, ramp to nothing
 
 
 @functools.cache
@@ -87,13 +88,17 @@ def _local_tone(rgb: np.ndarray, mask: np.ndarray) -> np.ndarray:
 
 
 def _reach(seed: np.ndarray, allowed: np.ndarray, steps: int) -> np.ndarray:
-    """Grow `seed` through `allowed`, 4-connected so thin ink stops it."""
+    """Steps to grow `seed` through `allowed`, 0 where never reached, 4-connected
+    so thin ink stops it."""
     grown = seed
-    for _ in range(steps):
+    depth = np.zeros(seed.shape, np.int16)
+    for step in range(1, steps + 1):
         p = np.pad(grown, 1)
         near = p[1:-1, 1:-1] | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]
-        grown = seed | (near & allowed)
-    return grown & allowed
+        nxt = seed | (near & allowed)
+        depth[nxt & ~grown & allowed] = step
+        grown = nxt
+    return depth
 
 
 def process_sprite(
@@ -123,11 +128,14 @@ def process_sprite(
     out = arr.copy()
     out[paper_px, :3] = np.clip(rgb[paper_px] + delta, 0, 255)
     # scans shade across the halo: level paper near the cut, outside-in and capped
-    halo = _reach(~opaque, paper_px, HALO_REACH)
+    depth = _reach(~opaque, paper_px, HALO_REACH)
+    halo = depth > 0
     level = np.clip(
         np.rint(np.array(target) - _local_tone(out[..., :3], halo)), -HALO_SHIFT, HALO_SHIFT
     )
-    out[halo, :3] = np.clip(out[halo, :3] + level.astype(np.int16), 0, 255)
+    # the band bites into pale plumage, so fade out rather than draw its edge there
+    level *= np.clip((HALO_REACH - depth[halo]) / HALO_FADE, 0, 1)[:, None]
+    out[halo, :3] = np.clip(out[halo, :3] + np.rint(level).astype(np.int16), 0, 255)
     # the outer ring's bright fringe (bg-removal + resize overshoot) survives the
     # median delta and rims the halo; snap it flat to target. Always halo paper.
     out[ring & paper_px, :3] = target

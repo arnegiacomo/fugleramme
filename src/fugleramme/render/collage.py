@@ -48,7 +48,7 @@ from .page import (
     trim,
 )
 from .paper import PAD, process_sprite
-from .sizes import SIZE_EXPONENT, mass_of
+from .sizes import SIZE_EXPONENT, mass_of, span_ratio
 
 log = logging.getLogger(__name__)
 
@@ -258,6 +258,7 @@ def _placements(
     key: tuple,
     arts: list[Image.Image],
     names: list[str],
+    ratios: list[float],
     flips: list[bool],
     width: int,
     height: int,
@@ -278,7 +279,8 @@ def _placements(
 
         # Each bird's target size scales with its real mass (compressed); the whole
         # set then overshoots and shrinks until it fits the canvas, biggest first.
-        weights = _size_weights(names)
+        # The ratio rides in the weight, so `base` below still measures what is drawn.
+        weights = [w * r for w, r in zip(_size_weights(names), ratios, strict=True)]
         order = sorted(range(len(names)), key=lambda i: -weights[i])
         base = min(
             math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
@@ -345,6 +347,8 @@ def render_collage(
         draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
     arts = [trim(path) for _, path in kept]
+    # Mass sizes the bird; this sizes the plate it is drawn on.
+    ratios = [span_ratio(path, art.size) for (_, path), art in zip(kept, arts, strict=True)]
 
     # Pack pixels from here down; `scale` takes them to the output.
     scale = min(resolution) / _PACK_SHORT
@@ -368,6 +372,7 @@ def render_collage(
         key,
         arts,
         names,
+        ratios,
         flips,
         width,
         height,

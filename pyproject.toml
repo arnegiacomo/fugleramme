@@ -1,6 +1,6 @@
 [project]
 name = "fugleramme"
-version = "0.22.1"
+version = "0.23.0"
 description = "E-ink bird frame: renders the latest BirdNET detection to an Inky panel and serves a stats dashboard."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -74,6 +74,13 @@ check_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = ["inky.*", "gpiod.*", "gpiodevice.*"]  # Pi-only, no stubs
+ignore_missing_imports = true
+
+# tools/bird_boxes.py declares these inline and `uv run` builds them per invocation,
+# so they are never in this project's environment - and must never be: torch is two
+# gigabytes and the Pi installs from uv.lock.
+[[tool.mypy.overrides]]
+module = ["torch.*", "torchvision.*"]
 ignore_missing_imports = true
 
 [build-system]
