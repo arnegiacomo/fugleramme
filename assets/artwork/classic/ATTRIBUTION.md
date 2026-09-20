@@ -44,14 +44,15 @@ Scans from the Biodiversity Heritage Library, public domain
 (PD-scan / PD-old-70-expired), and Commons uploads offered under CC BY-SA 4.0.
 Manifest key: `dresser`.
 
-**Keulemans** - plates by **J. G. Keulemans**, from two works. *Onze vogels in huis en
-tuin* (1869-1876), Biodiversity Heritage Library scans from the Commons category
+**Keulemans** - plates by **J. G. Keulemans** (1842-1912), from two works: *Onze
+vogels in huis en tuin* (1869-1876), from the Commons category
 [Onze vogels in huis en tuin](https://commons.wikimedia.org/wiki/Category:Onze_vogels_in_huis_en_tuin)
-and the Internet Archive. And the *Proceedings of the Zoological Society of London*
-(1871), lithographed by Keulemans and printed by **M & N Hanhart**, from the Commons
-category [Proceedings of the Zoological Society of London](https://commons.wikimedia.org/wiki/Category:Proceedings_of_the_Zoological_Society_of_London).
-Public domain (PD-scan / PD-old-70-expired); the BHL files are also offered under
-CC BY 2.0. Manifest key: `keulemans`.
+and the Internet Archive; and the *Proceedings of the Zoological Society of London*
+(1871), from the Commons category
+[Proceedings of the Zoological Society of London](https://commons.wikimedia.org/wiki/Category:Proceedings_of_the_Zoological_Society_of_London).
+Public domain (PD-scan / PD-old-70-expired); the *Onze vogels* scans held by the
+Biodiversity Heritage Library are additionally offered under CC BY 2.0. Manifest key:
+`keulemans`.
 
 **Morris** - *British Game Birds and Wildfowl* by **Beverley R. Morris**
 (1855), Biodiversity Heritage Library scans from the Commons category
@@ -85,6 +86,6 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 
 **Finch-Davies** - *The game-birds and water-fowl of South Africa* by **Boyd Horsbrugh** (Witherby & Co., London, 1912), plates by **Claude Gibney Finch-Davies** (1875-1920), from the Commons category [The game-birds and water-fowl of South Africa (1912)](https://commons.wikimedia.org/wiki/Category:The_game-birds_and_water-fowl_of_South_Africa_(1912)). Public domain (PD-scan / PD-old-70-expired). Manifest key: `finchdavies`.
 
-**Levaillant** - *Histoire naturelle des oiseaux d’Afrique* by **François Levaillant** (1796-1808), six volumes printed by **Langlois**, plates by **Johann Lebrecht Reinold** and others. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain. Manifest key: `levaillant`.
+**Levaillant** - *Histoire naturelle des oiseaux d'Afrique* by **François Levaillant** (1796-1808), plates by **Jacques Barraband**, **Johann Lebrecht Reinold** and others. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain; Levaillant died 1824). Manifest key: `levaillant`.
 
-**Rüppell** - *Neue Wirbelthiere zu der Fauna von Abyssinien gehörig: Vögel* by **Eduard Rüppell** (1835-1840), plates drawn on stone by **F. C. Vogel** and printed by **P. C. Storm**. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain. Manifest key: `ruppell`.
+**Rüppell** - *Neue Wirbelthiere zu der Fauna von Abyssinien gehörig: Vögel* by **Eduard Rüppell** (1835-1840). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain; Rüppell died 1884). Manifest key: `ruppell`.
