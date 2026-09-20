@@ -44,15 +44,14 @@ Scans from the Biodiversity Heritage Library, public domain
 (PD-scan / PD-old-70-expired), and Commons uploads offered under CC BY-SA 4.0.
 Manifest key: `dresser`.
 
-**Keulemans** - plates by **J. G. Keulemans** (1842-1912), from two works: *Onze
-vogels in huis en tuin* (1869-1876), from the Commons category
+**Keulemans** - plates by **J. G. Keulemans** (1842-1912), from several works:
+*Onze vogels in huis en tuin* (1869-1876), from the Commons category
 [Onze vogels in huis en tuin](https://commons.wikimedia.org/wiki/Category:Onze_vogels_in_huis_en_tuin)
-and the Internet Archive; and the *Proceedings of the Zoological Society of London*
-(1871), from the Commons category
-[Proceedings of the Zoological Society of London](https://commons.wikimedia.org/wiki/Category:Proceedings_of_the_Zoological_Society_of_London).
-Public domain (PD-scan / PD-old-70-expired); the *Onze vogels* scans held by the
-Biodiversity Heritage Library are additionally offered under CC BY 2.0. Manifest key:
-`keulemans`.
+and the Internet Archive; the *Proceedings of the Zoological Society of London*
+(1871); and the *Catalogue of the Birds in the British Museum*, vol. 5 (1881).
+Public domain (PD-old-70-expired; Keulemans died 1912); the *Onze vogels* scans held
+by the Biodiversity Heritage Library are additionally offered under CC BY 2.0.
+Manifest key: `keulemans`.
 
 **Morris** - *British Game Birds and Wildfowl* by **Beverley R. Morris**
 (1855), Biodiversity Heritage Library scans from the Commons category
