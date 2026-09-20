@@ -11,6 +11,7 @@ Presentation, plus where the detector is - how it listens stays BirdNET-Go's own
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import threading
@@ -23,6 +24,8 @@ from .modes import DEFAULT_MODE, MODES
 from .render.collage import DEFAULT_MARGIN, DEFAULT_RANKING, NO_LIMIT, RANKINGS
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
 from .render.packing import DEFAULT_LAYOUT, LAYOUTS
+
+log = logging.getLogger(__name__)
 
 # How the frame hangs, counter-clockwise. 0/180 render landscape, 90/270 portrait.
 ROTATIONS = (0, 90, 180, 270)
@@ -108,6 +111,23 @@ class Settings:
     detector_url: str = DEFAULT_DETECTOR_URL
     detector_username: str = ""
     detector_password: str = ""
+    # The door (#52): shut only with this on and a password saved. Off is also how
+    # the admin is opened up again for a while without throwing the password away.
+    require_sign_in: bool = False
+    # What the admin page asks for; empty is the default and leaves it open.
+    admin_password: str = ""
+    # Behind a reverse proxy every request arrives from the proxy, so the sign-in
+    # limiter has to key on the address the proxy reports instead (#52).
+    behind_proxy: bool = False
+    # Signs the admin's session cookie. Minted at the first sign-in and kept, so a
+    # restart does not sign everyone out; not a setting anyone edits.
+    session_secret: str = ""
+
+    @property
+    def admin_locked(self) -> bool:
+        """Whether the admin actually asks for anything. Either half alone leaves
+        it open: a password nobody is asked for, or a switch with nothing behind it."""
+        return self.require_sign_in and bool(self.admin_password)
 
     def oriented(self, resolution: tuple[int, int]) -> tuple[int, int]:
         """Apply the rotation's aspect to a landscape-native (w, h)."""
@@ -187,6 +207,12 @@ def _text(value, default: str) -> str:
     return value.strip() if isinstance(value, str) else default
 
 
+def _secret(value, default: str) -> str:
+    """Kept byte for byte: the login page compares what was typed, so a stripped
+    trailing space would save a password that no longer signs anyone in."""
+    return value if isinstance(value, str) else default
+
+
 _DEFAULTS = Settings()
 
 
@@ -222,6 +248,10 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         detector_url=_url(raw.get("detector_url"), d.detector_url),
         detector_username=_text(raw.get("detector_username"), d.detector_username),
         detector_password=_text(raw.get("detector_password"), d.detector_password),
+        require_sign_in=_as_bool(raw.get("require_sign_in"), d.require_sign_in),
+        behind_proxy=_as_bool(raw.get("behind_proxy"), d.behind_proxy),
+        admin_password=_secret(raw.get("admin_password"), d.admin_password),
+        session_secret=_text(raw.get("session_secret"), d.session_secret),
     )
 
 
@@ -232,10 +262,14 @@ def merged(base: Settings, **changes) -> Settings:
 
 ENV_PREFIX = "FUGLERAMME_"
 
+# Minted by the frame, never typed by anyone, so it is no one's to seed.
+_NOT_SEEDED = frozenset({"session_secret"})
+
 
 def from_env(base: Settings | None = None) -> Settings:
     """Settings seeded from the environment: `FUGLERAMME_<FIELD>` for any field
-    of `Settings`, read off the dataclass so a new setting needs nothing here.
+    of `Settings` but the session secret, read off the dataclass so a new setting
+    needs nothing here.
 
     **A seed, not an override.** These are the store's defaults, so a key the file
     already carries wins and the variable is inert from the first Save on. The
@@ -245,7 +279,7 @@ def from_env(base: Settings | None = None) -> Settings:
     raw = {
         field.name: os.environ[key]
         for field in fields(Settings)
-        if (key := ENV_PREFIX + field.name.upper()) in os.environ
+        if field.name not in _NOT_SEEDED and (key := ENV_PREFIX + field.name.upper()) in os.environ
     }
     return _coerce(raw, base)
 
@@ -284,15 +318,29 @@ class SettingsStore:
 
     def _load(self) -> None:
         try:
-            raw = json.loads(self.path.read_text())
-            self._mtime = self.path.stat().st_mtime
-        except (OSError, json.JSONDecodeError):
-            return  # missing or corrupt: fall back to what we have
+            text = self.path.read_text()
+            self._mtime = self.path.stat().st_mtime  # recorded first, so a bad file warns once
+        except OSError:
+            return  # missing: a fresh frame, or one whose file went away
+        try:
+            raw = json.loads(text)
+        except json.JSONDecodeError as error:
+            # Unsaid, a hand edit that broke the file takes every setting with it on
+            # the next restart, the admin's own password included.
+            log.warning("Ignoring %s, it is not valid JSON: %s", self.path, error)
+            return
+        if not isinstance(raw, dict):
+            log.warning("Ignoring %s, it is not a JSON object of settings", self.path)
+            return
         self._settings = _coerce(raw, self._defaults)
 
     def _write(self, settings: Settings) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_name(self.path.name + ".tmp")
-        tmp.write_text(json.dumps(asdict(settings), indent=2) + "\n")
+        # 0600 at creation: the password must never exist under the umask's mode.
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as handle:
+            os.fchmod(fd, 0o600)  # O_CREAT leaves a leftover temp file its old mode
+            handle.write(json.dumps(asdict(settings), indent=2) + "\n")
         os.replace(tmp, self.path)
         self._mtime = self.path.stat().st_mtime

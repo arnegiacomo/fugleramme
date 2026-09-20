@@ -89,9 +89,9 @@ uv run fugleramme-check
 A line per question the frame asks BirdNET-Go, and the address it asked. Add
 `--detector http://<host>:<port>` to try another without saving it.
 
-If nothing answers, check that address on the admin page's System tab under
-Detector - **Test connection** says whether it is reachable, needs credentials,
-or is fine. Credentials go under Detector → Credentials. If Fugleramme runs
+If nothing answers, check that address on the admin page's Detector tab -
+**Test connection** says whether it is reachable, needs credentials, or is fine.
+The password field is right below the address. If Fugleramme runs
 BirdNET-Go for you, `docker ps` should show it. If it answers but finds no
 birds, that's BirdNET-Go's side - open its own page and check the mic.
 
@@ -100,8 +100,49 @@ glass, so a short outage looks like nothing happening at all.
 
 ## Only scientific/latin bird names are available
 
-BirdNET-Go keeps its settings behind a password even when detections are public, and the species names come from those settings. Configure
-password in under System → Detector → Credentials. (OIDC not supported yet)
+BirdNET-Go keeps its settings behind a password even when detections are public, and the species names come from those settings. Set the
+password on the Detector tab. (OIDC not supported yet)
+
+## Locked out of the admin page
+
+Set a new password in the settings file:
+
+```bash
+ssh <user>@<host>.local
+nano ~/fugleramme/detector/data/settings.json   # "admin_password": "a-new-one"
+```
+
+The frame reads the file as you save it (no restart needed). Keep it valid
+JSON: a broken file is ignored, and after a restart the admin page is open.
+
+In the container the file is `/data/settings.json` in the volume, so edit it
+from inside:
+
+```bash
+docker compose exec fugleramme sed -i 's/"admin_password": "[^"]*"/"admin_password": "a-new-one"/' /data/settings.json
+```
+
+Changing `FUGLERAMME_ADMIN_PASSWORD` in the compose file does nothing once that
+file exists. The variables only seed a setting the file doesn't carry yet, and a
+saved file carries every one of them.
+See [Settings from environment variables](container.md#settings-from-environment-variables).
+
+## "Too many attempts" on the login page
+
+After five wrong passwords the frame refuses sign-ins from that address for
+fifteen minutes. (Your own typos count too). Wait it out, or restart the frame:
+
+```bash
+ssh <user>@<host>.local
+sudo systemctl restart fugleramme-frame
+```
+
+In the container, `docker compose restart fugleramme` does the same.
+
+If you get blocked without typing anything wrong, someone else's guesses are
+being counted against you. That usually happens behind a reverse proxy, where every
+visitor has the proxy's address (same as you). Tick **The frame is behind a reverse proxy**
+under [Security → Admin access](operations.md#behind-a-reverse-proxy).
 
 ## Panel stays blank
 

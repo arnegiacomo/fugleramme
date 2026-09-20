@@ -4,6 +4,9 @@ persistence, and reload-on-change so hand edits and admin writes coexist."""
 from __future__ import annotations
 
 import json
+import logging
+import os
+import stat
 
 import pytest
 
@@ -50,6 +53,40 @@ def test_invalid_values_fall_back_to_defaults(tmp_path):
     assert settings.web_resolution == "1080p"
     assert settings.rotation == 0  # 45 is not a quarter turn
     assert settings.lookback_hours == 24
+
+
+def test_a_broken_hand_edit_is_held_and_said_out_loud(tmp_path, caplog):
+    """Silently, this costs every setting on the next restart - the admin's own
+    password with it - and the journal is the only place anyone would see why."""
+    path = tmp_path / "settings.json"
+    store = SettingsStore(path)
+    store.update(rotation=90)
+
+    path.write_text('{"rotation": 90,}')  # a trailing comma, as nano leaves it
+    with caplog.at_level(logging.WARNING, logger="fugleramme.settings"):
+        assert store.get().rotation == 90  # what it was still stands
+        for _ in range(5):  # the kiosk polls: one warning per edit, not per request
+            store.get()
+
+    assert len(caplog.records) == 1
+    assert "not valid JSON" in caplog.text
+
+
+def test_a_file_that_is_json_but_not_settings_is_held_the_same_way(tmp_path, caplog):
+    """Valid JSON of the wrong shape used to reach the coercion as a list and take
+    the frame down on startup, where nobody is watching the journal."""
+    path = tmp_path / "settings.json"
+    store = SettingsStore(path)
+    store.update(rotation=90)
+
+    path.write_text("[1, 2]")
+    with caplog.at_level(logging.WARNING, logger="fugleramme.settings"):
+        assert store.get().rotation == 90  # what it was still stands
+        for _ in range(5):
+            store.get()
+
+    assert len(caplog.records) == 1
+    assert "not a JSON object" in caplog.text
 
 
 def test_reload_picks_up_external_edit(tmp_path):
@@ -284,3 +321,43 @@ def test_the_environment_is_a_seed_and_the_saved_file_still_wins(tmp_path, monke
 
     path.write_text(json.dumps({"style": "custom"}))
     assert SettingsStore(path, from_env()).get().style == "custom"
+
+
+def test_the_session_secret_is_not_seeded_from_the_environment(monkeypatch):
+    """Every other field is something the admin offers; this one the frame mints at
+    the first sign-in, and an image that shipped one would hand every frame built
+    from it the same cookie key."""
+    monkeypatch.setenv("FUGLERAMME_SESSION_SECRET", "not-a-secret")
+    assert from_env().session_secret == ""
+
+
+def test_the_file_is_readable_only_by_the_frame(tmp_path):
+    """It holds the admin's password and the secret its session cookie is
+    signed with, in the clear, so nobody else on the machine gets to read it."""
+    store = SettingsStore(tmp_path / "s.json")
+    store.update(admin_password="wren-house")
+    assert stat.S_IMODE(store.path.stat().st_mode) == 0o600
+
+
+def test_the_file_is_never_written_under_the_umask_first(tmp_path):
+    """The mode belongs to the temp file from the moment it exists: created at 0644
+    and narrowed after, the password is there for the reading in between."""
+    previous = os.umask(0o022)  # what a shell hands the frame
+    try:
+        store = SettingsStore(tmp_path / "s.json")
+        store.update(admin_password="wren-house")
+    finally:
+        os.umask(previous)
+
+    assert stat.S_IMODE(store.path.stat().st_mode) == 0o600
+
+
+def test_an_admin_password_is_kept_exactly_as_typed(tmp_path):
+    """The login page compares what was typed, so a trailing space stripped on the
+    way in would save a password that then signs nobody in."""
+    path = tmp_path / "s.json"
+    store = SettingsStore(path)
+
+    assert store.update(admin_password=" wren house ").admin_password == " wren house "
+    assert SettingsStore(path).get().admin_password == " wren house "
+    assert store.update(admin_password=7).admin_password == ""  # still has to be a str
