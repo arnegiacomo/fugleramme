@@ -4,7 +4,7 @@ Covers `install.sh`, `run.sh`, `updates.py` and the `Dockerfile`.
 
 ## Configuring a fresh install
 
-**The environment seeds settings; it never overrides them** (`settings.from_env`). `FUGLERAMME_<FIELD>` for any field of `Settings`, read off the dataclass so a new setting needs nothing added. It exists for the container image, where a fresh `/data` has no `settings.json` and the detector's address has to come from somewhere. These become the store's *defaults*, exactly as `--detector` does: a key the file carries wins, so a variable goes quiet from the first Save on. Override-on-boot instead and the admin page - which offers to change every one of them - would be lying. Precedence is `settings.json` > `--detector` > environment > built-in default.
+**The environment seeds settings; it never overrides them** (`settings.from_env`). `FUGLERAMME_<FIELD>` for any field of `Settings` but `session_secret`, read off the dataclass so a new setting needs nothing added. It exists for the container image, where a fresh `/data` has no `settings.json` and the detector's address has to come from somewhere. These become the store's *defaults*, exactly as `--detector` does: a key the file carries wins, so a variable goes quiet from the first Save on. Override-on-boot instead and the admin page - which offers to change every one of them - would be lying. Precedence is `settings.json` > `--detector` > environment > built-in default.
 
 ## The install splits at the reboot (`install.sh`, `run.sh`)
 

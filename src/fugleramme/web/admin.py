@@ -36,12 +36,11 @@ from ..settings import (
 )
 from ..source import NEEDS_PASSWORD, Unavailable
 from ..status import Status
-from . import STATIC_DIR, hostinfo
+from . import LOGIN, LOGOUT, STATIC_DIR, hostinfo
 
 CHECKBOXES = "checkboxes"  # hidden field naming the checkboxes a form carries
 
-# The stored detector password never reaches the page; posting this back
-# unchanged means "leave it alone".
+# No stored password reaches the page; posting this back unchanged means "leave it alone".
 PASSWORD_SET = "\u2022" * 8
 
 _LOOPBACK = ("127.0.0.1", "localhost", "::1", "0.0.0.0")
@@ -67,8 +66,11 @@ def form_changes(form: dict[str, list[str]]) -> dict:
         changes[field] = field in form
     if changes.pop("limit_mode", None) == "all":
         changes["species_limit"] = NO_LIMIT  # the box is disabled, so it posts nothing
-    if changes.get("detector_password") == PASSWORD_SET:
-        del changes["detector_password"]  # untouched, so the stored one stands
+    changes.pop("session_secret", None)  # the cookie key is minted, never posted
+    for field in ("detector_password", "admin_password"):
+        # Typing on the end of the placeholder would save the bullets, a lockout.
+        if str(changes.get(field, "")).startswith(PASSWORD_SET):
+            del changes[field]  # untouched, so the stored one stands
     return changes
 
 
@@ -127,7 +129,7 @@ def _state(ok: bool, good: str, bad: str) -> str:
 def _fix(problem: str) -> str:
     """A problem and the tab that fixes it, worded the same wherever it turns up."""
     return (
-        f'{html.escape(problem)}. See <a href="#detector" data-tab="system">System → Detector</a>.'
+        f'{html.escape(problem)}. See <a href="#detector" data-tab="detector">the Detector tab</a>.'
     )
 
 
@@ -284,24 +286,89 @@ def _text_field(field: str, label: str, value: str, kind: str = "text", hint: st
 
 
 def _detector_field(settings: Settings) -> str:
-    """Where the frame reads from. Credentials fold away until one is stored -
-    or until a test comes back asking for them, which admin.js opens.
+    """Where the frame reads from, and the password if it wants one.
 
     A password only: the username BirdNET-Go's API insists on is a fixed client
     id (`api.CLIENT_ID`). An install that changed `security.basicauth.clientid`
     sets `detector_username` in settings.json instead.
     """
+    return _text_field("detector_url", "Address", settings.detector_url, "url") + _text_field(
+        "detector_password",
+        "Password",
+        PASSWORD_SET if settings.detector_password else "",
+        "password",
+        "(basic authentication)",
+    )
+
+
+def _access_note(settings: Settings) -> str:
+    """What the switch and the password add up to, in the state they are in."""
+    if not settings.require_sign_in and settings.admin_password:
+        return '<p class="note warn">Sign-in is off, so anyone on the network can change the frame.</p>'
+    if not settings.require_sign_in:
+        return '<p class="note">Anyone on the network can change the frame.</p>'
+    if not settings.admin_password:
+        return '<p class="note warn">No password saved, so the admin is still open.</p>'
+    return '<p class="note">Anyone can still view the kiosk - password used only by the admin page.</p>'
+
+
+# Said where the password is typed, because it is the only place the answer
+# changes what someone types.
+EXPOSED = (
+    "If the frame can be reached from the internet, use a strong password "
+    "that you use nowhere else."
+)
+
+
+# Keep short, the rest is in the docs
+PROXY = (
+    "A proxy hands every visitor to the frame the same address, so a stranger's "
+    "wrong passwords could block you too. With this on, the frame tells visitors apart "
+    "by the address the proxy passes on."
+)
+
+
+def _access_field(settings: Settings) -> str:
+    """The door (#52): the switch, the password behind it, and where that leaves things."""
+    field = _text_field(
+        "admin_password",
+        f"Admin password {_hint(EXPOSED)}",
+        PASSWORD_SET if settings.admin_password else "",
+        "password",
+    )
     return (
-        _text_field("detector_url", "Address", settings.detector_url, "url")
-        + f'<details id="credentials"{" open" if settings.detector_password else ""}>'
-        + "<summary>Credentials <small>(Basic Authentication)</small></summary>"
-        + _text_field(
-            "detector_password",
-            "Password",
-            PASSWORD_SET if settings.detector_password else "",
-            "password",
+        _checkbox("require_sign_in", "Require sign-in for the admin page", settings.require_sign_in)
+        + field
+        # Filled in by admin.js as it is typed; the stored password never reaches here.
+        + '<p class="strength" id="strength" hidden><span></span><small></small></p>'
+        + _access_note(settings)
+        # The bubble hangs off a span of its own, as it does on a text field's label.
+        + _checkbox(
+            "behind_proxy",
+            f"<span>The frame is behind a reverse proxy {_hint(PROXY)}</span>",
+            settings.behind_proxy,
         )
-        + "</details>"
+    )
+
+
+def _signout(settings: Settings) -> str:
+    """Only worth offering where there is a session to end."""
+    if not settings.admin_locked:
+        return ""
+    # The class keeps admin.js out: signing out is not a save, so unsaved edits
+    # still have to be warned about.
+    return (
+        f'<form class="inline signout" method="post" action="{LOGOUT}">'
+        f'<button type="submit">Sign out</button></form>'
+    )
+
+
+def login_page(error: str = "") -> str:
+    """The door (#52). Rendered by the frame, styled like the admin behind it -
+    the browser's own credential prompt is nobody's idea of this product."""
+    note = f'<p class="note bad">{html.escape(error)}</p>' if error else ""
+    return Template((STATIC_DIR / "login.html").read_text()).substitute(
+        version=__version__, action=LOGIN, error=note
     )
 
 
@@ -430,6 +497,7 @@ def page(
                 "birdnetUrl": birdnet_url,
                 "birdnetPort": birdnet_port,
                 "version": __version__,
+                "passwordSet": PASSWORD_SET,
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
                 "panel": [max(panel_size), min(panel_size)],  # landscape, as oriented() reads it
             }
@@ -471,6 +539,8 @@ def page(
         panel=f"detected · {glass}" if detected else f"not detected · assuming {glass}",
         birdnet=_detector(detector_state, detector_version, rows is not None, names_failure),
         detector_field=_detector_field(settings),
+        access_field=_access_field(settings),
+        signout=_signout(settings),
         host=hostinfo.lan_address(updates.in_container()),
         online=_state(online, "online", "offline") + (f" · {iface}" if iface else ""),
         disk=hostinfo.disk_free(names_dir),

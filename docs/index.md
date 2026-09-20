@@ -39,7 +39,7 @@ For more display options see [Display](display.md).
 - **[Configuring BirdNET-Go](birdnetgo-config.md)** - the mic, your location, and
   avoiding incorrect detections
 - **[Display](display.md)** - modes, settings and names
-- **[Operations](operations.md)** - buttons, services, logs and updates
+- **[Operations](operations.md)** - buttons, services, logs, updates and authentication
 - **[Container](container.md)** - running Fugleramme with Docker
 - **[Species coverage](species.md)** - searchable list of currently supported species
 - **[Adding artwork](adding-artwork.md)** - cutting a bird the frame can't draw yet

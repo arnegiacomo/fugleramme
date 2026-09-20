@@ -121,12 +121,12 @@ def test_a_working_password_is_not_reported_as_a_missing_one():
     assert admin._detector("auth", "", True) == '<span class="ok">running</span>'
 
 
-def test_the_credentials_fold_away_until_there_is_one_to_show(tmp_path, source):
-    """PrivateMode is the rare case, so the common form is the address alone."""
-    assert '<details id="credentials">' in _page(tmp_path, source())
-    assert '<details id="credentials" open>' in _page(
-        tmp_path, source(), detector_password="hunter2"
-    )
+def test_the_detector_password_says_what_it_is_for(tmp_path, source):
+    """It is BirdNET-Go's Basic Authentication password, not the admin's own."""
+    page = _page(tmp_path, source())
+    assert "Password <small>(basic authentication)</small>" in page
+    access = re.search(r'<form class="block access".*?</form>', page, re.DOTALL).group(0)
+    assert "basic authentication" not in access  # the admin's own password is nothing of the sort
 
 
 def test_a_stored_password_never_reaches_the_page(tmp_path, source):
@@ -135,15 +135,76 @@ def test_a_stored_password_never_reaches_the_page(tmp_path, source):
     assert admin.PASSWORD_SET in page
 
 
-def test_the_placeholder_posts_back_as_leave_it_alone():
-    kept = admin.form_changes({"detector_password": [admin.PASSWORD_SET]})
-    assert "detector_password" not in kept  # so merged() keeps the stored one
+@pytest.mark.parametrize("field", ["detector_password", "admin_password"])
+def test_the_placeholder_posts_back_as_leave_it_alone(field):
+    kept = admin.form_changes({field: [admin.PASSWORD_SET]})
+    assert field not in kept  # so merged() keeps the stored one
 
-    typed = admin.form_changes({"detector_password": ["hunter3"]})
-    assert typed["detector_password"] == "hunter3"
+    typed = admin.form_changes({field: ["hunter3"]})
+    assert typed[field] == "hunter3"
 
-    cleared = admin.form_changes({"detector_password": [""]})
-    assert cleared["detector_password"] == ""
+    cleared = admin.form_changes({field: [""]})
+    assert cleared[field] == ""
+
+    # A browser that let the placeholder be typed on the end of would otherwise
+    # save the bullets, and for the admin's own password that is a lockout.
+    appended = admin.form_changes({field: [admin.PASSWORD_SET + "x"]})
+    assert field not in appended
+
+
+def test_the_form_cannot_set_the_session_secret():
+    """It signs the session cookie, so a form that could set it could forge one.
+    Nothing in the page posts it; this is about what a hand-made post can reach."""
+    changes = admin.form_changes({"session_secret": ["forged"], "admin_password": ["wren-house"]})
+    assert "session_secret" not in changes
+    assert changes["admin_password"] == "wren-house"
+
+
+def test_the_sign_out_button_is_only_offered_where_there_is_a_session_to_end(tmp_path, source):
+    """Either half of the lock alone leaves the admin open, and an open admin
+    signs nobody in."""
+    assert "Sign out" in _page(
+        tmp_path, source(), require_sign_in=True, admin_password="wren-house"
+    )
+    assert "Sign out" not in _page(tmp_path, source())
+    assert "Sign out" not in _page(tmp_path, source(), require_sign_in=True)
+    assert "Sign out" not in _page(tmp_path, source(), admin_password="wren-house")
+
+
+def test_the_access_note_says_where_the_switch_and_the_password_leave_things(tmp_path, source):
+    """Two settings, four states, and only one of them is a shut door."""
+    fresh = _page(tmp_path, source())
+    assert "Anyone on the network can change the frame" in fresh  # nothing set, nothing to warn of
+
+    half = _page(tmp_path, source(), require_sign_in=True)
+    assert "No password saved" in half
+
+    switched_off = _page(tmp_path, source(), admin_password="wren-house")
+    assert "Sign-in is off, so anyone on the network can change the frame" in switched_off
+
+    assert "Anyone can still view the kiosk" in _page(
+        tmp_path, source(), require_sign_in=True, admin_password="wren-house"
+    )
+
+
+def test_the_access_field_says_whether_the_admin_has_a_password(tmp_path, source):
+    assert 'name="admin_password" value=""' in _page(tmp_path, source())
+
+    locked = _page(tmp_path, source(), admin_password="wren-house")
+    assert "wren-house" not in locked
+    assert f'name="admin_password" value="{admin.PASSWORD_SET}"' in locked
+
+
+@pytest.mark.parametrize("field", ["require_sign_in", "behind_proxy"])
+def test_the_access_switches_are_declared_so_unticking_one_is_a_change(tmp_path, source, field):
+    """An unticked box posts nothing at all, so the form has to name its own
+    boxes - undeclared, turning a switch off would read as leaving it alone."""
+    page = _page(tmp_path, source(), **{field: True})
+    form = re.search(r'<form class="block access".*?</form>', page, re.DOTALL).group(0)
+    assert f'name="{field}" checked' in form
+    declared = re.search(rf'name="{admin.CHECKBOXES}" value="([^"]*)"', form).group(1)
+    assert field in declared.split()
+    assert admin.form_changes({admin.CHECKBOXES: [declared]})[field] is False
 
 
 def test_saving_the_form_untouched_leaves_the_password_standing(tmp_path):
@@ -264,7 +325,7 @@ def test_the_names_field_says_why_it_has_only_the_scientific_name(tmp_path, sour
 
     assert "No languages: needs a password." in page
     # The fix is on the other tab, so the note carries the reader there.
-    assert '<a href="#detector" data-tab="system">' in page
+    assert '<a href="#detector" data-tab="detector">' in page
 
 
 def test_the_display_tab_names_the_password_rather_than_calling_it_unreachable(tmp_path, source):

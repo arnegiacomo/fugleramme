@@ -184,6 +184,46 @@ def test_the_refresh_floor_paces_the_birds_but_never_a_saved_setting(
     assert render.call_count == 2
 
 
+def test_signing_in_does_not_let_the_birds_past_the_refresh_floor(
+    tmp_path, images, detector, monkeypatch
+):
+    """The session secret rides along in Settings and rotates on every sign-in and
+    sign-out, which would otherwise read as a saved setting and repaint the panel."""
+    url, _httpd = detector(count=4, seed=0)
+    config = Config(
+        images_dir=images,
+        detector_url=url,
+        output_path=tmp_path / "frame.png",
+        host="127.0.0.1",
+        port=0,
+        config_path=tmp_path / "settings.json",
+    )
+    store = SettingsStore(config.config_path, Settings(detector_url=url))
+    store.update(refresh_minutes=10)
+    pages = iter([("a",), ("b",), ("b",), ("b",)])
+    collage = modes.MODES["collage"]
+    monkeypatch.setitem(modes.MODES, "collage", replace(collage, key=lambda _ctx: next(pages)))
+    ticks = 0
+
+    def sleep(_seconds):
+        nonlocal ticks
+        ticks += 1
+        if ticks == 2:
+            store.update(session_secret="a-new-session")
+        if ticks == 3:
+            raise _Stop
+
+    with (
+        patch.object(service.updates, "available", return_value=None),
+        patch.object(service.modes, "render", side_effect=modes.render) as render,
+        patch.object(service.time, "sleep", sleep),
+        pytest.raises(_Stop),
+    ):
+        service.run(config)
+
+    assert render.call_count == 1  # the first page, and the trade still held
+
+
 def test_no_floor_is_the_shipped_default(tmp_path):
     """A frame that updates into this keeps the behaviour it had."""
     assert SettingsStore(tmp_path / "s.json").get().refresh_minutes == 0

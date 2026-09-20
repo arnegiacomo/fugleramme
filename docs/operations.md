@@ -74,9 +74,10 @@ admin page. Updates never touch either.
 
 ## Pointing the frame at a different BirdNET-Go
 
-The admin page's System tab has a Detector section: the address, and a password
-for an instance with Basic Authentication configured (OIDC not supported yet). Saving takes effect straight away (no
-restart). **Test connection** lets you check before saving the changes.
+The admin page's Detector tab has the address, and a password for an instance
+with Basic Authentication configured (OIDC not supported yet). Saving takes
+effect straight away (no restart). **Test connection** lets you check before
+saving the changes.
 
 The frame reads detections only. Everything about how birds are detected stays
 in BirdNET-Go's own settings.
@@ -85,6 +86,27 @@ If Fugleramme was running a BirdNET-Go of its own and you move the frame to
 another instance for good, re-run `./install.sh` and answer 2 or 3. It offers to stop
 the old container and hand the port back, so updates stop pulling an image
  and you stop the running container. Your detections stay in `detector/data` either way. Changing only the address on the admin page leaves the old container running, which is what you want if you plan to point back in the future.
+
+## Enabling authentication for the admin page
+
+By default anyone who can reach Fugleramme can change its settings. On the
+Security tab, tick **Require sign-in for the admin page**, set a password and
+**Save**. The page then asks you to sign in. You stay signed in for a week, and
+changing the password signs everyone out. The kiosk is always public.
+
+If you forget the password, set a new one in [the settings file](troubleshooting.md#locked-out-of-the-admin-page).
+
+> [!NOTE]
+> The password travels over plain HTTP. If the frame is reachable from the
+> internet, put HTTPS in front of it and tick the proxy box.
+
+### Behind a reverse proxy
+
+Five wrong passwords in fifteen minutes block that visitor. Behind a proxy every
+visitor has the same IP, so a stranger's guesses would block you
+too. Tick **The frame is behind a reverse proxy** and the frame counts per
+visitor again. Leave it off if the frame's own port is open to
+the internet as well: anyone reaching it directly can claim any address.
 
 ## Changing Wi-Fi in gadget mode (USB-C)
 
