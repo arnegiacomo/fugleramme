@@ -4,16 +4,13 @@
 # Python
 __pycache__/
 *.py[cod]
-.venv/
-.venv-rembg/
+.venv*/
 venv/
 
-# Artwork pipeline: scraping, background removal, curation into a style, and the
-# scans and cut-outs they work on. All of it runs on the workstation only, never
-# on the Pi, and nothing the frame runs depends on it - so it stays local.
+# Artwork tooling: auditing manifests, reviewing halos, normalising cut-outs and
+# benchmarking the packer. Workstation only, never on the Pi, and nothing the
+# frame runs depends on it - so it stays local.
 scripts/
-wikimedia-scrape/
-rawpixel-scrape/
 
 # Runtime artifacts: BirdNET-Go's DB (detector/data) and the frame's rendered output
 data/
