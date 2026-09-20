@@ -86,6 +86,9 @@ The frame renders bird sizes based on real mass, so it needs to know what part o
 This can be performed on many at the time:
 
 ```bash
+# one plate, by path or by filename
+uv run python tools/bird_box.py assets/artwork/classic/birds/strix-aluco.webp
+
 # the ones with no boudning box yet
 uv run python tools/bird_box.py --missing
 
@@ -100,7 +103,7 @@ uv run python tools/bird_box.py --only ~/Desktop/wrong.txt
 uv run python tools/bird_box.py
 ```
 
-`--only` takes filenames or paths, so anything that prints a list of plates can feed it.
+Named plates and `--only` both take filenames or paths, so anything that prints a list of plates can feed it.
 
 Finding the bird runs an object detector on your own machine. The first run downloads PyTorch and the model's weights (~2 GB). You will be prompted before download.
 `--no-detect` skips it and just selects the whole plate, `--no-box` skips the editor. A plate nobody boxes falls back to the whole image.
