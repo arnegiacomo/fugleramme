@@ -16,6 +16,10 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 TARGET_PAPER = (242, 237, 226)
+# The panel has one white and no warm neutral, so a paper this close to its white
+# quantises flat - and so does any bird brighter than it. Toned off the palette
+# white, the dither stipples the page and leaves white plumage bare. See #138.
+PANEL_PAPER = (233, 225, 202)
 FEATHER = 5  # gaussian blur sigma (px)
 PAD = 16  # transparent margin for the feather to bleed into
 TILE = 512  # px, repeated by kiosk.html too
@@ -105,13 +109,14 @@ def _reach(seed: np.ndarray, allowed: np.ndarray, steps: int) -> np.ndarray:
 def process_sprite(
     sprite: Image.Image,
     at: tuple[int, int],
-    target=TARGET_PAPER,
+    target=None,
     textured: bool = True,
 ) -> Image.Image:
     """Normalise a scaled RGBA sprite's paper halo to the shared tone and
     feather its edge. Returns a PAD-padded image to paste with its corner at
     `at`. When textured, the halo takes the page's texture under it so its edge
     does not read as an outline; on the flat panel page it stays flat."""
+    target = target or (TARGET_PAPER if textured else PANEL_PAPER)
     arr = np.asarray(sprite).astype(np.int16)
     alpha, rgb = arr[..., 3], arr[..., :3]
     opaque = alpha > 24
