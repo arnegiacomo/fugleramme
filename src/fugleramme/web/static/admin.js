@@ -10,7 +10,8 @@ document.getElementById("birdnet").href = cfg.birdnetPort
 // Every button posts and redirects, so a save reloads: the tab and the scroll
 // position have to be carried across by hand.
 let saving = false;
-for (const f of document.querySelectorAll("form")) {
+// Sign out is not one of those: unsaved edits are still there to be warned about.
+for (const f of document.querySelectorAll("form:not(.signout)")) {
   f.addEventListener("submit", () => {
     saving = true;
     sessionStorage.setItem("scroll", String(window.scrollY));
@@ -36,7 +37,10 @@ function showTab(name) {
   localStorage.setItem("tab", name);
 }
 for (const tab of tabs) tab.addEventListener("click", () => showTab(tab.dataset.tab));
-showTab(localStorage.getItem("tab") === "system" ? "system" : "settings");
+// A remembered tab that no longer exists would hide every section at once.
+const names = [...tabs].map((tab) => tab.dataset.tab);
+const remembered = localStorage.getItem("tab");
+showTab(names.includes(remembered) ? remembered : names[0]);
 
 // A setting one tab cannot offer, pointing at the tab that fixes it: open that
 // one first, then the href's fragment scrolls to the field itself.
@@ -75,6 +79,15 @@ if (check) {
   });
 }
 
+// A session can end while this page is open - it expires, or a sign-out elsewhere
+// revoked it. The reload lands on the login page rather than leaving the page here
+// showing yesterday's birds.
+const signedOut = (response) => {
+  if (response.status !== 401) return false;
+  location.reload();
+  return true;
+};
+
 // An install ends with systemd restarting us, so the poll rides out a dead
 // server and reloads once one answers with the work done - or failed.
 if (document.getElementById("bar")) {
@@ -83,7 +96,9 @@ if (document.getElementById("bar")) {
   (function poll() {
     setTimeout(async () => {
       try {
-        const state = await (await fetch("/update", {cache: "no-store"})).json();
+        const answer = await fetch("/update", {cache: "no-store"});
+        if (signedOut(answer)) return;
+        const state = await answer.json();
         if (!state.updating) {
           location.reload();
           return;
@@ -105,7 +120,6 @@ if (test) {
   const detectorForm = document.getElementById("detector");
   const outcome = document.getElementById("test-result");
   const row = document.getElementById("detector-state");
-  const creds = document.getElementById("credentials");
   test.addEventListener("click", async () => {
     test.disabled = true;
     outcome.className = "";
@@ -113,12 +127,12 @@ if (test) {
     try {
       const body = new URLSearchParams(new FormData(detectorForm));
       const answer = await fetch("/detector", {method: "POST", body});
+      if (signedOut(answer)) return;
       const result = await answer.json();
       // "names" is a working detector holding back one thing, so it warns
-      // rather than fails - but it is fixed in the same box as "auth".
+      // rather than fails.
       outcome.className = {ok: "ok", names: "warn"}[result.state] || "bad";
       outcome.textContent = result.text;
-      if (result.state === "auth" || result.state === "names") creds.open = true;
       // The row is about the detector the frame reads from, so only a test of
       // the saved values speaks for it - edited ones may never be saved.
       if (!changed.get(detectorForm)()) row.innerHTML = result.status;
@@ -127,6 +141,54 @@ if (test) {
       outcome.textContent = "the frame did not answer";
     }
     test.disabled = false;
+  });
+}
+
+// A field standing in for a stored password empties on focus, so what is typed is
+// a whole password rather than something appended to the bullets. Untouched, it
+// fills back in - and having never fired an input event, it is not a change either.
+for (const field of document.querySelectorAll("input[type=password]")) {
+  if (field.value !== cfg.passwordSet) continue;  // nothing stored, nothing to stand in for
+  let kept = true;  // false once anything is typed: emptying the field then clears the password
+  field.addEventListener("input", () => { kept = false; });
+  field.addEventListener("focus", () => { if (kept) field.value = ""; });
+  field.addEventListener("blur", () => {
+    if (kept && !field.value) field.value = cfg.passwordSet;
+  });
+}
+
+// How hard the admin password would be to guess, in the rough terms a person can
+// act on: how many characters, out of how big an alphabet. Shown while typing
+// only - the stored password never reaches the page, and the placeholder standing
+// in for it would score as something it is not.
+const password = document.querySelector("input[name=admin_password]");
+const strength = document.getElementById("strength");
+if (password && strength) {
+  const [bar, caption] = [strength.querySelector("span"), strength.querySelector("small")];
+  const CLASSES = [[/[a-z]/, 26], [/[A-Z]/, 26], [/[0-9]/, 10], [/[^a-zA-Z0-9]/, 32]];
+  // Generous: counting the alphabet cannot tell a passphrase from a dictionary
+  // word, so the bands sit high enough that a guessable one does not read as safe.
+  const FULL = 80;  // the "strong" threshold, so a strong password reads as a full bar
+  const RATING = [
+    [36, "weak", "guessable"],
+    [60, "fair", "fine on a home network"],
+    [FULL, "good", "holds up if the frame is exposed"],
+    [Infinity, "strong", "hard to guess anywhere"],
+  ];
+  password.addEventListener("input", () => {
+    const typed = password.value;
+    strength.hidden = !typed;
+    if (!typed) {
+      strength.className = "strength";  // nothing of the last rating left behind
+      caption.textContent = "";
+      return;
+    }
+    const alphabet = CLASSES.reduce((n, [cls, size]) => n + (cls.test(typed) ? size : 0), 0);
+    const bits = typed.length * Math.log2(alphabet);
+    const [, rating, caveat] = RATING.find(([ceiling]) => bits < ceiling);
+    strength.className = "strength " + rating;
+    bar.style.width = Math.min(100, (bits / FULL) * 100) + "%";
+    caption.textContent = rating + " · " + caveat;
   });
 }
 
@@ -170,7 +232,9 @@ function loadPreview() {
 // The list under the preview is of the page being previewed, not the saved one.
 async function loadSpecies(query, id) {
   try {
-    const body = await (await fetch("/species?" + query, {cache: "no-store"})).json();
+    const answer = await fetch("/species?" + query, {cache: "no-store"});
+    if (signedOut(answer)) return;
+    const body = await answer.json();
     if (id !== seq) return;
     document.getElementById("count").textContent = body.count;
     document.getElementById("species").innerHTML = body.html;

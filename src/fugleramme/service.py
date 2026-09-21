@@ -53,6 +53,12 @@ def _due(minutes: int, last: float | None) -> bool:
     return last is None or time.monotonic() - last >= minutes * 60
 
 
+def _paced(settings: Settings) -> Settings:
+    """Settings as the refresh floor sees them: signing in or out rotates the
+    session secret, which changes nothing on the page and must not skip the floor."""
+    return replace(settings, session_secret="")
+
+
 def _update(status: Status, auto: bool) -> bool:
     """Refresh the release check and install if asked. True once the tag is checked out."""
     status.update_available = updates.available()
@@ -174,7 +180,7 @@ def run(config: Config) -> None:
             key = (modes.state_key(ctx), settings.rotation)
             # The floor paces the birds alone; a saved setting goes straight through.
             if key != last_key and (
-                settings != last_settings or _due(settings.refresh_minutes, last_render)
+                _paced(settings) != last_settings or _due(settings.refresh_minutes, last_render)
             ):
                 if modes.mode_of(ctx.mode).windowed:
                     # The loop owns the window, so it is the only caller that may forget
@@ -184,7 +190,7 @@ def run(config: Config) -> None:
                 panel_image.save(config.output_path)
                 log.info("Rendered %s page at %dx%d", ctx.mode, *size)
                 status.rendered()
-                last_key, last_settings, last_render = key, settings, time.monotonic()
+                last_key, last_settings, last_render = key, _paced(settings), time.monotonic()
                 pending = (panel_image, settings.rotation) if panel is not None else None
             if unreachable:
                 log.info("Detector reachable again")

@@ -483,6 +483,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVBartrams_Sandpiper.jpg"
   },
+  "birds/bombycilla-cedrorum.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:43_Cedar_Bird.jpg"
+  },
   "birds/bombycilla-garrulus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00062.jpg"
@@ -494,6 +498,10 @@
   "birds/bombycilla-garrulus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14565285848).jpg"
+  },
+  "birds/bostrychia-hagedash.webp": {
+    "source": "finchdavies",
+    "url": "https://commons.wikimedia.org/wiki/File:HagedashiaHagedashDavies.jpg"
   },
   "birds/botaurus-lentiginosus.webp": {
     "source": "gould",
@@ -1315,6 +1323,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00188.jpg"
   },
+  "birds/dessonornis-caffer.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Bessonornis_bicolor_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300353.tif"
+  },
   "birds/dryobates-minor-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00243.jpg"
@@ -1726,6 +1738,10 @@
   "birds/glareola-pratincola.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVCollared_Pratincole.jpg"
+  },
+  "birds/glaucidium-gnoma.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-432-burrowing-owl.jpg"
   },
   "birds/glaucidium-passerinum-2.webp": {
     "source": "vonwright",
@@ -2226,6 +2242,10 @@
   "birds/megaceryle-alcyon.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/belted-kingfisher"
+  },
+  "birds/megascops-asio.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Megascops_asioAWP097AAAA.jpg"
   },
   "birds/melanerpes-carolinus.webp": {
     "source": "audubon",
@@ -2971,6 +2991,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVManks_Shearwater.jpg"
   },
+  "birds/pycnonotus-barbatus.webp": {
+    "source": "keulemans",
+    "url": "https://commons.wikimedia.org/wiki/File:PycnonotusKeulemans.jpg"
+  },
   "birds/pyrrhocorax-graculus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIAlpine_Chough.jpg"
@@ -3199,6 +3223,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVGargany_Teal.jpg"
   },
+  "birds/spilopelia-senegalensis.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Turtur_senegalensis_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15600401.tif"
+  },
   "birds/spinus-pinus.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/pine-finch"
@@ -3298,6 +3326,10 @@
   "birds/streptopelia-orientalis.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00339.jpg"
+  },
+  "birds/streptopelia-semitorquata.webp": {
+    "source": "ruppell",
+    "url": "https://commons.wikimedia.org/wiki/File:Turtur_semitorquatus_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15600407.tif"
   },
   "birds/streptopelia-turtur.webp": {
     "source": "gould",
@@ -3682,6 +3714,10 @@
   "birds/zoothera-aurea.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIWhitesThrush.jpg"
+  },
+  "birds/zosterops-virens.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Zosterops_capensis_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ19200081.tif"
   },
   "perches/alder-catkins.webp": {
     "source": "vonwright",

@@ -2,6 +2,82 @@
 
 <!-- version list -->
 
+## v0.24.0 (2026-09-21)
+
+### Chores
+
+- Drop the ignore rules for the deleted scrape folders
+  ([`0560563`](https://github.com/arnegiacomo/fugleramme/commit/0560563b21c809a2746378fee5939fe29c963eaa))
+
+- Ignore .claude/
+  ([`aa652ec`](https://github.com/arnegiacomo/fugleramme/commit/aa652ec791ba47097afa751b0d2f9b7e3bb979e6))
+
+- Rebox callipepla-californica
+  ([`89389c5`](https://github.com/arnegiacomo/fugleramme/commit/89389c57984d50aab012b713381dd53def4faf43))
+
+- **assets**: #121 repaint the halo rim on seven more corrupted plates
+  ([`8821518`](https://github.com/arnegiacomo/fugleramme/commit/882151876883908915b93ed174cd8df1f5e0bd59))
+
+- **assets**: #33 - add Galucidium gnoma
+  ([#132](https://github.com/arnegiacomo/fugleramme/pull/132),
+  [`d41cbd1`](https://github.com/arnegiacomo/fugleramme/commit/d41cbd160bb1a42662f5f4314c99be613077e8c9))
+
+- **assets**: #33 - Added Athene cunicularia
+  ([#128](https://github.com/arnegiacomo/fugleramme/pull/128),
+  [`4e59844`](https://github.com/arnegiacomo/fugleramme/commit/4e59844a90bef20bc35203f7738bc0c9632f4510))
+
+- **assets**: #33 add 5 North American species (Audubon classic plates)
+  ([#105](https://github.com/arnegiacomo/fugleramme/pull/105),
+  [`8a36eb4`](https://github.com/arnegiacomo/fugleramme/commit/8a36eb47e231effbb14919fe0099f244d9af291b))
+
+- **assets**: #33 Add Aegolius acadicus ([#129](https://github.com/arnegiacomo/fugleramme/pull/129),
+  [`bcd27b6`](https://github.com/arnegiacomo/fugleramme/commit/bcd27b6bf2e2709f24539b556006584d9418ae28))
+
+- **assets**: #33 add junco-hyemalis-3, junco-hyemalis-4 and rework callipepla-californica
+  ([#123](https://github.com/arnegiacomo/fugleramme/pull/123),
+  [`afc5f8d`](https://github.com/arnegiacomo/fugleramme/commit/afc5f8dab0bb397957e8b5d74c9828b97dec5756))
+
+- **assets**: #44 Add phylloscopus humei
+  ([#126](https://github.com/arnegiacomo/fugleramme/pull/126),
+  [`7fb4a7d`](https://github.com/arnegiacomo/fugleramme/commit/7fb4a7db44b51e2460165c5f4f79e34c7e3dce13))
+
+- **assets**: Add bird megascops-asio ([#142](https://github.com/arnegiacomo/fugleramme/pull/142),
+  [`6fe12a0`](https://github.com/arnegiacomo/fugleramme/commit/6fe12a0e7de5fde10019f664eba943836b47010e))
+
+- **assets**: Add bombycilla-cedrorum ([#137](https://github.com/arnegiacomo/fugleramme/pull/137),
+  [`1f983e2`](https://github.com/arnegiacomo/fugleramme/commit/1f983e2d48e850c71f4ff11ba21acd444a7efc08))
+
+- **assets**: Add Southern African species
+  ([#136](https://github.com/arnegiacomo/fugleramme/pull/136),
+  [`2c749ae`](https://github.com/arnegiacomo/fugleramme/commit/2c749ae2cbf4133cbdb97643ade2c795b428463a))
+
+- **assets**: Edit for Buteo jamaicensis to remove discolored halo around the asset
+  ([#130](https://github.com/arnegiacomo/fugleramme/pull/130),
+  [`0063396`](https://github.com/arnegiacomo/fugleramme/commit/006339696a04c54e675fb25c01f027cf0e81164e))
+
+- **render**: Fade the halo levelling out at the band's edge
+  ([`2c7b1ec`](https://github.com/arnegiacomo/fugleramme/commit/2c7b1ec8db8cf85d8c82ceef767cd628a532b70c))
+
+- **tools**: Bird_box takes plates by path
+  ([#131](https://github.com/arnegiacomo/fugleramme/pull/131),
+  [`75d5cb1`](https://github.com/arnegiacomo/fugleramme/commit/75d5cb10bb34d7fcb9ddf9ea8cc015d857fa3b46))
+
+### Features
+
+- #52 optional sign-in for the admin page
+  ([`507c88f`](https://github.com/arnegiacomo/fugleramme/commit/507c88f8acc8b5691b1b16399675165c06806cea))
+
+### Testing
+
+- #131 hold every bird box to the crop it was drawn on
+  ([#131](https://github.com/arnegiacomo/fugleramme/pull/131),
+  [`75d5cb1`](https://github.com/arnegiacomo/fugleramme/commit/75d5cb10bb34d7fcb9ddf9ea8cc015d857fa3b46))
+
+- Hold every bird box to the crop it was drawn on
+  ([#131](https://github.com/arnegiacomo/fugleramme/pull/131),
+  [`75d5cb1`](https://github.com/arnegiacomo/fugleramme/commit/75d5cb10bb34d7fcb9ddf9ea8cc015d857fa3b46))
+
+
 ## v0.23.0 (2026-09-19)
 
 ### Chores

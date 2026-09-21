@@ -27,6 +27,7 @@ input[type=range] { width: 100%; padding: 0; margin: 0; }
 .src { display: flex; align-items: center; gap: 0.4rem; font-weight: 400; margin: 0 0 0.3rem; }
 .src input { width: auto; padding: 0; }
 .src .src { margin: 0; }  /* the row holding a radio and its number box */
+.src > span { font-weight: inherit; margin: 0; }  /* undoes the page-wide `span` weight and margin */
 .src input[type=number] { width: 3.25rem; padding: 0.25rem 0.3rem; }
 button { font-size: 1rem; padding: 0.5rem 1.25rem; margin-top: 0.5rem; }
 button:disabled { opacity: 0.45; }
@@ -70,13 +71,32 @@ pre.cmd { font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
 .warn { color: #8a6d1f; }
 p.note { display: block; font-size: 0.9rem; margin: 0.6rem 0 0; }
 .block { margin: 0 0 1.75rem; }  /* the Save button carries no bottom margin of its own */
-form.detector input { width: 100%; max-width: 22rem; }
+/* Not the checkbox: it would outrank `.src input` and stretch the box across the row. */
+form.detector input, form.access input[type=password] {
+  width: 100%; max-width: 22rem; box-sizing: border-box;  /* or the strength bar under it stops short */
+}
+/* The note under the password carries the gap to the button itself. */
+form.access label { margin-bottom: 0; }
+form.access label.src { margin-bottom: 1rem; }
+/* The proxy row is its own subject, so the note above it must not run into it. */
+form.access p.note + label.src { margin-top: 1.5rem; }
+/* The strength bar: the track is the block, the span is what is filled. */
+p.strength { display: block; max-width: 22rem; margin: 0.5rem 0 0; }
+p.strength[hidden] { display: none; }  /* or the display above outranks the browser's own rule */
+p.strength span { display: block; height: 3px; border-radius: 2px; background: #bbb; }
+p.strength small { display: block; margin-top: 0.3rem; }
+p.strength.weak span { background: #a4392f; }
+p.strength.fair span { background: #8a6d1f; }
+p.strength.good span, p.strength.strong span { background: #3a7d44; }
+header nav form.inline button { margin-left: 1.25rem; }
+/* The door: the admin's own card, not the browser's credential dialog. */
+form.login { max-width: 20rem; margin: 15vh auto; }
+form.login h1 { margin: 0 0 1.5rem; }
+/* border-box, or the padded input and the padded button end at different places. */
+form.login input, form.login button { width: 100%; box-sizing: border-box; }
+form.login label { margin-bottom: 0.75rem; }
+form.login .note { margin-top: 1.5rem; }
 form.detector button { margin-right: 0.5rem; }
-form.detector summary { cursor: pointer; color: #446; }
-form.detector details { margin-bottom: 1.25rem; }
-/* Open, the last field inside carries the gap to the buttons itself. */
-form.detector details[open] { margin-bottom: 0; }
-form.detector details[open] summary { margin-bottom: 0.75rem; }
 #test-result { display: inline; }
 form.inline { display: inline; }
 form.inline button { font-size: 0.8rem; padding: 0.1rem 0.5rem; margin: 0 0 0 0.5rem; }

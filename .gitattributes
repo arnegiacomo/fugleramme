@@ -1,0 +1,13 @@
+# Handle all files automatically by default
+* text=auto
+
+# Force specific files to always use LF on checkout (e.g., shell scripts)
+*.sh text eol=lf
+
+# Force specific files to always use CRLF on checkout (e.g., Windows batch files)
+*.bat text eol=crlf
+
+# Explicitly mark files as binary so Git never alters their line endings
+*.jpg binary
+*.png binary
+
