@@ -33,3 +33,11 @@ frame.env
 
 # Built docs site
 site/
+
+# A built plate review: its scan, plate, flags and diff layers run about a megabyte
+# a bird. The page under tools/platereview is checked in, what it renders is not.
+tools/platereview/review*/
+
+# Agent scratch and worktrees. The skill under .claude/skills is checked in.
+.claude/worktrees/
+.claude/.cc-writes/
