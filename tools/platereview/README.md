@@ -23,12 +23,41 @@ Four layers, toggled with `1` `2` `3` `4` or by letting it flip between scan and
 | **Scan** | the crop, untouched |
 | **Plate** | the shipped WebP on the frame's own paper, through the frame's own halo code, as it will print |
 | **Flags** | flat paper where the bird should be, in red. Magenta is the dotted ring |
-| **Diff** | red where the plate no longer matches the scan, and the scan washed blue where ink was cut away |
+| **Cut** | blue where the cut removed something drawn, red where it kept blank page inside the bird |
 
 Red between legs and a perch is a declared gap and fine. Red round a cut branch end, or over
 painted ground, is the halo covering ink, as intended. Red inside the bird is a fault. White
 plumage that was cut away shows in neither colour, because it is the colour of paper - catch
 that by toggling scan against plate.
+
+Mode 4 is computed in the page, in JavaScript, from two images and nothing else: `scan.png`
+and `cut.png`, the shipped plate as RGBA with nothing composited under it. No classification
+is worked out in Python and handed over - the browser reads both images into a canvas and
+decides every pixel itself, which is why moving the slider changes the answer live.
+
+It deliberately does not diff `plate.png`, the version on paper. That one carries generated
+paper texture, a halo and WebP, all of which differ from the scan everywhere by design and
+none of which is the cut.
+
+Two reads per pixel, both taken in the browser from those two images - is the scan darker
+than page tone here, and is the plate opaque here and carrying something other than the
+halo's own paper tone. They give four states, and every pixel is in exactly one:
+
+- **blue** - drawn on, and the plate no longer shows it. Grass, a branch, a neighbouring
+  bird. Also anything the halo painted over, which hides ink just as effectively as cutting
+  it. This is most of what a good cut does, and should look like the thing you meant to lose.
+- **red** - the plate shows a pixel the scan never drew on. A hole in the bird, or page left
+  inside the silhouette. Between legs and a perch it is a declared gap.
+- **plain** - drawn on and still shown: the bird, in its own colours.
+- **grey** - blank on both sides. The page round the bird, where nothing happened.
+
+There is no fifth case to fall through into, which matters: an earlier version rendered the
+halo band as background, and 30,000 px of ink it had covered simply vanished from the layer.
+
+The one threshold is how dark a scan pixel must be to count as drawn on, and it is a slider.
+Pale plumage sits close to page tone, so a cream breast reddens as you raise it - move the
+slider before reading red as a fault. `scan.png` and `plate.png` are PNG so that nothing
+here is reading JPEG artifacts.
 
 Verdicts and notes live in the browser and survive a rebuild. "Copy review notes" gives you
 the lot as text.

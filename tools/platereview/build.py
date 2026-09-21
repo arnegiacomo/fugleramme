@@ -11,12 +11,15 @@ holds only what its plates differ in. Copy or symlink the page next to the folde
 
 For each plate it writes four aligned layers into img/<id>/:
 
-    scan.jpg    the scan crop, untouched
-    plate.jpg   the shipped WebP on the frame's own paper, through the frame's own
+    scan.png    the scan crop, untouched
+    plate.png   the shipped WebP on the frame's own paper, through the frame's own
                 halo treatment (fugleramme.render.paper), as it will print
-    flags.jpg   plate.jpg with suspect pixels in red
-    diff.jpg    plate.jpg with every pixel that no longer matches the scan in red, and the
-                scan washed blue wherever ink was cut away
+    flags.jpg   plate.png with suspect pixels in red
+
+Both comparison layers are PNG because the page diffs them pixel against pixel in a
+canvas, and a JPEG round-trip would put compression artifacts into that comparison.
+The diff itself is the page's job, so that nothing decides what counts as a change
+before a person can see it.
 
 A suspect pixel is flat halo-toned paper where the bird should be: either deeper
 inside the cut-out than the halo reaches, or lying over scan pixels that carry a
@@ -47,8 +50,6 @@ HALO = 17  # px, the halo a plate ships with at 1200
 WINDOW = (240, 180)  # zoom window, px of the plate
 ZOOMS = 6
 EDGE = 90  # px from the silhouette that still counts as its edge
-DIFF = 40  # levels a pixel may drift through resizing and WebP before it counts as changed
-PAPER_LIKE = 228  # min channel above which a scan pixel is paper
 
 
 def read_birds(path: Path) -> list[dict[str, Any]]:
@@ -154,40 +155,22 @@ def build(bird):
         > 0
     )
 
-    # the difference layer: the plate where it still matches the scan, red where it does not,
-    # and the scan washed blue where ink was cut away
-    nearest = np.full((H, W), 255, np.int16)
-    for dy in (-1, 0, 1):  # the two were resized separately, so allow a pixel of drift
-        for dx in (-1, 0, 1):
-            shifted = np.roll(s, (dy, dx), axis=(0, 1))
-            nearest = np.minimum(nearest, np.abs(raw[..., :3] - shifted).max(2))
-    paper_both = flat & (
-        s.min(2) > PAPER_LIKE
-    )  # halo over scan paper: a change of tone, not of content
-    changed = solid & ~paper_both & (nearest > DIFF)
-    changed = (
-        np.asarray(
-            Image.fromarray((changed * 255).astype(np.uint8), "L")
-            .filter(ImageFilter.MinFilter(3))
-            .filter(ImageFilter.MaxFilter(3))
-        )
-        > 0
-    )
-    removed = (raw[..., 3] < 25) & (s.min(2) < PAPER_LIKE)
-    diff = np.asarray(page).copy()
-    diff[removed] = (s[removed] * 0.45 + np.array([40, 90, 200]) * 0.55).astype(np.uint8)
-    diff[changed] = (235, 30, 30)
-
     flags = np.asarray(page).copy()
     flags[suspect] = (235, 30, 30)
     flags[fat] = (255, 0, 200)
 
     out = WORK / "img" / key
     out.mkdir(parents=True, exist_ok=True)
-    scan_layer.save(out / "scan.jpg", quality=92)
-    page.save(out / "plate.jpg", quality=92)
+    # The page diffs these two in a canvas, pixel against pixel, so they are PNG: a JPEG
+    # round-trip at q92 moves edge pixels by more than a real change does, and the diff
+    # would be reading compression rather than the cut.
+    scan_layer.save(out / "scan.png")
+    page.save(out / "plate.png")
+    # The shipped plate itself, RGBA, on the same canvas as the scan and with nothing
+    # composited under it. Mode 4 diffs this against scan.png in the browser, so what the
+    # page compares is the plate and the scan - not a verdict reached here and passed along.
+    Image.fromarray(raw.astype(np.uint8), "RGBA").save(out / "cut.png")
     Image.fromarray(flags).save(out / "flags.jpg", quality=92)
-    Image.fromarray(diff).save(out / "diff.jpg", quality=92)
     thumb = page.copy()
     thumb.thumbnail((160, 160))
     thumb.save(out / "thumb.jpg", quality=85)
@@ -208,7 +191,6 @@ def build(bird):
         "match": round(float(match), 3),
         "suspect": int(suspect.sum()),
         "ring": int(ring.sum()),
-        "changed": int(changed.sum()),
         "zooms": zooms,
     }
 

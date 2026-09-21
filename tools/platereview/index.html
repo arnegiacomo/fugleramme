@@ -24,8 +24,8 @@
   .title code, .title a { color:var(--dim); font-size:12px; }
   .title a { text-decoration:underline; }
   .stage { position:relative; background:#1f2022; border:1px solid var(--line); border-radius:8px; overflow:hidden; cursor:crosshair; }
-  .stage img, .zoom .layer { position:absolute; inset:0; opacity:0; transition:opacity .12s linear; }
-  .stage img { width:100%; height:100%; display:block; }
+  .stage img, .stage canvas, .zoom .layer { position:absolute; inset:0; opacity:0; transition:opacity .12s linear; }
+  .stage img, .stage canvas { width:100%; height:100%; display:block; }
   .show-scan .l-scan, .show-plate .l-plate, .show-flags .l-flags, .show-diff .l-diff { opacity:1; }
   .badge { position:absolute; top:10px; left:10px; z-index:2; padding:3px 10px; border-radius:4px; font-weight:700; letter-spacing:.08em; font-size:12px; background:#000a; }
   .show-scan .badge { color:#9fd0ff; } .show-plate .badge { color:var(--accent); } .show-flags .badge, .show-diff .badge { color:var(--bad); }
@@ -69,7 +69,7 @@
     <div class="title"><h2 id="name"></h2><code id="file"></code><a id="src" target="_blank" rel="noopener"></a></div>
     <div class="stage" id="stage">
       <span class="badge" id="badge">SCAN</span>
-      <img class="l-scan" id="i-scan" alt="scan crop"><img class="l-plate" id="i-plate" alt="plate on paper"><img class="l-flags" id="i-flags" alt="suspect pixels"><img class="l-diff" id="i-diff" alt="changed pixels">
+      <img class="l-scan" id="i-scan" alt="scan crop"><img class="l-plate" id="i-plate" alt="plate on paper"><img class="l-flags" id="i-flags" alt="suspect pixels"><canvas class="l-diff" id="i-diff"></canvas>
       <div class="marks" id="marks"></div>
     </div>
     <div class="controls">
@@ -80,6 +80,8 @@
       <button data-mode="diff">4 Diff</button>
       <label>Speed <input type="range" id="speed" min="300" max="2500" step="100" value="1100" style="direction:rtl"></label>
       <label><input type="checkbox" id="showmarks" checked> zoom boxes</label>
+      <label title="How dark a scan pixel must be to count as drawn on rather than page">
+        Ink <input type="range" id="thresh" min="4" max="80" step="1" value="14"><b id="threshval">14</b></label>
     </div>
     <div class="verdict">
       <button class="ok" id="pass">Pass</button>
@@ -90,21 +92,80 @@
   </section>
   <section class="zooms" id="zooms"></section>
 </main>
-<div class="help"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> birds &nbsp; <kbd>space</kbd> start or stop the toggle &nbsp; <kbd>1</kbd> scan &nbsp; <kbd>2</kbd> plate &nbsp; <kbd>3</kbd> suspect pixels &nbsp; <kbd>4</kbd> changed from scan &nbsp; <kbd>p</kbd> pass &nbsp; <kbd>f</kbd> needs work &nbsp; Hover the big image to steer the loupe.</div>
+<div class="help"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> birds &nbsp; <kbd>space</kbd> start or stop the toggle &nbsp; <kbd>1</kbd> scan &nbsp; <kbd>2</kbd> plate &nbsp; <kbd>3</kbd> suspect pixels &nbsp; <kbd>4</kbd> what the cut did &nbsp; <kbd>p</kbd> pass &nbsp; <kbd>f</kbd> needs work &nbsp; Hover the big image to steer the loupe.</div>
 <nav class="strip" id="strip"></nav>
 <script src="birds.js"></script>
 <script>
 const BIRDS = window.BIRDS || [];
 const $ = id => document.getElementById(id);
-const LABEL = { scan: "SCAN", plate: "PLATE ON PAPER", flags: "SUSPECT PIXELS", diff: "CHANGED FROM SCAN" };
+const LABEL = { scan: "SCAN", plate: "PLATE ON PAPER", flags: "SUSPECT PIXELS", diff: "WHAT THE CUT DID" };
 const store = { get: k => { try { return JSON.parse(localStorage.getItem("plate-review") || "{}")[k] || {}; } catch { return {}; } },
   set: (k, v) => { try { const all = JSON.parse(localStorage.getItem("plate-review") || "{}"); all[k] = v; localStorage.setItem("plate-review", JSON.stringify(all)); } catch {} } };
+const EXT = { scan: ".png", plate: ".png", flags: ".jpg" };
 let at = 0, mode = "scan", playing = true, timer = null, loupe = null;
+let diffURL = null, diffPending = true, diffRemoved = 0, diffHole = 0, diffKept = 0, diffBlank = 0;
+const cutIm = new Image();           // the shipped plate, RGBA and uncomposited; never displayed
+cutIm.onload = () => { diffPending = true; if (mode === "diff") paintDiff(); };
+
+// What the cut did to the scan, straight off the cut's own alpha - not a comparison of
+// rendered colour, which only ever reports paper texture, halo tone and WebP.
+//
+//   blue   the scan was drawn on here and the plate does not show it: cut away
+//   red    the plate shows something the scan has no ink for: a hole, or a declared gap
+//   plain  both have it: the bird, in the plate's own colours
+//   grey   neither has it: the page round the bird
+//
+// Two reads per pixel, both taken here from the two images themselves:
+//   scan.png - is this darker than page tone, i.e. did the artist draw here
+//   cut.png  - the shipped plate, RGBA and uncomposited: is this opaque and not paper-toned
+// Nothing is precomputed and handed over; move the slider and both answers move with it.
+function computeDiff(scanIm, cutIm, t) {
+  const w = scanIm.naturalWidth, h = scanIm.naturalHeight;
+  const grab = im => { const c = new OffscreenCanvas(w, h); const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(im, 0, 0, w, h); return x.getImageData(0, 0, w, h).data; };
+  const s = grab(scanIm), p = grab(cutIm);
+  const out = new ImageData(w, h), o = out.data;
+  const pale = 255 - t;              // darker than this in any channel counts as drawn on
+  let removed = 0, hole = 0, kept = 0, blank = 0;
+  for (let i = 0; i < o.length; i += 4) {
+    const ink = Math.min(s[i], s[i + 1], s[i + 2]) < pale;
+    // the plate shows a mark where it is opaque and carries something other than the halo's
+    // own paper tone - the halo is #F0ECE5 laid over whatever the cut removed
+    const halo = Math.abs(p[i] - 0xF0) <= 6 && Math.abs(p[i + 1] - 0xEC) <= 6 && Math.abs(p[i + 2] - 0xE5) <= 6;
+    const shows = p[i + 3] > 250 && !halo;
+    if (ink && !shows) {             // drawn, and the plate does not show it: removed
+      o[i] = 40; o[i + 1] = 90 + s[i + 1] * 0.25; o[i + 2] = 190 + s[i + 2] * 0.2; o[i + 3] = 255;
+      removed++;
+    } else if (!ink && shows) {      // the plate shows a pixel the scan never drew on
+      o[i] = 225; o[i + 1] = 40; o[i + 2] = 40; o[i + 3] = 255;
+      hole++;
+    } else if (ink) {                // drawn and still shown: the bird, as it prints
+      o[i] = p[i]; o[i + 1] = p[i + 1]; o[i + 2] = p[i + 2]; o[i + 3] = 255;
+      kept++;
+    } else {                         // blank both sides: the page round the bird
+      o[i] = 232; o[i + 1] = 230; o[i + 2] = 224; o[i + 3] = 255;
+      blank++;
+    }
+  }
+  diffRemoved = removed; diffHole = hole; diffKept = kept; diffBlank = blank;
+  return out;
+}
+function paintDiff() {
+  const cv = $("i-diff"), scanIm = $("i-scan");
+  if (!diffPending) return;
+  if (!scanIm.complete || !cutIm.complete || !scanIm.naturalWidth || !cutIm.naturalWidth) return;
+  cv.width = scanIm.naturalWidth; cv.height = scanIm.naturalHeight;
+  cv.getContext("2d").putImageData(computeDiff(scanIm, cutIm, +$("thresh").value), 0, 0);
+  diffPending = false;
+  diffURL = cv.toDataURL();
+  document.querySelectorAll("#zooms .l-diff").forEach(d => d.style.backgroundImage = `url(${diffURL})`);
+  $("diffcount").innerHTML = `Mode 4, from the cut's own alpha: <b style="color:#3a7fe0">${diffRemoved.toLocaleString()}</b> px drawn on but no longer shown (blue - cut away, or under the halo), <b style="color:#e2675f">${diffHole.toLocaleString()}</b> px shown but never drawn on (red - a hole, or a declared gap), ${diffKept.toLocaleString()} px of bird kept. Every pixel is one of those or blank page.`;
+}
 
 function setMode(m) {
   mode = m;
   document.body.classList.remove("show-scan", "show-plate", "show-flags", "show-diff");
   document.body.classList.add("show-" + m);
+  if (m === "diff") paintDiff();     // computed on demand: it costs a pass over every pixel
   $("badge").textContent = LABEL[m];
   document.querySelectorAll("[data-mode]").forEach(b => b.classList.toggle("on", !playing && b.dataset.mode === m));
 }
@@ -128,7 +189,10 @@ function zoomBox(tag, cls) {
   box.className = "zoom " + (cls || "");
   for (const l of ["scan", "plate", "flags", "diff"]) {
     const d = document.createElement("div");
-    d.className = "layer l-" + l; d.style.backgroundImage = `url(img/${b.id}/${l}.jpg)`; box.append(d);
+    d.className = "layer l-" + l;
+    d.style.backgroundImage = l === "diff" ? (diffURL ? `url(${diffURL})` : "none")
+                                           : `url(img/${b.id}/${l}${EXT[l]})`;
+    box.append(d);
   }
   const t = document.createElement("span"); t.className = "tag"; t.textContent = tag; box.append(t);
   return box;
@@ -148,10 +212,13 @@ function show(i) {
   $("src").textContent = b.url ? `${b.source} plate` : ""; $("src").href = b.url || "#";
   $("stage").style.aspectRatio = `${b.w} / ${b.h}`;
   $("stage").style.maxWidth = `calc(74vh * ${b.w / b.h})`;
-  for (const l of ["scan", "plate", "flags", "diff"]) $("i-" + l).src = `img/${b.id}/${l}.jpg`;
+  for (const l of ["scan", "plate", "flags"]) $("i-" + l).src = `img/${b.id}/${l}${EXT[l]}`;
+  cutIm.src = `img/${b.id}/cut.png`;
+  diffURL = null; diffPending = true;
+  if (mode === "diff") paintDiff();
   $("marks").innerHTML = b.zooms.map((z, n) => `<div style="left:${z[0] / b.w * 100}%;top:${z[1] / b.h * 100}%;width:${z[2] / b.w * 100}%;height:${z[3] / b.h * 100}%">${n + 1}</div>`).join("");
   $("facts").innerHTML = `Suspect pixels: <b>${b.suspect.toLocaleString()}</b>. Gaps between legs and perch count too, so read the red layer before judging.` +
-    ` Changed from scan: <b>${(b.changed || 0).toLocaleString()}</b> px (red in mode 4; blue there is ink that was cut away).` +
+    ` <span id="diffcount"></span>` +
     (b.ring ? ` <span class="warn">${b.ring} dark pixels in the soft outer edge: these print as a dotted ring on the paper, shown in magenta.</span>` : ` Outer edge clean.`) +
     (b.match < 0.97 ? ` <span class="warn">Scan and plate line up only ${Math.round(b.match * 100)}%: the shipped file may be newer than the saved cut.</span>` : "");
   loupe = { x: b.w / 2 - 100, y: b.h / 2 - 75 };
@@ -191,6 +258,9 @@ $("prev").onclick = () => show(at - 1); $("next").onclick = () => show(at + 1);
 $("play").onclick = () => play(!playing);
 $("speed").oninput = () => play(playing);
 $("showmarks").onchange = e => document.body.classList.toggle("hide-marks", !e.target.checked);
+$("thresh").oninput = () => { $("threshval").textContent = $("thresh").value; diffPending = true; paintDiff(); };
+// the layers load asynchronously, so the diff waits for both rather than drawing a blank
+for (const l of ["scan", "plate"]) $("i-" + l).addEventListener("load", () => { diffPending = true; if (mode === "diff") paintDiff(); });
 document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { play(false); setMode(b.dataset.mode); });
 $("pass").onclick = () => verdict("pass"); $("fail").onclick = () => verdict("fail");
 $("note").oninput = e => { const b = BIRDS[at], s = store.get(b.id); s.note = e.target.value; store.set(b.id, s); };

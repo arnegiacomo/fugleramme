@@ -49,11 +49,15 @@ paper code.
    Mode 3: red is flat paper where the bird should be; magenta is the dotted ring. Red between
    legs and a perch is a declared gap and fine. On a bird cut from painted ground, red along
    the traced edge is a false alarm.
-   Mode 4: the plate in its own colours, red wherever a pixel no longer matches the scan, and
-   the scan washed blue wherever ink was cut away. Red round a cut branch end or over painted
-   ground is the halo covering ink, as intended. Red inside the bird is a fault. White plumage
-   that was cut away shows in neither colour, because it is the colour of paper: catch that by
-   toggling modes 1 and 2, as the Oregon junco's belly was.
+   Mode 4 is computed in the browser from two images and nothing else: the scan, and the
+   shipped plate as RGBA with nothing composited under it. Two reads per pixel - is the scan
+   darker than page tone, is the plate opaque and not the halo's own paper tone - give four
+   states, and every pixel is in exactly one. Blue is drawn ink the plate no longer shows:
+   grass, a branch, a neighbour, or anything the halo painted over. Red is a pixel the plate
+   shows that the scan never drew on: a hole, or a declared gap between legs and a perch.
+   Plain is the bird as it prints, grey is page on both sides. The one threshold is how dark
+   a scan pixel must count as drawn on, and it is a slider: pale plumage sits near page tone
+   and speckles red as you raise it, so move the slider before calling red a fault.
 7. **Fix and rebuild** until the user passes every plate. Verdicts live in the browser and
    survive a rebuild, so tell the user which birds changed. **Look at the whole preview after
    every re-cut**, not only the region you edited - a heron once lost both legs while every
