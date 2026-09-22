@@ -22,6 +22,9 @@ E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully loc
   <a href="#art"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Farnegiacomo.dev%2Ffugleramme%2Fbadges%2Fspecies.json&style=flat-square" alt="Species"></a>
 </p>
 
+> [!IMPORTANT]
+> Fugleramme has been selected for the [GOSIM Spotlight](https://spotlight.gosim.org/shenzhen2026/) at [GOSIM Shenzhen 2026](https://shenzhen2026.gosim.org/). If you're there, come by and say hi!
+
 > [!NOTE]
 > Still in early development: expect the odd bug and a few unpolished edges, with plenty more features to come.
 
