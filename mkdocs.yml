@@ -36,6 +36,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Showcase: showcase.md
   - FAQ: faq.md
   - Hardware: hardware.md
   - Install: install.md

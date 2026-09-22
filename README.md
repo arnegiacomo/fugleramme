@@ -25,7 +25,7 @@ E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully loc
 > [!NOTE]
 > Still in early development: expect the odd bug and a few unpolished edges, with plenty more features to come.
 
-Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** running from my kitchen window and displaying the actual birds currently heard in my garden (Bergen, Norway).
+Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** running from my kitchen window and displaying the actual birds currently heard in my garden (Bergen, Norway). See other frames from around the world [here](docs/showcase.md)!
 
 Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://arnegiacomo.dev/fugleramme/)**
 
@@ -34,7 +34,7 @@ Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://ar
 [BirdNET-Go](https://github.com/tphakala/birdnet-go) listens on a mic and handles the
 classifier. Fugleramme polls its api, matches each species to
 an illustration, then packs them onto a page, and redraws only when the birds change - on
-an [Inky Impression](https://shop.pimoroni.com/products/inky-impression) e-ink panel, and
+an [Inky Impression](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression) e-ink panel, and
 as a web kiosk serving the same view. There's an admin page that lets you configure what
 to show, and automatic updates and such.
 
@@ -46,8 +46,10 @@ If you already run BirdNET-Go, point the frame at it instead - on the same machi
 
 ## Hardware
 
-A Raspberry Pi 5, an [Inky Impression 13.3"](https://shop.pimoroni.com/products/inky-impression)
+A Raspberry Pi 5, an [Inky Impression 13.3"](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression)
 (Spectra 6), a mic and an A4 frame. Full parts list, recommendations and alternatives: **[Hardware](docs/hardware.md)**.
+
+I'm affiliated with Pimoroni - buying through the Pimoroni links or using the code `ARNE` at checkout supports this project.
 
 ## Art
 

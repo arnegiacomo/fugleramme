@@ -5,7 +5,7 @@ E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully loc
 A mic feeds [BirdNET-Go](https://github.com/tphakala/birdnet-go), which runs
 the BirdNET classifier and owns all detection config. Fugleramme reads its
 detections and renders the recently-seen birds as a collage on an
-[Inky Impression](https://shop.pimoroni.com/products/inky-impression) e-ink
+[Inky Impression](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression) e-ink
 panel, and serves the same view as a web kiosk.
 
 Fugleramme can install BirdNET-Go for you, or read from one you already run - on the
@@ -18,7 +18,7 @@ same machine or elsewhere.
 > [!TIP]
 > Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)**
 > running from my kitchen window and displaying the actual birds currently
-> heard in my garden (Bergen, Norway).
+> heard in my garden (Bergen, Norway). See other frames from around the world [here](showcase.md)!
 
 The birds are cut-outs from historic, public-domain natural-history drawings,
 hand-curated for this project - over 800 of them across more than 400 species.
@@ -33,6 +33,7 @@ For more display options see [Display](display.md).
 
 ## Docs
 
+- **[Showcase](showcase.md)** - public frames people are running
 - **[FAQ](faq.md)** - Frequently asked questions
 - **[Hardware](hardware.md)** - the parts list with alternatives
 - **[Install](install.md)** - from a blank SD card to a running frame

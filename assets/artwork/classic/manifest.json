@@ -779,6 +779,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/california-partridge"
   },
+  "birds/canachites-canadensis.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)#/media/File:Annual_report_(1909)_(14776306752).jpg"
+  },
   "birds/caprimulgus-europaeus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Magnus_von_Wright_-_Caprimulgus_europaeus,_Sphinx_ligustri.jpg"
@@ -1819,6 +1823,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/evening-grosbeak-and-spotted-grosbeak"
   },
+  "birds/hesperiphona-vespertina-3.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17806766574).jpg"
+  },
   "birds/hesperiphona-vespertina.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/evening-grosbeak-and-spotted-grosbeak"
@@ -2242,6 +2250,14 @@
   "birds/megaceryle-alcyon.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/belted-kingfisher"
+  },
+  "birds/megascops-asio-2.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17806655004).jpg"
+  },
+  "birds/megascops-asio-3.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17806655004).jpg"
   },
   "birds/megascops-asio.webp": {
     "source": "audubon",
@@ -2943,6 +2959,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14563982960).jpg"
   },
+  "birds/pooecetes-gramineus.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17806778914).jpg"
+  },
   "birds/porphyrio-porphyrio.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVHyacinthine_Porphyrio.jpg"
@@ -3138,6 +3158,10 @@
   "birds/setophaga-petechia.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/blue-eyed-yellow-warbler"
+  },
+  "birds/setophaga-pinus.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17806828874).jpg"
   },
   "birds/sialia-sialis-2.webp": {
     "source": "audubon",
