@@ -59,6 +59,18 @@
    1200
   ]
  },
+ "birds/acridotheres-tristis.webp": {
+  "box": [
+   0.019715,
+   0.009779,
+   0.982055,
+   0.98772
+  ],
+  "cut": [
+   743,
+   1148
+  ]
+ },
  "birds/acrocephalus-arundinaceus-2.webp": {
   "box": [
    0.12655849082797183,
@@ -3851,6 +3863,18 @@
    713
   ]
  },
+ "birds/dacelo-novaeguineae.webp": {
+  "box": [
+   0.010447,
+   0.013348,
+   0.990064,
+   0.987531
+  ],
+  "cut": [
+   1145,
+   1115
+  ]
+ },
  "birds/delichon-urbicum-2.webp": {
   "box": [
    0.019505609273910523,
@@ -6659,6 +6683,18 @@
    741
   ]
  },
+ "birds/malurus-cyaneus.webp": {
+  "box": [
+   0.018333,
+   0.021287,
+   0.968333,
+   0.974958
+  ],
+  "cut": [
+   1164,
+   684
+  ]
+ },
  "birds/mareca-penelope-2.webp": {
   "box": [
    0.047322688102722166,
@@ -7629,6 +7665,18 @@
   "cut": [
    869,
    1200
+  ]
+ },
+ "birds/oriolus-sagittatus.webp": {
+  "box": [
+   0.009796,
+   0.018237,
+   0.989388,
+   0.980593
+  ],
+  "cut": [
+   1200,
+   726
   ]
  },
  "birds/otus-scops.webp": {
@@ -10583,6 +10631,18 @@
    1085
   ]
  },
+ "birds/trichoglossus-moluccanus.webp": {
+  "box": [
+   0.120041,
+   0.015288,
+   0.647293,
+   0.984712
+  ],
+  "cut": [
+   656,
+   1200
+  ]
+ },
  "birds/tringa-erythropus-2.webp": {
   "box": [
    0.039510345458984374,
@@ -11145,6 +11205,18 @@
   "cut": [
    1200,
    813
+  ]
+ },
+ "birds/zanda-funerea.webp": {
+  "box": [
+   0.021936,
+   0.064386,
+   0.947946,
+   0.986829
+  ],
+  "cut": [
+   764,
+   1200
   ]
  },
  "birds/zapornia-parva-2.webp": {
