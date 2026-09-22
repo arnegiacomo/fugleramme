@@ -10,7 +10,7 @@ Everything else runs wherever Python or Docker does - a NAS, a homelab, an old l
 
 ## Do I need the e-ink panel?
 
-No. It is what makes this look like a picture frame instead of a screen, but fugleramme serves the same image over HTTP either way - on an HDMI display straight from the Pi, or from any device on the network. See [Showing the frame without the e-ink panel](operations.md#showing-the-frame-without-the-e-ink-panel).
+No. It is what makes this look like a picture frame instead of a screen, but fugleramme serves the same image over HTTP either way - on an HDMI display straight from the Pi, or from any device on the network. See [Screens](screens.md).
 
 ## Which Raspberry Pi?
 
@@ -18,7 +18,7 @@ A Pi 5 for the full build, because BirdNET-Go classifies around the clock. For a
 
 ## Can I use a smaller or a different Inky?
 
-Yes. Other Inky Impressions work and fugleramme reads the resolution automatically. You lose size and sharpness, and below 13.3" the birds get small fast - so cap how many birds land on the page, under [Species on the page](display.md#species-on-the-page). See [Alternatives](hardware.md#alternatives).
+Yes. Other Inky Impressions work and fugleramme reads the resolution automatically. You lose size and sharpness, and below 13.3" the birds get small fast - so cap how many birds land on the page, under [Species on the page](display.md#species-on-the-page-collage-only). See [Alternatives](hardware.md#alternatives).
 
 ## What does it cost?
 
@@ -62,7 +62,7 @@ That is BirdNET-Go's side, and mostly comes down to your location, gear and its 
 
 ## What about bats, frogs and squirrels?
 
-Fugleramme currently only draws birds - it's a bird frame, and there isn't the historic plate coverage to do the rest justice. See [Species on the page](display.md#species-on-the-page).
+Fugleramme currently only draws birds - it's a bird frame, and there isn't the historic plate coverage to do the rest justice. See [Species on the page](display.md#species-on-the-page-collage-only).
 
 Let me know if you have some good ideas for how to get other animals up too.
 
