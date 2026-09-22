@@ -5351,6 +5351,18 @@
    827
   ]
  },
+ "birds/hesperiphona-vespertina-3.webp": {
+  "box": [
+   0.009881422924901186,
+   0.015202308211039375,
+   1.0,
+   0.9158026006773203
+  ],
+  "cut": [
+   1200,
+   1014
+  ]
+ },
  "birds/hesperiphona-vespertina.webp": {
   "box": [
    0.0,
