@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fugleramme admin</title>
+<link rel="stylesheet" href="/admin.css?v=$version">
+</head>
+<body>
+<form class="login" method="post" action="$action">
+  <h1>Fugleramme</h1>
+  <label><span>Admin password</span>
+    <input type="password" name="password" autocomplete="current-password" autofocus></label>
+  $error
+  <button type="submit">Sign in</button>
+  <p class="note"><a href="/">Back to the kiosk</a></p>
+</form>
+</body>
+</html>

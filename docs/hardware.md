@@ -4,6 +4,9 @@ There are two ways of assembling a fugleramme frame. Other hardware variants and
 combinations might work, but haven't been verified. If you come up with
 something cool, let me know!
 
+> [!NOTE]
+> I'm affiliated with Pimoroni. Buying through the links on this page, or using the code `ARNE` at checkout, supports this project.
+
 ## Full build (with BirdNET-Go)
 
 The full build, from hearing the birds in your own garden to drawing them on the display. If you already run
@@ -11,13 +14,13 @@ BirdNET-Go somewhere, skip to [Frame only](#frame-only-external-or-existing-bird
 
 | Part | What I recommend |
 | --- | --- |
-| Board | [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/), 2 GB |
-| Storage | [microSD card](https://www.raspberrypi.com/products/sd-cards/) (32 GB or more) |
-| Cooling | [Raspberry Pi Active Cooler](https://www.raspberrypi.com/products/active-cooler/) |
-| Panel | [Inky Impression 13.3"](https://shop.pimoroni.com/products/inky-impression) (Spectra 6, 1600x1200) |
+| Board | [Raspberry Pi 5](https://shop.pimoroni.com/discount/ARNE?redirect=/products/raspberry-pi-5), 2 GB |
+| Storage | [microSD card](https://shop.pimoroni.com/discount/ARNE?redirect=/products/microsd-card-with-raspberry-pi-os) (32 GB or more) |
+| Cooling | [Raspberry Pi Active Cooler](https://shop.pimoroni.com/discount/ARNE?redirect=/products/raspberry-pi-5-active-cooler) |
+| Panel | [Inky Impression 13.3"](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression) (Spectra 6, 1600x1200) |
 | Mic | [Clippy EM272Z1 mono](https://micbooster.com/product/clippy-em272-microphone/), the 3.5 mm one (in the EU it's easier from [Veldshop](https://www.veldshop.nl/en/clippy-em272z1-mono-microphone.html)) |
 | Sound card | [UGREEN USB audio adapter](https://www.amazon.co.uk/dp/B01N905VOY), model US205 (article number 30724) |
-| Power | [Official Raspberry Pi 27W USB-C power supply](https://www.raspberrypi.com/products/27w-power-supply/) |
+| Power | [Official Raspberry Pi 27W USB-C power supply](https://shop.pimoroni.com/discount/ARNE?redirect=/products/raspberry-pi-27w-usb-c-power-supply) |
 | Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) |
 
 ### Why these
@@ -49,10 +52,10 @@ you already run elsewhere on the network, so the frame can hang anywhere.
 
 | Part | What works |
 | --- | --- |
-| Board | [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) (1 GB is plenty), [Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/), or a [Pi Zero 2 W](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/) with the 40-pin header installed |
-| Storage | [microSD card](https://www.raspberrypi.com/products/sd-cards/), 16 GB or more |
-| Panel | [Inky Impression 13.3"](https://shop.pimoroni.com/products/inky-impression) (Spectra 6, 1600x1200) |
-| Power | The official supply for whichever board - [27 W USB-C](https://www.raspberrypi.com/products/27w-power-supply/) for a Pi 5, [5 V micro-USB](https://www.raspberrypi.com/products/micro-usb-power-supply/) for a Zero |
+| Board | [Raspberry Pi 5](https://shop.pimoroni.com/discount/ARNE?redirect=/products/raspberry-pi-5) (1 GB is plenty), [Pi 4](https://shop.pimoroni.com/discount/ARNE?redirect=/products/raspberry-pi-4), or a [Pi Zero 2 W](https://shop.pimoroni.com/discount/ARNE?redirect=/products/raspberry-pi-zero-2-w) with the 40-pin header installed |
+| Storage | [microSD card](https://shop.pimoroni.com/discount/ARNE?redirect=/products/microsd-card-with-raspberry-pi-os), 16 GB or more |
+| Panel | [Inky Impression 13.3"](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression) (Spectra 6, 1600x1200) |
+| Power | The official supply for whichever board - [27 W USB-C](https://shop.pimoroni.com/discount/ARNE?redirect=/products/raspberry-pi-27w-usb-c-power-supply) for a Pi 5, [5 V micro-USB](https://shop.pimoroni.com/discount/ARNE?redirect=/products/raspberry-pi-12-5w-micro-usb-power-supply) for a Zero |
 | Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) |
 
 - **Any 40-pin Pi drives the panel** - thanks to Pimoroni's
@@ -90,7 +93,7 @@ the capsule drowns out everything else).
 - **Other boards.** A **Pi 4** and a **Pi Zero 2 W** both work - people are running them, the Zero just renders more slowly. A **Pi 5 with 1 GB** should be plenty for a frame that isn't also classifying. (None of these are officially supported
   yet, only because I don't have units to verify on).
 - **NVMe instead of microSD** spares the card BirdNET-Go's constant writes, but the HAT/Base adds cost, height and heat for a mostly idle workload - and the drives are crazy expensive right now.
-- **Other Inky displays** work, you just lose resolution and size. Alternatively skip the panel: the frame serves the same view as a web kiosk, over HDMI or headless - see [Showing the frame without the e-ink panel](operations.md#showing-the-frame-without-the-e-ink-panel).
+- **Other Inky displays** work, you just lose resolution and size. Alternatively skip the panel: the frame serves the same view as a web kiosk, over HDMI or headless - see [Screens](screens.md).
 
 ## Enclosure/Frame
 

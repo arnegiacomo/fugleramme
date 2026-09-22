@@ -4,16 +4,13 @@
 # Python
 __pycache__/
 *.py[cod]
-.venv/
-.venv-rembg/
+.venv*/
 venv/
 
-# Artwork pipeline: scraping, background removal, curation into a style, and the
-# scans and cut-outs they work on. All of it runs on the workstation only, never
-# on the Pi, and nothing the frame runs depends on it - so it stays local.
+# Artwork tooling: auditing manifests, reviewing halos, normalising cut-outs and
+# benchmarking the packer. Workstation only, never on the Pi, and nothing the
+# frame runs depends on it - so it stays local.
 scripts/
-wikimedia-scrape/
-rawpixel-scrape/
 
 # Runtime artifacts: BirdNET-Go's DB (detector/data) and the frame's rendered output
 data/
@@ -38,6 +35,7 @@ site/
 # a bird. The page under tools/platereview is checked in, what it renders is not.
 tools/platereview/review*/
 
-# Agent scratch and worktrees. The skill under .claude/skills is checked in.
-.claude/worktrees/
-.claude/.cc-writes/
+# Agent scratch: local harness settings and the worktrees it checks out. The skills
+# under .claude/skills are checked in, so the folder is ignored a child at a time.
+.claude/*
+!.claude/skills/

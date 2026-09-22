@@ -36,13 +36,18 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Showcase: showcase.md
   - FAQ: faq.md
-  - Hardware: hardware.md
-  - Install: install.md
-  - Container: container.md
-  - Display: display.md
-  - Species coverage: species.md
-  - Adding artwork: adding-artwork.md
-  - Operations: operations.md
-  - Configuring BirdNET-Go: birdnetgo-config.md
-  - Troubleshooting: troubleshooting.md
+  - Setup:
+    - Hardware: hardware.md
+    - Install: install.md
+    - Container: container.md
+    - Configuring BirdNET-Go: birdnetgo-config.md
+  - Using it:
+    - Display: display.md
+    - Screens: screens.md
+    - Operations: operations.md
+    - Troubleshooting: troubleshooting.md
+  - Birds:
+    - Species coverage: species.md
+    - Adding artwork: adding-artwork.md

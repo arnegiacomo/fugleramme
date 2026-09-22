@@ -13,7 +13,7 @@ I recommend Lite to save memory by dropping the desktop environment. That is
 the right choice if running the e-ink panel, or if you'll open the kiosk from another
 device. Take Desktop only if you want the frame shown on an HDMI
 screen straight from the pi - if you'd like to use HDMI with Lite see
-[Showing the frame without the e-ink panel](operations.md#showing-the-frame-without-the-e-ink-panel).
+[On HDMI, Raspberry Pi OS Lite](screens.md#on-hdmi-raspberry-pi-os-lite).
 
 In Raspberry Pi Imager, set the hostname (e.g. `fugleramme`) and username (e.g.
 `admin`), enable SSH, and configure Wi-Fi.

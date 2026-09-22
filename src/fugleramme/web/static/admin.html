@@ -9,10 +9,12 @@
 <body>
 <header>
   <h1>Fugleramme</h1>
-  <nav><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a><a href="$docs_url" target="_blank" rel="noopener">Docs</a></nav>
+  <nav><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a><a href="$docs_url" target="_blank" rel="noopener">Docs</a>$signout</nav>
 </header>
 <nav class="tabs" role="tablist">
   <button type="button" role="tab" data-tab="settings">Display</button>
+  <button type="button" role="tab" data-tab="detector">Detector</button>
+  <button type="button" role="tab" data-tab="security">Security</button>
   <button type="button" role="tab" data-tab="system">System</button>
 </nav>
 <section id="tab-settings" class="cols">
@@ -47,16 +49,11 @@
     <ul class="species" id="species">$species_rows</ul>
   </aside>
 </section>
-<section id="tab-system" hidden>
-  <h2>Updates</h2>
+<section id="tab-detector" hidden>
+  <h2>BirdNET-Go</h2>
   <dl class="status">
-    <dt>Version</dt><dd>v$version</dd>
-    <dt>Update</dt><dd class="update">$update</dd>
-  </dl>
-  $auto_update
-  <h2>Detector</h2>
-  <dl class="status">
-    <dt>BirdNET-Go</dt><dd id="detector-state">$birdnet</dd>
+    <dt>Detector</dt><dd id="detector-state">$birdnet</dd>
+    <dt>Last detection</dt><dd>$latest</dd>
   </dl>
   <form class="block detector" id="detector" method="post" action="/admin">
     $detector_field
@@ -64,6 +61,22 @@
     <button type="button" id="test">Test connection</button>
     <span id="test-result"></span>
   </form>
+</section>
+<section id="tab-security" hidden>
+  <h2>Admin access</h2>
+  <form class="block access" method="post" action="/admin">
+    <input type="hidden" name="$checkboxes" value="require_sign_in behind_proxy">
+    $access_field
+    <button type="submit">Save</button>
+  </form>
+</section>
+<section id="tab-system" hidden>
+  <h2>Updates</h2>
+  <dl class="status">
+    <dt>Version</dt><dd>v$version</dd>
+    <dt>Update</dt><dd class="update">$update</dd>
+  </dl>
+  $auto_update
   <h2>System</h2>
   <dl class="status">
     <dt>Inky panel</dt><dd>$panel</dd>
@@ -76,7 +89,6 @@
   <h2>Activity</h2>
   <dl class="status">
     <dt>Last render</dt><dd>$rendered</dd>
-    <dt>Last detection</dt><dd>$latest</dd>
   </dl>
 </section>
 <script id="config" type="application/json">$config</script>
