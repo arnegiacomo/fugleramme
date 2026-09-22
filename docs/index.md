@@ -18,7 +18,7 @@ same machine or elsewhere.
 > [!TIP]
 > Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)**
 > running from my kitchen window and displaying the actual birds currently
-> heard in my garden (Bergen, Norway).
+> heard in my garden (Bergen, Norway). See other frames from around the world [here](showcase.md)!
 
 The birds are cut-outs from historic, public-domain natural-history drawings,
 hand-curated for this project - over 800 of them across more than 400 species.
@@ -33,6 +33,7 @@ For more display options see [Display](display.md).
 
 ## Docs
 
+- **[Showcase](showcase.md)** - public frames people are running
 - **[FAQ](faq.md)** - Frequently asked questions
 - **[Hardware](hardware.md)** - the parts list with alternatives
 - **[Install](install.md)** - from a blank SD card to a running frame

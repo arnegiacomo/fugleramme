@@ -25,7 +25,7 @@ E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully loc
 > [!NOTE]
 > Still in early development: expect the odd bug and a few unpolished edges, with plenty more features to come.
 
-Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** running from my kitchen window and displaying the actual birds currently heard in my garden (Bergen, Norway).
+Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** running from my kitchen window and displaying the actual birds currently heard in my garden (Bergen, Norway). See other frames from around the world [here](docs/showcase.md)!
 
 Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://arnegiacomo.dev/fugleramme/)**
 
