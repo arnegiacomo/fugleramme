@@ -10,9 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-# Kiosk render heights, named for the screen they match. The width follows the
-# panel's aspect, not the screen's: the kiosk letterboxes, so only the height is
-# pixel-for-pixel, and a different shape would pack a different page.
+# Kiosk render heights, named for the screen they match. Locked to the panel, the
+# width follows the panel's aspect: a different shape packs a different page.
 WEB_HEIGHTS: dict[str, int] = {
     "720p": 720,
     "1080p": 1080,
@@ -21,6 +20,17 @@ WEB_HEIGHTS: dict[str, int] = {
 }
 
 DEFAULT_WEB_RESOLUTION = "1080p"
+
+# The kiosk's own shape once unlocked from the panel, as (width, height).
+WEB_ASPECTS: dict[str, tuple[int, int]] = {
+    "16:9": (16, 9),
+    "16:10": (16, 10),
+    "4:3": (4, 3),
+    "3:2": (3, 2),
+}
+
+# The fallback panel's shape: what a panel-less kiosk packs unless told otherwise.
+DEFAULT_WEB_ASPECT = "4:3"
 
 # Panel render size when no Inky is attached (dev loop): Impression 13.3".
 FALLBACK_PANEL_RESOLUTION = (1600, 1200)

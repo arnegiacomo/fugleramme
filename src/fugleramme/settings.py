@@ -18,7 +18,13 @@ import threading
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
-from .config import DEFAULT_DETECTOR_URL, DEFAULT_WEB_RESOLUTION, WEB_HEIGHTS
+from .config import (
+    DEFAULT_DETECTOR_URL,
+    DEFAULT_WEB_ASPECT,
+    DEFAULT_WEB_RESOLUTION,
+    WEB_ASPECTS,
+    WEB_HEIGHTS,
+)
 from .languages import NONE, SCIENTIFIC
 from .modes import DEFAULT_MODE, MODES
 from .render.collage import DEFAULT_MARGIN, DEFAULT_RANKING, NO_LIMIT, RANKINGS
@@ -83,7 +89,11 @@ class Settings:
     # Which page the frame shows; only the collage reads lookback_hours.
     mode: str = DEFAULT_MODE
     web_resolution: str = DEFAULT_WEB_RESOLUTION
-    # Shapes both outputs; only the panel actually turns the pixels.
+    # Locked, the kiosk follows the panel; unlocked, the aspect and portrait below.
+    web_lock: bool = True
+    web_aspect: str = DEFAULT_WEB_ASPECT
+    web_portrait: bool = False
+    # Shapes the panel, and the kiosk while it is locked; only the panel turns the pixels.
     rotation: int = 0
     lookback_hours: float = 24
     refresh_minutes: int = 0
@@ -134,10 +144,16 @@ class Settings:
         long, short = max(resolution), min(resolution)
         return (short, long) if self.rotation % 180 else (long, short)
 
-    def web_size(self, panel: tuple[int, int]) -> tuple[int, int]:
-        """Kiosk render size: the panel scaled to the selected height, then turned."""
-        scale = WEB_HEIGHTS[self.web_resolution] / min(panel)
-        return self.oriented((round(panel[0] * scale), round(panel[1] * scale)))
+    def web_size(self, panel: tuple[int, int] | None) -> tuple[int, int]:
+        """Kiosk render size at the selected height. Locked, the panel scaled and
+        turned; unlocked, or with no panel (None) to follow, its own aspect."""
+        height = WEB_HEIGHTS[self.web_resolution]
+        if self.web_lock and panel:
+            scale = height / min(panel)
+            return self.oriented((round(panel[0] * scale), round(panel[1] * scale)))
+        w, h = WEB_ASPECTS[self.web_aspect]
+        width = round(height * w / h)
+        return (height, width) if self.web_portrait else (width, height)
 
 
 def _as_int(value, default: int, lo: int, hi: int) -> int:
@@ -225,12 +241,19 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         rotation = int(raw.get("rotation", d.rotation))
     except (TypeError, ValueError):
         rotation = d.rotation
+    rotation = _one_of(rotation, ROTATIONS, d.rotation)
     return Settings(
         mode=_one_of(str(raw.get("mode", d.mode)), MODES, d.mode),
         web_resolution=_one_of(
             str(raw.get("web_resolution", d.web_resolution)), WEB_HEIGHTS, d.web_resolution
         ),
-        rotation=_one_of(rotation, ROTATIONS, d.rotation),
+        web_lock=_as_bool(raw.get("web_lock"), d.web_lock),
+        web_aspect=_one_of(str(raw.get("web_aspect", d.web_aspect)), WEB_ASPECTS, d.web_aspect),
+        # Absent, a file's own rotation says which way its page was turned.
+        web_portrait=_as_bool(
+            raw.get("web_portrait"), rotation % 180 != 0 if "rotation" in raw else d.web_portrait
+        ),
+        rotation=rotation,
         lookback_hours=_as_hours(raw.get("lookback_hours"), d.lookback_hours),
         refresh_minutes=_as_int(raw.get("refresh_minutes"), d.refresh_minutes, 0, 24 * 60),
         margin=_as_int(raw.get("margin"), d.margin, 0, MARGIN_CEILING),

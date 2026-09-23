@@ -32,6 +32,7 @@ import logging
 import secrets
 import threading
 import time
+from dataclasses import replace
 from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -126,6 +127,7 @@ def make_handler(
     panel: Panel | None,
     status: Status,
 ):
+    attached = panel.resolution if panel else None  # None: nothing for the kiosk to lock to
     # Held across requests: an outage must not blank every viewer at once. Tied
     # to the detector that drew it, since another station's birds are not ours.
     last_page: bytes | None = None
@@ -310,7 +312,7 @@ def make_handler(
                 picks,
                 settings,
                 namer(settings.primary_language, settings.secondary_language, store.path.parent),
-                settings.web_size(resolution_of(panel)),
+                settings.web_size(attached),
             )
 
         def _edited(self) -> Settings:
@@ -332,7 +334,9 @@ def make_handler(
             self._send_cached(last_page, "image/png")
 
         def _preview_png(self):
-            self._send_cached(modes.png_bytes(self._context(self._edited())), "image/png")
+            # The panel's page where there is one, else the kiosk's.
+            settings = replace(self._edited(), web_lock=True)
+            self._send_cached(modes.png_bytes(self._context(settings)), "image/png")
 
         def _state(self):
             # Cheap enough to poll: one grouped query, no render.
