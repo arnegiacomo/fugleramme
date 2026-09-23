@@ -2399,10 +2399,6 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIKite.jpg"
   },
-  "birds/molothrus-ater.webp": {
-    "source": "commons-pd",
-    "url": "https://commons.wikimedia.org/wiki/File:Molothrus_ater_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15800293.tif"
-  },
   "birds/monticola-solitarius.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIBlue_Thrush.jpg"
@@ -2632,7 +2628,7 @@
     "url": "https://commons.wikimedia.org/wiki/File:Blue_Song_Grosbeak._1._Male._2._Female._3._Young_(NYPL_b13559627-108463).tiff"
   },
   "birds/passerina-cyanea.webp": {
-    "source": "commons-pd",
+    "source": "annlee",
     "url": "https://commons.wikimedia.org/wiki/File:CARDINALIDAE_Passerina_cyanea_(Linnaeus)_indigo_bunting_-_Ann_Lee_-_107-1973-15.jpg"
   },
   "birds/pastor-roseus.webp": {
@@ -2856,7 +2852,7 @@
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISiberian_Grosbeak.jpg"
   },
   "birds/pipilo-erythrophthalmus.webp": {
-    "source": "commons-pd",
+    "source": "vieillot",
     "url": "https://commons.wikimedia.org/wiki/File:Pipilo_erythrophthalmus_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16000275.tif"
   },
   "birds/piranga-ludoviciana-2.webp": {
@@ -3191,10 +3187,6 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVWoodcock.jpg"
   },
-  "birds/seiurus-aurocapilla.webp": {
-    "source": "commons-pd",
-    "url": "https://commons.wikimedia.org/wiki/File:Enicocichla_aurocapilla_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300191.tif"
-  },
   "birds/serinus-serinus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISerin_Finch.jpg"
@@ -3204,7 +3196,7 @@
     "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
   },
   "birds/setophaga-coronata-3.webp": {
-    "source": "commons-pd",
+    "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(1907)_(14563489970).jpg"
   },
   "birds/setophaga-coronata.webp": {
