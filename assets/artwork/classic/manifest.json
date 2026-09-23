@@ -2747,10 +2747,6 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18425305152).jpg"
   },
-  "birds/molothrus-ater.webp": {
-    "source": "commons-pd",
-    "url": "https://commons.wikimedia.org/wiki/File:Molothrus_ater_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15800293.tif"
-  },
   "birds/monticola-saxatilis-2.webp": {
     "source": "naumann",
     "url": "https://commons.wikimedia.org/wiki/File:Turdus_saxatilis_-_1840_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZA1000571.tif"
@@ -3064,7 +3060,7 @@
     "url": "https://commons.wikimedia.org/wiki/File:Blue_Song_Grosbeak._1._Male._2._Female._3._Young_(NYPL_b13559627-108463).tiff"
   },
   "birds/passerina-cyanea.webp": {
-    "source": "commons-pd",
+    "source": "annlee",
     "url": "https://commons.wikimedia.org/wiki/File:CARDINALIDAE_Passerina_cyanea_(Linnaeus)_indigo_bunting_-_Ann_Lee_-_107-1973-15.jpg"
   },
   "birds/pastor-roseus.webp": {
@@ -3324,7 +3320,7 @@
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISiberian_Grosbeak.jpg"
   },
   "birds/pipilo-erythrophthalmus.webp": {
-    "source": "commons-pd",
+    "source": "vieillot",
     "url": "https://commons.wikimedia.org/wiki/File:Pipilo_erythrophthalmus_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16000275.tif"
   },
   "birds/pipilo-maculatus.webp": {
@@ -3755,10 +3751,6 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg"
   },
-  "birds/seiurus-aurocapilla.webp": {
-    "source": "commons-pd",
-    "url": "https://commons.wikimedia.org/wiki/File:Enicocichla_aurocapilla_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300191.tif"
-  },
   "birds/selasphorus-rufus.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:379_Ruff-necked_Humming-bird.jpg"
@@ -3772,7 +3764,7 @@
     "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
   },
   "birds/setophaga-coronata-3.webp": {
-    "source": "commons-pd",
+    "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(1907)_(14563489970).jpg"
   },
   "birds/setophaga-coronata.webp": {
