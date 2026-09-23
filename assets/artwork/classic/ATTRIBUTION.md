@@ -100,3 +100,5 @@ Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via
 Public domain. Manifest key: `legge-ceylon`.
 
 **Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
+
+**Commons public domain** - assorted public-domain plates from Wikimedia Commons (PD-Art / PD-old / CC0 / Public domain), cut and edited for this project. Individual plate URLs are in `manifest.json`. Manifest key: `commons-pd`.
