@@ -98,3 +98,5 @@ Public domain. Manifest key: `gould-australia`.
 (1878-1880), plates lithographed by **John Gerrard Keulemans**, printed by **Hanhart**.
 Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via [Internet Archive](https://archive.org/details/historyofbirdsof02legg).
 Public domain. Manifest key: `legge-ceylon`.
+
+**Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
