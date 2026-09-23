@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plate review</title>
+<style>
+  :root { --bg:#2b2d30; --panel:#35383c; --line:#4a4e53; --ink:#e8e6e1; --dim:#a3a7ad; --accent:#e9b44c; --ok:#6fbf73; --bad:#e2675f; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  header { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:5; }
+  header h1 { font-size:15px; margin:0; font-weight:600; letter-spacing:.02em; }
+  header .count { color:var(--dim); }
+  button, select { font:inherit; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 11px; cursor:pointer; }
+  button:hover { border-color:var(--dim); }
+  button.on { background:var(--accent); color:#1d1d1d; border-color:var(--accent); }
+  button.ok.on { background:var(--ok); border-color:var(--ok); }
+  button.bad.on { background:var(--bad); border-color:var(--bad); }
+  button[data-key] { display:inline-flex; align-items:center; gap:7px; }
+  .key { font-size:11px; line-height:1; color:var(--dim); opacity:.75; }
+  button:hover .key { color:var(--ink); }
+  button.on .key { color:#1d1d1d; opacity:.6; }
+  .spacer { flex:1; }
+  main { display:grid; grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr); gap:16px; padding:16px; }
+  @media (max-width: 1100px) { main { grid-template-columns:1fr; } }
+  .title { display:flex; flex-wrap:wrap; align-items:baseline; gap:10px; margin-bottom:8px; }
+  .title h2 { margin:0; font-size:20px; font-weight:600; }
+  .title code, .title a { color:var(--dim); font-size:12px; }
+  .title a { text-decoration:underline; }
+  .stage { position:relative; background:#1f2022; border:1px solid var(--line); border-radius:8px; overflow:hidden; cursor:crosshair; }
+  .stage img, .stage canvas, .zoom .layer { position:absolute; inset:0; opacity:0; transition:opacity .12s linear; }
+  .stage img, .stage canvas { width:100%; height:100%; display:block; }
+  .show-scan .l-scan, .show-plate .l-plate, .show-flags .l-flags, .show-diff .l-diff { opacity:1; }
+  .badge { position:absolute; top:10px; left:10px; z-index:2; padding:3px 10px; border-radius:4px; font-weight:700; letter-spacing:.08em; font-size:12px; background:#000a; }
+  .show-scan .badge { color:#9fd0ff; } .show-plate .badge { color:var(--accent); } .show-flags .badge, .show-diff .badge { color:var(--bad); }
+  .marks { position:absolute; inset:0; pointer-events:none; z-index:1; }
+  .marks div { position:absolute; border:1.5px solid #e9b44ccc; color:#e9b44c; font-size:11px; font-weight:700; padding:1px 3px; text-shadow:0 0 3px #000; }
+  .hide-marks .marks { display:none; }
+  .birdbox { position:absolute; inset:0; pointer-events:none; z-index:1; }
+  .birdbox div { position:absolute; border:1.5px dashed var(--bad); }
+  .birdbox b { position:absolute; top:-16px; left:0; font-size:10px; font-weight:700; letter-spacing:.06em; color:var(--bad); text-shadow:0 0 3px #000; }
+  .hide-box .birdbox { display:none; }
+  .controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:10px 0; }
+  .controls label { color:var(--dim); display:flex; align-items:center; gap:6px; }
+  .verdict { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; margin-top:6px; }
+  textarea { flex:1; min-width:220px; min-height:54px; font:inherit; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px 8px; }
+  .facts { color:var(--dim); font-size:12px; margin-top:8px; }
+  .facts b { color:var(--ink); font-weight:600; }
+  .facts .warn { color:var(--bad); }
+  .zooms { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; align-content:start; }
+  .zoom { position:relative; aspect-ratio:4 / 3; background:#1f2022; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .zoom .layer { background-repeat:no-repeat; image-rendering:auto; }
+  .zoom .tag { position:absolute; left:8px; bottom:6px; z-index:2; font-size:11px; font-weight:700; color:var(--accent); background:#000a; padding:1px 7px; border-radius:4px; }
+  .zoom.loupe { border-color:var(--accent); }
+  .strip { display:flex; gap:8px; overflow-x:auto; padding:10px 16px 16px; border-top:1px solid var(--line); }
+  .strip button { padding:3px; border-width:2px; flex:none; position:relative; background:#1f2022; }
+  .strip img { display:block; width:72px; height:72px; object-fit:contain; border-radius:3px; }
+  .strip button.cur { border-color:var(--accent); }
+  .strip button.pass::after, .strip button.fail::after { content:""; position:absolute; right:4px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--ok); }
+  .strip button.fail::after { background:var(--bad); }
+  kbd { background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:0 5px; font:12px ui-monospace, Menlo, monospace; }
+  .help { color:var(--dim); font-size:12px; padding:0 16px 8px; }
+</style>
+</head>
+<body class="show-scan">
+<header>
+  <h1>Plate review</h1>
+  <span class="count" id="count"></span>
+  <button data-key="k" id="prev"><span class="lab">&larr; Prev</span></button>
+  <button data-key="j" id="next"><span class="lab">Next &rarr;</span></button>
+  <span class="spacer"></span>
+  <span class="count" id="tally"></span>
+  <button data-key="c" id="copy"><span class="lab">Copy review notes</span></button>
+</header>
+<main>
+  <section>
+    <div class="title"><h2 id="name"></h2><code id="file"></code><a id="src" target="_blank" rel="noopener"></a></div>
+    <div class="stage" id="stage">
+      <span class="badge" id="badge">SCAN</span>
+      <img class="l-scan" id="i-scan" alt="scan crop"><img class="l-plate" id="i-plate" alt="plate on paper"><img class="l-flags" id="i-flags" alt="suspect pixels"><canvas class="l-diff" id="i-diff"></canvas>
+      <div class="marks" id="marks"></div>
+      <div class="birdbox" id="birdbox"></div>
+    </div>
+    <div class="controls">
+      <button data-key=" " id="play" class="on"><span class="lab">Toggle &#9208;</span></button>
+      <button data-key="1" data-mode="scan"><span class="lab">Scan</span></button>
+      <button data-key="2" data-mode="plate"><span class="lab">Plate</span></button>
+      <button data-key="3" data-mode="flags"><span class="lab">Flags</span></button>
+      <button data-key="4" data-mode="diff"><span class="lab">Diff</span></button>
+      <label>Speed <input type="range" id="speed" min="300" max="2500" step="100" value="1100" style="direction:rtl"></label>
+      <label><input type="checkbox" id="showmarks" checked> zoom boxes</label>
+      <label title="How dark a scan pixel must be to count as drawn on rather than page">
+        Ink <input type="range" id="thresh" min="4" max="80" step="1" value="14"><b id="threshval">14</b></label>
+    </div>
+    <div class="verdict">
+      <button data-key="p" class="ok" id="pass"><span class="lab">Pass</span></button>
+      <button data-key="f" class="bad" id="fail"><span class="lab">Needs work</span></button>
+      <textarea id="note" placeholder="What is wrong, and where. Saved in this browser."></textarea>
+    </div>
+    <div class="facts" id="facts"></div>
+  </section>
+  <section class="zooms" id="zooms"></section>
+</main>
+<div class="help"><kbd>b</kbd> bird box &nbsp; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> also step birds &nbsp; Hover the big image to steer the loupe.</div>
+<nav class="strip" id="strip"></nav>
+<script src="birds.js"></script>
+<script>
+const BIRDS = window.BIRDS || [];
+const $ = id => document.getElementById(id);
+const LABEL = { scan: "SCAN", plate: "PLATE ON PAPER", flags: "SUSPECT PIXELS", diff: "WHAT THE CUT DID" };
+const store = { get: k => { try { return JSON.parse(localStorage.getItem("plate-review") || "{}")[k] || {}; } catch { return {}; } },
+  set: (k, v) => { try { const all = JSON.parse(localStorage.getItem("plate-review") || "{}"); all[k] = v; localStorage.setItem("plate-review", JSON.stringify(all)); } catch {} } };
+const EXT = { scan: ".png", plate: ".png", flags: ".jpg" };
+let at = 0, mode = "scan", playing = true, timer = null, loupe = null;
+let diffURL = null, diffPending = true, diffRemoved = 0, diffHole = 0, diffKept = 0, diffBlank = 0;
+const cutIm = new Image();           // the shipped plate, RGBA and uncomposited; never displayed
+cutIm.onload = () => { diffPending = true; if (mode === "diff") paintDiff(); };
+
+// What the cut did to the scan, straight off the cut's own alpha - not a comparison of
+// rendered colour, which only ever reports paper texture, halo tone and WebP.
+//
+//   blue   the scan was drawn on here and the plate does not show it: cut away
+//   red    the plate shows something the scan has no ink for: a hole, or a declared gap
+//   plain  both have it: the bird, in the plate's own colours
+//   grey   neither has it: the page round the bird
+//
+// Two reads per pixel, both taken here from the two images themselves:
+//   scan.png - is this darker than page tone, i.e. did the artist draw here
+//   cut.png  - the shipped plate, RGBA and uncomposited: is this opaque and not paper-toned
+// Nothing is precomputed and handed over; move the slider and both answers move with it.
+function computeDiff(scanIm, cutIm, t) {
+  const w = scanIm.naturalWidth, h = scanIm.naturalHeight;
+  const grab = im => { const c = new OffscreenCanvas(w, h); const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(im, 0, 0, w, h); return x.getImageData(0, 0, w, h).data; };
+  const s = grab(scanIm), p = grab(cutIm);
+  const out = new ImageData(w, h), o = out.data;
+  const pale = 255 - t;              // darker than this in any channel counts as drawn on
+  let removed = 0, hole = 0, kept = 0, blank = 0;
+  for (let i = 0; i < o.length; i += 4) {
+    const ink = Math.min(s[i], s[i + 1], s[i + 2]) < pale;
+    // the plate shows a mark where it is opaque and carries something other than the halo's
+    // own paper tone - the halo is #F0ECE5 laid over whatever the cut removed
+    const halo = Math.abs(p[i] - 0xF0) <= 6 && Math.abs(p[i + 1] - 0xEC) <= 6 && Math.abs(p[i + 2] - 0xE5) <= 6;
+    const shows = p[i + 3] > 250 && !halo;
+    if (ink && !shows) {             // drawn, and the plate does not show it: removed
+      o[i] = 40; o[i + 1] = 90 + s[i + 1] * 0.25; o[i + 2] = 190 + s[i + 2] * 0.2; o[i + 3] = 255;
+      removed++;
+    } else if (!ink && shows) {      // the plate shows a pixel the scan never drew on
+      o[i] = 225; o[i + 1] = 40; o[i + 2] = 40; o[i + 3] = 255;
+      hole++;
+    } else if (ink) {                // drawn and still shown: the bird, as it prints
+      o[i] = p[i]; o[i + 1] = p[i + 1]; o[i + 2] = p[i + 2]; o[i + 3] = 255;
+      kept++;
+    } else {                         // blank both sides: the page round the bird
+      o[i] = 232; o[i + 1] = 230; o[i + 2] = 224; o[i + 3] = 255;
+      blank++;
+    }
+  }
+  diffRemoved = removed; diffHole = hole; diffKept = kept; diffBlank = blank;
+  return out;
+}
+function paintDiff() {
+  const cv = $("i-diff"), scanIm = $("i-scan");
+  if (!diffPending) return;
+  if (!scanIm.complete || !cutIm.complete || !scanIm.naturalWidth || !cutIm.naturalWidth) return;
+  cv.width = scanIm.naturalWidth; cv.height = scanIm.naturalHeight;
+  cv.getContext("2d").putImageData(computeDiff(scanIm, cutIm, +$("thresh").value), 0, 0);
+  diffPending = false;
+  diffURL = cv.toDataURL();
+  document.querySelectorAll("#zooms .l-diff").forEach(d => d.style.backgroundImage = `url(${diffURL})`);
+  $("diffcount").innerHTML = `Mode 4, from the cut's own alpha: <b style="color:#3a7fe0">${diffRemoved.toLocaleString()}</b> px drawn on but no longer shown (blue - cut away, or under the halo), <b style="color:#e2675f">${diffHole.toLocaleString()}</b> px shown but never drawn on (red - a hole, or a declared gap), ${diffKept.toLocaleString()} px of bird kept. Every pixel is one of those or blank page.`;
+}
+
+function setMode(m) {
+  mode = m;
+  document.body.classList.remove("show-scan", "show-plate", "show-flags", "show-diff");
+  document.body.classList.add("show-" + m);
+  if (m === "diff") paintDiff();     // computed on demand: it costs a pass over every pixel
+  $("badge").textContent = LABEL[m];
+  document.querySelectorAll("[data-mode]").forEach(b => b.classList.toggle("on", !playing && b.dataset.mode === m));
+}
+function tick() { setMode(mode === "scan" ? "plate" : "scan"); }
+function play(on) {
+  playing = on; clearInterval(timer);
+  if (on) timer = setInterval(tick, +$("speed").value);
+  $("play").classList.toggle("on", on);
+  $("play").querySelector(".lab").innerHTML = on ? "Toggle &#9208;" : "Toggle &#9654;";
+  setMode(mode);
+}
+function place(box, x, y, w) {            // show plate px (x, y, w wide) in a zoom box
+  const b = BIRDS[at], k = box.clientWidth / w;
+  box.querySelectorAll(".layer").forEach(l => {
+    l.style.backgroundSize = `${b.w * k}px ${b.h * k}px`;
+    l.style.backgroundPosition = `${-x * k}px ${-y * k}px`;
+  });
+}
+function zoomBox(tag, cls) {
+  const b = BIRDS[at], box = document.createElement("div");
+  box.className = "zoom " + (cls || "");
+  for (const l of ["scan", "plate", "flags", "diff"]) {
+    const d = document.createElement("div");
+    d.className = "layer l-" + l;
+    d.style.backgroundImage = l === "diff" ? (diffURL ? `url(${diffURL})` : "none")
+                                           : `url(img/${b.id}/${l}${EXT[l]})`;
+    box.append(d);
+  }
+  const t = document.createElement("span"); t.className = "tag"; t.textContent = tag; box.append(t);
+  return box;
+}
+function layout() {
+  const b = BIRDS[at];
+  document.querySelectorAll("#zooms .zoom").forEach((box, i) => {
+    if (i === 0) place(box, loupe.x, loupe.y, 200);
+    else { const z = b.zooms[i - 1]; place(box, z[0], z[1], z[2]); }
+  });
+}
+function show(i) {
+  at = (i + BIRDS.length) % BIRDS.length;
+  const b = BIRDS[at], saved = store.get(b.id);
+  $("count").textContent = `${at + 1} of ${BIRDS.length}`;
+  $("name").textContent = b.name; $("file").textContent = `${b.file}  -  PR #${b.pr}`;
+  $("src").textContent = b.url ? `${b.source} plate` : ""; $("src").href = b.url || "#";
+  $("stage").style.aspectRatio = `${b.w} / ${b.h}`;
+  $("stage").style.maxWidth = `calc(74vh * ${b.w / b.h})`;
+  for (const l of ["scan", "plate", "flags"]) $("i-" + l).src = `img/${b.id}/${l}${EXT[l]}`;
+  cutIm.src = `img/${b.id}/cut.png`;
+  diffURL = null; diffPending = true;
+  if (mode === "diff") paintDiff();
+  $("birdbox").innerHTML = b.box ? `<div style="left:${b.box[0] * 100}%;top:${b.box[1] * 100}%;width:${(b.box[2] - b.box[0]) * 100}%;height:${(b.box[3] - b.box[1]) * 100}%"><b>BIRD</b></div>` : "";
+  $("marks").innerHTML = b.zooms.map((z, n) => `<div style="left:${z[0] / b.w * 100}%;top:${z[1] / b.h * 100}%;width:${z[2] / b.w * 100}%;height:${z[3] / b.h * 100}%">${n + 1}</div>`).join("");
+  $("facts").innerHTML = `Suspect pixels: <b>${b.suspect.toLocaleString()}</b>. Gaps between legs and perch count too, so read the red layer before judging.` +
+    ` <span id="diffcount"></span>` +
+    (b.ring ? ` <span class="warn">${b.ring} dark pixels in the soft outer edge: these print as a dotted ring on the paper, shown in magenta.</span>` : ` Outer edge clean.`) +
+    (b.match < 0.97 ? ` <span class="warn">Scan and plate line up only ${Math.round(b.match * 100)}%: the shipped file may be newer than the saved cut.</span>` : "") +
+    (b.box_state === "ok" ? "" : b.box_state === "stale" ? ` <span class="warn">Bird box is stale: drawn on another crop, so the frame ignores it and sizes the whole file as bird.</span>` : ` <span class="warn">No bird box in geometry.json: the frame sizes the whole file as bird.</span>`);
+  loupe = { x: b.w / 2 - 100, y: b.h / 2 - 75 };
+  const zooms = $("zooms"); zooms.innerHTML = "";
+  zooms.append(zoomBox("Loupe - hover the plate", "loupe"));
+  b.zooms.forEach((z, n) => zooms.append(zoomBox(String(n + 1))));
+  layout();
+  $("note").value = saved.note || "";
+  $("pass").classList.toggle("on", saved.verdict === "pass"); $("fail").classList.toggle("on", saved.verdict === "fail");
+  strip();
+}
+function strip() {
+  $("strip").innerHTML = "";
+  let pass = 0, fail = 0;
+  BIRDS.forEach((b, i) => {
+    const v = store.get(b.id).verdict, btn = document.createElement("button");
+    if (v === "pass") pass++; if (v === "fail") fail++;
+    btn.className = (i === at ? "cur " : "") + (v || ""); btn.title = b.name;
+    btn.innerHTML = `<img src="img/${b.id}/thumb.jpg" alt="${b.name}">`; btn.onclick = () => show(i); $("strip").append(btn);
+  });
+  $("tally").textContent = `${pass} pass, ${fail} need work, ${BIRDS.length - pass - fail} to go`;
+  // scroll the strip itself, not the element into view: scrollIntoView also walks up to the
+  // page, and the strip sits at the bottom of it, so every bird change scrolled the page down
+  const cur = $("strip").querySelector(".cur");
+  if (cur) $("strip").scrollLeft = cur.offsetLeft - ($("strip").clientWidth - cur.offsetWidth) / 2;
+}
+function verdict(v) {
+  const b = BIRDS[at], saved = store.get(b.id);
+  saved.verdict = saved.verdict === v ? "" : v; store.set(b.id, saved); show(at);
+}
+$("stage").addEventListener("mousemove", e => {
+  const b = BIRDS[at], r = $("stage").getBoundingClientRect();
+  loupe = { x: (e.clientX - r.left) / r.width * b.w - 100, y: (e.clientY - r.top) / r.height * b.h - 75 };
+  place($("zooms").firstChild, loupe.x, loupe.y, 200);
+});
+$("speed").oninput = () => play(playing);
+$("showmarks").onchange = e => document.body.classList.toggle("hide-marks", !e.target.checked);
+function toggleBox() { document.body.classList.toggle("hide-box"); }
+function copyNotes() {
+  const lines = BIRDS.map(b => { const s = store.get(b.id); return `${s.verdict === "pass" ? "PASS" : s.verdict === "fail" ? "NEEDS WORK" : "not reviewed"} | ${b.file} (PR #${b.pr})${s.note ? " | " + s.note.replace(/\s+/g, " ") : ""}`; });
+  const lab = $("copy").querySelector(".lab");
+  navigator.clipboard.writeText(lines.join("\n")).then(() => lab.textContent = "Copied", () => prompt("Copy these notes:", lines.join("\n")));
+  setTimeout(() => lab.textContent = "Copy review notes", 1500);
+}
+// Every button carries its key, and the key is what runs: one table, so the chip on the
+// button and the shortcut cannot drift apart.
+const keys = {
+  j: () => show(at + 1), ArrowRight: () => show(at + 1),
+  k: () => show(at - 1), ArrowLeft: () => show(at - 1),
+  " ": () => play(!playing),
+  1: () => { play(false); setMode("scan"); }, 2: () => { play(false); setMode("plate"); },
+  3: () => { play(false); setMode("flags"); }, 4: () => { play(false); setMode("diff"); },
+  b: toggleBox, c: copyNotes, p: () => verdict("pass"), f: () => verdict("fail"),
+};
+for (const button of document.querySelectorAll("[data-key]")) {
+  const key = button.dataset.key;
+  button.insertAdjacentHTML("beforeend", `<span class="key">${key === " " ? "space" : key}</span>`);
+  button.onclick = () => { keys[key](); button.blur(); };
+}
+$("thresh").oninput = () => { $("threshval").textContent = $("thresh").value; diffPending = true; paintDiff(); };
+// the layers load asynchronously, so the diff waits for both rather than drawing a blank
+for (const l of ["scan", "plate"]) $("i-" + l).addEventListener("load", () => { diffPending = true; if (mode === "diff") paintDiff(); });
+$("note").oninput = e => { const b = BIRDS[at], s = store.get(b.id); s.note = e.target.value; store.set(b.id, s); };
+addEventListener("keydown", e => {
+  if (e.target.tagName === "TEXTAREA" || e.metaKey || e.ctrlKey || !keys[e.key]) return;
+  e.preventDefault();
+  keys[e.key]();
+});
+addEventListener("resize", layout);
+if (BIRDS.length) { show(0); play(true); }
+else $("name").textContent = "No birds.js beside this page - run build.py on the review folder first.";
+</script>
+</body>
+</html>

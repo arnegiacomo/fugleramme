@@ -47,6 +47,10 @@ Use **Image > Flatten Image** first.
 6. Use **Select > Deselect**, then **Image > Flatten Image**.
 7. Export as PNG and tick **Store alpha channel**.
 
+### Or try to let an agent cut it
+
+If you use Claude Code, the repo ships a `plate-review` skill that does the cutting and the halo from a small spec, then opens a review page where you can compare it to the original and come with feedback. Type `/plate-review` in the repo and give it the scan url. See `tools/platereview/`. Contributed by [erendrake](https://github.com/erendrake).
+
 ## Add the bird to a style
 
 Use the artwork tool to give a finished cut-out a BirdNET-compatible filename,
