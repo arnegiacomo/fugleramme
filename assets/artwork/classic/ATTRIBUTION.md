@@ -88,3 +88,13 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 **Levaillant** - *Histoire naturelle des oiseaux d'Afrique* by **François Levaillant** (1796-1808), plates by **Jacques Barraband**, **Johann Lebrecht Reinold** and others. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain; Levaillant died 1824). Manifest key: `levaillant`.
 
 **Rüppell** - *Neue Wirbelthiere zu der Fauna von Abyssinien gehörig: Vögel* by **Eduard Rüppell** (1835-1840). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain; Rüppell died 1884). Manifest key: `ruppell`.
+
+**Gould (Birds of Australia)** - *The Birds of Australia* by **John Gould** (1840-1848),
+illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**.
+Scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524).
+Public domain. Manifest key: `gould-australia`.
+
+**Legge (Birds of Ceylon)** - *A history of the birds of Ceylon* by **W. Vincent Legge**
+(1878-1880), plates lithographed by **John Gerrard Keulemans**, printed by **Hanhart**.
+Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via [Internet Archive](https://archive.org/details/historyofbirdsof02legg).
+Public domain. Manifest key: `legge-ceylon`.

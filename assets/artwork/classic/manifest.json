@@ -19,6 +19,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeISparrow_Hawk.jpg"
   },
+  "birds/acridotheres-tristis.webp": {
+    "source": "legge-ceylon",
+    "url": "https://archive.org/stream/historyofbirdsof02legg#page/n59/mode/1up"
+  },
   "birds/acrocephalus-arundinaceus-2.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIGreat_Sedge_Warbler.jpg"
@@ -1283,6 +1287,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVDomestic_Swan.jpg"
   },
+  "birds/dacelo-novaeguineae.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48200560"
+  },
   "birds/delichon-urbicum-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00195.jpg"
@@ -2219,6 +2227,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVBlack_Grouse.jpg"
   },
+  "birds/malurus-cyaneus.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48285751"
+  },
   "birds/mareca-penelope-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00278.jpg"
@@ -2542,6 +2554,10 @@
   "birds/oriolus-oriolus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIGolden_Oriole.jpg"
+  },
+  "birds/oriolus-sagittatus.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48702814"
   },
   "birds/otus-scops.webp": {
     "source": "gould",
@@ -3527,6 +3543,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Ferruginous_Thrush,_1831,_NGA_32257.jpg"
   },
+  "birds/trichoglossus-moluccanus.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48401122"
+  },
   "birds/tringa-erythropus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00323.jpg"
@@ -3714,6 +3734,10 @@
   "birds/xenus-cinereus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVTerek_Godwit.jpg"
+  },
+  "birds/zanda-funerea.webp": {
+    "source": "gould-australia",
+    "url": "https://www.gutenberg.org/files/62524/62524-h/62524-h.htm#FUNEREUS"
   },
   "birds/zapornia-parva-2.webp": {
     "source": "vonwright",
