@@ -16,6 +16,10 @@
   button.on { background:var(--accent); color:#1d1d1d; border-color:var(--accent); }
   button.ok.on { background:var(--ok); border-color:var(--ok); }
   button.bad.on { background:var(--bad); border-color:var(--bad); }
+  button[data-key] { display:inline-flex; align-items:center; gap:7px; }
+  .key { font-size:11px; line-height:1; color:var(--dim); opacity:.75; }
+  button:hover .key { color:var(--ink); }
+  button.on .key { color:#1d1d1d; opacity:.6; }
   .spacer { flex:1; }
   main { display:grid; grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr); gap:16px; padding:16px; }
   @media (max-width: 1100px) { main { grid-template-columns:1fr; } }
@@ -62,11 +66,11 @@
 <header>
   <h1>Plate review</h1>
   <span class="count" id="count"></span>
-  <button id="prev">&larr; Prev</button>
-  <button id="next">Next &rarr;</button>
+  <button data-key="k" id="prev"><span class="lab">&larr; Prev</span></button>
+  <button data-key="j" id="next"><span class="lab">Next &rarr;</span></button>
   <span class="spacer"></span>
   <span class="count" id="tally"></span>
-  <button id="copy">Copy review notes</button>
+  <button data-key="c" id="copy"><span class="lab">Copy review notes</span></button>
 </header>
 <main>
   <section>
@@ -78,26 +82,26 @@
       <div class="birdbox" id="birdbox"></div>
     </div>
     <div class="controls">
-      <button id="play" class="on">Toggle &#9208;</button>
-      <button data-mode="scan">1 Scan</button>
-      <button data-mode="plate">2 Plate</button>
-      <button data-mode="flags">3 Flags</button>
-      <button data-mode="diff">4 Diff</button>
+      <button data-key=" " id="play" class="on"><span class="lab">Toggle &#9208;</span></button>
+      <button data-key="1" data-mode="scan"><span class="lab">Scan</span></button>
+      <button data-key="2" data-mode="plate"><span class="lab">Plate</span></button>
+      <button data-key="3" data-mode="flags"><span class="lab">Flags</span></button>
+      <button data-key="4" data-mode="diff"><span class="lab">Diff</span></button>
       <label>Speed <input type="range" id="speed" min="300" max="2500" step="100" value="1100" style="direction:rtl"></label>
       <label><input type="checkbox" id="showmarks" checked> zoom boxes</label>
       <label title="How dark a scan pixel must be to count as drawn on rather than page">
         Ink <input type="range" id="thresh" min="4" max="80" step="1" value="14"><b id="threshval">14</b></label>
     </div>
     <div class="verdict">
-      <button class="ok" id="pass">Pass</button>
-      <button class="bad" id="fail">Needs work</button>
+      <button data-key="p" class="ok" id="pass"><span class="lab">Pass</span></button>
+      <button data-key="f" class="bad" id="fail"><span class="lab">Needs work</span></button>
       <textarea id="note" placeholder="What is wrong, and where. Saved in this browser."></textarea>
     </div>
     <div class="facts" id="facts"></div>
   </section>
   <section class="zooms" id="zooms"></section>
 </main>
-<div class="help"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> birds &nbsp; <kbd>space</kbd> start or stop the toggle &nbsp; <kbd>1</kbd> scan &nbsp; <kbd>2</kbd> plate &nbsp; <kbd>3</kbd> suspect pixels &nbsp; <kbd>4</kbd> what the cut did &nbsp; <kbd>b</kbd> bird box &nbsp; <kbd>p</kbd> pass &nbsp; <kbd>f</kbd> needs work &nbsp; Hover the big image to steer the loupe.</div>
+<div class="help"><kbd>b</kbd> bird box &nbsp; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> also step birds &nbsp; Hover the big image to steer the loupe.</div>
 <nav class="strip" id="strip"></nav>
 <script src="birds.js"></script>
 <script>
@@ -179,7 +183,7 @@ function play(on) {
   playing = on; clearInterval(timer);
   if (on) timer = setInterval(tick, +$("speed").value);
   $("play").classList.toggle("on", on);
-  $("play").innerHTML = on ? "Toggle &#9208;" : "Toggle &#9654;";
+  $("play").querySelector(".lab").innerHTML = on ? "Toggle &#9208;" : "Toggle &#9654;";
   setMode(mode);
 }
 function place(box, x, y, w) {            // show plate px (x, y, w wide) in a zoom box
@@ -261,31 +265,38 @@ $("stage").addEventListener("mousemove", e => {
   loupe = { x: (e.clientX - r.left) / r.width * b.w - 100, y: (e.clientY - r.top) / r.height * b.h - 75 };
   place($("zooms").firstChild, loupe.x, loupe.y, 200);
 });
-$("prev").onclick = () => show(at - 1); $("next").onclick = () => show(at + 1);
-$("play").onclick = () => play(!playing);
 $("speed").oninput = () => play(playing);
 $("showmarks").onchange = e => document.body.classList.toggle("hide-marks", !e.target.checked);
 function toggleBox() { document.body.classList.toggle("hide-box"); }
+function copyNotes() {
+  const lines = BIRDS.map(b => { const s = store.get(b.id); return `${s.verdict === "pass" ? "PASS" : s.verdict === "fail" ? "NEEDS WORK" : "not reviewed"} | ${b.file} (PR #${b.pr})${s.note ? " | " + s.note.replace(/\s+/g, " ") : ""}`; });
+  const lab = $("copy").querySelector(".lab");
+  navigator.clipboard.writeText(lines.join("\n")).then(() => lab.textContent = "Copied", () => prompt("Copy these notes:", lines.join("\n")));
+  setTimeout(() => lab.textContent = "Copy review notes", 1500);
+}
+// Every button carries its key, and the key is what runs: one table, so the chip on the
+// button and the shortcut cannot drift apart.
+const keys = {
+  j: () => show(at + 1), ArrowRight: () => show(at + 1),
+  k: () => show(at - 1), ArrowLeft: () => show(at - 1),
+  " ": () => play(!playing),
+  1: () => { play(false); setMode("scan"); }, 2: () => { play(false); setMode("plate"); },
+  3: () => { play(false); setMode("flags"); }, 4: () => { play(false); setMode("diff"); },
+  b: toggleBox, c: copyNotes, p: () => verdict("pass"), f: () => verdict("fail"),
+};
+for (const button of document.querySelectorAll("[data-key]")) {
+  const key = button.dataset.key;
+  button.insertAdjacentHTML("beforeend", `<span class="key">${key === " " ? "space" : key}</span>`);
+  button.onclick = () => { keys[key](); button.blur(); };
+}
 $("thresh").oninput = () => { $("threshval").textContent = $("thresh").value; diffPending = true; paintDiff(); };
 // the layers load asynchronously, so the diff waits for both rather than drawing a blank
 for (const l of ["scan", "plate"]) $("i-" + l).addEventListener("load", () => { diffPending = true; if (mode === "diff") paintDiff(); });
-document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { play(false); setMode(b.dataset.mode); });
-$("pass").onclick = () => verdict("pass"); $("fail").onclick = () => verdict("fail");
 $("note").oninput = e => { const b = BIRDS[at], s = store.get(b.id); s.note = e.target.value; store.set(b.id, s); };
-$("copy").onclick = async () => {
-  const lines = BIRDS.map(b => { const s = store.get(b.id); return `${s.verdict === "pass" ? "PASS" : s.verdict === "fail" ? "NEEDS WORK" : "not reviewed"} | ${b.file} (PR #${b.pr})${s.note ? " | " + s.note.replace(/\s+/g, " ") : ""}`; });
-  try { await navigator.clipboard.writeText(lines.join("\n")); $("copy").textContent = "Copied"; } catch { prompt("Copy these notes:", lines.join("\n")); }
-  setTimeout(() => $("copy").textContent = "Copy review notes", 1500);
-};
 addEventListener("keydown", e => {
-  if (e.target.tagName === "TEXTAREA") return;
-  if (e.key === "ArrowRight") show(at + 1); else if (e.key === "ArrowLeft") show(at - 1);
-  else if (e.key === " ") { e.preventDefault(); play(!playing); }
-  else if (e.key === "1") { play(false); setMode("scan"); } else if (e.key === "2") { play(false); setMode("plate"); }
-  else if (e.key === "3") { play(false); setMode("flags"); }
-  else if (e.key === "4") { play(false); setMode("diff"); }
-  else if (e.key === "b") toggleBox();
-  else if (e.key === "p") verdict("pass"); else if (e.key === "f") verdict("fail");
+  if (e.target.tagName === "TEXTAREA" || e.metaKey || e.ctrlKey || !keys[e.key]) return;
+  e.preventDefault();
+  keys[e.key]();
 });
 addEventListener("resize", layout);
 if (BIRDS.length) { show(0); play(true); }
