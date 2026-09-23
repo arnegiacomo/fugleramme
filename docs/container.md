@@ -61,6 +61,8 @@ Every setting on the admin page can be seeded with `FUGLERAMME_<NAME>`:
       FUGLERAMME_DETECTOR_USERNAME: birdnet-client   # only if you changed BirdNET-Go's client id
       FUGLERAMME_MODE: collage                       # collage | latest | arrival
       FUGLERAMME_WEB_RESOLUTION: 1080p               # 720p | 1080p | 1440p | 4K
+      FUGLERAMME_WEB_ASPECT: "4:3"                   # 16:9 | 16:10 | 4:3 | 3:2
+      FUGLERAMME_WEB_PORTRAIT: "false"
       FUGLERAMME_ROTATION: 0                         # 0 | 90 | 180 | 270
       FUGLERAMME_LOOKBACK_HOURS: 24                  # 0.25 … 720, or 0 for all time
       FUGLERAMME_REFRESH_MINUTES: 0                  # 0 | 5 | 10 | 15 | 30 | 60

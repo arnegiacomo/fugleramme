@@ -93,7 +93,7 @@ the capsule drowns out everything else).
 - **Other boards.** A **Pi 4** and a **Pi Zero 2 W** both work - people are running them, the Zero just renders more slowly. A **Pi 5 with 1 GB** should be plenty for a frame that isn't also classifying. (None of these are officially supported
   yet, only because I don't have units to verify on).
 - **NVMe instead of microSD** spares the card BirdNET-Go's constant writes, but the HAT/Base adds cost, height and heat for a mostly idle workload - and the drives are crazy expensive right now.
-- **Other Inky displays** work, you just lose resolution and size. Alternatively skip the panel: the frame serves the same view as a web kiosk, over HDMI or headless - see [Screens](screens.md).
+- **Other Inky displays** work, you just lose resolution and size. Alternatively skip the panel: the frame serves the same page as a web kiosk, on a TV, over HDMI or headless - see [Screens](screens.md).
 
 ## Enclosure/Frame
 
