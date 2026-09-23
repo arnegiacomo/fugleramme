@@ -79,6 +79,10 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 
 **Fuertes** - *Birds of New York, Parts 1 & 2* by **Elon Howard Eaton** (New York State Museum, Memoir 12; Albany: University of the State of New York, 1910-1914), color plates painted by **Louis Agassiz Fuertes**, Internet Archive scans from the Commons category [Birds of New York (Eaton)](https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)).  Public domain (PD-scan / PD-old-70-expired). Manifest key: `fuertes`.
 
+**Seton** - *Bird-Life: A Guide to the Study of Our Common Birds* by **Frank M. Chapman** (1897-1899), plates by **Ernest Thompson Seton** (born Thompson; also credited as Ernest Seton Thompson), Appleton / Biodiversity Heritage Library scans on Wikimedia Commons (e.g. [Bird-Life plates](https://commons.wikimedia.org/wiki/Category:Bird-Life)). Public domain in the US (published before 1930; Seton died 1946). Manifest key: `seton`.
+
+**Ann Lee** - bird and plant watercolours by **Ann Lee** (1753-1790), from the **Royal Albert Memorial Museum & Art Gallery** (Exeter) collection on Wikimedia Commons. Public domain (PD-old); RAMM releases the digitizations under CC0. Manifest key: `annlee`.
+
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
 **Cassin** - *Illustrations of the Birds of California, Texas, Oregon, British and Russian America* by **John Cassin** (Philadelphia: J. B. Lippincott & Co., 1862), plates drawn by **George G. White**, put on stone by **William E. Hitchcock**, lithographed, printed and colored by **J. T. Bowen**, Biodiversity Heritage Library scans from the Commons category [Illustrations of the birds of California, Texas, Oregon, British and Russian America](https://commons.wikimedia.org/wiki/Category:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America). Public domain (PD-scan / PD-old-70-expired). Manifest key: `cassin`.
@@ -100,3 +104,4 @@ Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via
 Public domain. Manifest key: `legge-ceylon`.
 
 **Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
+

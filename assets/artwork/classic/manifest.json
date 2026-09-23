@@ -827,6 +827,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00019.jpg"
   },
+  "birds/cathartes-aura-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Californian_Turkey_Vulture.png"
+  },
   "birds/cathartes-aura.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/turkey-buzzard"
@@ -2471,6 +2475,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISpotted_Flycatcher.jpg"
   },
+  "birds/myiarchus-crinitus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:129_Great_Crested_Flycatcher.jpg"
+  },
   "birds/myiopsitta-monachus.webp": {
     "source": "greene",
     "url": "https://commons.wikimedia.org/wiki/File:Parrots_in_captivity_(Vol._3._PL._07)_Quaker_Grey_Breasted_or_Monte_Video_Parrakeet_(8527254257).jpg"
@@ -2618,6 +2626,10 @@
   "birds/passerina-caerulea.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Blue_Song_Grosbeak._1._Male._2._Female._3._Young_(NYPL_b13559627-108463).tiff"
+  },
+  "birds/passerina-cyanea.webp": {
+    "source": "annlee",
+    "url": "https://commons.wikimedia.org/wiki/File:CARDINALIDAE_Passerina_cyanea_(Linnaeus)_indigo_bunting_-_Ann_Lee_-_107-1973-15.jpg"
   },
   "birds/pastor-roseus.webp": {
     "source": "gould",
@@ -2839,6 +2851,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISiberian_Grosbeak.jpg"
   },
+  "birds/pipilo-erythrophthalmus.webp": {
+    "source": "vieillot",
+    "url": "https://commons.wikimedia.org/wiki/File:Pipilo_erythrophthalmus_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16000275.tif"
+  },
   "birds/piranga-ludoviciana-2.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/louisiana-tanager-and-scarlet-tanager"
@@ -2942,6 +2958,10 @@
   "birds/podiceps-nigricollis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVEared_Grebe.jpg"
+  },
+  "birds/poecile-carolinensis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_America_(Pl._127)_(8569740762).jpg"
   },
   "birds/poecile-cinctus-2.webp": {
     "source": "gould",
@@ -3175,6 +3195,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
   },
+  "birds/setophaga-coronata-3.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(1907)_(14563489970).jpg"
+  },
   "birds/setophaga-coronata.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
@@ -3302,6 +3326,10 @@
   "birds/spinus-tristis.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Yellow_Bird_or_American_Goldfinch,_1828,_NGA_32174.jpg"
+  },
+  "birds/spizella-passerina.webp": {
+    "source": "seton",
+    "url": "https://commons.wikimedia.org/wiki/File:Chipping_Sparrow-Bird-Life-0097-142.png"
   },
   "birds/stercorarius-longicaudus.webp": {
     "source": "vonwright",
