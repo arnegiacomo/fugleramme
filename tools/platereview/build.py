@@ -40,6 +40,7 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 from fugleramme.render.paper import PAD, paper_texture, process_sprite
+from fugleramme.render.sizes import geometry_of
 
 Image.MAX_IMAGE_PIXELS = None
 HERE = Path(__file__).resolve().parent
@@ -107,6 +108,20 @@ def build(bird):
     f = plate.width / (x1 - x0)  # plate px per scan-crop px
     m = MARGIN / f
     W, H = plate.width + 2 * MARGIN, plate.height + 2 * MARGIN
+
+    # the bird box the frame sizes this plate by, as fractions of the canvas; a box drawn
+    # on another crop is stale and the frame ignores it, so the page says so rather than draw it
+    found = geometry_of(plate_path)
+    stale = found is not None and found.cut != plate.size
+    box = None
+    if found is not None and not stale:
+        left, top, right, bottom = found.box
+        box = [
+            round((MARGIN + left * plate.width) / W, 4),
+            round((MARGIN + top * plate.height) / H, 4),
+            round((MARGIN + right * plate.width) / W, 4),
+            round((MARGIN + bottom * plate.height) / H, 4),
+        ]
 
     # the scan, on the same canvas as the plate; white beyond the crop's own edge
     grown = Image.new("RGB", (scan.width + 400, scan.height + 400), (255, 255, 255))
@@ -192,6 +207,8 @@ def build(bird):
         "suspect": int(suspect.sum()),
         "ring": int(ring.sum()),
         "zooms": zooms,
+        "box": box,
+        "box_state": "stale" if stale else "ok" if box else "missing",
     }
 
 

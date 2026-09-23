@@ -32,6 +32,10 @@
   .marks { position:absolute; inset:0; pointer-events:none; z-index:1; }
   .marks div { position:absolute; border:1.5px solid #e9b44ccc; color:#e9b44c; font-size:11px; font-weight:700; padding:1px 3px; text-shadow:0 0 3px #000; }
   .hide-marks .marks { display:none; }
+  .birdbox { position:absolute; inset:0; pointer-events:none; z-index:1; }
+  .birdbox div { position:absolute; border:1.5px dashed var(--bad); }
+  .birdbox b { position:absolute; top:-16px; left:0; font-size:10px; font-weight:700; letter-spacing:.06em; color:var(--bad); text-shadow:0 0 3px #000; }
+  .hide-box .birdbox { display:none; }
   .controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:10px 0; }
   .controls label { color:var(--dim); display:flex; align-items:center; gap:6px; }
   .verdict { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; margin-top:6px; }
@@ -71,6 +75,7 @@
       <span class="badge" id="badge">SCAN</span>
       <img class="l-scan" id="i-scan" alt="scan crop"><img class="l-plate" id="i-plate" alt="plate on paper"><img class="l-flags" id="i-flags" alt="suspect pixels"><canvas class="l-diff" id="i-diff"></canvas>
       <div class="marks" id="marks"></div>
+      <div class="birdbox" id="birdbox"></div>
     </div>
     <div class="controls">
       <button id="play" class="on">Toggle &#9208;</button>
@@ -92,7 +97,7 @@
   </section>
   <section class="zooms" id="zooms"></section>
 </main>
-<div class="help"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> birds &nbsp; <kbd>space</kbd> start or stop the toggle &nbsp; <kbd>1</kbd> scan &nbsp; <kbd>2</kbd> plate &nbsp; <kbd>3</kbd> suspect pixels &nbsp; <kbd>4</kbd> what the cut did &nbsp; <kbd>p</kbd> pass &nbsp; <kbd>f</kbd> needs work &nbsp; Hover the big image to steer the loupe.</div>
+<div class="help"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> birds &nbsp; <kbd>space</kbd> start or stop the toggle &nbsp; <kbd>1</kbd> scan &nbsp; <kbd>2</kbd> plate &nbsp; <kbd>3</kbd> suspect pixels &nbsp; <kbd>4</kbd> what the cut did &nbsp; <kbd>b</kbd> bird box &nbsp; <kbd>p</kbd> pass &nbsp; <kbd>f</kbd> needs work &nbsp; Hover the big image to steer the loupe.</div>
 <nav class="strip" id="strip"></nav>
 <script src="birds.js"></script>
 <script>
@@ -216,11 +221,13 @@ function show(i) {
   cutIm.src = `img/${b.id}/cut.png`;
   diffURL = null; diffPending = true;
   if (mode === "diff") paintDiff();
+  $("birdbox").innerHTML = b.box ? `<div style="left:${b.box[0] * 100}%;top:${b.box[1] * 100}%;width:${(b.box[2] - b.box[0]) * 100}%;height:${(b.box[3] - b.box[1]) * 100}%"><b>BIRD</b></div>` : "";
   $("marks").innerHTML = b.zooms.map((z, n) => `<div style="left:${z[0] / b.w * 100}%;top:${z[1] / b.h * 100}%;width:${z[2] / b.w * 100}%;height:${z[3] / b.h * 100}%">${n + 1}</div>`).join("");
   $("facts").innerHTML = `Suspect pixels: <b>${b.suspect.toLocaleString()}</b>. Gaps between legs and perch count too, so read the red layer before judging.` +
     ` <span id="diffcount"></span>` +
     (b.ring ? ` <span class="warn">${b.ring} dark pixels in the soft outer edge: these print as a dotted ring on the paper, shown in magenta.</span>` : ` Outer edge clean.`) +
-    (b.match < 0.97 ? ` <span class="warn">Scan and plate line up only ${Math.round(b.match * 100)}%: the shipped file may be newer than the saved cut.</span>` : "");
+    (b.match < 0.97 ? ` <span class="warn">Scan and plate line up only ${Math.round(b.match * 100)}%: the shipped file may be newer than the saved cut.</span>` : "") +
+    (b.box_state === "ok" ? "" : b.box_state === "stale" ? ` <span class="warn">Bird box is stale: drawn on another crop, so the frame ignores it and sizes the whole file as bird.</span>` : ` <span class="warn">No bird box in geometry.json: the frame sizes the whole file as bird.</span>`);
   loupe = { x: b.w / 2 - 100, y: b.h / 2 - 75 };
   const zooms = $("zooms"); zooms.innerHTML = "";
   zooms.append(zoomBox("Loupe - hover the plate", "loupe"));
@@ -258,6 +265,7 @@ $("prev").onclick = () => show(at - 1); $("next").onclick = () => show(at + 1);
 $("play").onclick = () => play(!playing);
 $("speed").oninput = () => play(playing);
 $("showmarks").onchange = e => document.body.classList.toggle("hide-marks", !e.target.checked);
+function toggleBox() { document.body.classList.toggle("hide-box"); }
 $("thresh").oninput = () => { $("threshval").textContent = $("thresh").value; diffPending = true; paintDiff(); };
 // the layers load asynchronously, so the diff waits for both rather than drawing a blank
 for (const l of ["scan", "plate"]) $("i-" + l).addEventListener("load", () => { diffPending = true; if (mode === "diff") paintDiff(); });
@@ -276,6 +284,7 @@ addEventListener("keydown", e => {
   else if (e.key === "1") { play(false); setMode("scan"); } else if (e.key === "2") { play(false); setMode("plate"); }
   else if (e.key === "3") { play(false); setMode("flags"); }
   else if (e.key === "4") { play(false); setMode("diff"); }
+  else if (e.key === "b") toggleBox();
   else if (e.key === "p") verdict("pass"); else if (e.key === "f") verdict("fail");
 });
 addEventListener("resize", layout);
