@@ -264,7 +264,7 @@ def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: 
     one to fix rather than as all the frame can do."""
     note = f'<p class="note bad">{_fix(f"No languages: {failure}")}</p>' if failure else ""
     return (
-        f'<div class="field"><span>Species names</span>'
+        f'<div class="field" id="names"><span>Species names</span>'
         f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
         f"{note}"
         f'<label class="sub"><small>Language</small>'

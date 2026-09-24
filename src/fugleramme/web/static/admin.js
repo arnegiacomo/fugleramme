@@ -281,6 +281,11 @@ function syncMode() {
 const lock = form.querySelector("input[name=web_lock]");
 const shape = document.getElementById("web-shape");
 const syncShape = () => dim(shape, !lock.checked);
+// With names off there is no label to set a language, typeface or size for.
+const showNames = form.querySelector("input[name=show_names]");
+const syncNames = () => {
+  document.querySelectorAll("#names .sub").forEach((l) => dim(l, showNames.checked));
+};
 // The size each Resolution renders at, as settings.web_size works it out from the form.
 const sizeOf = (height) => {
   const locked = cfg.panel && lock.checked;
@@ -299,6 +304,7 @@ if (!cfg.panel) dim(form.rotation.closest("label"), false);  // nothing to turn
 form.addEventListener("input", (e) => {
   syncMode();
   syncShape();
+  syncNames();
   syncSizes();
   if (e.target === margin) return clearTimeout(timer);  // a drag renders on release only
   queueRender();
@@ -306,6 +312,7 @@ form.addEventListener("input", (e) => {
 
 syncMode();
 syncShape();
+syncNames();
 syncSizes();
 
 // Save stays disabled until a form differs from what the server served. An
