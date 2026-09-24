@@ -209,9 +209,11 @@ function loadPreview() {
   const query = serialize(form);
   if (query === shown) return;
   const id = ++seq;
-  const [w, h] = cfg.panel;
+  // The panel's page where there is one, else the web view's own shape.
+  const [w, h] = cfg.panel || form.web_aspect.value.split(":");
+  const turned = cfg.panel ? form.rotation.value % 180 : form.web_portrait.checked;
   // Turned now rather than when the render lands, so the box does not jump.
-  preview.style.setProperty("--aspect", form.rotation.value % 180 ? `${h} / ${w}` : `${w} / ${h}`);
+  preview.style.setProperty("--aspect", turned ? `${h} / ${w}` : `${w} / ${h}`);
   preview.classList.add("loading");
   caption.innerHTML = captionHTML;
   const next = new Image();  // decode off-screen, so the img is never stale or broken
@@ -275,15 +277,36 @@ function syncMode() {
   dim(ranking, on && capped);
 }
 
+// Locked to the panel, the web view has no shape of its own to pick.
+const lock = form.querySelector("input[name=web_lock]");
+const shape = document.getElementById("web-shape");
+const syncShape = () => dim(shape, !lock.checked);
+// The size each Resolution renders at, as settings.web_size works it out from the form.
+const sizeOf = (height) => {
+  const locked = cfg.panel && lock.checked;
+  const [a, b] = locked ? cfg.panel : form.web_aspect.value.split(":").map(Number);
+  const turned = locked ? form.rotation.value % 180 : form.web_portrait.checked;
+  const wide = Math.round(height * a / b);
+  return turned ? [height, wide] : [wide, height];
+};
+const syncSizes = () => {
+  for (const o of form.web_resolution.options) o.textContent = `${o.value} (${sizeOf(cfg.webHeights[o.value]).join("×")})`;
+};
+if (!cfg.panel) dim(form.rotation.closest("label"), false);  // nothing to turn
+
 // Capture, so a mode change settles which fields still submit before the shared
 // dirty check reads them - a round trip back to the saved mode is not a change.
 form.addEventListener("input", (e) => {
   syncMode();
+  syncShape();
+  syncSizes();
   if (e.target === margin) return clearTimeout(timer);  // a drag renders on release only
   queueRender();
 }, true);
 
 syncMode();
+syncShape();
+syncSizes();
 
 // Save stays disabled until a form differs from what the server served. An
 // untouched password placeholder serializes the same both times, so it needs no

@@ -268,10 +268,10 @@ def _placements(
     layout: str,
     margin: float,
 ) -> tuple[tuple[_Placed, ...], int]:
-    """Pack the page, or return the cached packing. The panel and the kiosk pack
-    identically - only `scale` and the paper differ - so whichever renders first
-    pays for both. The lock is held across the pack for the same reason: the
-    second caller should wait for the first rather than pack its own copy."""
+    """Pack the page, or return the cached packing. A kiosk locked to the panel
+    packs identically to it - only `scale` and the paper differ - so whichever
+    renders first pays for both. The lock is held across the pack for the same
+    reason: the second caller should wait for the first rather than pack its own copy."""
     with _layouts_lock:
         hit = _layouts.get(key)
         if hit is not None:

@@ -1,7 +1,7 @@
 # Screens
 
 Fugleramme serves the collage over HTTP, so it can show on more than the e-ink
-panel. Four ways, easiest first.
+panel. Five ways, easiest first.
 
 ## From another device
 
@@ -91,8 +91,9 @@ journalctl -u fugleramme-kiosk -f
 
 > [!NOTE]
 > A portrait screen is rotated by the display, not by the frame. The
-> **Rotation** setting on the admin page changes the shape of the page, and only
-> the e-ink panel turns its own pixels; for HDMI, rotate the output in
+> **Rotation** setting on the admin page changes the shape of the page, or
+> **Portrait** does with **Lock to panel** off, and only the e-ink panel turns
+> its own pixels; for HDMI, rotate the output in
 > `/boot/firmware/cmdline.txt` (e.g. `video=HDMI-A-1:1920x1080@60,rotate=90`).
 
 ## On a Samsung Frame TV
@@ -103,9 +104,46 @@ sends the collage to a Samsung Frame TV while it is in Art Mode. It runs next
 to the frame and checks for a new collage every 15 minutes. Setup is in that
 repo's README.
 
+The TV only offers its own mats when the picture is exactly its size. For
+that, turn off **Lock to panel** on the admin page and set **Resolution** to 4K
+and **Aspect** to 16:9. Set [Margin](display.md#margin) to 0 too, since the TV
+adds its own mat - margin is one setting for every screen, so an e-ink panel
+beside it loses its margin as well, and the two arrange the birds differently.
+
 ![A Samsung Frame showing a Fugleramme collage among framed artwork in a living room](assets/samsung-frame-room.jpg)
 
 ![Close-up of the collage on the Samsung Frame](assets/samsung-frame-tv.jpg)
 
 Photos by Conrad Jackson, from
 [Fugleramme for Samsung Frame TV](https://github.com/arnegiacomo/fugleramme/discussions/145).
+
+## As a desktop wallpaper and/or screensaver (MacOs)
+
+Turn off **Lock to panel** on the admin page and
+set **Resolution** and **Aspect** to match your screen, then:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/examples/wallpaper-macos.sh | sh -s -- http://<your-fugleramme-address>:8080
+```
+
+Add `--every x` after the address to fetch every x minutes (default 15).
+The five last rendered pages stay in `~/Pictures/Fugleramme`.
+
+![A MacBook with the collage as its desktop picture](assets/macos-desktop.jpg)
+
+For the screen saver, open System Settings, Screen Saver, set **Use Screen Saver** to Custom and pick **Photos** under Other. Under **Options**, choose the Fugleramme-folder as the source. The screen saver reads the folder when it starts and will shuffle between the 5 last renders.
+
+![The screen saver settings: Photos under Other, then Options, Source and Choose Folder](assets/macos-screen-saver.jpg)
+
+
+It should look something like:
+<video src="../assets/macos-screen-saver.mp4" autoplay loop muted playsinline width="360" aria-label="The screen saver crossfading from one collage to the next on a MacBook"></video>
+
+Not set fugleramme up yourself yet? Point it at a demo, `https://fugleramme.arnegiacomo.dev` or any [showcase](showcase.md) address.
+
+Run this to disable:
+```Bash
+sh examples/wallpaper-macos.sh --remove
+```
+
+![The collage on the lock screen of a MacBook](assets/macos-lock-screen.jpg)

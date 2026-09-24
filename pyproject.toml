@@ -1,6 +1,6 @@
 [project]
 name = "fugleramme"
-version = "0.24.0"
+version = "0.25.0"
 description = "E-ink bird frame: renders the latest BirdNET detection to an Inky panel and serves a stats dashboard."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -56,7 +56,7 @@ exclude_commit_patterns = ["^chore: release v"]
 
 [tool.ruff]
 line-length = 100  # what the code was already written to; 88 would rewrap a third of it
-extend-exclude = ["scripts"]  # gitignored, workstation-only
+extend-exclude = ["scripts", "tools/platereview/review*"]  # gitignored, workstation-only
 
 [tool.ruff.lint]
 extend-select = ["I", "UP", "B", "C4"]
@@ -71,6 +71,9 @@ ignore = ["BLE001", "DTZ011"]
 python_version = "3.12"
 files = ["src/fugleramme", "hooks", "tools"]
 check_untyped_defs = true
+# A built review and the per-bird scratch beside it: gitignored, and a bird's own build.py
+# would collide with the tool's by module name.
+exclude = "tools/platereview/review"
 
 [[tool.mypy.overrides]]
 module = ["inky.*", "gpiod.*", "gpiodevice.*"]  # Pi-only, no stubs

@@ -4,7 +4,7 @@ One page, two outputs (issue #1 "render once, fan out"): the web/kiosk view
 serves it full-color on request; the Inky panel gets the same page dithered to 6
 colors. The loop re-renders the panel image only when the mode's own key changes
 - see modes.py - a natural debounce for the slow e-ink refresh. The web view
-renders fresh per request, at the panel's shape and its own pixel count.
+renders fresh per request, at its own size - the panel's shape while locked to it.
 
 Panel-absent is not a special case: init_panel returns None and we skip the
 push, the same path as the preview.

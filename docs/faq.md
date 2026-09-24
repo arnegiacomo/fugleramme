@@ -10,7 +10,7 @@ Everything else runs wherever Python or Docker does - a NAS, a homelab, an old l
 
 ## Do I need the e-ink panel?
 
-No. It is what makes this look like a picture frame instead of a screen, but fugleramme serves the same image over HTTP either way - on an HDMI display straight from the Pi, or from any device on the network. See [Screens](screens.md).
+No. It is what makes this look like a picture frame instead of a screen, but fugleramme serves the same page over HTTP either way, in the shape of whatever shows it - a TV, an HDMI display straight from the Pi, any device on the network, or even your desktop wallpaper/screensaver. See [Screens](screens.md).
 
 ## Which Raspberry Pi?
 

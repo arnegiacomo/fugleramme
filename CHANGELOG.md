@@ -2,6 +2,50 @@
 
 <!-- version list -->
 
+## v0.25.0 (2026-09-23)
+
+### Chores
+
+- **assets**: #33 add 13 Idaho species from Audubon plates
+  ([#135](https://github.com/arnegiacomo/fugleramme/pull/135),
+  [`e97dc8c`](https://github.com/arnegiacomo/fugleramme/commit/e97dc8c4391f8970224526b3c666319388b86624))
+
+- **assets**: Add 5 NA birds ([#144](https://github.com/arnegiacomo/fugleramme/pull/144),
+  [`552bf79`](https://github.com/arnegiacomo/fugleramme/commit/552bf7967ce1bec335db1afec9cbd4dccdee2ad8))
+
+- **assets**: Add quiscalus quiscula ([#149](https://github.com/arnegiacomo/fugleramme/pull/149),
+  [`d781ea0`](https://github.com/arnegiacomo/fugleramme/commit/d781ea0685074c708100563f33bf50eef83658b4))
+
+- **assets**: Add six approved Australian birds
+  ([#148](https://github.com/arnegiacomo/fugleramme/pull/148),
+  [`1dcaa91`](https://github.com/arnegiacomo/fugleramme/commit/1dcaa91090e16daa6cbecbd3a9dea7592ef8f52f))
+
+### Documentation
+
+- #115 add the showcase of public frames
+  ([`5c37eac`](https://github.com/arnegiacomo/fugleramme/commit/5c37eac8ae85eadb31c7393c89cb0fe433688bbd))
+
+- #147 add the macOS wallpaper script and screens
+  ([`3b50a83`](https://github.com/arnegiacomo/fugleramme/commit/3b50a839b0f70c98d5f7c07fe3224df2e011568d))
+
+- Add a Screens page with the Samsung Frame TV sync
+  ([`dfa36e1`](https://github.com/arnegiacomo/fugleramme/commit/dfa36e1f2c605d26c15b0b91f4846f5b2e3c1e8c))
+
+- Add the GOSIM Spotlight Shenzhen 2026 callout
+  ([`c4dd4e5`](https://github.com/arnegiacomo/fugleramme/commit/c4dd4e5f8a942df4dc72f71fce0ee6a9ccfb28e5))
+
+- Point hardware links at Pimoroni through the affiliate code
+  ([`35ce259`](https://github.com/arnegiacomo/fugleramme/commit/35ce259ec9881cf3378bcde58099e74e212d1a99))
+
+- Show the showcase frames as a grid of live collages
+  ([`cef6a35`](https://github.com/arnegiacomo/fugleramme/commit/cef6a3516dd6cde53ce1b178b86dbccc2aa0554d))
+
+### Features
+
+- #147 give the web view its own shape
+  ([`bb92104`](https://github.com/arnegiacomo/fugleramme/commit/bb9210406bda9bfc9ceac09ef89d137e352f1c1b))
+
+
 ## v0.24.0 (2026-09-21)
 
 ### Chores

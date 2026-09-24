@@ -21,7 +21,7 @@ from fugleramme.web import STATIC_DIR, admin, server
 PANEL = (1600, 1200)
 
 
-def _page(tmp_path, source, names_dir=None, **overrides) -> str:
+def _page(tmp_path, source, names_dir=None, detected=True, **overrides) -> str:
     settings = Settings(**overrides)
     ctx = modes.context(
         source,
@@ -29,9 +29,9 @@ def _page(tmp_path, source, names_dir=None, **overrides) -> str:
         Picks(tmp_path / "artwork.json"),
         settings,
         namer("sci", "", tmp_path),
-        settings.web_size(PANEL),
+        settings.web_size(PANEL if detected else None),
     )
-    return admin.page(ctx, settings, Status(), PANEL, True, names_dir or tmp_path)
+    return admin.page(ctx, settings, Status(), PANEL, detected, names_dir or tmp_path)
 
 
 def _config(page: str) -> dict:
@@ -227,6 +227,46 @@ def test_the_collage_fields_render_and_a_plate_mode_save_leaves_the_layout_alone
     store = SettingsStore(tmp_path / "s.json")
     store.update(layout="voids")
     assert store.update(**admin.form_changes({"mode": ["latest"]})).layout == "voids"
+
+
+def _declared(html: str) -> list[str]:
+    return re.findall(rf'name="{admin.CHECKBOXES}" value="([^"]*)"', html)
+
+
+def test_the_resolution_names_the_size_the_kiosk_renders_locked_or_not(tmp_path, source):
+    locked = _page(tmp_path, source(), web_resolution="4K", web_aspect="16:9")
+    unlocked = _page(tmp_path, source(), web_resolution="4K", web_aspect="16:9", web_lock=False)
+    assert '<option value="4K" selected>4K (2880×2160)</option>' in locked
+    assert '<option value="4K" selected>4K (3840×2160)</option>' in unlocked
+    assert '<option value="16:9" selected>16:9</option>' in unlocked
+
+
+def test_the_kiosk_shape_switches_are_declared_so_unticking_one_is_a_change(tmp_path, source):
+    page = _page(tmp_path, source(), web_lock=True, web_portrait=True)
+    form = re.search(r'<form class="settings".*?</form>', page, re.DOTALL).group(0)
+    assert 'name="web_lock" checked' in form and 'name="web_portrait" checked' in form
+    declared = _declared(form)
+    changes = admin.form_changes({admin.CHECKBOXES: declared})
+    assert changes["web_lock"] is False and changes["web_portrait"] is False
+
+
+def test_a_dimmed_portrait_box_keeps_its_saved_value(tmp_path):
+    """Locked, admin.js disables the shape block, its declaration included, so
+    the portrait box posts nothing and is not read as unticked."""
+    store = SettingsStore(tmp_path / "s.json")
+    store.update(web_lock=False, web_portrait=True)
+    post = {admin.CHECKBOXES: ["show_names", "web_lock"], "show_names": ["on"]}
+    saved = store.update(**admin.form_changes(post))
+    assert saved.web_lock is False and saved.web_portrait is True
+
+
+def test_with_no_panel_the_lock_is_off_and_undeclared(tmp_path, source):
+    page = _page(tmp_path, source(), detected=False, web_lock=True)
+    assert '<input type="checkbox" name="web_lock" disabled>' in page
+    assert "no panel detected" in page
+    assert not any("web_lock" in value.split() for value in _declared(page))
+    assert _config(page)["panel"] is None  # the preview box takes the web view's shape
+    assert _config(page)["webHeights"]["4K"] == 2160  # the Resolution labels follow the form
 
 
 @pytest.mark.parametrize(

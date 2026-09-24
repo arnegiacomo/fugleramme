@@ -6,7 +6,7 @@ This file provides guidance to coding agents working in this repository. It is t
 
 Fugleramme is an e-ink bird frame for a Raspberry Pi 5. A USB mic feeds BirdNET-Go (BirdNET v2.4 in Docker), which classifies bird sounds; the frame reads its API and renders the recently seen birds as a collage on a Pimoroni Inky Impression (Spectra 6) panel, serving the same view over HTTP. The detector can be the container beside the frame or an install elsewhere on the network. Python managed with `uv`: Pillow + numpy for rendering, stdlib `urllib` and `http.server`, and the Pi-only `inky` driver. It runs on a Pi in production and on a workstation for development - live mic capture and the panel push are Pi-only.
 
-**The panel is the product.** The kiosk mirrors what is on the glass; it is not a second product with its own views. Detection, statistics and talking to other systems are BirdNET-Go's, which already serves a dashboard, spectrograms, live audio, MQTT and clip export on `:8090`. A feature that does not improve what hangs on the wall belongs upstream, not here.
+**The page is the product.** The e-ink panel, a browser, an HDMI screen and a TV are outputs of it, each at its own shape; none is a second product with its own views. Detection, statistics and talking to other systems are BirdNET-Go's, which already serves a dashboard, spectrograms, live audio, MQTT and clip export on `:8090`. A feature that does not improve the page belongs upstream, not here.
 
 The collage should look printed on one sheet of paper. Do not add drop shadows, glows, vignettes, or other effects that separate birds from the page.
 
@@ -32,7 +32,7 @@ One package, `src/fugleramme/`, mostly flat. Two folders earn a boundary: `web/`
 
 - **The API is the interface.** The halves meet at BirdNET-Go's `/api/v2`, never at its database, so a frame points at the container beside it or at one across the house through the same code path. `source.py` is the surface everything above sees; `api.py` is the only implementation.
 - **A transport failure raises `Unavailable`; an empty list means there were no birds.** Never collapse the two - a source returning `[]` on a timeout puts a bare perch on the glass at the first blip.
-- **Render once, fan out** (`service.py`). One loop re-renders only when its inputs change, dithers to six colours for the panel, and the kiosk serves the same page full-colour at its own pixel count. No panel means web-only.
+- **Render once, fan out** (`service.py`). One loop re-renders only when its inputs change, dithers to six colours for the panel, and the kiosk serves the same page full-colour at its own pixel count - or, unlocked from the panel, its own page at its own shape. No panel means web-only.
 - **Only birds come off the source** (`taxa.py`). A station can also classify bats, frogs and noise.
 - **A plate's size comes from a hand-drawn box** (`render/sizes.py`). Mass says how big the bird should be, `geometry.json` how much of the file is bird. Fractions mean nothing without the crop they were measured on, so every entry records it and a box outliving a re-cut is ignored rather than believed.
 - **`updates.apply` never re-runs `run.sh`.** A Pi that auto-updates keeps its old systemd unit, `detector/.env` and `settings.json`, so every default a release introduces must reproduce the previous one's behaviour. Get this wrong and working appliances break on update, the one failure nobody can recover from remotely.
@@ -93,7 +93,7 @@ Applies to docs, commit messages, code comments, and the kiosk and admin UI alik
 
 - Commit directly to `main` - single-person appliance, no branches or PRs
 - Outside issues, forks and PRs are plausible since the repo picked up public attention, so do not assume a reported bug came from Arne's own Pi. Unfamiliar hardware and "does it support <other panel / other region's birds>" are the likely inbound, and the scope statement under Project is the filter for feature requests - point at it rather than re-deriving it
-- `ci.yml` runs `uv sync --locked`, ruff format + check, mypy, pytest, and shellcheck over the two install scripts
+- `ci.yml` runs `uv sync --locked`, ruff format + check, mypy, pytest, and shellcheck over the install scripts and the wallpaper script
 - `--locked` fails on drift between `uv.lock` and `pyproject.toml`, and a stale lock is what blocks the self-update's checkout - so a version bump must re-lock
 - Machine-specific values are detected or prompted for and written to gitignored per-Pi files (`frame.env`, `detector/.env`), never hardcoded in tracked defaults. `updates.apply` checks out with `--force`, so committing a currently-ignored per-Pi path puts it in the blast radius
 

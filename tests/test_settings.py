@@ -7,10 +7,11 @@ import json
 import logging
 import os
 import stat
+from dataclasses import replace
 
 import pytest
 
-from fugleramme.config import DEFAULT_DETECTOR_URL
+from fugleramme.config import DEFAULT_DETECTOR_URL, FALLBACK_PANEL_RESOLUTION, WEB_HEIGHTS
 from fugleramme.languages import NONE, SCIENTIFIC
 from fugleramme.render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
 from fugleramme.render.packing import DEFAULT_LAYOUT
@@ -18,6 +19,7 @@ from fugleramme.settings import (
     ALL_TIME,
     LOOKBACK_OPTIONS,
     MARGIN_CEILING,
+    ROTATIONS,
     Settings,
     SettingsStore,
     from_env,
@@ -200,6 +202,46 @@ def test_rotation_turns_the_kiosk_render_without_shrinking_it():
     assert portrait == landscape[::-1] == (1080, 1440)
 
 
+def test_unlocked_the_kiosk_packs_its_own_shape_and_ignores_the_rotation():
+    """A 16:9 TV beside a 4:3 panel (#147)."""
+    tv = Settings(web_lock=False, web_aspect="16:9", web_resolution="4K", rotation=90)
+    assert tv.web_size((1600, 1200)) == (3840, 2160)
+    assert replace(tv, web_portrait=True).web_size((1600, 1200)) == (2160, 3840)
+    wide = replace(tv, web_resolution="720p", web_aspect="16:10")
+    assert wide.web_size((800, 480)) == (1152, 720)
+    photo = replace(tv, web_resolution="1080p", web_aspect="3:2")
+    assert photo.web_size((800, 480)) == (1620, 1080)
+
+
+def test_with_no_panel_the_lock_has_nothing_to_follow():
+    locked = Settings(web_lock=True, web_aspect="16:9", web_resolution="4K")
+    assert locked.web_size(None) == (3840, 2160)
+    assert locked.web_size((1600, 1200)) == (2880, 2160)
+
+
+@pytest.mark.parametrize("resolution", WEB_HEIGHTS)
+@pytest.mark.parametrize("rotation", ROTATIONS)
+def test_a_panel_less_kiosk_defaults_to_the_fallback_panel_s_page(tmp_path, resolution, rotation):
+    """An update never re-runs run.sh, so the new defaults must reproduce the
+    fallback panel's shape, turned the way the file's rotation says."""
+    path = tmp_path / "settings.json"
+    path.write_text(json.dumps({"web_resolution": resolution, "rotation": rotation}))
+    settings = SettingsStore(path).get()
+    assert settings.web_size(None) == settings.web_size(FALLBACK_PANEL_RESOLUTION)
+
+
+def test_the_kiosk_shape_settings_fall_back_and_arrive_as_form_strings(tmp_path):
+    path = tmp_path / "settings.json"
+    fresh = Settings()
+    assert (fresh.web_lock, fresh.web_aspect, fresh.web_portrait) == (True, "4:3", False)
+    saved = SettingsStore(path).update(web_lock="false", web_aspect="16:10", web_portrait="on")
+    assert (saved.web_lock, saved.web_aspect, saved.web_portrait) == (False, "16:10", True)
+    path.write_text(json.dumps({"web_aspect": "21:9", "web_lock": 3}))
+    settings = SettingsStore(path).get()
+    assert settings.web_aspect == "4:3"
+    assert settings.web_lock is True
+
+
 def test_all_time_is_a_lookback_the_admin_offers(tmp_path):
     assert (ALL_TIME, "All time") in LOOKBACK_OPTIONS
     path = tmp_path / "settings.json"
@@ -296,7 +338,11 @@ def test_the_environment_seeds_every_field_of_settings(monkeypatch):
     monkeypatch.setenv("FUGLERAMME_SHOW_NAMES", "false")
     monkeypatch.setenv("FUGLERAMME_LOOKBACK_HOURS", "0.5")
     monkeypatch.setenv("FUGLERAMME_DETECTOR_URL", "http://birdnet.local:8080/")
+    monkeypatch.setenv("FUGLERAMME_WEB_LOCK", "false")
+    monkeypatch.setenv("FUGLERAMME_WEB_ASPECT", "16:9")
+    monkeypatch.setenv("FUGLERAMME_WEB_PORTRAIT", "true")
     seeded = from_env()
+    assert (seeded.web_lock, seeded.web_aspect, seeded.web_portrait) == (False, "16:9", True)
     assert seeded.style == "classic"
     assert seeded.rotation == 90
     assert seeded.show_names is False
@@ -321,6 +367,18 @@ def test_the_environment_is_a_seed_and_the_saved_file_still_wins(tmp_path, monke
 
     path.write_text(json.dumps({"style": "custom"}))
     assert SettingsStore(path, from_env()).get().style == "custom"
+
+
+def test_a_seeded_rotation_never_turns_a_page_the_file_holds_flat(tmp_path, monkeypatch):
+    """A container seeded with FUGLERAMME_ROTATION=90 whose admin later saved 0:
+    the file's rotation decides the portrait default, not the seed's."""
+    monkeypatch.setenv("FUGLERAMME_ROTATION", "90")
+    path = tmp_path / "s.json"
+    assert SettingsStore(path, from_env()).get().web_size(None) == (1080, 1440)
+    path.write_text(json.dumps({"rotation": 0}))
+    assert SettingsStore(path, from_env()).get().web_size(None) == (1440, 1080)
+    path.write_text(json.dumps({"rotation": 45}))  # not a quarter turn: the seed's 90 stands
+    assert SettingsStore(path, from_env()).get().web_size(None) == (1080, 1440)
 
 
 def test_the_session_secret_is_not_seeded_from_the_environment(monkeypatch):

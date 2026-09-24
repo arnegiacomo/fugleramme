@@ -4,10 +4,10 @@ The frame service owns the panel and treats it as optional: if the Inky library
 or the physical device is absent (as off-Pi), we log a warning and return
 None so the caller runs web-only.
 
-The attached panel's own resolution is authoritative for both renders: the admin
-setting only picks how many pixels the kiosk gets, never its shape. The render
-is sized as the viewer sees it, so `push` turns it back into the panel's native
-landscape, which is the only buffer the driver accepts.
+The attached panel's own resolution is authoritative for its render, and for the
+kiosk's shape while the kiosk is locked to the panel. The render is sized as the
+viewer sees it, so `push` turns it back into the panel's native landscape, which
+is the only buffer the driver accepts.
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ class Panel:
 
 
 def resolution_of(panel: Panel | None) -> tuple[int, int]:
-    """The shape every render is laid out for, kiosk included."""
+    """The shape the panel's page is laid out for."""
     return panel.resolution if panel else FALLBACK_PANEL_RESOLUTION
 
 

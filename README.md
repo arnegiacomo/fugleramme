@@ -1,5 +1,5 @@
 # fugleramme
-E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully local AI, rendered as real, hand-cut 1800s bird illustrations.
+Bird frame for Raspberry Pi - real-time bird detection by audio, fully local AI, rendered as real, hand-cut 1800s bird illustrations. On an e-ink panel, a TV, or any screen.
 
 <p align="center">
   <img src="docs/assets/hero.jpg" width="520"
@@ -37,15 +37,16 @@ Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://ar
 [BirdNET-Go](https://github.com/tphakala/birdnet-go) listens on a mic and handles the
 classifier. Fugleramme polls its api, matches each species to
 an illustration, then packs them onto a page, and redraws only when the birds change - on
-an [Inky Impression](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression) e-ink panel, and
-as a web kiosk serving the same view. There's an admin page that lets you configure what
+an [Inky Impression](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression) e-ink panel,
+or on any screen. There's an admin page that lets you configure what
 to show, and automatic updates and such.
 
 If you already run BirdNET-Go, point the frame at it instead - on the same machine or anywhere else reachable from your network.
 
 > [!TIP]
-> The e-ink panel is not required, although it's recommended for the intended experience. Without one, Fugleramme runs web-only - show the
-> kiosk on a display over HDMI, or open it from any device on the network.
+> The e-ink panel is what makes it a picture frame, but it isn't required. Without one, Fugleramme runs web-only
+> and the page takes the shape of whatever shows it - a TV, an HDMI display, any device on the network, or even your
+> desktop wallpaper/screensaver. See [Screens](docs/screens.md).
 
 ## Hardware
 

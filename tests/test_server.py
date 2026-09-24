@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import io
 import json
 import logging
 import re
@@ -13,6 +14,7 @@ import time
 import urllib.parse
 import urllib.request
 from http.server import ThreadingHTTPServer
+from types import SimpleNamespace
 
 import pytest
 from PIL import Image
@@ -28,7 +30,7 @@ SETTINGS = "s.json"
 PASSWORD = "wren-house"
 
 
-def _serve(tmp_path, source, store=None):
+def _serve(tmp_path, source, store=None, panel=None):
     """A served frame with artwork for two of the fake's species."""
     style = tmp_path / "images" / "classic"
     (style / "birds").mkdir(parents=True)
@@ -40,7 +42,7 @@ def _serve(tmp_path, source, store=None):
         tmp_path / "images",
         store or SettingsStore(tmp_path / SETTINGS),
         Picks(tmp_path / "artwork.json"),
-        None,
+        panel,
         Status(),
     )
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -194,6 +196,28 @@ def test_the_preview_reads_an_unsaved_form_without_saving_it(frame, tmp_path):
 
     _fetch(frame + "/preview.png?mode=latest&rotation=90")
     assert not (tmp_path / SETTINGS).exists()  # only a POST may write
+
+
+def _size(body: bytes) -> tuple[int, int]:
+    return Image.open(io.BytesIO(body)).size
+
+
+def test_the_preview_shows_the_panel_s_page_and_the_kiosk_its_own(tmp_path, source):
+    """Unlocked, the two pages differ (#147); the admin previews what is on the
+    glass, in the panel's shape at the web height."""
+    store = SettingsStore(
+        tmp_path / SETTINGS, Settings(web_lock=False, web_aspect="16:9", web_resolution="720p")
+    )
+    panel = SimpleNamespace(resolution=(800, 480))
+    for base in _serve(tmp_path, source(count=40, seed=0), store=store, panel=panel):
+        assert _size(_fetch(base + "/collage.png")[2]) == (1280, 720)
+        assert _size(_fetch(base + "/preview.png")[2]) == (1200, 720)
+        assert _size(_fetch(base + "/preview.png?rotation=90")[2]) == (720, 1200)
+
+
+def test_with_no_panel_the_preview_is_the_kiosk_s_page(frame):
+    assert _size(_fetch(frame + "/preview.png")[2]) == _size(_fetch(frame + "/collage.png")[2])
+    assert _size(_fetch(frame + "/preview.png?web_aspect=16:9")[2]) == (1920, 1080)
 
 
 def test_the_species_listing_marks_what_the_collage_cannot_draw(frame):

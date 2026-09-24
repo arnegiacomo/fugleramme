@@ -2,7 +2,8 @@
 
 Two modes:
   --preview OUT.png   render the page once and exit (no server, no push). It
-                      still reads the panel's size, which shapes the page.
+                      still reads the panel's size: it is the panel's page,
+                      as the admin preview shows it.
   (default)           run the service: render loop + HTTP server, pushing to
                       the Inky panel if one is present.
 """
@@ -10,6 +11,7 @@ Two modes:
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 from pathlib import Path
 
 from . import modes
@@ -21,7 +23,7 @@ from .config import (
     Config,
 )
 from .languages import namer
-from .panel import init_panel, resolution_of
+from .panel import init_panel
 from .picks import FILENAME as PICKS_FILE, Picks
 from .service import detector, run
 from .source import Unavailable
@@ -68,6 +70,7 @@ def main(argv: list[str] | None = None) -> None:
     if args.preview:
         store, source = detector(config)
         settings = store.get()
+        panel = init_panel()
         data_dir = config.config_path.parent
         name_of = namer(settings.primary_language, settings.secondary_language, data_dir)
         ctx = modes.context(
@@ -76,7 +79,7 @@ def main(argv: list[str] | None = None) -> None:
             Picks(data_dir / PICKS_FILE),
             settings,
             name_of,
-            settings.web_size(resolution_of(init_panel())),
+            replace(settings, web_lock=True).web_size(panel.resolution if panel else None),
         )
         try:
             page = modes.render(ctx)
