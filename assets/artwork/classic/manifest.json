@@ -355,6 +355,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Aquila_Imperialis_by_John_Gould.jpg"
   },
+  "birds/archilochus-colubris.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(18431069441).jpg"
+  },
   "birds/ardea-alba.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVGreat_Egret.jpg"
@@ -1367,6 +1371,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIGreat_Black_Woodpecker.jpg"
   },
+  "birds/dryocopus-pileatus.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(18243151539).jpg"
+  },
   "birds/dumetella-carolinensis.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-128-cat-bird.jpg"
@@ -2086,6 +2094,10 @@
   "birds/leucogeranus-leucogeranus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVWhite_Crane.jpg"
+  },
+  "birds/leuconotopicus-villosus.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(18241494868).jpg"
   },
   "birds/limosa-lapponica-2.webp": {
     "source": "vonwright-rawpixel",
