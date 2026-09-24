@@ -48,7 +48,9 @@ Manifest key: `dresser`.
 *Onze vogels in huis en tuin* (1869-1876), from the Commons category
 [Onze vogels in huis en tuin](https://commons.wikimedia.org/wiki/Category:Onze_vogels_in_huis_en_tuin)
 and the Internet Archive; the *Proceedings of the Zoological Society of London*
-(1871); and the *Catalogue of the Birds in the British Museum*, vol. 5 (1881).
+(1871); the *Catalogue of the Birds in the British Museum*, vol. 5 (1881); and
+*A monograph of the Capitonidæ, or scansorial barbets* by **C. H. T. Marshall** and
+**G. F. L. Marshall** (1871).
 Public domain (PD-old-70-expired; Keulemans died 1912); the *Onze vogels* scans held
 by the Biodiversity Heritage Library are additionally offered under CC BY 2.0.
 Manifest key: `keulemans`.

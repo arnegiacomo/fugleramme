@@ -199,6 +199,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVCommon_Wild_Duck.jpg"
   },
+  "birds/andropadus-importunus.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Andropadus_importunus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16400045.tif"
+  },
   "birds/anous-stolidus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVNoddy_Tern.jpg"
@@ -618,6 +622,10 @@
   "birds/bulweria-bulwerii.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBulwers_Petrel.jpg"
+  },
+  "birds/burhinus-capensis.webp": {
+    "source": "finchdavies",
+    "url": "https://commons.wikimedia.org/wiki/File:OedicnemusCapensisDavies.jpg"
   },
   "birds/burhinus-oedicnemus-2.webp": {
     "source": "vonwright",
@@ -1063,6 +1071,10 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-37-golden-winged-woodpecker.jpg"
   },
+  "birds/colius-striatus.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Colius_striatus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ19300017.tif"
+  },
   "birds/coloeus-monedula-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00244.jpg"
@@ -1074,6 +1086,10 @@
   "birds/coloeus-monedula.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14752000105).jpg"
+  },
+  "birds/columba-guinea.webp": {
+    "source": "finchdavies",
+    "url": "https://commons.wikimedia.org/wiki/File:ColumbaPhaeonotaDavies.jpg"
   },
   "birds/columba-livia.webp": {
     "source": "gould",
@@ -2191,6 +2207,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIBlue-throated_Warbler.jpg"
   },
+  "birds/lybius-torquatus.webp": {
+    "source": "keulemans",
+    "url": "https://commons.wikimedia.org/wiki/File:A_monograph_of_the_Capitonid%C3%A6,_or_scansorial_barbets_(Pl._(X))_BHL47772537.jpg"
+  },
   "birds/lymnocryptes-minimus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00127.jpg"
@@ -3027,6 +3047,10 @@
     "source": "keulemans",
     "url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Keulemans_Onze_vogels_3_09.jpg"
   },
+  "birds/pternistis-swainsonii.webp": {
+    "source": "finchdavies",
+    "url": "https://commons.wikimedia.org/wiki/File:PternistesSwainsoniDavies.jpg"
+  },
   "birds/pterocles-alchata.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVPin-tailed_Sand_Grouse.jpg"
@@ -3562,6 +3586,10 @@
   "birds/toxostoma-rufum.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Ferruginous_Thrush,_1831,_NGA_32257.jpg"
+  },
+  "birds/trachyphonus-vaillantii.webp": {
+    "source": "keulemans",
+    "url": "https://commons.wikimedia.org/wiki/File:A_monograph_of_the_Capitonid%C3%A6,_or_scansorial_barbets_(Pl._(LVI))_BHL47772841.jpg"
   },
   "birds/trichoglossus-moluccanus.webp": {
     "source": "gould-australia",
