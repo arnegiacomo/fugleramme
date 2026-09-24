@@ -144,6 +144,29 @@ being counted against you. That usually happens behind a reverse proxy, where ev
 visitor has the proxy's address (same as you). Tick **The frame is behind a reverse proxy**
 under [Security → Admin access](operations.md#behind-a-reverse-proxy).
 
+## Frame won't start after an update
+
+The detector (BirdNET-Go) keeps running, but the page is gone and
+`journalctl -u fugleramme-frame -n 20` shows something like:
+
+```
+error: Failed to read metadata from: `.../fugleramme-<version>.dist-info`
+  cause: EOF while parsing a value at line 1 column 0
+```
+
+A file in the Python environment was likely left empty during the update.
+Try to rebuild the environment:
+
+```bash
+ssh <user>@<host>.local
+cd ~/fugleramme
+rm -rf .venv
+uv sync --extra panel
+sudo systemctl restart fugleramme-frame
+```
+
+If this happens to you, please open a [bug report](https://github.com/arnegiacomo/fugleramme/issues/new/choose) - the cause isn't known yet.
+
 ## Panel stays blank
 
 ```bash
