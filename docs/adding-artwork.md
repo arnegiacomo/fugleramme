@@ -47,6 +47,10 @@ Use **Image > Flatten Image** first.
 6. Use **Select > Deselect**, then **Image > Flatten Image**.
 7. Export as PNG and tick **Store alpha channel**.
 
+### Or try to let an agent cut it
+
+If you use Claude Code, the repo ships a `plate-review` skill that does the cutting and the halo from a small spec, then opens a review page where you can compare it to the original and come with feedback. Type `/plate-review` in the repo and give it the scan url. See `tools/platereview/`. Contributed by [erendrake](https://github.com/erendrake).
+
 ## Add the bird to a style
 
 Use the artwork tool to give a finished cut-out a BirdNET-compatible filename,
@@ -107,6 +111,16 @@ Named plates and `--only` both take filenames or paths, so anything that prints 
 
 Finding the bird runs an object detector on your own machine. The first run downloads PyTorch and the model's weights (~2 GB). You will be prompted before download.
 `--no-detect` skips it and just selects the whole plate, `--no-box` skips the editor. A plate nobody boxes falls back to the whole image.
+
+## Preview renders
+
+To preview your assets in a collage, on the web and dithered on the panel:
+
+```bash
+uv run python tools/preview_plates.py /tmp/preview assets/artwork/classic/birds/strix-aluco.webp
+```
+
+Creates `web.png` and `panel.png` in the target folder. (Also automatically generated on PRs)
 
 ## Tips
 

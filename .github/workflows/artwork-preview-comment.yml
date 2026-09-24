@@ -1,0 +1,76 @@
+# Comments `artwork-preview.yml`'s renders on the PR; images live on the `artwork-previews` branch.
+# The artifact is untrusted (a fork can edit its workflow), so its PR number must match the head.
+name: artwork preview comment
+
+on:
+  workflow_run:
+    workflows: [artwork preview]
+    types: [completed]
+
+permissions:
+  actions: read  # the other run's artifact
+  contents: write  # the images branch
+  pull-requests: write
+
+concurrency:
+  group: artwork-previews  # one push to the branch at a time
+
+env:
+  BRANCH: artwork-previews
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+
+jobs:
+  comment:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: artwork-preview
+          path: preview
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check the PR
+        id: pr
+        run: |
+          pr=$(cat preview/pr)
+          [[ "$pr" =~ ^[0-9]+$ ]] || { echo "Not a PR number: $pr"; exit 1; }
+          head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$pr" --jq .head.sha)
+          [ "$head" = "$HEAD_SHA" ] || { echo "PR #$pr is at $head, not $HEAD_SHA"; exit 1; }
+          echo "number=$pr" >> "$GITHUB_OUTPUT"
+      - name: Commit the images
+        if: hashFiles('preview/web.png') != ''
+        id: push
+        env:
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          url="https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+          if git ls-remote --exit-code "$url" "refs/heads/$BRANCH" > /dev/null; then
+            git clone -q --depth 1 --branch "$BRANCH" "$url" site
+          else
+            git init -q -b "$BRANCH" site
+            git -C site remote add origin "$url"
+          fi
+          mkdir -p "site/pr-$PR"
+          cp preview/web.png preview/panel.png "site/pr-$PR/"
+          cd site
+          git add .
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "PR #$PR at ${HEAD_SHA::7}"
+          git push -q origin "HEAD:$BRANCH"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Comment
+        if: steps.push.outputs.sha
+        env:
+          PR: ${{ steps.pr.outputs.number }}
+          RAW: https://raw.githubusercontent.com/${{ github.repository }}/${{ steps.push.outputs.sha }}/pr-${{ steps.pr.outputs.number }}
+        run: |
+          cat > body.md <<EOF
+          Preview of ${HEAD_SHA::7}
+
+          ![Web]($RAW/web.png)
+          ![Panel]($RAW/panel.png)
+          EOF
+          gh pr comment "$PR" -R "$GITHUB_REPOSITORY" --body-file body.md --edit-last --create-if-none

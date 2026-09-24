@@ -21,8 +21,7 @@
   <form class="settings" method="post" action="/admin">
     <input type="hidden" name="$checkboxes" value="show_names">
     $mode_field
-    <label><span>Resolution <span class="hint" tabindex="0" role="img" aria-label="Web view only"></span></span>
-      <select name="web_resolution">$resolutions</select></label>
+    $web_field
     <label><span>Rotation <span class="hint" tabindex="0" role="img" aria-label="How the frame hangs"></span></span>
       <select name="rotation">$rotations</select></label>
     <label><span>Margin <small id="margin-value">$margin%</small> <span class="hint" tabindex="0" role="img" aria-label="Space kept clear at the edges, for a mat that overlaps the panel"></span></span>

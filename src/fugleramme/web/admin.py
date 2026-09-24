@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 
 from .. import __version__, modes, updates
 from ..api import probe
-from ..config import BIRDNET_PORT, DOCS_URL, WEB_HEIGHTS
+from ..config import BIRDNET_PORT, DOCS_URL, WEB_ASPECTS, WEB_HEIGHTS
 from ..languages import NONE, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, origin_of, source_of
@@ -62,7 +62,8 @@ def form_changes(form: dict[str, list[str]]) -> dict:
     the System form, which has no `show_names`, would read as switching names
     off. settings._coerce validates the rest."""
     changes: dict[str, str | bool | int] = {k: v[0] for k, v in form.items() if k != CHECKBOXES}
-    for field in form.get(CHECKBOXES, [""])[0].split():
+    # Each block declares its own boxes: a dimmed block posts neither.
+    for field in " ".join(form.get(CHECKBOXES, [])).split():
         changes[field] = field in form
     if changes.pop("limit_mode", None) == "all":
         changes["species_limit"] = NO_LIMIT  # the box is disabled, so it posts nothing
@@ -263,7 +264,7 @@ def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: 
     one to fix rather than as all the frame can do."""
     note = f'<p class="note bad">{_fix(f"No languages: {failure}")}</p>' if failure else ""
     return (
-        f'<div class="field"><span>Species names</span>'
+        f'<div class="field" id="names"><span>Species names</span>'
         f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
         f"{note}"
         f'<label class="sub"><small>Language</small>'
@@ -419,6 +420,42 @@ def _hint(text: str) -> str:
     return f'<span class="hint" tabindex="0" role="img" aria-label="{note}"></span>'
 
 
+LOCK = (
+    "The web view takes the panel's shape and rotation. Turn off to give it a "
+    "shape of its own, like a 16:9 TV. The panel and the screen then show "
+    "different pages."
+)
+
+
+def _web_field(settings: Settings, panel: tuple[int, int] | None) -> str:
+    """The web view's size and, once unlocked from the panel, its own shape (#147)."""
+    note = "" if panel else "<small>· no panel detected</small>"
+    # Undeclared with no panel, so a save leaves the stored lock alone.
+    declared = f'<input type="hidden" name="{CHECKBOXES}" value="web_lock">' if panel else ""
+    lock = _checkbox(
+        "web_lock",
+        f"<span>Lock to panel {_hint(LOCK)}{note}</span>",
+        settings.web_lock and bool(panel),
+        not panel,
+    )
+    resolutions = _options(
+        WEB_HEIGHTS,
+        settings.web_resolution,
+        lambda r: "{} ({}×{})".format(r, *replace(settings, web_resolution=r).web_size(panel)),
+    )
+    return (
+        f'<div class="field"><span>Resolution {_hint("Web view only")}</span>'
+        f'<select name="web_resolution" aria-label="Resolution">{resolutions}</select>'
+        f'<div class="sub{"" if panel else " off"}">{declared}{lock}</div>'
+        f'<div class="sub" id="web-shape">'
+        f'<input type="hidden" name="{CHECKBOXES}" value="web_portrait">'
+        f'<label><small>Aspect</small><select name="web_aspect">'
+        f"{_options(WEB_ASPECTS, settings.web_aspect)}</select></label>"
+        f"{_checkbox('web_portrait', 'Portrait', settings.web_portrait)}"
+        f"</div></div>"
+    )
+
+
 def _species_field(settings: Settings) -> str:
     """How many species the collage shows, and which ones it keeps (#53).
 
@@ -485,7 +522,8 @@ def page(
     rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
     if status.push_error:
         rendered += f" · panel push failing ({status.push_error})"
-    w, h = settings.web_size(panel_size)
+    attached = panel_size if detected else None
+    w, h = settings.web_size(attached)
     glass = f"{panel_size[0]}×{panel_size[1]}"
     birdnet_url, birdnet_port = birdnet_link(settings.detector_url)
     return Template((STATIC_DIR / "admin.html").read_text()).substitute(
@@ -499,19 +537,15 @@ def page(
                 "version": __version__,
                 "passwordSet": PASSWORD_SET,
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
-                "panel": [max(panel_size), min(panel_size)],  # landscape, as oriented() reads it
+                "webHeights": WEB_HEIGHTS,  # so the Resolution labels follow the form
+                # Landscape, as oriented() reads it; null leaves the preview the web view's shape.
+                "panel": [max(panel_size), min(panel_size)] if detected else None,
             }
         ),
         mode_field=_radio_field(
             "Mode", "mode", [(k, m.label) for k, m in MODES.items()], settings.mode
         ),
-        resolutions=_options(
-            WEB_HEIGHTS,
-            settings.web_resolution,
-            lambda r: "{} ({}×{})".format(
-                r, *replace(settings, web_resolution=r).web_size(panel_size)
-            ),
-        ),
+        web_field=_web_field(settings, attached),
         rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
         margin=settings.margin,
         margin_max=MARGIN_CEILING,
@@ -536,7 +570,7 @@ def page(
         ),
         update=_update(status),
         auto_update=_auto_update(settings),
-        panel=f"detected · {glass}" if detected else f"not detected · assuming {glass}",
+        panel=f"detected · {glass}" if detected else "not detected",
         birdnet=_detector(detector_state, detector_version, rows is not None, names_failure),
         detector_field=_detector_field(settings),
         access_field=_access_field(settings),

@@ -31,5 +31,11 @@ frame.env
 # Built docs site
 site/
 
-# Agent scratch: local harness settings and the worktrees it checks out
-.claude/
+# A built plate review: its scan, plate, flags and diff layers run about a megabyte
+# a bird. The page under tools/platereview is checked in, what it renders is not.
+tools/platereview/review*/
+
+# Agent scratch: local harness settings and the worktrees it checks out. The skills
+# under .claude/skills are checked in, so the folder is ignored a child at a time.
+.claude/*
+!.claude/skills/

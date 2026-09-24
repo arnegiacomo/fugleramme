@@ -33,6 +33,16 @@ Heard nothing at all in the lookback window? The page draws a bare perch.
 
 The shortest time the panel holds a render before newly heard birds may change it. Default is **As soon as it changes**. This is a floor and not a timer, and affects all modes. If you have a busy station, you can use this to avoid constant redraws.
 
+### Resolution (web only)
+
+The resolution of the web renders. Default is **1080p**. Independent from the e-ink panel's own size (automatically identified).
+
+### Lock to panel (web only)
+
+Lock the web view to the e-ink panel's shape and rotation. Default is **on** if you have an Inky Impression connected. Turn it off and pick an **Aspect** and **Portrait** to fit a TV or a desktop as well - see [Screens](screens.md). 
+
+Without a panel there is nothing to lock to, and therefore the option is disabled.
+
 ### Margin
 
 How much space between the birds and the edges, as a percentage of the short side. Default is **4%**. Raise it if your frame's passepartout covers the edge of the panel, so the birds don't end up under the cutout - see

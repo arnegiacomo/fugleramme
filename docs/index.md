@@ -1,12 +1,12 @@
 # Fugleramme
 
-E-ink bird frame for Raspberry Pi - real-time bird detection by audio, fully local AI, rendered as real, hand-cut 1800s bird illustrations.
+Bird frame for Raspberry Pi - real-time bird detection by audio, fully local AI, rendered as real, hand-cut 1800s bird illustrations. On an e-ink panel, a TV, or any screen.
 
 A mic feeds [BirdNET-Go](https://github.com/tphakala/birdnet-go), which runs
 the BirdNET classifier and owns all detection config. Fugleramme reads its
 detections and renders the recently-seen birds as a collage on an
 [Inky Impression](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression) e-ink
-panel, and serves the same view as a web kiosk.
+panel, or on any screen.
 
 Fugleramme can install BirdNET-Go for you, or read from one you already run - on the
 same machine or elsewhere.
@@ -24,7 +24,7 @@ The birds are cut-outs from historic, public-domain natural-history drawings,
 hand-curated for this project - over 800 of them across more than 400 species.
 Each detected species is matched to its illustration and packed onto a textured paper page - larger birds toward the centre, sized by real body mass.
 
-For more display options see [Display](display.md).
+For more display options see [Display](display.md), and for TVs, HDMI and desktops [Screens](screens.md).
 
 > [!NOTE]
 > Still in early development: expect the odd bug and a few unpolished edges, with
@@ -40,7 +40,7 @@ For more display options see [Display](display.md).
 - **[Configuring BirdNET-Go](birdnetgo-config.md)** - the mic, your location, and
   avoiding incorrect detections
 - **[Display](display.md)** - modes, settings and names
-- **[Screens](screens.md)** - a browser, an HDMI screen or a TV
+- **[Screens](screens.md)** - a browser, an HDMI screen, a TV or your desktop
 - **[Operations](operations.md)** - buttons, services, logs, updates and authentication
 - **[Container](container.md)** - running Fugleramme with Docker
 - **[Species coverage](species.md)** - searchable list of currently supported species

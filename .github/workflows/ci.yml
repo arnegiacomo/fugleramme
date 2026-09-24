@@ -37,4 +37,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # install.sh is curl'able and neither script is reachable from pytest.
-      - run: shellcheck install.sh run.sh
+      - run: shellcheck install.sh run.sh examples/wallpaper-macos.sh

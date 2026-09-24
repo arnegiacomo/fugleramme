@@ -1,0 +1,36 @@
+# Renders the plates a PR adds. A fork's token is read-only, so `artwork-preview-comment.yml` posts.
+name: artwork preview
+
+on:
+  pull_request:
+    paths:
+      - assets/artwork/*/birds/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: artwork-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # the merge commit and its base
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Render the added plates
+        run: |
+          mkdir preview
+          echo "${{ github.event.pull_request.number }}" > preview/pr
+          git diff -z --name-only --diff-filter=A HEAD^1 HEAD -- 'assets/artwork/*/birds/*' \
+            | xargs -0 -r uv run python tools/preview_plates.py preview
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artwork-preview
+          path: preview
+          retention-days: 1
