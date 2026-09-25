@@ -104,3 +104,12 @@ Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via
 Public domain. Manifest key: `legge-ceylon`.
 
 **Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
+
+**Swainson (Zoological Illustrations)** - *Zoological Illustrations* by
+**William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I).
+Public domain. Manifest key: `swainson-zoological-illustrations`.
+
+**Jardine and Selby (Illustrations of Ornithology)** - *Illustrations of
+Ornithology* by **William Jardine** and **Prideaux John Selby** (1826-1835),
+from [Biodiversity Heritage Library scans on Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Illustrations_of_Ornithology,_Volume_1).
+CC BY 2.0. Manifest key: `bhl-illustrations-ornithology`.
