@@ -150,6 +150,7 @@ See **[Contributing](CONTRIBUTING.md)** for more info.
 - [belkins-birdnet](https://github.com/Belkins/belkins-birdnet) - BirdNET-Pi, AI-generated kachō-e style illustrations
 - [featherframe](https://github.com/wr/featherframe) - BirdNET-Pi, Audubon plates on an ESP32 e-ink panel
 - [birdframe](https://github.com/simenf/birdframe) - BirdNET-Go, several art styles on a Samsung Frame TV
+- [Plate197](https://github.com/kevinl95/Plate197) - BirdNET, Audubon plates on a Raspberry Pi touchscreen
 
 Fugleramme shares no code or art with them.
 
