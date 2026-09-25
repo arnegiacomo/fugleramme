@@ -11,6 +11,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIMealy_Redpole.jpg"
   },
+  "birds/acanthiza-pusilla.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48285944"
+  },
   "birds/accipiter-nisus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00031.jpg"
@@ -270,6 +274,14 @@
   "birds/anser-fabalis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBean_Goose.jpg"
+  },
+  "birds/anthochaera-carunculata.webp": {
+    "source": "gould-australia",
+    "url": "https://digital.lib.ku.edu/ku-gould/14110"
+  },
+  "birds/anthochaera-chrysoptera.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48703039"
   },
   "birds/anthus-campestris-2.webp": {
     "source": "vonwright",
@@ -663,6 +675,10 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-56-red-shouldered-hawk.jpg"
   },
+  "birds/cacatua-galerita.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48400934"
+  },
   "birds/calandrella-brachydactyla.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIShort-toed_Lark.jpg"
@@ -786,6 +802,10 @@
   "birds/calidris-temminckii.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVTemmincks_Tringa.jpg"
+  },
+  "birds/caligavis-chrysops.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48702995"
   },
   "birds/calliope-calliope.webp": {
     "source": "gould",
@@ -1487,6 +1507,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIReed_Bunting.jpg"
   },
+  "birds/eolophus-roseicapilla.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48400946"
+  },
   "birds/eremophila-alpestris.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00139.jpg"
@@ -1791,6 +1815,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsIEuropeISparrow_Owl.jpg"
   },
+  "birds/grallina-cyanoleuca.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48200704"
+  },
   "birds/grus-grus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00118.jpg"
@@ -1810,6 +1838,10 @@
   "birds/gulosus-aristotelis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack_Cormorant.jpg"
+  },
+  "birds/gymnorhina-tibicen.webp": {
+    "source": "gould-australia",
+    "url": "https://digital.lib.ku.edu/ku-gould/14990"
   },
   "birds/gypaetus-barbatus.webp": {
     "source": "gould",
@@ -2267,6 +2299,10 @@
     "source": "gould-australia",
     "url": "https://www.biodiversitylibrary.org/page/48285751"
   },
+  "birds/manorina-melanocephala.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48703119"
+  },
   "birds/mareca-penelope-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00278.jpg"
@@ -2559,6 +2595,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVCommon_Night_Heron.jpg"
   },
+  "birds/ocyphaps-lophotes.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48401210"
+  },
   "birds/oenanthe-hispanica-2.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIBlack-eared_Wheatear.jpg"
@@ -2694,6 +2734,10 @@
   "birds/pernis-apivorus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIHoney_Buzzard.jpg"
+  },
+  "birds/petroica-rosea.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48285795"
   },
   "birds/phalacrocorax-carbo-2.webp": {
     "source": "vonwright",
@@ -2895,6 +2939,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVSpoonbill.jpg"
   },
+  "birds/platycercus-elegans.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48401022"
+  },
   "birds/plectrophenax-nivalis-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Plectrophenax_nivalis_1.jpg"
@@ -2930,6 +2978,10 @@
   "birds/pluvialis-squatarola.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVGrey_Plover.jpg"
+  },
+  "birds/podargus-strigoides.webp": {
+    "source": "gould-australia",
+    "url": "https://www.biodiversitylibrary.org/page/48200500"
   },
   "birds/podiceps-auritus-2.webp": {
     "source": "vonwright",
@@ -3586,6 +3638,10 @@
   "birds/thinornis-dubius.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Ring-Dottrell.jpg"
+  },
+  "birds/threskiornis-molucca.webp": {
+    "source": "keulemans",
+    "url": "https://archive.org/details/birdsaustralia3math/page/n508/mode/1up"
   },
   "birds/thryothorus-ludovicianus.webp": {
     "source": "audubon",

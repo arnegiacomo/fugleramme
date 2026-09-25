@@ -35,6 +35,18 @@
    803
   ]
  },
+ "birds/acanthiza-pusilla.webp": {
+  "box": [
+   0.022694,
+   0.021063,
+   0.98685,
+   0.823815
+  ],
+  "cut": [
+   1057,
+   760
+  ]
+ },
  "birds/accipiter-nisus-2.webp": {
   "box": [
    0.0319324126066985,
@@ -813,6 +825,30 @@
   "cut": [
    1200,
    787
+  ]
+ },
+ "birds/anthochaera-carunculata.webp": {
+  "box": [
+   0.011718,
+   0.031974,
+   0.978143,
+   0.955227
+  ],
+  "cut": [
+   1200,
+   591
+  ]
+ },
+ "birds/anthochaera-chrysoptera.webp": {
+  "box": [
+   0.013587,
+   0.016459,
+   0.821362,
+   0.794221
+  ],
+  "cut": [
+   1200,
+   849
   ]
  },
  "birds/anthus-campestris-2.webp": {
@@ -1991,6 +2027,18 @@
    1024
   ]
  },
+ "birds/cacatua-galerita.webp": {
+  "box": [
+   0.238017,
+   0.080744,
+   0.908541,
+   0.86992
+  ],
+  "cut": [
+   820,
+   1200
+  ]
+ },
  "birds/calandrella-brachydactyla.webp": {
   "box": [
    0.17362747879715654,
@@ -2361,6 +2409,18 @@
   "cut": [
    1200,
    427
+  ]
+ },
+ "birds/caligavis-chrysops.webp": {
+  "box": [
+   0.011039,
+   0.01338,
+   0.988725,
+   0.914142
+  ],
+  "cut": [
+   1200,
+   1043
   ]
  },
  "birds/calliope-calliope.webp": {
@@ -4463,6 +4523,18 @@
    1200
   ]
  },
+ "birds/eolophus-roseicapilla.webp": {
+  "box": [
+   0.392289,
+   0.0,
+   0.98292,
+   0.604411
+  ],
+  "cut": [
+   858,
+   1200
+  ]
+ },
  "birds/eremophila-alpestris.webp": {
   "box": [
    0.08705497741699218,
@@ -5375,6 +5447,18 @@
    1200
   ]
  },
+ "birds/grallina-cyanoleuca.webp": {
+  "box": [
+   0.011602,
+   0.017266,
+   0.98897,
+   0.869955
+  ],
+  "cut": [
+   1200,
+   968
+  ]
+ },
  "birds/grus-grus-2.webp": {
   "box": [
    0.01898361173998408,
@@ -5433,6 +5517,18 @@
   "cut": [
    1200,
    768
+  ]
+ },
+ "birds/gymnorhina-tibicen.webp": {
+  "box": [
+   0.053143,
+   0.011056,
+   0.986911,
+   0.964056
+  ],
+  "cut": [
+   1200,
+   1191
   ]
  },
  "birds/gypaetus-barbatus.webp": {
@@ -6803,6 +6899,18 @@
    684
   ]
  },
+ "birds/manorina-melanocephala.webp": {
+  "box": [
+   0.009065,
+   0.027493,
+   0.988314,
+   0.824797
+  ],
+  "cut": [
+   1200,
+   535
+  ]
+ },
  "birds/mareca-penelope-2.webp": {
   "box": [
    0.047322688102722166,
@@ -7679,6 +7787,18 @@
    791
   ]
  },
+ "birds/ocyphaps-lophotes.webp": {
+  "box": [
+   0.142095,
+   0.014261,
+   0.982129,
+   0.985792
+  ],
+  "cut": [
+   694,
+   1200
+  ]
+ },
  "birds/oenanthe-hispanica-2.webp": {
   "box": [
    0.0702668809890747,
@@ -8085,6 +8205,18 @@
   "cut": [
    920,
    1200
+  ]
+ },
+ "birds/petroica-rosea.webp": {
+  "box": [
+   0.038024,
+   0.009956,
+   0.897076,
+   0.991553
+  ],
+  "cut": [
+   536,
+   1087
   ]
  },
  "birds/phalacrocorax-carbo-2.webp": {
@@ -8687,6 +8819,18 @@
    1200
   ]
  },
+ "birds/platycercus-elegans.webp": {
+  "box": [
+   0.012068,
+   0.013758,
+   0.986303,
+   0.987088
+  ],
+  "cut": [
+   1200,
+   1123
+  ]
+ },
  "birds/plectrophenax-nivalis-2.webp": {
   "box": [
    0.03668136119842529,
@@ -8793,6 +8937,18 @@
   "cut": [
    1200,
    754
+  ]
+ },
+ "birds/podargus-strigoides.webp": {
+  "box": [
+   0.01877,
+   0.07853,
+   0.975374,
+   0.964438
+  ],
+  "cut": [
+   625,
+   1200
   ]
  },
  "birds/podiceps-auritus-2.webp": {
@@ -10761,6 +10917,18 @@
   "cut": [
    1200,
    664
+  ]
+ },
+ "birds/threskiornis-molucca.webp": {
+  "box": [
+   0.012975,
+   0.014336,
+   0.988814,
+   0.985959
+  ],
+  "cut": [
+   1200,
+   1161
   ]
  },
  "birds/thryothorus-ludovicianus.webp": {
