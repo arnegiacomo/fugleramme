@@ -102,3 +102,9 @@ Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via
 Public domain. Manifest key: `legge-ceylon`.
 
 **Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
+
+**Sclater** - *Exotic Ornithology* by **Philip Lutley Sclater** and **Osbert Salvin** (London: Bernard Quaritch, 1869), plates by **Joseph Smit**, Smithsonian Libraries scan on the [Internet Archive](https://archive.org/details/Exoticornitholo00Scla). Public domain (not in copyright; Smit died 1929). Manifest key: `sclater`.
+
+**Elliot** - *The New and Heretofore Unfigured Species of the Birds of North America* by **Daniel Giraud Elliot** (1869), plates drawn by **Joseph Wolf** and others, lithographed by **C. P. Tholey**, printed by **Bowen & Co.**, Biodiversity Heritage Library scan on the [Internet Archive](https://archive.org/details/newheretoforeun1elli). Public domain (PD-old-70-expired; Wolf died 1899). Manifest key: `elliot`.
+
+**Dawson** - *The Birds of California* by **William Leon Dawson** (San Diego: South Moulton Company, 1923), color plates by **Allan Brooks**, Biodiversity Heritage Library scan on the [Internet Archive](https://archive.org/details/birdsofcaliforni02daws). Public domain (published in the US before 1929; Brooks died 1946). Manifest key: `dawson`.

@@ -59,6 +59,18 @@
    1200
   ]
  },
+ "birds/accipiter-striatus.webp": {
+  "box": [
+   0.0167,
+   0.0101,
+   0.9917,
+   0.9736
+  ],
+  "cut": [
+   1200,
+   986
+  ]
+ },
  "birds/acridotheres-tristis.webp": {
   "box": [
    0.019715,
@@ -1259,6 +1271,18 @@
    1200
   ]
  },
+ "birds/astur-cooperii.webp": {
+  "box": [
+   0.0167,
+   0.0177,
+   0.9875,
+   0.9894
+  ],
+  "cut": [
+   1200,
+   1132
+  ]
+ },
  "birds/astur-gentilis-2.webp": {
   "box": [
    0.15588512953083308,
@@ -1989,6 +2013,30 @@
   "cut": [
    1200,
    1024
+  ]
+ },
+ "birds/buteo-regalis.webp": {
+  "box": [
+   0.0451,
+   0.0142,
+   0.9793,
+   0.9866
+  ],
+  "cut": [
+   757,
+   1200
+  ]
+ },
+ "birds/buteo-swainsoni.webp": {
+  "box": [
+   0.011,
+   0.0118,
+   0.9866,
+   0.9883
+  ],
+  "cut": [
+   1200,
+   1052
   ]
  },
  "birds/calandrella-brachydactyla.webp": {
@@ -4607,6 +4655,18 @@
    1200
   ]
  },
+ "birds/falco-mexicanus.webp": {
+  "box": [
+   0.05825624256837099,
+   0.0125,
+   0.9524531510107015,
+   0.9892000000000001
+  ],
+  "cut": [
+   841,
+   1200
+  ]
+ },
  "birds/falco-naumanni.webp": {
   "box": [
    0.05060840561574768,
@@ -6935,6 +6995,18 @@
    1200
   ]
  },
+ "birds/megascops-kennicottii.webp": {
+  "box": [
+   0.0757,
+   0.0125,
+   0.8189291363163371,
+   0.9184186975495132
+  ],
+  "cut": [
+   991,
+   1200
+  ]
+ },
  "birds/melanerpes-carolinus.webp": {
   "box": [
    0.24697311401367186,
@@ -8975,6 +9047,18 @@
    901
   ]
  },
+ "birds/poecile-gambeli.webp": {
+  "box": [
+   0.0289,
+   0.0162,
+   0.9754246020260492,
+   0.9880850053937432
+  ],
+  "cut": [
+   691,
+   927
+  ]
+ },
  "birds/poecile-lugubris.webp": {
   "box": [
    0.0032333964109420776,
@@ -9153,6 +9237,18 @@
   "cut": [
    1200,
    862
+  ]
+ },
+ "birds/psiloscops-flammeolus.webp": {
+  "box": [
+   0.018854104979811576,
+   0.0167,
+   0.9152,
+   0.9667
+  ],
+  "cut": [
+   743,
+   1200
   ]
  },
  "birds/psittacula-krameri.webp": {

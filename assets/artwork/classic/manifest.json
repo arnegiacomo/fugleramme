@@ -19,6 +19,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeISparrow_Hawk.jpg"
   },
+  "birds/accipiter-striatus.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-374-sharp-shinned-hawk.jpg"
+  },
   "birds/acridotheres-tristis.webp": {
     "source": "legge-ceylon",
     "url": "https://archive.org/stream/historyofbirdsof02legg#page/n59/mode/1up"
@@ -419,6 +423,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Asio_otus_by_John_Gould.jpg"
   },
+  "birds/astur-cooperii.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-36-stanley-hawk.jpg"
+  },
   "birds/astur-gentilis-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00300.jpg"
@@ -662,6 +670,14 @@
   "birds/buteo-lineatus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-56-red-shouldered-hawk.jpg"
+  },
+  "birds/buteo-regalis.webp": {
+    "source": "cassin",
+    "url": "https://commons.wikimedia.org/wiki/File:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America_(Plate_26)_(6306536158).jpg"
+  },
+  "birds/buteo-swainsoni.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-372-common-buzzard.jpg"
   },
   "birds/calandrella-brachydactyla.webp": {
     "source": "gould",
@@ -1535,6 +1551,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(9398542229).jpg"
   },
+  "birds/falco-mexicanus.webp": {
+    "source": "cassin",
+    "url": "https://commons.wikimedia.org/wiki/File:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America_(Plate_16)_(6306009493).jpg"
+  },
   "birds/falco-naumanni.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILesser_Kestrel.jpg"
@@ -2311,6 +2331,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Megascops_asioAWP097AAAA.jpg"
   },
+  "birds/megascops-kennicottii.webp": {
+    "source": "elliot",
+    "url": "https://archive.org/download/newheretoforeun1elli/page/n144.jpg"
+  },
   "birds/melanerpes-carolinus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-416-hairy-woodpecker.jpg"
@@ -2991,6 +3015,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Parus_cinctus.jpg"
   },
+  "birds/poecile-gambeli.webp": {
+    "source": "dawson",
+    "url": "https://archive.org/download/birdsofcaliforni02daws/page/n154.jpg"
+  },
   "birds/poecile-lugubris.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISombre_Tit_Siberian_Tit.jpg"
@@ -3050,6 +3078,10 @@
   "birds/prunella-montanella.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIMountain_Accentor.jpg"
+  },
+  "birds/psiloscops-flammeolus.webp": {
+    "source": "sclater",
+    "url": "https://archive.org/download/Exoticornitholo00Scla/page/n208.jpg"
   },
   "birds/psittacula-krameri.webp": {
     "source": "keulemans",
