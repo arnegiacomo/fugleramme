@@ -16,7 +16,7 @@ the page and no review folder carries a copy of it.
 It loads `birds.js` with a script tag rather than fetching JSON, because `fetch()` of a
 `file://` URL is blocked as cross-origin and double-clicking `index.html` has to keep working.
 
-Four layers, toggled with `1` `2` `3` `4` or by letting it flip between scan and plate:
+Five layers, toggled with `1` to `5` or by letting it flip between scan and plate:
 
 | | |
 |---|---|
@@ -24,6 +24,7 @@ Four layers, toggled with `1` `2` `3` `4` or by letting it flip between scan and
 | **Plate** | the shipped WebP on the frame's own paper, through the frame's own halo code, as it will print |
 | **Flags** | flat paper where the bird should be, in red. Magenta is the dotted ring |
 | **Cut** | blue where the cut removed something drawn, red where it kept blank page inside the bird |
+| **Cut-out** | the shipped WebP itself on a loud blue ground, where the halo shows as a band to judge its width and evenness |
 
 Red between legs and a perch is a declared gap and fine. Red round a cut branch end, or over
 painted ground, is the halo covering ink, as intended. Red inside the bird is a fault. White
