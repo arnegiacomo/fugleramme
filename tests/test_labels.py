@@ -144,7 +144,7 @@ def test_packing_never_overlaps_a_label():
 
 def test_a_bird_thinner_than_the_erosion_still_reserves_its_body():
     band = Image.new("L", (24, 16), 0)
-    band.paste(255, (0, 5, 24, 11))  # six rows: gone under an erosion of four
+    band.paste(255, (0, 7, 24, 10))  # three rows: gone under an erosion of two
     assert collage._footprint(band).any()
 
 
