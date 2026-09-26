@@ -60,7 +60,12 @@ def text_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Imag
     ImageDraw.Draw(mask).multiline_text(
         (1 - x0, 1 - y0), text, font=font, fill=255, spacing=spacing, align="center"
     )
-    return mask.point(lambda v: 255 if v > _CUTOFF else 0) if flat else mask
+    return flatten(mask) if flat else mask
+
+
+def flatten(mask: Image.Image) -> Image.Image:
+    """Hard-threshold antialiased text for the panel."""
+    return mask.point(lambda v: 255 if v > _CUTOFF else 0)
 
 
 def stamp(canvas: Image.Image, mask: Image.Image, at: tuple[int, int], textured: bool) -> None:

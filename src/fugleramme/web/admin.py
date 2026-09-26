@@ -20,7 +20,7 @@ from ..config import BIRDNET_PORT, DOCS_URL, WEB_ASPECTS, WEB_HEIGHTS
 from ..languages import NONE, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, origin_of, source_of
-from ..render.collage import NO_LIMIT, RANKINGS
+from ..render.collage import KEY_LIMIT, NO_LIMIT, RANKINGS
 from ..render.fonts import FONTS, LABEL_SIZES
 from ..render.packing import LAYOUTS
 from ..settings import (
@@ -258,6 +258,12 @@ def _auto_update(settings: Settings) -> str:
     )
 
 
+NAME_KEY = (
+    "Number the birds and list their names beside or below them, like a poster. "
+    f"Shows at most {KEY_LIMIT} birds, and the list's text shrinks to fit when there are many."
+)
+
+
 def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: str) -> str:
     """The names block. `failure` says why the menu holds nothing but the
     scientific name, so a detector that will not serve its locale list reads as
@@ -267,6 +273,8 @@ def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: 
         f'<div class="field" id="names"><span>Species names</span>'
         f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
         f"{note}"
+        f'<div class="sub" id="name-key"><input type="hidden" name="{CHECKBOXES}" value="name_key">'
+        f"{_checkbox('name_key', f'<span>Numbered key {_hint(NAME_KEY)}</span>', settings.name_key)}</div>"
         f'<label class="sub"><small>Language</small>'
         f"{_language_select('primary_language', languages, settings.primary_language)}</label>"
         f'<label class="sub"><small>Second language (optional)</small>'
@@ -464,6 +472,7 @@ def _species_field(settings: Settings) -> str:
     """
     limited = settings.species_limit != NO_LIMIT
     count = settings.species_limit if limited else DEFAULT_LIMIT
+    capped = settings.show_names and settings.name_key and not (limited and count <= KEY_LIMIT)
     return (
         f'<div class="field" id="limit">'
         f"<span>Species on the page "
@@ -477,6 +486,8 @@ def _species_field(settings: Settings) -> str:
         f"{'' if limited else ' checked'}> Show all</label>"
         f'<div class="sub" id="ranking"><small>Which ones to keep</small>'
         f"{_radios('ranking', list(RANKINGS.items()), settings.ranking)}</div>"
+        f'<p class="note" id="key-cap"{"" if capped else " hidden"}>'
+        f"The numbered key shows at most {KEY_LIMIT} birds.</p>"
         f"</div>"
     )
 
@@ -537,6 +548,7 @@ def page(
                 "version": __version__,
                 "passwordSet": PASSWORD_SET,
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
+                "keyLimit": KEY_LIMIT,
                 "webHeights": WEB_HEIGHTS,  # so the Resolution labels follow the form
                 # Landscape, as oriented() reads it; null leaves the preview the web view's shape.
                 "panel": [max(panel_size), min(panel_size)] if detected else None,

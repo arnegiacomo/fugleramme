@@ -222,9 +222,12 @@ def test_the_panel_and_the_kiosk_share_one_pack(tmp_path, crowded):
     assert calls == 2
 
 
+@pytest.mark.parametrize("name_key", [False, True])
 @pytest.mark.parametrize("margin", [collage.DEFAULT_MARGIN, 0.15])
-def test_nothing_is_drawn_against_the_page_edge(crowded, margin):
-    page = render_collage(crowded(12), (700, 500), show_names=True, textured=False, margin=margin)
+def test_nothing_is_drawn_against_the_page_edge(crowded, margin, name_key):
+    page = render_collage(
+        crowded(12), (700, 500), show_names=True, textured=False, margin=margin, name_key=name_key
+    )
     px = round(min(page.size) * margin)
     band = np.asarray(page).copy()
     band[px:-px, px:-px] = TARGET_PAPER
@@ -296,3 +299,36 @@ def test_a_probe_is_a_real_row_of_the_sprite():
 
 def test_a_sprite_with_no_opaque_pixels_probes_nothing():
     assert _probes(np.zeros((20, 20), dtype=bool)) == []
+
+
+@pytest.mark.parametrize("box", [(0, 0, 1600, 1200), (0, 0, 1200, 1600)])
+def test_the_key_leaves_most_of_the_page_to_the_birds(box):
+    texts = [[f"Genus species{n}"] for n in range(collage.KEY_LIMIT)]
+    key, (_, _, x1, y1) = collage._fit_key(texts, fonts.DEFAULT_FONT, 60, box)
+    portrait = box[3] > box[2]
+    taken, room = (key.size[1], box[3]) if portrait else (key.size[0], box[2])
+    assert taken <= room * collage._KEY_SHARE
+    assert (y1 < key.at[1]) if portrait else (x1 < key.at[0])  # birds and key never share paper
+
+
+def test_a_second_language_stacks_rather_than_widening_the_key():
+    """Joined onto one line, two names made one column too wide for its page."""
+    one = [["Common Blackbird"]] * 6
+    two = [["Common Blackbird", "(Turdus merula)"]] * 6
+    box = (0, 0, 1200, 1600)
+    assert collage._fit_key(two, fonts.DEFAULT_FONT, 30, box)[0].col_w == (
+        collage._fit_key(one, fonts.DEFAULT_FONT, 30, box)[0].col_w
+    )
+
+
+def test_the_birds_are_numbered_in_reading_order():
+    at = [(500, 20), (20, 30), (300, 520), (40, 500)]  # two rows, each out of order
+    placed = [collage._Placed(i, 10, xy, xy, 10) for i, xy in enumerate(at)]
+    assert [p.index for p in collage._reading_order(placed, 600, 600)] == [1, 0, 3, 2]
+
+
+def test_a_second_language_that_cannot_fit_leaves_the_key():
+    two = [["Black-crowned Night-Heron", "(Nycticorax nycticorax)"]] * collage.KEY_LIMIT
+    small, large = (0, 0, 800, 480), (0, 0, 1600, 1200)
+    assert collage._fit_key(two, fonts.DEFAULT_FONT, 15, small)[0].depth == 1
+    assert collage._fit_key(two, fonts.DEFAULT_FONT, 38, large)[0].depth == 2

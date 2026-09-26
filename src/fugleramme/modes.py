@@ -27,7 +27,7 @@ from PIL import Image
 from .languages import Namer
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
-from .render.collage import gather_entries, render_collage, selected_species
+from .render.collage import KEY_LIMIT, NO_LIMIT, gather_entries, render_collage, selected_species
 from .render.page import day_ordinal
 from .render.plate import effective_margin, render_plate
 from .source import Source, Species
@@ -53,6 +53,7 @@ class Context:
     namer: Namer
     resolution: tuple[int, int]
     show_names: bool
+    name_key: bool  # only while names are on
     lookback_hours: float
     font_key: str
     label_size: str
@@ -80,6 +81,7 @@ def context(
     resolution: tuple[int, int],
     textured: bool = True,
 ) -> Context:
+    keyed = settings.show_names and settings.name_key
     return Context(
         mode=settings.mode,
         source=source,
@@ -89,15 +91,20 @@ def context(
         namer=namer,
         resolution=resolution,
         show_names=settings.show_names,
+        name_key=keyed,
         lookback_hours=settings.lookback_hours,
         font_key=settings.label_font,
         label_size=settings.label_size,
-        species_limit=settings.species_limit,
+        species_limit=_key_limit(settings.species_limit) if keyed else settings.species_limit,
         ranking=settings.ranking,
         layout=settings.layout,
         margin=settings.margin / 100,
         textured=textured,
     )
+
+
+def _key_limit(limit: int) -> int:
+    return KEY_LIMIT if limit == NO_LIMIT else min(limit, KEY_LIMIT)
 
 
 @dataclass(frozen=True)
@@ -170,6 +177,7 @@ def _collage(ctx: Context) -> Image.Image:
         ctx.perches(),
         ctx.layout,
         ctx.margin,
+        ctx.name_key,
     )
 
 
@@ -281,6 +289,7 @@ def state_key(ctx: Context) -> tuple:
         ctx.font_key,
         ctx.label_size,
         ctx.layout if mode.windowed else None,
+        ctx.name_key if mode.windowed else None,
         # The plate clamps to its own margin, so a nudge under it must not repaint.
         ctx.margin if mode.windowed else effective_margin(ctx.margin),
         ctx.namer.key,

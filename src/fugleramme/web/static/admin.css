@@ -70,6 +70,7 @@ pre.cmd { font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
 .bad { color: #a4392f; }
 .warn { color: #8a6d1f; }
 p.note { display: block; font-size: 0.9rem; margin: 0.6rem 0 0; }
+p.note[hidden] { display: none; }
 .block { margin: 0 0 1.75rem; }  /* the Save button carries no bottom margin of its own */
 /* Not the checkbox: it would outrank `.src input` and stretch the box across the row. */
 form.detector input, form.access input[type=password] {

@@ -32,6 +32,7 @@ Covers `service.py`, `panel.py`, `buttons.py` and the `render/` package.
 - `selected_species` is the single answer to which birds are on the page: it drops what the style cannot draw, then applies the admin's limit under the admin's ranking - `rarest_ever` costs a second summary call, since a resident heard twice today is only a rarity by the window's reckoning. There is no ceiling of the frame's own - a fresh frame ships at `settings.DEFAULT_LIMIT`, and `NO_LIMIT` really draws every species the window holds, so a long lookback at a busy station is the admin's to bound. The key reads *that* list, not the window's - under a limit two birds can trade places across it while the set of species heard sits still.
 - A label's box joins its bird's collision mask, so it tucks under the body and never lands on a neighbour. A second language stacks below in parentheses.
 - On the panel labels are hard-thresholded to pure black: antialiased grey dithers into colour speckle.
+- The numbered key (`settings.name_key`) is a way of drawing names, not a mode. `_fit_key` takes its strip first - below on a portrait page, beside on a landscape one, at most `_KEY_SHARE` deep, dropping the second language if even the smallest type overflows - and the birds pack into the rest. Numbers go in reading order, which is only known after the pack, so every bird reserves the widest number. `modes.context` caps the page at `KEY_LIMIT` while it is on.
 
 ## How the birds are placed is a setting
 

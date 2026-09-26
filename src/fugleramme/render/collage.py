@@ -12,7 +12,9 @@ the canvas.
 Species with no artwork are omitted (there is nothing to draw for them once
 names are off). The name label is an admin toggle, on by default, and reads in
 the admin's chosen language(s); it packs as part of its bird, tucked up under
-the silhouette, so a name can never land on a neighbour or clip.
+the silhouette, so a name can never land on a neighbour or clip. As a numbered
+key, each bird gets a number there instead and the names are listed beside or
+below the birds.
 
 Nothing here rolls dice per render: a species holds its artwork for as long as
 it is in the window (picks.py) and the mirror is a hash of the name, so a bird
@@ -31,7 +33,7 @@ from functools import cache
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from ..names import canonical, drawable_keys, image_for, normalize
 from ..picks import Picks
@@ -42,6 +44,7 @@ from .page import (
     blank,
     day_ordinal,
     draw_perch,
+    flatten,
     label_px,
     stamp,
     text_mask,
@@ -61,6 +64,7 @@ DEFAULT_MARGIN = 0.04  # page edge to content, fraction of the short side (setti
 # How many species the admin lets on, and which ones (#53). NO_LIMIT is every
 # bird the window holds - the frame keeps no ceiling of its own.
 NO_LIMIT = 0
+KEY_LIMIT = 40  # a key of more names than this no longer fits beside the birds
 RANK_MOST_HEARD = "heard"
 RANK_RAREST = "rarest"
 RANK_RAREST_EVER = "rarest_ever"
@@ -75,6 +79,8 @@ _OVERLAP_PX = 2  # erode the collision mask slightly so birds nestle into
 # each other's (invisible on paper) halos. No rotation:
 # it tilts the ground/water on birds drawn with terrain.
 _ATTEMPTS = 20
+_KEY_SHARE = 0.4  # the most of the page the key may take, across its depth
+_KEY_LEADING = 1.2  # the key's line height, em
 
 
 def _scaled(img: Image.Image, max_dim: int, flip: bool) -> Image.Image:
@@ -330,6 +336,7 @@ def render_collage(
     perches: Sequence[Path] = (),
     layout: str = packing.DEFAULT_LAYOUT,
     margin: float = DEFAULT_MARGIN,
+    name_key: bool = False,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
@@ -339,6 +346,7 @@ def render_collage(
     perches: the active style's bare branches, for a page with no birds on it.
     layout: how the birds are packed (packing.LAYOUTS).
     margin: bare paper along the edge, as a fraction of the short side.
+    name_key: with names on, number the birds and list the names in a key.
     """
     canvas = blank(resolution, textured)
 
@@ -346,23 +354,63 @@ def render_collage(
     if not kept:
         draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
+    if show_names and name_key:
+        _draw_keyed(canvas, kept, textured, font_key, label_size, label_text, layout, margin)
+        return canvas
+
+    names = [name for name, _ in kept]
+    placed, scale, used_px = _draw_birds(
+        canvas,
+        kept,
+        (0, 0),
+        resolution,
+        textured,
+        font_key if show_names else None,
+        label_size,
+        label_text,
+        layout,
+        margin,
+    )
+    # Names last: halos feather past the collision mask, so a name drawn inline
+    # with the birds would be washed over by the next neighbour.
+    if used_px:
+        font = fonts.load(font_key, max(1, round(used_px * scale)))
+        texts = {p.index: label_text(names[p.index]) for p in placed}
+        _stamp_labels(canvas, placed, texts, font, scale, (0, 0), textured)
+    return canvas
+
+
+def _draw_birds(
+    canvas: Image.Image,
+    kept: list[tuple[str, Path]],
+    origin: tuple[int, int],
+    size: tuple[int, int],
+    textured: bool,
+    font_key: str | None,
+    label_size: str,
+    label_text: Callable[[str], str],
+    layout: str,
+    margin: float,
+) -> tuple[tuple[_Placed, ...], float, int]:
+    """Pack the birds into the `size` box at `origin` and draw them, labels
+    reserved but not drawn. Returns the placements, their scale and label size."""
     arts = [trim(path) for _, path in kept]
     # Mass sizes the bird; this sizes the plate it is drawn on.
     ratios = [span_ratio(path, art.size) for (_, path), art in zip(kept, arts, strict=True)]
 
     # Pack pixels from here down; `scale` takes them to the output.
-    scale = min(resolution) / _PACK_SHORT
-    width, height = round(resolution[0] / scale), round(resolution[1] / scale)
+    scale = min(size) / _PACK_SHORT
+    width, height = round(size[0] / scale), round(size[1] / scale)
 
     names = [name for name, _ in kept]
     flips = [_flip(name) for name in names]
     name_px = label_px(width, height, label_size)
-    labels = tuple(label_text(name) for name in names) if show_names else None
+    labels = tuple(label_text(name) for name in names) if font_key else None
     key = (
         tuple((name, str(path)) for name, path in kept),
         width,
         height,
-        font_key if show_names else None,
+        font_key,
         name_px,
         labels,
         layout,
@@ -376,7 +424,7 @@ def render_collage(
         flips,
         width,
         height,
-        font_key if show_names else None,
+        font_key,
         name_px,
         label_text,
         layout,
@@ -385,28 +433,157 @@ def render_collage(
 
     for p in placed:
         art = _scaled(arts[p.index], max(1, round(p.dim * scale)), flips[p.index])
-        at = _at(p.at, scale)
-        origin = (at[0] - PAD, at[1] - PAD)
-        proc = process_sprite(art, origin, textured=textured)
-        canvas.paste(proc, origin, proc)
+        at = _at(p.at, scale, origin)
+        corner = (at[0] - PAD, at[1] - PAD)
+        proc = process_sprite(art, corner, textured=textured)
+        canvas.paste(proc, corner, proc)
+    return placed, scale, used_px
 
-    # Names last: halos feather past the collision mask, so a name drawn inline
-    # with the birds would be washed over by the next neighbour.
+
+def _stamp_labels(
+    canvas: Image.Image,
+    placed: Iterable[_Placed],
+    texts: dict[int, str],
+    font: ImageFont.FreeTypeFont,
+    scale: float,
+    origin: tuple[int, int],
+    textured: bool,
+) -> None:
+    """Each text centred in the box its bird reserved for it."""
+    for p in placed:
+        if p.label_at is None:
+            continue
+        mask = text_mask(texts[p.index], font, not textured)
+        at = _at(p.label_at, scale, origin)
+        centred = at[0] + round((p.label_w * scale - mask.width) / 2)
+        stamp(canvas, mask, (centred, at[1]), textured)
+
+
+@dataclass(frozen=True)
+class _Key:
+    """The key's grid, in output pixels: numbers right-aligned in their own
+    column, names after, filled down each column first."""
+
+    px: int
+    depth: int  # lines per name: a second language that cannot fit is dropped
+    rows: int
+    line: int
+    entry: int  # one name's lines, and the space after it
+    num_w: int
+    space: int
+    col_w: int  # one entry, gutter included
+    size: tuple[int, int]
+    at: tuple[int, int]
+
+
+def _fit_key(
+    texts: list[list[str]], font_key: str, px: int, box: tuple[int, int, int, int]
+) -> tuple[_Key, tuple[int, int, int, int]]:
+    """Lay the key out below a portrait page's birds or beside a landscape
+    one's, shrinking its type until it takes no more than `_KEY_SHARE` of the
+    page. A second language that does not fit even at the smallest size is left
+    out of the key. Returns the key and the box left for the birds."""
+    x0, y0, x1, y1 = box
+    bw, bh = x1 - x0, y1 - y0
+    below = bh > bw
+    for depth in dict.fromkeys((max(len(t) for t in texts), 1)):
+        size = px
+        while True:
+            font = fonts.load(font_key, size)
+            line = round(size * _KEY_LEADING)
+            # Air between two-line names, or one reads as its neighbour's.
+            entry = depth * line + (round(line * 0.25) if depth > 1 else 0)
+            num_w = math.ceil(font.getlength(f"{len(texts)}."))
+            space = round(size * 0.4)
+            gutter = round(size * 1.2)
+            widest = max(font.getlength(part) for t in texts for part in t[:depth])
+            col_w = num_w + space + math.ceil(widest) + gutter
+            if below:
+                cols = max(1, min(len(texts), (bw + gutter) // col_w))
+            else:
+                cols = math.ceil(len(texts) / max(1, bh // entry))
+            rows = math.ceil(len(texts) / cols)
+            kw, kh = cols * col_w - gutter, rows * entry
+            taken, room = (kh, bh) if below else (kw, bw)
+            fits = taken <= room * _KEY_SHARE
+            if fits or size <= MIN_LABEL_PX:
+                break
+            size -= 1
+        if fits:
+            break
+    if below:
+        at, birds = (x0 + (bw - kw) // 2, y1 - kh), (x0, y0, x1, y1 - kh - gutter)
+    else:
+        at, birds = (x1 - kw, y0 + (bh - kh) // 2), (x0, y0, x1 - kw - gutter, y1)
+    return _Key(size, depth, rows, line, entry, num_w, space, col_w, (kw, kh), at), birds
+
+
+def _reading_order(placed: Sequence[_Placed], width: int, height: int) -> list[_Placed]:
+    """Left to right in bands down the page, the way a plate's key is numbered."""
+    rows = max(1, round(math.sqrt(len(placed) * height / width)))
+    band = height / rows
+
+    def spot(p: _Placed) -> tuple[int, float]:
+        x, y = p.label_at or p.at
+        return int(y // band), x + p.label_w / 2
+
+    return sorted(placed, key=spot)
+
+
+def _draw_keyed(
+    canvas: Image.Image,
+    kept: list[tuple[str, Path]],
+    textured: bool,
+    font_key: str,
+    label_size: str,
+    label_text: Callable[[str], str],
+    layout: str,
+    margin: float,
+) -> None:
+    """The birds with a number each, and their names in a key."""
+    w, h = canvas.size
+    inset = round(min(w, h) * margin)
+    texts = [label_text(name).split("\n") for name, _ in kept]
+    key, (bx0, by0, bx1, by1) = _fit_key(
+        texts, font_key, label_px(w, h, label_size), (inset, inset, w - inset, h - inset)
+    )
+
+    # Numbering waits on the pack, so every bird reserves the widest number.
+    widest = "8" * len(str(len(kept)))
+    size = (bx1 - bx0, by1 - by0)
+    placed, scale, used_px = _draw_birds(
+        canvas,
+        kept,
+        (bx0, by0),
+        size,
+        textured,
+        font_key,
+        label_size,
+        lambda _: widest,
+        layout,
+        0,
+    )
+    order = _reading_order(placed, round(size[0] / scale), round(size[1] / scale))
     if used_px:
         font = fonts.load(font_key, max(1, round(used_px * scale)))
-        for p in placed:
-            if p.label_at is None:
-                continue
-            mask = text_mask(label_text(names[p.index]), font, not textured)
-            at = _at(p.label_at, scale)
-            centred = at[0] + round((p.label_w * scale - mask.width) / 2)
-            stamp(canvas, mask, (centred, at[1]), textured)
+        numbers = {p.index: str(n) for n, p in enumerate(order, 1)}
+        _stamp_labels(canvas, order, numbers, font, scale, (bx0, by0), textured)
 
-    return canvas
+    font = fonts.load(font_key, key.px)
+    ascent = font.getmetrics()[0]
+    mask = Image.new("L", (key.size[0] + key.px, key.size[1] + key.px), 0)
+    draw = ImageDraw.Draw(mask)
+    for n, p in enumerate(order):
+        col, row = divmod(n, key.rows)
+        x, y = col * key.col_w + key.num_w, row * key.entry + ascent
+        draw.text((x, y), f"{n + 1}.", font=font, fill=255, anchor="rs")
+        for k, part in enumerate(texts[p.index][: key.depth]):
+            draw.text((x + key.space, y + k * key.line), part, font=font, fill=255, anchor="ls")
+    stamp(canvas, mask if textured else flatten(mask), key.at, textured)
 
 
-def _at(at: tuple[int, int], scale: float) -> tuple[int, int]:
-    return round(at[0] * scale), round(at[1] * scale)
+def _at(at: tuple[int, int], scale: float, origin: tuple[int, int] = (0, 0)) -> tuple[int, int]:
+    return origin[0] + round(at[0] * scale), origin[1] + round(at[1] * scale)
 
 
 def _rank(ranking: str):
