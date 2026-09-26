@@ -113,3 +113,5 @@ Public domain. Manifest key: `swainson-zoological-illustrations`.
 Ornithology* by **William Jardine** and **Prideaux John Selby** (1826-1835),
 from [Biodiversity Heritage Library scans on Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Illustrations_of_Ornithology,_Volume_1).
 CC BY 2.0. Manifest key: `bhl-illustrations-ornithology`.
+
+**Gordon** - bird studies from the **Gordon Atlas**, drawn at the Cape by **Robert Jacob Gordon** (1743-1795). Scans from the **Rijksmuseum**, Amsterdam (the `RP-T-1914-17` album, acquired 1914), via the Commons category [The Gordon African Collection Birds](https://commons.wikimedia.org/wiki/Category:The_Gordon_African_Collection_Birds). CC0 / public domain. Manifest key: `gordon`.

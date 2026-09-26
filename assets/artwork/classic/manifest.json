@@ -1047,6 +1047,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIGreat_Spotted_Cuckoo.jpg"
   },
+  "birds/clamator-jacobinus.webp": {
+    "source": "gordon",
+    "url": "https://commons.wikimedia.org/wiki/File:Clamator_jacobinus_(Jacobijnkoekoek),_RP-T-1914-17-292.jpg"
+  },
   "birds/clanga-clanga.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeISpotted_Eagle.jpg"
@@ -1162,6 +1166,10 @@
   "birds/corthylio-calendula.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/ruby-crowned-wren"
+  },
+  "birds/corvus-albus.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Corvus_scapulatus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15700251.tif"
   },
   "birds/corvus-brachyrhynchos.webp": {
     "source": "audubon",
@@ -2039,6 +2047,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVRock_Ptarmigan.jpg"
   },
+  "birds/lamprotornis-nitens.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Juida_phoenicoptera_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15800133.tif"
+  },
+  "birds/laniarius-ferrugineus.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Laniarius_boulboul_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16600477.tif"
+  },
   "birds/lanius-collurio-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00064.jpg"
@@ -2631,6 +2647,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIPied_Wheatear.jpg"
   },
+  "birds/onychognathus-morio.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Juida_morio_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15800153.tif"
+  },
   "birds/oriolus-oriolus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00011.jpg"
@@ -2690,6 +2710,10 @@
   "birds/passer-hispaniolensis.webp": {
     "source": "dresser",
     "url": "https://commons.wikimedia.org/wiki/File:Passer_hispaniolensis_Dresser.jpg"
+  },
+  "birds/passer-melanurus.webp": {
+    "source": "gordon",
+    "url": "https://commons.wikimedia.org/wiki/File:Passer_melanurus_(Kaapse_mus),_RP-T-1914-17-263.jpg"
   },
   "birds/passer-montanus.webp": {
     "source": "vonwright",
