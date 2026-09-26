@@ -15,25 +15,24 @@ describes a work and its terms, never a single plate.
 **von Wright** - *Svenska Fåglar* by the **von Wright brothers** (Magnus
 1805-1868, Wilhelm 1810-1887, Ferdinand 1822-1906), from the Commons category
 [Svenska fåglar (von Wright)](https://commons.wikimedia.org/wiki/Category:Svenska_f%C3%A5glar_(von_Wright)):
-340 rawpixel plates (CC BY-SA 4.0) and 71 public-domain files. The `perches/`
-branches are cut from these and retouched with generative AI. Manifest key:
-`vonwright`.
+rawpixel plates (CC BY-SA 4.0) and public-domain files. The `perches/`
+branches are cut from these and retouched with generative AI. Also the
+brothers' studies held by the **Finnish National Gallery**, and rawpixel's own
+scans of the folio (the ones Commons didn't have), both from
+[rawpixel](https://www.rawpixel.com/art-studio/von%20wright?path=1525%7C%24publicdomain&sort=curated),
+CC0; and [Project Runeberg](https://runeberg.org/svfoglar/)'s scan of the 1828
+edition, public domain. Manifest key: `vonwright`.
 
-**von Wright (rawpixel)** - the brothers' studies held by the **Finnish
-National Gallery**, and rawpixel's own scans of the folio (the ones Commons
-didn't have), both from
-[rawpixel](https://www.rawpixel.com/art-studio/von%20wright?path=1525%7C%24publicdomain&sort=curated).
-CC0. Manifest key: `vonwright-rawpixel`.
-
-**Gould** - *The Birds of Europe* by **John Gould** (1832-1837), Volumes 1-5,
-from the Commons category
-[The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould)).
-Public domain (PD-old-70-expired). Manifest key: `gould`.
-
-**Gould (Birds of Asia)** - *The Birds of Asia* by **John Gould** and **Richard
-Bowdler Sharpe** (1850-1883), from the Commons category
-[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)).
-Public domain (PD-Art, PD-old-100). Manifest key: `gould-asia`.
+**Gould** - works by **John Gould**: *The Birds of Europe* (1832-1837),
+Volumes 1-5, from the Commons category
+[The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould)),
+public domain (PD-old-70-expired); *The Birds of Asia*, with **Richard Bowdler
+Sharpe** (1850-1883), from the Commons category
+[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)),
+public domain (PD-Art, PD-old-100); and *The Birds of Australia* (1840-1848),
+illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**,
+scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524),
+public domain. Manifest key: `gould`.
 
 **Dresser** - *A History of the Birds of Europe* by **H. E. Dresser**
 (1871-1881), plates by **J. G. Keulemans**, **Edward Neale**, **Archibald
@@ -93,25 +92,20 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 
 **Rüppell** - *Neue Wirbelthiere zu der Fauna von Abyssinien gehörig: Vögel* by **Eduard Rüppell** (1835-1840). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain; Rüppell died 1884). Manifest key: `ruppell`.
 
-**Gould (Birds of Australia)** - *The Birds of Australia* by **John Gould** (1840-1848),
-illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**.
-Scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524).
-Public domain. Manifest key: `gould-australia`.
-
-**Legge (Birds of Ceylon)** - *A history of the birds of Ceylon* by **W. Vincent Legge**
+**Legge** - *A history of the birds of Ceylon* by **W. Vincent Legge**
 (1878-1880), plates lithographed by **John Gerrard Keulemans**, printed by **Hanhart**.
 Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via [Internet Archive](https://archive.org/details/historyofbirdsof02legg).
-Public domain. Manifest key: `legge-ceylon`.
+Public domain. Manifest key: `legge`.
 
 **Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
 
-**Swainson (Zoological Illustrations)** - *Zoological Illustrations* by
+**Swainson** - *Zoological Illustrations* by
 **William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I).
-Public domain. Manifest key: `swainson-zoological-illustrations`.
+Public domain. Manifest key: `swainson`.
 
-**Jardine and Selby (Illustrations of Ornithology)** - *Illustrations of
+**Jardine** - *Illustrations of
 Ornithology* by **William Jardine** and **Prideaux John Selby** (1826-1835),
 from [Biodiversity Heritage Library scans on Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Illustrations_of_Ornithology,_Volume_1).
-CC BY 2.0. Manifest key: `bhl-illustrations-ornithology`.
+CC BY 2.0. Manifest key: `jardine`.
 
 **Gordon** - bird studies from the **Gordon Atlas**, drawn at the Cape by **Robert Jacob Gordon** (1743-1795). Scans from the **Rijksmuseum**, Amsterdam (the `RP-T-1914-17` album, acquired 1914), via the Commons category [The Gordon African Collection Birds](https://commons.wikimedia.org/wiki/Category:The_Gordon_African_Collection_Birds). CC0 / public domain. Manifest key: `gordon`.

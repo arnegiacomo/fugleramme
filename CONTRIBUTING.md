@@ -119,15 +119,15 @@ Then, for the style folder it lands in:
 - **The folder's `manifest.json` names each file's source and links its
   plate** (`"bird.webp": {"source": "gould", "url": ...}`). A new file means a
   new entry.
-- **`ATTRIBUTION.md` names the works and their terms, and gives each one its
-  manifest key** (``Manifest key: `gould`.``). A new source means a new entry -
-  the test suite fails a manifest key no entry names.
-- **An entry describes a work, not a plate.** Three or four lines: title,
-  creators, dates, where the scans came from, terms, manifest key. No volume or
-  plate numbers, no per-plate engravers or printers - the manifest already links
-  the plate page, which carries all of that. A bird from a work already listed
-  touches `manifest.json` alone, and a key exists to separate terms, so don't
-  add one for a source an existing entry already covers.
+- **`ATTRIBUTION.md` gives each person one entry and one manifest key**
+  (``Manifest key: `gould`.``), naming their works and each work's terms. A new
+  person means a new entry - the test suite fails a manifest key no entry names.
+- **An entry describes works, not plates.** For each work: title, creators,
+  dates, where the scans came from, terms. No volume or plate numbers, no
+  per-plate engravers or printers - the manifest already links the plate page,
+  which carries all of that. A bird from a work already listed touches
+  `manifest.json` alone, and a new work by someone already listed goes in their
+  entry under their key, so don't add a second key for the same person.
 
 ## Docs
 
