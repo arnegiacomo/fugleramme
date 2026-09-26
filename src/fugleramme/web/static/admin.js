@@ -265,9 +265,12 @@ function dim(el, on) {
   el.querySelectorAll("select, input").forEach((c) => { c.disabled = !on; });
   el.classList.toggle("off", !on);
 }
-function syncMode() {
+const windowed = () => {
   const mode = form.querySelector("input[name=mode]:checked");
-  const on = !mode || cfg.windowedModes.includes(mode.value);
+  return !mode || cfg.windowedModes.includes(mode.value);
+};
+function syncMode() {
+  const on = windowed();
   dim(lookback, on);
   dim(limit, on);
   dim(layout, on);
@@ -283,8 +286,14 @@ const shape = document.getElementById("web-shape");
 const syncShape = () => dim(shape, !lock.checked);
 // With names off there is no label to set a language, typeface or size for.
 const showNames = form.querySelector("input[name=show_names]");
+const nameKey = form.querySelector("input[name=name_key]");
+const keyCap = document.getElementById("key-cap");
 const syncNames = () => {
   document.querySelectorAll("#names .sub").forEach((l) => dim(l, showNames.checked));
+  dim(document.getElementById("name-key"), showNames.checked && windowed());  // collage only
+  const all = form.querySelector("input[name=limit_mode]:checked")?.value === "all";
+  const over = all || Number(form.species_limit.value) > cfg.keyLimit;
+  keyCap.hidden = !(nameKey.checked && !nameKey.disabled && over);
 };
 // The size each Resolution renders at, as settings.web_size works it out from the form.
 const sizeOf = (height) => {

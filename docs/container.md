@@ -70,6 +70,7 @@ Every setting on the admin page can be seeded with `FUGLERAMME_<NAME>`:
       FUGLERAMME_RANKING: heard                      # heard | rarest | rarest_ever
       FUGLERAMME_STYLE: classic
       FUGLERAMME_SHOW_NAMES: "true"
+      FUGLERAMME_NAME_KEY: "false"                   # numbered key instead of names beside the birds
       FUGLERAMME_PRIMARY_LANGUAGE: nb                # a BirdNET-Go locale, or sci
       FUGLERAMME_SECONDARY_LANGUAGE: ""              # empty for none
       FUGLERAMME_LABEL_FONT: gentium                 # gentium | garamond | cormorant | baskerville | playfair | alegreya | bitter

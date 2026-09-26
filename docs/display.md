@@ -100,3 +100,13 @@ downloaded dictionaries are offered - on a fresh install that may be the
 scientific name alone.
 
 **Typeface** and **size** apply to every label.
+
+**Numbered key** (collage only) gives each bird a number and lists the names to the right in landscape, or below them in portrait, like a poster. (40 birds max, or whatever **Species on the page** is set to)
+
+| No names | Names next to the birds | Two languages |
+| :---: | :---: | :---: |
+| ![Garden birds with no names](assets/names-off.jpg) | ![The same birds with their scientific names underneath](assets/names-beside.jpg) | ![The same birds with English and scientific names underneath](assets/names-beside-two.jpg) |
+
+| Numbered key | Numbered key, two languages | Numbered key, tall page |
+| :---: | :---: | :---: |
+| ![The same birds numbered, with the names listed on the right](assets/names-key.jpg) | ![The same birds numbered, with English and scientific names listed on the right](assets/names-key-two.jpg) | ![The same birds numbered, with the names listed below](assets/names-key-portrait.jpg) |

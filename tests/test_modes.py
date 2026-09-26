@@ -15,6 +15,7 @@ from fugleramme.api import ApiSource
 from fugleramme.languages import namer
 from fugleramme.names import normalize
 from fugleramme.picks import Picks
+from fugleramme.render.collage import KEY_LIMIT, NO_LIMIT
 from fugleramme.settings import MARGIN_CEILING, Settings
 
 NOW = datetime.now().astimezone()
@@ -226,3 +227,21 @@ def test_a_render_is_cached_until_its_key_moves(tmp_path, images, source):
     ctx = _ctx(detections, images, tmp_path, "latest")
     assert modes.png_bytes(ctx) is modes.png_bytes(ctx)
     assert modes.png_bytes(_ctx(detections, images, tmp_path, "arrival")) != modes.png_bytes(ctx)
+
+
+def test_a_numbered_key_caps_the_page(tmp_path, images, source):
+    detections = source(rows=[_row(1, BLACKBIRD, 1)])
+    limit = lambda **s: _ctx(detections, images, tmp_path, "collage", **s).species_limit
+    assert limit(name_key=True, species_limit=NO_LIMIT) == KEY_LIMIT
+    assert limit(name_key=True, species_limit=12) == 12
+    assert limit(name_key=True, show_names=False, species_limit=NO_LIMIT) == NO_LIMIT
+
+
+def test_the_numbered_key_moves_only_the_collage(tmp_path, images, source):
+    detections = source(rows=[_row(1, BLACKBIRD, 1)])
+    for mode, moves in (("collage", True), ("latest", False)):
+        keys = [
+            modes.state_key(_ctx(detections, images, tmp_path, mode, name_key=on))
+            for on in (False, True)
+        ]
+        assert (keys[0] != keys[1]) is moves

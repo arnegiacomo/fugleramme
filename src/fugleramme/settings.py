@@ -109,6 +109,8 @@ class Settings:
     layout: str = DEFAULT_LAYOUT
     auto_update: bool = False
     show_names: bool = True
+    # Numbers on the birds and the names in a key beside them, poster style.
+    name_key: bool = False
     # Species-name languages: BirdNET-Go dictionary locales, resolved
     # against its API at render time like `sources`.
     primary_language: str = SCIENTIFIC
@@ -263,6 +265,7 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         layout=_one_of(str(raw.get("layout", d.layout)), LAYOUTS, d.layout),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
         show_names=_as_bool(raw.get("show_names"), d.show_names),
+        name_key=_as_bool(raw.get("name_key"), d.name_key),
         # A primary language is required: an empty pick means the scientific name.
         primary_language=_language(raw.get("primary_language"), d.primary_language) or SCIENTIFIC,
         secondary_language=_language(raw.get("secondary_language"), d.secondary_language),
