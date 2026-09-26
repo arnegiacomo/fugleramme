@@ -30,9 +30,10 @@
   .stage { position:relative; background:#1f2022; border:1px solid var(--line); border-radius:8px; overflow:hidden; cursor:crosshair; }
   .stage img, .stage canvas, .zoom .layer { position:absolute; inset:0; opacity:0; transition:opacity .12s linear; }
   .stage img, .stage canvas { width:100%; height:100%; display:block; }
-  .show-scan .l-scan, .show-plate .l-plate, .show-flags .l-flags, .show-diff .l-diff { opacity:1; }
+  .show-scan .l-scan, .show-plate .l-plate, .show-flags .l-flags, .show-diff .l-diff, .show-cutout .l-cutout { opacity:1; }
+  .l-cutout { background-color:#466ea0; }  /* plate.py's check ground: the halo shows as a band on it */
   .badge { position:absolute; top:10px; left:10px; z-index:2; padding:3px 10px; border-radius:4px; font-weight:700; letter-spacing:.08em; font-size:12px; background:#000a; }
-  .show-scan .badge { color:#9fd0ff; } .show-plate .badge { color:var(--accent); } .show-flags .badge, .show-diff .badge { color:var(--bad); }
+  .show-scan .badge { color:#9fd0ff; } .show-plate .badge { color:var(--accent); } .show-flags .badge, .show-diff .badge { color:var(--bad); } .show-cutout .badge { color:#fff; }
   .marks { position:absolute; inset:0; pointer-events:none; z-index:1; }
   .marks div { position:absolute; border:1.5px solid #e9b44ccc; color:#e9b44c; font-size:11px; font-weight:700; padding:1px 3px; text-shadow:0 0 3px #000; }
   .hide-marks .marks { display:none; }
@@ -77,7 +78,7 @@
     <div class="title"><h2 id="name"></h2><code id="file"></code><a id="src" target="_blank" rel="noopener"></a></div>
     <div class="stage" id="stage">
       <span class="badge" id="badge">SCAN</span>
-      <img class="l-scan" id="i-scan" alt="scan crop"><img class="l-plate" id="i-plate" alt="plate on paper"><img class="l-flags" id="i-flags" alt="suspect pixels"><canvas class="l-diff" id="i-diff"></canvas>
+      <img class="l-scan" id="i-scan" alt="scan crop"><img class="l-plate" id="i-plate" alt="plate on paper"><img class="l-flags" id="i-flags" alt="suspect pixels"><canvas class="l-diff" id="i-diff"></canvas><img class="l-cutout" id="i-cutout" alt="the cut-out itself">
       <div class="marks" id="marks"></div>
       <div class="birdbox" id="birdbox"></div>
     </div>
@@ -87,6 +88,7 @@
       <button data-key="2" data-mode="plate"><span class="lab">Plate</span></button>
       <button data-key="3" data-mode="flags"><span class="lab">Flags</span></button>
       <button data-key="4" data-mode="diff"><span class="lab">Diff</span></button>
+      <button data-key="5" data-mode="cutout"><span class="lab">Cut-out</span></button>
       <label>Speed <input type="range" id="speed" min="300" max="2500" step="100" value="1100" style="direction:rtl"></label>
       <label><input type="checkbox" id="showmarks" checked> zoom boxes</label>
       <label title="How dark a scan pixel must be to count as drawn on rather than page">
@@ -107,13 +109,13 @@
 <script>
 const BIRDS = window.BIRDS || [];
 const $ = id => document.getElementById(id);
-const LABEL = { scan: "SCAN", plate: "PLATE ON PAPER", flags: "SUSPECT PIXELS", diff: "WHAT THE CUT DID" };
+const LABEL = { scan: "SCAN", plate: "PLATE ON PAPER", flags: "SUSPECT PIXELS", diff: "WHAT THE CUT DID", cutout: "CUT-OUT" };
 const store = { get: k => { try { return JSON.parse(localStorage.getItem("plate-review") || "{}")[k] || {}; } catch { return {}; } },
   set: (k, v) => { try { const all = JSON.parse(localStorage.getItem("plate-review") || "{}"); all[k] = v; localStorage.setItem("plate-review", JSON.stringify(all)); } catch {} } };
-const EXT = { scan: ".png", plate: ".png", flags: ".jpg" };
+const FILE = { scan: "scan.png", plate: "plate.png", flags: "flags.jpg", cutout: "cut.png" };
 let at = 0, mode = "scan", playing = true, timer = null, loupe = null;
 let diffURL = null, diffPending = true, diffRemoved = 0, diffHole = 0, diffKept = 0, diffBlank = 0;
-const cutIm = new Image();           // the shipped plate, RGBA and uncomposited; never displayed
+const cutIm = new Image();           // the shipped plate, RGBA and uncomposited; mode 5 shows the same file
 cutIm.onload = () => { diffPending = true; if (mode === "diff") paintDiff(); };
 
 // What the cut did to the scan, straight off the cut's own alpha - not a comparison of
@@ -172,7 +174,7 @@ function paintDiff() {
 
 function setMode(m) {
   mode = m;
-  document.body.classList.remove("show-scan", "show-plate", "show-flags", "show-diff");
+  document.body.classList.remove(...Object.keys(LABEL).map(l => "show-" + l));
   document.body.classList.add("show-" + m);
   if (m === "diff") paintDiff();     // computed on demand: it costs a pass over every pixel
   $("badge").textContent = LABEL[m];
@@ -196,11 +198,11 @@ function place(box, x, y, w) {            // show plate px (x, y, w wide) in a z
 function zoomBox(tag, cls) {
   const b = BIRDS[at], box = document.createElement("div");
   box.className = "zoom " + (cls || "");
-  for (const l of ["scan", "plate", "flags", "diff"]) {
+  for (const l of ["scan", "plate", "flags", "diff", "cutout"]) {
     const d = document.createElement("div");
     d.className = "layer l-" + l;
     d.style.backgroundImage = l === "diff" ? (diffURL ? `url(${diffURL})` : "none")
-                                           : `url(img/${b.id}/${l}${EXT[l]})`;
+                                           : `url(img/${b.id}/${FILE[l]})`;
     box.append(d);
   }
   const t = document.createElement("span"); t.className = "tag"; t.textContent = tag; box.append(t);
@@ -221,7 +223,7 @@ function show(i) {
   $("src").textContent = b.url ? `${b.source} plate` : ""; $("src").href = b.url || "#";
   $("stage").style.aspectRatio = `${b.w} / ${b.h}`;
   $("stage").style.maxWidth = `calc(74vh * ${b.w / b.h})`;
-  for (const l of ["scan", "plate", "flags"]) $("i-" + l).src = `img/${b.id}/${l}${EXT[l]}`;
+  for (const l of ["scan", "plate", "flags", "cutout"]) $("i-" + l).src = `img/${b.id}/${FILE[l]}`;
   cutIm.src = `img/${b.id}/cut.png`;
   diffURL = null; diffPending = true;
   if (mode === "diff") paintDiff();
@@ -282,6 +284,7 @@ const keys = {
   " ": () => play(!playing),
   1: () => { play(false); setMode("scan"); }, 2: () => { play(false); setMode("plate"); },
   3: () => { play(false); setMode("flags"); }, 4: () => { play(false); setMode("diff"); },
+  5: () => { play(false); setMode("cutout"); },
   b: toggleBox, c: copyNotes, p: () => verdict("pass"), f: () => verdict("fail"),
 };
 for (const button of document.querySelectorAll("[data-key]")) {

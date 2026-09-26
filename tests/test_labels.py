@@ -14,7 +14,7 @@ from fugleramme.render import collage, fonts
 from fugleramme.render.collage import _Sprite, _with_label, render_collage
 from fugleramme.render.packing import _probes, spiral
 from fugleramme.render.page import INK, PANEL_INK, label_px, stamp, text_mask
-from fugleramme.render.paper import TARGET_PAPER
+from fugleramme.render.paper import PANEL_PAPER
 
 
 def _ink(font, text="Turdus merula") -> float:
@@ -144,7 +144,7 @@ def test_packing_never_overlaps_a_label():
 
 def test_a_bird_thinner_than_the_erosion_still_reserves_its_body():
     band = Image.new("L", (24, 16), 0)
-    band.paste(255, (0, 5, 24, 11))  # six rows: gone under an erosion of four
+    band.paste(255, (0, 7, 24, 10))  # three rows: gone under an erosion of two
     assert collage._footprint(band).any()
 
 
@@ -227,11 +227,11 @@ def test_nothing_is_drawn_against_the_page_edge(crowded, margin):
     page = render_collage(crowded(12), (700, 500), show_names=True, textured=False, margin=margin)
     px = round(min(page.size) * margin)
     band = np.asarray(page).copy()
-    band[px:-px, px:-px] = TARGET_PAPER
-    assert (band == TARGET_PAPER).all()
+    band[px:-px, px:-px] = PANEL_PAPER
+    assert (band == PANEL_PAPER).all()
     band = np.asarray(page).copy()
-    band[px:-px, px:-px] = TARGET_PAPER
-    assert (band == TARGET_PAPER).all()
+    band[px:-px, px:-px] = PANEL_PAPER
+    assert (band == PANEL_PAPER).all()
 
 
 def _perches(tmp_path, count=5):
@@ -278,7 +278,7 @@ def test_the_branch_turns_over_with_the_day(tmp_path):
 
 def test_an_empty_page_with_no_perches_is_bare_paper(tmp_path):
     page = render_collage([], (200, 150), textured=False, perches=[])
-    assert (np.asarray(page) == TARGET_PAPER).all()
+    assert (np.asarray(page) == PANEL_PAPER).all()
 
 
 def test_a_probe_is_a_real_row_of_the_sprite():

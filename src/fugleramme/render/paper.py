@@ -16,6 +16,10 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 TARGET_PAPER = (242, 237, 226)
+# The panel has one white and no warm neutral, so a paper this close to its white
+# quantises flat - and so does any bird brighter than it. Toned off the palette
+# white, the dither stipples the page and leaves white plumage bare. See #138.
+PANEL_PAPER = (233, 225, 202)
 FEATHER = 5  # gaussian blur sigma (px)
 PAD = 16  # transparent margin for the feather to bleed into
 TILE = 512  # px, repeated by kiosk.html too
@@ -27,6 +31,7 @@ HALO_BLOCK = 4  # px, resolution of the local tone
 HALO_SMOOTH = 1  # blocks either side
 HALO_SHIFT = 6  # levels, cap
 HALO_FADE = 8  # steps, ramp to nothing
+HALO_NEAR = 12  # levels from the halo's tone that count toward its local tone
 
 
 @functools.cache
@@ -68,8 +73,8 @@ def _box_sum(a: np.ndarray, r: int) -> np.ndarray:
     return c[k:, k:] - c[:-k, k:] - c[k:, :-k] + c[:-k, :-k]
 
 
-def _local_tone(rgb: np.ndarray, mask: np.ndarray) -> np.ndarray:
-    """Local mean of `rgb` over `mask`, at the mask's pixels."""
+def _local_tone(rgb: np.ndarray, mask: np.ndarray, at: np.ndarray) -> np.ndarray:
+    """Local mean of `rgb` over `mask`, at the pixels of `at`."""
     h, w = mask.shape
     k, r = HALO_BLOCK, HALO_SMOOTH
 
@@ -79,7 +84,7 @@ def _local_tone(rgb: np.ndarray, mask: np.ndarray) -> np.ndarray:
         small = np.asarray(Image.fromarray(whole, "F").reduce(k))
         summed = _box_sum(_box_sum(small, r), r).astype(np.float32)
         up = Image.fromarray(summed, "F").resize(whole.shape[::-1], Image.Resampling.BILINEAR)
-        return np.asarray(up)[:h, :w][mask]
+        return np.asarray(up)[:h, :w][at]
 
     # divide after scaling up, so empty blocks never bleed in
     weight = smooth(mask.astype(np.float32))
@@ -104,13 +109,14 @@ def _reach(seed: np.ndarray, allowed: np.ndarray, steps: int) -> np.ndarray:
 def process_sprite(
     sprite: Image.Image,
     at: tuple[int, int],
-    target=TARGET_PAPER,
+    target=None,
     textured: bool = True,
 ) -> Image.Image:
     """Normalise a scaled RGBA sprite's paper halo to the shared tone and
     feather its edge. Returns a PAD-padded image to paste with its corner at
     `at`. When textured, the halo takes the page's texture under it so its edge
     does not read as an outline; on the flat panel page it stays flat."""
+    target = target or (TARGET_PAPER if textured else PANEL_PAPER)
     arr = np.asarray(sprite).astype(np.int16)
     alpha, rgb = arr[..., 3], arr[..., :3]
     opaque = alpha > 24
@@ -130,8 +136,11 @@ def process_sprite(
     # scans shade across the halo: level paper near the cut, outside-in and capped
     depth = _reach(~opaque, paper_px, HALO_REACH)
     halo = depth > 0
+    # tone from the halo's own paper only: a pale outline in the band would rim the bird
     level = np.clip(
-        np.rint(np.array(target) - _local_tone(out[..., :3], halo)), -HALO_SHIFT, HALO_SHIFT
+        np.rint(np.array(target) - _local_tone(out[..., :3], halo & (dist < HALO_NEAR), halo)),
+        -HALO_SHIFT,
+        HALO_SHIFT,
     )
     # the band bites into pale plumage, so fade out rather than draw its edge there
     level *= np.clip((HALO_REACH - depth[halo]) / HALO_FADE, 0, 1)[:, None]

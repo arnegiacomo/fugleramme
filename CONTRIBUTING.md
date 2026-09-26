@@ -85,6 +85,8 @@ issue instead.
 **A whole new style** is the nicest thing you can contribute: its own folder
 under `assets/artwork/`, its own `ATTRIBUTION.md`, picked from the admin page.
 
+**Keep artwork PRs small** - around five birds each. Small PRs merge quicker and need fewer rounds of review, which is easier for both the contributor and the reviewer. If you've cut more, please split them into batches. I want to keep the bar for contributing low, and small PRs are help with that.
+
 Some things no tool can check, so they're what an artwork PR gets read for:
 whether the licensing is A-ok, the illustration looks good and fits the styles, and whether the cut-out blends nicely on the page.
 

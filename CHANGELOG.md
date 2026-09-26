@@ -2,6 +2,72 @@
 
 <!-- version list -->
 
+## v0.25.1 (2026-09-25)
+
+### Bug Fixes
+
+- **render**: Level each halo against its own paper, not a pale outline
+  ([`3db6497`](https://github.com/arnegiacomo/fugleramme/commit/3db6497f9630067ba9b0b5b33859a5a5e9f08c4f))
+
+- **render**: Nestle birds half as deep now that halos are thin
+  ([`cf5b932`](https://github.com/arnegiacomo/fugleramme/commit/cf5b932d300994699a79fae7f47cca65f199d4c9))
+
+### Chores
+
+- **admin**: Dim name settings while names are off
+  ([`7767d65`](https://github.com/arnegiacomo/fugleramme/commit/7767d65d66a65f80781e347a961f19bfffdcac4d))
+
+- **assets**: #33 add Poecile atricapillus, found by @brombomb in #102
+  ([`a432550`](https://github.com/arnegiacomo/fugleramme/commit/a4325506e3c6da89956362c2d6d206603515681c))
+
+- **assets**: Add andropadus importunus, burhinus capensis, colius striatus, columba guinea, lybius
+  torquatus, pternistis swainsonii, trachyphonus vaillantii
+  ([#153](https://github.com/arnegiacomo/fugleramme/pull/153),
+  [`441c931`](https://github.com/arnegiacomo/fugleramme/commit/441c9314bfe3a11312da7e99fb68265c28f66064))
+
+- **assets**: Add dryocopus pileatus, leuconotopicus villosus, archilochus colubris
+  ([#152](https://github.com/arnegiacomo/fugleramme/pull/152),
+  [`0973ca2`](https://github.com/arnegiacomo/fugleramme/commit/0973ca25d1106d47b3b04895bc64c53294602986))
+
+- **assets**: Add fourteen Australian birds
+  ([#124](https://github.com/arnegiacomo/fugleramme/pull/124),
+  [`006e323`](https://github.com/arnegiacomo/fugleramme/commit/006e323e606bd4e11774265f0a604826807175ec))
+
+- **assets**: Add Keulemans blue tit
+  ([`dbd406c`](https://github.com/arnegiacomo/fugleramme/commit/dbd406c76348a305386d8e702b85348554a21502))
+
+- **assets**: Add more Southern African species
+  ([#153](https://github.com/arnegiacomo/fugleramme/pull/153),
+  [`441c931`](https://github.com/arnegiacomo/fugleramme/commit/441c9314bfe3a11312da7e99fb68265c28f66064))
+
+- **assets**: Trim 100 more classic halos, re-tone six rims and add a Temminck's stint
+  ([`434e86f`](https://github.com/arnegiacomo/fugleramme/commit/434e86f9e39595445bd7a908da78e9422ff46c75))
+
+- **ci**: Add artwork PR previews
+  ([`637ac63`](https://github.com/arnegiacomo/fugleramme/commit/637ac63dd43119f706883812bdc2fe8b0c76c372))
+
+- **tools**: #135 add agent-based plate cut skill and review tooling
+  ([#139](https://github.com/arnegiacomo/fugleramme/pull/139),
+  [`e10019c`](https://github.com/arnegiacomo/fugleramme/commit/e10019c5cc2711cb1af28d2767e7afbfc77e6beb))
+
+- **tools**: Let plate-review gaps tone painted ground a perch encloses
+  ([`cc1faa4`](https://github.com/arnegiacomo/fugleramme/commit/cc1faa4321c1e90782508a7b2b40e7879ed84dab))
+
+- **tools**: Show the cut-out itself in the plate-review page
+  ([`8c75ce8`](https://github.com/arnegiacomo/fugleramme/commit/8c75ce820f7aed3e4715937f6d06a009913c27a6))
+
+### Documentation
+
+- #154 add the empty-environment recovery to troubleshooting
+  ([`d4a0cb6`](https://github.com/arnegiacomo/fugleramme/commit/d4a0cb6bdf1290ba2795277a6340afa5897c9bb1))
+
+- Add Plate197 to similar projects
+  ([`2b0b0a6`](https://github.com/arnegiacomo/fugleramme/commit/2b0b0a6cea873c216047ce8ba2db4fb55266e85f))
+
+- Rearrange and reword readme
+  ([`04ff2ad`](https://github.com/arnegiacomo/fugleramme/commit/04ff2ada610e754230ce54b6a0e1fab0b3014abb))
+
+
 ## v0.25.0 (2026-09-23)
 
 ### Chores

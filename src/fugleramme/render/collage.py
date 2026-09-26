@@ -71,7 +71,7 @@ RANKINGS = {
 }
 DEFAULT_RANKING = RANK_MOST_HEARD
 _ALPHA_CUTOFF = 24
-_OVERLAP_PX = 4  # erode the collision mask slightly so birds nestle into
+_OVERLAP_PX = 2  # erode the collision mask slightly so birds nestle into
 # each other's (invisible on paper) halos. No rotation:
 # it tilts the ground/water on birds drawn with terrain.
 _ATTEMPTS = 20

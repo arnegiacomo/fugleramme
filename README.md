@@ -11,13 +11,11 @@ Bird frame for Raspberry Pi - real-time bird detection by audio, fully local AI,
 <p align="center">
   <a href="https://fugleramme.arnegiacomo.dev"><img src="https://img.shields.io/website?url=https%3A%2F%2Ffugleramme.arnegiacomo.dev&style=flat-square&label=live%20demo&up_message=online&down_message=offline&up_color=brightgreen" alt="Live demo"></a>
   <a href="https://github.com/arnegiacomo/fugleramme/releases"><img src="https://img.shields.io/github/v/release/arnegiacomo/fugleramme?style=flat-square&color=blue" alt="Latest release"></a>
-  <a href="https://github.com/arnegiacomo/fugleramme/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/arnegiacomo/fugleramme/ci.yml?branch=main&style=flat-square&label=ci" alt="CI"></a>
-  <a href="https://github.com/arnegiacomo/fugleramme/commits/main"><img src="https://img.shields.io/github/last-commit/arnegiacomo/fugleramme?style=flat-square&color=blueviolet" alt="Last commit"></a>
+  <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20%2B%20art%20CC--BY--SA-green?style=flat-square" alt="License: MIT, artwork CC BY-SA 4.0"></a>
+  <a href="https://github.com/sponsors/arnegiacomo"><img src="https://img.shields.io/badge/sponsor-%E2%9D%A4-ea4aaa?style=flat-square&logo=githubsponsors&logoColor=white" alt="Sponsor"></a>
   <br>
   <a href="https://github.com/arnegiacomo/fugleramme/stargazers"><img src="https://img.shields.io/github/stars/arnegiacomo/fugleramme?style=flat-square&color=yellow" alt="Stars"></a>
   <a href="https://github.com/arnegiacomo/fugleramme/graphs/contributors"><img src="https://img.shields.io/github/contributors/arnegiacomo/fugleramme?style=flat-square&color=orange" alt="Contributors"></a>
-  <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20%2B%20art%20CC--BY--SA-green?style=flat-square" alt="License: MIT, artwork CC BY-SA 4.0"></a>
-  <br>
   <a href="#art"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Farnegiacomo.dev%2Ffugleramme%2Fbadges%2Fartwork.json&style=flat-square" alt="Artwork"></a>
   <a href="#art"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Farnegiacomo.dev%2Ffugleramme%2Fbadges%2Fspecies.json&style=flat-square" alt="Species"></a>
 </p>
@@ -32,14 +30,20 @@ Live on **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** run
 
 Hardware, install and operations docs: **[arnegiacomo.dev/fugleramme](https://arnegiacomo.dev/fugleramme/)**
 
+## Inspiration
+
+The look came from a [WWF Verdens naturfond poster by Axel Thorenfeldt](https://www.axelthorenfeldt.com/news/wwf-verdens-naturfonds-fugleskole)
+hanging on my wall, the live-frame idea from [AvianVisitors](https://theodore.net/projects/AvianVisitors/) that I saw on Instagram,
+and the detection from [BirdNET-Go](https://github.com/tphakala/birdnet-go) - I wanted a version of that poster showing the actual birds in my garden.
+
 ## How it works
 
-[BirdNET-Go](https://github.com/tphakala/birdnet-go) listens on a mic and handles the
-classifier. Fugleramme polls its api, matches each species to
-an illustration, then packs them onto a page, and redraws only when the birds change - on
-an [Inky Impression](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression) e-ink panel,
-or on any screen. There's an admin page that lets you configure what
-to show, and automatic updates and such.
+[BirdNET-Go](https://github.com/tphakala/birdnet-go) listens on a mic and identifies the
+birds. Fugleramme polls its API, matches each species to an illustration, packs them onto a
+page, and redraws only when the birds change - on an
+[Inky Impression](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression)
+e-ink panel or any screen. An admin page lets you configure what to show, and the frame
+updates itself.
 
 If you already run BirdNET-Go, point the frame at it instead - on the same machine or anywhere else reachable from your network.
 
@@ -76,34 +80,6 @@ coverage is in the works!
 | :---: | :---: | :---: |
 | ![No birds detected](docs/assets/empty.png) | ![A few garden birds](docs/assets/few.png) | ![Many garden birds](docs/assets/many.png) |
 
-## Inspiration and related projects
-
-The look came from a [WWF Verdens naturfond poster by Axel Thorenfeldt](https://www.axelthorenfeldt.com/news/wwf-verdens-naturfonds-fugleskole)
-hanging on my wall, the live-frame idea from [AvianVisitors](https://theodore.net/projects/AvianVisitors/) that I saw on Instagram,
-and the detection from [BirdNET-Go](https://github.com/tphakala/birdnet-go) - I wanted a version of that poster showing the actual birds in my garden.
-
-Similar projects:
-
-- [AvianVisitors](https://github.com/Twarner491/AvianVisitors) - BirdNET-Pi, AI-generated illustrations and photo cutouts
-- [inky-bird-frame](https://github.com/veteranbv/inky-bird-frame) - BirdNET, field-journal illustrations on an Inky panel
-- [HABirdDashboard](https://github.com/adamoberley/HABirdDashboard) - BirdNET-Go, a collage card for Home Assistant
-- [belkins-birdnet](https://github.com/Belkins/belkins-birdnet) - BirdNET-Pi, AI-generated kachō-e style illustrations
-- [featherframe](https://github.com/wr/featherframe) - BirdNET-Pi, Audubon plates on an ESP32 e-ink panel
-- [birdframe](https://github.com/simenf/birdframe) - BirdNET-Go, several art styles on a Samsung Frame TV
-
-Fugleramme shares no code or art with them.
-
-## Run locally (for development)
-
-```bash
-uv sync                                       # set up venv
-uv run fugleramme-fake-detector               # stand-in BirdNET-Go on :8090
-uv run fugleramme-dev                         # start service on :8080 with hot-reload
-```
-
-The fake detector's flags, and working against a real station instead:
-[Running it without a Pi](CONTRIBUTING.md#running-it-without-a-pi).
-
 ## Install on a Raspberry Pi
 
 From the pi (assuming you have the hardware up and running):
@@ -124,14 +100,6 @@ docker run -d -p 8080:8080 -v fugleramme:/data \
   ghcr.io/arnegiacomo/fugleramme
 ```
 
-Or build the image from a checkout:
-
-```bash
-docker build -t fugleramme .
-docker run --rm -p 8080:8080 -v fugleramme:/data \
-  -e FUGLERAMME_DETECTOR_URL=http://birdnet.local:8080 fugleramme
-```
-
 Kiosk on `:8080`, admin on `:8080/admin`, everything it persists in `/data`.
 
 On a Linux box with a USB mic, this brings up BirdNET-Go alongside it:
@@ -143,11 +111,28 @@ docker compose up -d
 
 See **[Container](docs/container.md)** for more info.
 
+## Run locally (for development)
+
+```bash
+uv sync                                       # set up venv
+uv run fugleramme-fake-detector               # stand-in BirdNET-Go on :8090
+uv run fugleramme-dev                         # start service on :8080 with hot-reload
+```
+
+The fake detector's flags, and working against a real station instead:
+[Running it without a Pi](CONTRIBUTING.md#running-it-without-a-pi).
+
 ## Contributing
 
 Contributions are very welcome and encouraged - fixes, docs and artwork most of all. Thanks to
 [everyone who has contributed](https://github.com/arnegiacomo/fugleramme/graphs/contributors)
-so far ❤️
+and [sponsored](https://github.com/sponsors/arnegiacomo) so far ❤️
+
+<a href="https://github.com/arnegiacomo/fugleramme/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=arnegiacomo/fugleramme" alt="Contributors">
+</a>
+
+Want to help?
 
 - **Something is broken** - a [bug report](https://github.com/arnegiacomo/fugleramme/issues/new/choose)
 - **A question, an idea, or a frame you have built** - the
@@ -156,6 +141,18 @@ so far ❤️
 - **A fix, a doc change, or a bird you have cut** - open a PR, no issue needed
 
 See **[Contributing](CONTRIBUTING.md)** for more info.
+
+## Similar projects
+
+- [AvianVisitors](https://github.com/Twarner491/AvianVisitors) - BirdNET-Pi, AI-generated illustrations and photo cutouts
+- [inky-bird-frame](https://github.com/veteranbv/inky-bird-frame) - BirdNET, field-journal illustrations on an Inky panel
+- [HABirdDashboard](https://github.com/adamoberley/HABirdDashboard) - BirdNET-Go, a collage card for Home Assistant
+- [belkins-birdnet](https://github.com/Belkins/belkins-birdnet) - BirdNET-Pi, AI-generated kachō-e style illustrations
+- [featherframe](https://github.com/wr/featherframe) - BirdNET-Pi, Audubon plates on an ESP32 e-ink panel
+- [birdframe](https://github.com/simenf/birdframe) - BirdNET-Go, several art styles on a Samsung Frame TV
+- [Plate197](https://github.com/kevinl95/Plate197) - BirdNET, Audubon plates on a Raspberry Pi touchscreen
+
+Fugleramme shares no code or art with them.
 
 ## License
 
@@ -183,5 +180,4 @@ See **[Contributing](CONTRIBUTING.md)** for more info.
 
 Questions and ideas about the project belong in
 [Discussions](https://github.com/arnegiacomo/fugleramme/discussions). For anything
-else, you can reach me through [arnegiacomo.dev](https://arnegiacomo.dev/). I've built
-a few of these frames, but I currently don't have the capacity to build them for others.
+else, you can reach me through [arnegiacomo.dev](https://arnegiacomo.dev/).
