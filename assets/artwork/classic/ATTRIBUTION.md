@@ -102,3 +102,5 @@ Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via
 Public domain. Manifest key: `legge-ceylon`.
 
 **Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
+
+**Gordon** - bird studies from the **Gordon Atlas**, drawn at the Cape by **Robert Jacob Gordon** (1743-1795). Scans from the **Rijksmuseum**, Amsterdam (the `RP-T-1914-17` album, acquired 1914), via the Commons category [The Gordon African Collection Birds](https://commons.wikimedia.org/wiki/Category:The_Gordon_African_Collection_Birds). CC0 / public domain. Manifest key: `gordon`.
