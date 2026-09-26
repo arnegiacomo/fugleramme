@@ -867,6 +867,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/turkey-buzzard"
   },
+  "birds/catherpes-mexicanus.webp": {
+    "source": "swainson-zoological-illustrations",
+    "url": "https://commons.wikimedia.org/wiki/File:Zoological_Illustrations_Volume_I_Series_2_011.jpg"
+  },
   "birds/cecropis-daurica.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRufous_Swallow.jpg"
@@ -2918,6 +2922,10 @@
   "birds/pinicola-enucleator.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISiberian_Grosbeak.jpg"
+  },
+  "birds/pipilo-maculatus.webp": {
+    "source": "bhl-illustrations-ornithology",
+    "url": "https://commons.wikimedia.org/wiki/File:Flickr_-_BioDivLibrary_-_n208_w1150_(1).jpg"
   },
   "birds/piranga-ludoviciana-2.webp": {
     "source": "audubon",

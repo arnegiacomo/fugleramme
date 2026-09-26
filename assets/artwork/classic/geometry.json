@@ -2603,6 +2603,18 @@
    882
   ]
  },
+ "birds/catherpes-mexicanus.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   0.853
+  ],
+  "cut": [
+   1200,
+   875
+  ]
+ },
  "birds/cecropis-daurica.webp": {
   "box": [
    0.03504570484161377,
@@ -8757,6 +8769,18 @@
   "cut": [
    764,
    1200
+  ]
+ },
+ "birds/pipilo-maculatus.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   0.88
+  ],
+  "cut": [
+   1010,
+   936
   ]
  },
  "birds/piranga-ludoviciana-2.webp": {
