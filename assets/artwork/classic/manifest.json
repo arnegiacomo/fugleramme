@@ -35,6 +35,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIReed_Wren.jpg"
   },
+  "birds/acrocephalus-dumetorum.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof12dres/page/n745/mode/1up"
+  },
   "birds/acrocephalus-melanopogon.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIMoustached_Warbler_Aquatic_Warbler.jpg"
@@ -134,6 +138,18 @@
   "birds/alectoris-barbara.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVBarbary_Partridge_Greek_Partridge.jpg"
+  },
+  "birds/alectoris-graeca-2.webp": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVBarbary_Partridge_Greek_Partridge.jpg"
+  },
+  "birds/alectoris-graeca-3.webp": {
+    "source": "bree",
+    "url": "https://commons.wikimedia.org/wiki/File:A_history_of_the_birds_of_Europe,_not_observed_in_the_British_Isles_(1875)_(14772150143).jpg"
+  },
+  "birds/alectoris-graeca.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof17dres/page/n137/mode/1up"
   },
   "birds/alectoris-rufa.webp": {
     "source": "gould",
@@ -390,6 +406,14 @@
   "birds/ardea-herodias.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/great-blue-heron"
+  },
+  "birds/ardea-ibis-2.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof16dres/page/n333/mode/1up"
+  },
+  "birds/ardea-ibis.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/birdsEuropeIVGoul/page/n153/mode/1up"
   },
   "birds/ardea-purpurea.webp": {
     "source": "gould",
@@ -1390,6 +1414,10 @@
   "birds/dendrocopos-major.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIGreat_Spotted_Woodpecker.jpg"
+  },
+  "birds/dendrocopos-syriacus.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof15dres/page/n57/mode/1up"
   },
   "birds/dendrocoptes-medius.webp": {
     "source": "vonwright",
@@ -2635,6 +2663,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIBlack_Wheatear.jpg"
   },
+  "birds/oenanthe-melanoleuca.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof12dres/page/n277/mode/1up"
+  },
   "birds/oenanthe-oenanthe-2.webp": {
     "source": "vonwright",
     "url": "https://www.rawpixel.com/image/8865027/image-art-public-domain-bird"
@@ -2879,6 +2911,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00210.jpg"
   },
+  "birds/phylloscopus-trochiloides.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof19dres/page/n151/mode/1up"
+  },
   "birds/phylloscopus-trochilus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00212.jpg"
@@ -2926,6 +2962,10 @@
   "birds/picus-canus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIGrey-headed_Green_Woodpecker.jpg"
+  },
+  "birds/picus-sharpei.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof15dres/page/n129/mode/1up"
   },
   "birds/picus-viridis-2.webp": {
     "source": "vonwright",
@@ -3603,6 +3643,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVCommon_Sheldrake.jpg"
   },
+  "birds/tarsiger-cyanurus.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof12dres/page/n479/mode/1up"
+  },
   "birds/tetrao-urogallus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00112.jpg"
@@ -3682,6 +3726,18 @@
   "birds/thryothorus-ludovicianus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-78-great-carolina-wren.jpg"
+  },
+  "birds/tichodroma-muraria-2.webp": {
+    "source": "bree",
+    "url": "https://archive.org/details/historyofbirdsof03bree/page/n246/mode/1up"
+  },
+  "birds/tichodroma-muraria-3.webp": {
+    "source": "werner",
+    "url": "https://commons.wikimedia.org/wiki/File:Tichodroma_muraria_-_1842-1848_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ19200371.tif"
+  },
+  "birds/tichodroma-muraria.webp": {
+    "source": "dresser",
+    "url": "https://commons.wikimedia.org/wiki/File:Tichodroma_muraria._Dresser.png"
   },
   "birds/toxostoma-rufum.webp": {
     "source": "audubon",

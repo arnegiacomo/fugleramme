@@ -25,8 +25,8 @@ edition, public domain. Manifest key: `vonwright`.
 
 **Gould** - works by **John Gould**: *The Birds of Europe* (1832-1837),
 Volumes 1-5, from the Commons category
-[The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould)),
-public domain (PD-old-70-expired); *The Birds of Asia*, with **Richard Bowdler
+[The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould))
+and the [Internet Archive](https://archive.org/details/birdsEuropeIVGoul), public domain (PD-old-70-expired); *The Birds of Asia*, with **Richard Bowdler
 Sharpe** (1850-1883), from the Commons category
 [The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)),
 public domain (PD-Art, PD-old-100); and *The Birds of Australia* (1840-1848),
@@ -35,11 +35,11 @@ scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/)
 public domain. Manifest key: `gould`.
 
 **Dresser** - *A History of the Birds of Europe* by **H. E. Dresser**
-(1871-1881), plates by **J. G. Keulemans**, **Edward Neale**, **Archibald
+(1871-1881, supplement 1895-1896), plates by **J. G. Keulemans**, **Edward Neale**, **Archibald
 Thorburn** and **Joseph Wolf**, with **Richard Bowdler Sharpe**, from the
 Commons category
 [A history of the birds of Europe](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe).
-Scans from the Biodiversity Heritage Library, public domain
+Scans from the Biodiversity Heritage Library, via Commons and the Internet Archive, public domain
 (PD-scan / PD-old-70-expired), and Commons uploads offered under CC BY-SA 4.0.
 Manifest key: `dresser`.
 
@@ -72,7 +72,7 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 
 **Des Murs** - *Iconographie ornithologique* by **Marc Athanase Parfait Œillet Des Murs** (1845-1849), from the Commons category [Iconographie ornithologique](https://commons.wikimedia.org/wiki/Category:Iconographie_ornithologique). Public domain (PD-scan / PD-old-70). Manifest key: `desmurs`.
 
-**Bree** - *A history of the birds of Europe, not observed in the British Isles* by **Charles Robert Bree** (1875), Biodiversity Heritage Library scans from the Commons category [A history of the birds of Europe, not observed in the British Isles (1875)](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe,_not_observed_in_the_British_Isles_(1875)). Public domain (PD-scan / PD-old-70-expired); the BHL files are also offered under CC BY 2.0. Manifest key: `bree`.
+**Bree** - *A history of the birds of Europe, not observed in the British Isles* by **Charles Robert Bree** (1859-1863 and 1875 editions), Biodiversity Heritage Library scans from the Commons category [A history of the birds of Europe, not observed in the British Isles (1875)](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe,_not_observed_in_the_British_Isles_(1875)) and the [Internet Archive](https://archive.org/details/historyofbirdsof03bree). Public domain (PD-scan / PD-old-70-expired); the BHL files are also offered under CC BY 2.0. Manifest key: `bree`.
 
 **Whitaker** - *The Birds of Tunisia* by **Joseph I. S. Whitaker** (1905), plates by **Henrik Grönvold**, Smithsonian Libraries scans from the Commons category [The birds of Tunisia; being a history of the birds found in the regency of Tunis (1905)](https://commons.wikimedia.org/wiki/Category:The_birds_of_Tunisia%3B_being_a_history_of_the_birds_found_in_the_regency_of_Tunis_(1905)) and the Internet Archive. Public domain (Commons: no known copyright restrictions). Manifest key: `whitaker`.
 
@@ -98,6 +98,8 @@ Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via
 Public domain. Manifest key: `legge`.
 
 **Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
+
+**Werner** - plates drawn by **Jean-Charles Werner** for his *Atlas des oiseaux d'Europe*, lithographed by **Langlumé**. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain). Manifest key: `werner`.
 
 **Swainson** - *Zoological Illustrations* by
 **William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I).
