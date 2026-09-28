@@ -21,7 +21,7 @@ same machine or elsewhere.
 > heard in my garden (Bergen, Norway). See other frames from around the world [here](showcase.md)!
 
 The birds are cut-outs from historic, public-domain natural-history drawings,
-hand-curated for this project - over 800 of them across more than 400 species.
+hand-curated for this project - over 1000 of them across more than 500 species.
 Each detected species is matched to its illustration and packed onto a textured paper page - larger birds toward the centre, sized by real body mass.
 
 For more display options see [Display](display.md), and for TVs, HDMI and desktops [Screens](screens.md).

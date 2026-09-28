@@ -58,6 +58,8 @@ paper code.
    Plain is the bird as it prints, grey is page on both sides. The one threshold is how dark
    a scan pixel must count as drawn on, and it is a slider: pale plumage sits near page tone
    and speckles red as you raise it, so move the slider before calling red a fault.
+   Mode 5 is that same RGBA plate on `check.jpg`'s blue ground: the halo shows as a band,
+   so its width and evenness are read there.
 7. **Fix and rebuild** until the user passes every plate. Verdicts live in the browser and
    survive a rebuild, so tell the user which birds changed. **Look at the whole preview after
    every re-cut**, not only the region you edited - a heron once lost both legs while every

@@ -15,32 +15,31 @@ describes a work and its terms, never a single plate.
 **von Wright** - *Svenska Fåglar* by the **von Wright brothers** (Magnus
 1805-1868, Wilhelm 1810-1887, Ferdinand 1822-1906), from the Commons category
 [Svenska fåglar (von Wright)](https://commons.wikimedia.org/wiki/Category:Svenska_f%C3%A5glar_(von_Wright)):
-340 rawpixel plates (CC BY-SA 4.0) and 71 public-domain files. The `perches/`
-branches are cut from these and retouched with generative AI. Manifest key:
-`vonwright`.
+rawpixel plates (CC BY-SA 4.0) and public-domain files. The `perches/`
+branches are cut from these and retouched with generative AI. Also the
+brothers' studies held by the **Finnish National Gallery**, and rawpixel's own
+scans of the folio (the ones Commons didn't have), both from
+[rawpixel](https://www.rawpixel.com/art-studio/von%20wright?path=1525%7C%24publicdomain&sort=curated),
+CC0; and [Project Runeberg](https://runeberg.org/svfoglar/)'s scan of the 1828
+edition, public domain. Manifest key: `vonwright`.
 
-**von Wright (rawpixel)** - the brothers' studies held by the **Finnish
-National Gallery**, and rawpixel's own scans of the folio (the ones Commons
-didn't have), both from
-[rawpixel](https://www.rawpixel.com/art-studio/von%20wright?path=1525%7C%24publicdomain&sort=curated).
-CC0. Manifest key: `vonwright-rawpixel`.
-
-**Gould** - *The Birds of Europe* by **John Gould** (1832-1837), Volumes 1-5,
-from the Commons category
-[The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould)).
-Public domain (PD-old-70-expired). Manifest key: `gould`.
-
-**Gould (Birds of Asia)** - *The Birds of Asia* by **John Gould** and **Richard
-Bowdler Sharpe** (1850-1883), from the Commons category
-[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)).
-Public domain (PD-Art, PD-old-100). Manifest key: `gould-asia`.
+**Gould** - works by **John Gould**: *The Birds of Europe* (1832-1837),
+Volumes 1-5, from the Commons category
+[The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould))
+and the [Internet Archive](https://archive.org/details/birdsEuropeIVGoul), public domain (PD-old-70-expired); *The Birds of Asia*, with **Richard Bowdler
+Sharpe** (1850-1883), from the Commons category
+[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)),
+public domain (PD-Art, PD-old-100); and *The Birds of Australia* (1840-1848),
+illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**,
+scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524),
+public domain. Manifest key: `gould`.
 
 **Dresser** - *A History of the Birds of Europe* by **H. E. Dresser**
-(1871-1881), plates by **J. G. Keulemans**, **Edward Neale**, **Archibald
+(1871-1881, supplement 1895-1896), plates by **J. G. Keulemans**, **Edward Neale**, **Archibald
 Thorburn** and **Joseph Wolf**, with **Richard Bowdler Sharpe**, from the
 Commons category
 [A history of the birds of Europe](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe).
-Scans from the Biodiversity Heritage Library, public domain
+Scans from the Biodiversity Heritage Library, via Commons and the Internet Archive, public domain
 (PD-scan / PD-old-70-expired), and Commons uploads offered under CC BY-SA 4.0.
 Manifest key: `dresser`.
 
@@ -48,7 +47,11 @@ Manifest key: `dresser`.
 *Onze vogels in huis en tuin* (1869-1876), from the Commons category
 [Onze vogels in huis en tuin](https://commons.wikimedia.org/wiki/Category:Onze_vogels_in_huis_en_tuin)
 and the Internet Archive; the *Proceedings of the Zoological Society of London*
-(1871); and the *Catalogue of the Birds in the British Museum*, vol. 5 (1881).
+(1871); the *Catalogue of the Birds in the British Museum*, vol. 5 (1881);
+*A monograph of the Capitonidæ, or scansorial barbets* by **C. H. T. Marshall** and
+**G. F. L. Marshall** (1871); and *The Birds of Australia* by **Gregory M. Mathews**, vol. 3
+(1913-1914), Smithsonian Libraries scans via the
+[Internet Archive](https://archive.org/details/birdsaustralia3math).
 Public domain (PD-old-70-expired; Keulemans died 1912); the *Onze vogels* scans held
 by the Biodiversity Heritage Library are additionally offered under CC BY 2.0.
 Manifest key: `keulemans`.
@@ -69,15 +72,23 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 
 **Des Murs** - *Iconographie ornithologique* by **Marc Athanase Parfait Œillet Des Murs** (1845-1849), from the Commons category [Iconographie ornithologique](https://commons.wikimedia.org/wiki/Category:Iconographie_ornithologique). Public domain (PD-scan / PD-old-70). Manifest key: `desmurs`.
 
-**Bree** - *A history of the birds of Europe, not observed in the British Isles* by **Charles Robert Bree** (1875), Biodiversity Heritage Library scans from the Commons category [A history of the birds of Europe, not observed in the British Isles (1875)](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe,_not_observed_in_the_British_Isles_(1875)). Public domain (PD-scan / PD-old-70-expired); the BHL files are also offered under CC BY 2.0. Manifest key: `bree`.
+**Bree** - *A history of the birds of Europe, not observed in the British Isles* by **Charles Robert Bree** (1859-1863 and 1875 editions), Biodiversity Heritage Library scans from the Commons category [A history of the birds of Europe, not observed in the British Isles (1875)](https://commons.wikimedia.org/wiki/Category:A_history_of_the_birds_of_Europe,_not_observed_in_the_British_Isles_(1875)) and the [Internet Archive](https://archive.org/details/historyofbirdsof03bree). Public domain (PD-scan / PD-old-70-expired); the BHL files are also offered under CC BY 2.0. Manifest key: `bree`.
 
 **Whitaker** - *The Birds of Tunisia* by **Joseph I. S. Whitaker** (1905), plates by **Henrik Grönvold**, Smithsonian Libraries scans from the Commons category [The birds of Tunisia; being a history of the birds found in the regency of Tunis (1905)](https://commons.wikimedia.org/wiki/Category:The_birds_of_Tunisia%3B_being_a_history_of_the_birds_found_in_the_regency_of_Tunis_(1905)) and the Internet Archive. Public domain (Commons: no known copyright restrictions). Manifest key: `whitaker`.
 
 **Audubon** - *Birds of America* by **John James Audubon** (1829-1838), engraved, printed, and colored by **R. Havell**, [Courtesy of the John James Audubon Center at Mill Grove, Montgomery County Audubon Collection, and Zebra Publishing](https://www.audubon.org/art/birds-of-america). Public domain (PD-scan / PD-old-70-expired). Manifest key: `audubon`.
+Also the octavo edition, *The birds of America, from drawings made in the United
+States and their territories*, with hand-coloured lithographs by **John T. Bowen**:
+Internet Archive scans via Wikimedia Commons (no known copyright restrictions),
+and [Metropolitan Museum of Art](https://www.metmuseum.org/art/collection) scans
+(CC0).
 
 **Naumann** - *Naturgeschichte der Vögel Mitteleuropas* by **Johann Friedrich Naumann**, revised and edited by **Carl R. Hennicke** (1897-1905), chromolithographs by **J. G. Keulemans** and others, lithographed and printed by **Fr. Eugen Köhler** in Gera-Untermhaus, Internet Archive scans from the Commons category [Naturgeschichte der Vögel Mitteleuropas](https://commons.wikimedia.org/wiki/Category:Naturgeschichte_der_V%C3%B6gel_Mitteleuropas). Public domain (PD-scan / PD-old-70-expired). Manifest key: `naumann`.
 
 **Fuertes** - *Birds of New York, Parts 1 & 2* by **Elon Howard Eaton** (New York State Museum, Memoir 12; Albany: University of the State of New York, 1910-1914), color plates painted by **Louis Agassiz Fuertes**, Internet Archive scans from the Commons category [Birds of New York (Eaton)](https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)).  Public domain (PD-scan / PD-old-70-expired). Manifest key: `fuertes`.
+Also chromolithographs after his watercolours in the *Harriman Alaska series*
+(1904), from [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Harriman_Alaska_Expedition).
+Public domain (PD-US / PD-Art).
 
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
@@ -89,15 +100,10 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 
 **Rüppell** - *Neue Wirbelthiere zu der Fauna von Abyssinien gehörig: Vögel* by **Eduard Rüppell** (1835-1840). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain; Rüppell died 1884). Manifest key: `ruppell`.
 
-**Gould (Birds of Australia)** - *The Birds of Australia* by **John Gould** (1840-1848),
-illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**.
-Scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524).
-Public domain. Manifest key: `gould-australia`.
-
-**Legge (Birds of Ceylon)** - *A history of the birds of Ceylon* by **W. Vincent Legge**
+**Legge** - *A history of the birds of Ceylon* by **W. Vincent Legge**
 (1878-1880), plates lithographed by **John Gerrard Keulemans**, printed by **Hanhart**.
 Smithsonian Libraries scans, sponsored by the Biodiversity Heritage Library, via [Internet Archive](https://archive.org/details/historyofbirdsof02legg).
-Public domain. Manifest key: `legge-ceylon`.
+Public domain. Manifest key: `legge`.
 
 **Vieillot** - *La galerie des oiseaux* by **Louis Pierre Vieillot** (1825-1834), plates drawn by **Paul Louis Oudart** (1796-1860) and lithographed by **Charles Étienne Pierre Motte** (1785-1836). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art / PD-old-70-expired). Manifest key: `vieillot`.
 
@@ -106,3 +112,18 @@ Public domain. Manifest key: `legge-ceylon`.
 **Elliot** - *The New and Heretofore Unfigured Species of the Birds of North America* by **Daniel Giraud Elliot** (1869), plates drawn by **Joseph Wolf** and others, lithographed by **C. P. Tholey**, printed by **Bowen & Co.**, Biodiversity Heritage Library scan on the [Internet Archive](https://archive.org/details/newheretoforeun1elli). Public domain (PD-old-70-expired; Wolf died 1899). Manifest key: `elliot`.
 
 **Dawson** - *The Birds of California* by **William Leon Dawson** (San Diego: South Moulton Company, 1923), color plates by **Allan Brooks**, Biodiversity Heritage Library scan on the [Internet Archive](https://archive.org/details/birdsofcaliforni02daws). Public domain (published in the US before 1929; Brooks died 1946). Manifest key: `dawson`.
+
+**Werner** - plates drawn by **Jean-Charles Werner** for his *Atlas des oiseaux d'Europe*, lithographed by **Langlumé**. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain). Manifest key: `werner`.
+
+**Swainson** - *Zoological Illustrations* by
+**William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I).
+Public domain. Manifest key: `swainson`.
+
+**Jardine** - *Illustrations of
+Ornithology* by **William Jardine** and **Prideaux John Selby** (1826-1835),
+from [Biodiversity Heritage Library scans on Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Illustrations_of_Ornithology,_Volume_1).
+CC BY 2.0. Manifest key: `jardine`.
+
+**Gordon** - bird studies from the **Gordon Atlas**, drawn at the Cape by **Robert Jacob Gordon** (1743-1795). Scans from the **Rijksmuseum**, Amsterdam (the `RP-T-1914-17` album, acquired 1914), via the Commons category [The Gordon African Collection Birds](https://commons.wikimedia.org/wiki/Category:The_Gordon_African_Collection_Birds). CC0 / public domain. Manifest key: `gordon`.
+
+**Lesson** - *Histoire naturelle des oiseaux-mouches* (1829) and its supplement in *Histoire naturelle des colibris* (1830) by **René Primevère Lesson**, plates drawn by **Antoine Germain Bévalet**, printed by **Rémond** and engraved by **Coutant**. Scans from the Ernst Mayr Library, Museum of Comparative Zoology, Harvard University, and Smithsonian Libraries via the [Internet Archive](https://archive.org/details/Histoirenaturel00Less); the plates are also in the Commons category [Calypte anna (illustrations)](https://commons.wikimedia.org/wiki/Category:Calypte_anna_(illustrations)). Public domain (PD-Art / PD-old-70). Manifest key: `lesson`.

@@ -13,10 +13,12 @@
   const country = document.getElementById("species-country");
   const sub = document.getElementById("species-sub");
   const vagrants = document.getElementById("species-vagrants");
+  const order = document.getElementById("species-order");
   const clear = document.getElementById("species-clear");
   const LIMIT = 500;
   const FILES = "https://github.com/arnegiacomo/fugleramme/blob/main/assets/artwork/";
   const GBIF = "https://api.gbif.org/v1";
+  const WIKI = "https://en.wikipedia.org/wiki/Special:Search/"; // jumps to the article on an exact title or redirect
   const REGULAR = 25; // records in a decade. Below it a bird is a vagrant, not a neighbour
 
   const cell = (...content) => {
@@ -31,8 +33,9 @@
     return row.detectable === false ? [...links, " (BirdNET cannot detect it)"] : links;
   };
   const name = (row) => {
-    if (!row.label) return [row.name];
-    return [row.name, document.createElement("br"), Object.assign(document.createElement("small"), { textContent: `BirdNET label: ${row.label}` })];
+    const wiki = link(WIKI + encodeURIComponent(row.name), row.name);
+    if (!row.label) return [wiki];
+    return [wiki, document.createElement("br"), Object.assign(document.createElement("small"), { textContent: `BirdNET label: ${row.label}` })];
   };
   // Returns the table's line; the caller owns what goes in front of it.
   const render = (rows, seen) => {
@@ -135,7 +138,11 @@
         let rows = query ? fuse.search(query).map((hit) => hit.item) : all;
         if (wanted === "with") rows = rows.filter((row) => row.plates.length);
         if (wanted === "without") rows = rows.filter((row) => !row.plates.length);
-        if (seen) rows = rows.filter((row) => seen.has(row)); // seen is built in record order
+        if (seen) {
+          const hits = new Set(rows);
+          const sorted = order.value === "records" ? [...seen.keys()] : all; // seen is built in record order
+          rows = sorted.filter((row) => hits.has(row) && seen.has(row));
+        }
         const counted = render(rows, seen);
         if (seen && !query) status.textContent = `${summary} ${counted}`;
         else if (!query && wanted === "all") status.textContent = `${withArt} of ${all.length} species have art. ${counted}`;
@@ -144,6 +151,7 @@
 
       const locate = () => {
         seen = null;
+        order.disabled = true;
         const question = ++asked; // bumped before the early return, so Clear strands a reply too
         if (!country.value) return update();
         status.textContent = "Asking GBIF what has been seen there…";
@@ -158,6 +166,7 @@
             });
             // Sorted once here: a Map keeps its order, so keystrokes never re-sort.
             seen = new Map([...here].sort((a, b) => b[1] - a[1]));
+            order.disabled = false;
             const where = (sub.selectedIndex > 0 ? `${sub.selectedOptions[0].text}, ` : "") + country.selectedOptions[0].text;
             const covered = [...seen.keys()].filter((row) => row.plates.length).length;
             summary =
@@ -180,10 +189,12 @@
 
       box.addEventListener("input", update);
       arts.addEventListener("change", update);
+      order.addEventListener("change", update);
       clear.addEventListener("click", () => {
         box.value = "";
         arts.querySelector("input[value=all]").checked = true;
         vagrants.checked = false;
+        order.value = "name";
         country.value = "";
         subdivisions();
         locate();

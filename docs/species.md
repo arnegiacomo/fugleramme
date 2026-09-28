@@ -21,7 +21,13 @@ are welcome too.
 #species-art input:focus-visible + label { outline: 2px solid var(--md-accent-fg-color); outline-offset: -2px; }
 #species-clear { margin-left: auto; font: inherit; font-size: .7rem; padding: .3rem .7rem; cursor: pointer; color: var(--md-typeset-a-color); background: var(--md-default-bg-color); border: 1px solid var(--md-default-fg-color--lighter); border-radius: .2rem; }
 #species-clear:hover { color: var(--md-accent-fg-color); border-color: var(--md-accent-fg-color); }
-#species-status { font-size: .75rem; color: var(--md-default-fg-color--light); }
+#species-bar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin: 1em 0; }
+#species-status { margin: 0; font-size: .75rem; color: var(--md-default-fg-color--light); }
+#species-sort { display: inline-flex; align-items: center; gap: .15rem; flex-shrink: 0; font-size: .75rem; color: var(--md-default-fg-color--light); }
+#species-sort:has(select:disabled) { opacity: .5; }
+#species-sort svg { width: 1.1em; height: 1.1em; fill: currentColor; }
+#species-sort select { font: inherit; color: var(--md-default-fg-color); background: transparent; border: none; padding: .2rem 0; cursor: pointer; }
+#species-sort select:disabled { cursor: default; }
 </style>
 
 <div id="species-filters">
@@ -41,7 +47,13 @@ are welcome too.
   </div>
 </div>
 
-<p id="species-status" aria-live="polite">Loading.</p>
+<div id="species-bar">
+  <p id="species-status" aria-live="polite">Loading.</p>
+  <label id="species-sort">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h12v-2H3m0-5v2h18V6M3 18h6v-2H3v2Z"/></svg>
+    <select id="species-order" aria-label="Sort" disabled><option value="name">A to Z</option><option value="records">Most common</option></select>
+  </label>
+</div>
 
 <table>
   <thead><tr><th>Scientific name</th><th>Common name</th><th>Art</th><th>Records</th></tr></thead>
@@ -50,7 +62,7 @@ are welcome too.
 
 Records are sightings in the last ten years from [GBIF](https://www.gbif.org),
 which for birds is largely eBird re-published, and the regions are
-[GADM](https://gadm.org)'s.
+[GADM](https://gadm.org)'s. Pick a region to order the list by them, most common first.
 
 <script src="../assets/fuse.min.js"></script>
 <script src="../assets/species.js"></script>

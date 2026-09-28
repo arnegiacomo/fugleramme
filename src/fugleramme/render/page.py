@@ -14,7 +14,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from . import fonts
-from .paper import PAD, TARGET_PAPER, paper_texture, process_sprite
+from .paper import PAD, PANEL_PAPER, paper_texture, process_sprite
 
 INK = (30, 30, 30)
 PANEL_INK = (0, 0, 0)  # exact palette black: the dither leaves it alone
@@ -101,4 +101,4 @@ def blank(resolution: tuple[int, int], textured: bool) -> Image.Image:
     width, height = resolution
     if textured:
         return paper_texture(width, height)
-    return Image.new("RGB", (width, height), TARGET_PAPER)
+    return Image.new("RGB", (width, height), PANEL_PAPER)

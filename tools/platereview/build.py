@@ -15,6 +15,7 @@ For each plate it writes four aligned layers into img/<id>/:
     plate.png   the shipped WebP on the frame's own paper, through the frame's own
                 halo treatment (fugleramme.render.paper), as it will print
     flags.jpg   plate.png with suspect pixels in red
+    cut.png     the shipped plate itself, RGBA, with nothing composited under it
 
 Both comparison layers are PNG because the page diffs them pixel against pixel in a
 canvas, and a JPEG round-trip would put compression artifacts into that comparison.
@@ -182,8 +183,9 @@ def build(bird):
     scan_layer.save(out / "scan.png")
     page.save(out / "plate.png")
     # The shipped plate itself, RGBA, on the same canvas as the scan and with nothing
-    # composited under it. Mode 4 diffs this against scan.png in the browser, so what the
-    # page compares is the plate and the scan - not a verdict reached here and passed along.
+    # composited under it. Mode 5 shows it as is. Mode 4 diffs it against scan.png in the
+    # browser, so what the page compares is the plate and the scan - not a verdict reached
+    # here and passed along.
     Image.fromarray(raw.astype(np.uint8), "RGBA").save(out / "cut.png")
     Image.fromarray(flags).save(out / "flags.jpg", quality=92)
     thumb = page.copy()

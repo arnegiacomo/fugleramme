@@ -156,7 +156,7 @@ def cut(spec, out):
     # by one delta, so it would print off the page's tone: give it the halo's.
     gap = np.zeros_like(bird)
     for seed in spec.get("gaps", []):
-        gap |= flood(bird & clean, seed)
+        gap |= flood(bird & (clean | removed), seed)  # removed: painted ground a perch encloses
     print(f"bird {int(bird.sum())} px of {w * h}, gaps {int(gap.sum())} px")
 
     rows, cols = np.flatnonzero(bird.any(1)), np.flatnonzero(bird.any(0))
