@@ -27,6 +27,10 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-374-sharp-shinned-hawk.jpg"
   },
+  "birds/acridotheres-cristatellus.webp": {
+    "source": "edwards",
+    "url": "https://archive.org/details/naturalhistoryof11743edwa/page/n89"
+  },
   "birds/acridotheres-tristis.webp": {
     "source": "legge",
     "url": "https://archive.org/stream/historyofbirdsof02legg#page/n59/mode/1up"
@@ -871,6 +875,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:The_Birds_of_America_from_Drawings_Made_in_the_United_States_MET_DP247651.jpg"
   },
+  "birds/calyptorhynchus-banksii.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/13868"
+  },
   "birds/canachites-canadensis.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)#/media/File:Annual_report_(1909)_(14776306752).jpg"
@@ -1198,6 +1206,22 @@
   "birds/columba-palumbus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVWood_Pigeon.jpg"
+  },
+  "birds/copsychus-saularis-2.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/BirdsAsiaJohnGoIIIGoul/page/n103"
+  },
+  "birds/copsychus-saularis-3.webp": {
+    "source": "gwillim",
+    "url": "https://commons.wikimedia.org/wiki/File:Magpie_robin_Gwillim.jpg"
+  },
+  "birds/copsychus-saularis-4.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/BirdsAsiaJohnGoIIIGoul/page/n107"
+  },
+  "birds/copsychus-saularis.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Copsychus_saularis_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300365.tif"
   },
   "birds/coracias-garrulus-2.webp": {
     "source": "vonwright",
@@ -1894,6 +1918,10 @@
   "birds/glaucidium-passerinum.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsIEuropeISparrow_Owl.jpg"
+  },
+  "birds/gracupica-nigricollis.webp": {
+    "source": "swainson",
+    "url": "https://www.biodiversitylibrary.org/page/38128440"
   },
   "birds/grallina-cyanoleuca.webp": {
     "source": "gould",
@@ -2739,6 +2767,10 @@
     "source": "gould",
     "url": "https://www.biodiversitylibrary.org/page/48702814"
   },
+  "birds/orthotomus-sutorius.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/BirdsAsiaJohnGoIVGoul/page/n35"
+  },
   "birds/otus-scops.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsIEuropeIScops_Eared_Owl.jpg"
@@ -2759,6 +2791,10 @@
     "source": "dresser",
     "url": "https://commons.wikimedia.org/wiki/File:Panurus_biarmicus_(Dresser).jpg"
   },
+  "birds/parus-cinereus.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/BirdsAsiaJohnGoIIGoul/page/n227"
+  },
   "birds/parus-major-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00141.jpg"
@@ -2770,6 +2806,14 @@
   "birds/parus-major.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14771793513).jpg"
+  },
+  "birds/parus-minor-2.webp": {
+    "source": "siebold",
+    "url": "https://archive.org/details/faunajaponicasi4sieb/page/n248"
+  },
+  "birds/parus-minor.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/BirdsAsiaJohnGoIIGoul/page/n231"
   },
   "birds/passer-domesticus-2.webp": {
     "source": "vonwright",
@@ -3251,6 +3295,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVSand_Grouse.jpg"
   },
+  "birds/pterorhinus-perspicillatus-2.webp": {
+    "source": "arnoul",
+    "url": "https://gallica.bnf.fr/ark:/12148/bpt6k1510968b/f115.item"
+  },
+  "birds/pterorhinus-perspicillatus.webp": {
+    "source": "cassin",
+    "url": "https://wellcomecollection.org/works/p4az8g6p"
+  },
   "birds/ptyonoprogne-rupestris.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRock_Martin.jpg"
@@ -3262,6 +3314,26 @@
   "birds/pycnonotus-barbatus.webp": {
     "source": "keulemans",
     "url": "https://commons.wikimedia.org/wiki/File:PycnonotusKeulemans.jpg"
+  },
+  "birds/pycnonotus-jocosus-2.webp": {
+    "source": "collins",
+    "url": "https://archivalcollections.library.mcgill.ca/index.php/red-whiskered-bubul"
+  },
+  "birds/pycnonotus-jocosus-3.webp": {
+    "source": "edwards",
+    "url": "https://commons.wikimedia.org/wiki/File:Pycnonotus_jocosus_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16400025.tif"
+  },
+  "birds/pycnonotus-jocosus.webp": {
+    "source": "gwillim",
+    "url": "https://archivalcollections.library.mcgill.ca/index.php/red-whiskered-bulbul-pycnonotus-jocosus"
+  },
+  "birds/pycnonotus-sinensis-2.webp": {
+    "source": "prevost",
+    "url": "https://commons.wikimedia.org/wiki/File:Oiseaux_(Plate_14)_(8202117797).jpg"
+  },
+  "birds/pycnonotus-sinensis.webp": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:IxusSinensisGould.jpg"
   },
   "birds/pyrrhocorax-graculus.webp": {
     "source": "gould",
@@ -3498,6 +3570,10 @@
   "birds/spatula-querquedula.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVGargany_Teal.jpg"
+  },
+  "birds/spilopelia-chinensis.webp": {
+    "source": "knip",
+    "url": "https://archive.org/details/pigeons00temm/page/n250"
   },
   "birds/spilopelia-senegalensis.webp": {
     "source": "levaillant",
@@ -4030,6 +4106,10 @@
   "birds/zoothera-aurea.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIWhitesThrush.jpg"
+  },
+  "birds/zosterops-simplex.webp": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:Birds_of_Asia_-_by_John_Gould_(Plate_34)_(7609272650).jpg"
   },
   "birds/zosterops-virens.webp": {
     "source": "levaillant",

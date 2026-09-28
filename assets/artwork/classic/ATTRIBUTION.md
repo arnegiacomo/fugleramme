@@ -92,7 +92,7 @@ Public domain (PD-US / PD-Art).
 
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
-**Cassin** - *Illustrations of the Birds of California, Texas, Oregon, British and Russian America* by **John Cassin** (Philadelphia: J. B. Lippincott & Co., 1862), plates drawn by **George G. White**, put on stone by **William E. Hitchcock**, lithographed, printed and colored by **J. T. Bowen**, Biodiversity Heritage Library scans from the Commons category [Illustrations of the birds of California, Texas, Oregon, British and Russian America](https://commons.wikimedia.org/wiki/Category:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America). Public domain (PD-scan / PD-old-70-expired). Manifest key: `cassin`.
+**Cassin** - *Illustrations of the Birds of California, Texas, Oregon, British and Russian America* by **John Cassin** (Philadelphia: J. B. Lippincott & Co., 1862), plates drawn by **George G. White**, put on stone by **William E. Hitchcock**, lithographed, printed and colored by **J. T. Bowen**, Biodiversity Heritage Library scans from the Commons category [Illustrations of the birds of California, Texas, Oregon, British and Russian America](https://commons.wikimedia.org/wiki/Category:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America); and Cassin's birds for the *Narrative of the Expedition of an American Squadron to the China Seas and Japan* (Perry expedition, vol. 2, 1856), lithographed by **William E. Hitchcock**, from the [Wellcome Collection](https://wellcomecollection.org/). Public domain (PD-scan / PD-old-70-expired). Manifest key: `cassin`.
 
 **Finch-Davies** - *The game-birds and water-fowl of South Africa* by **Boyd Horsbrugh** (Witherby & Co., London, 1912), plates by **Claude Gibney Finch-Davies** (1875-1920), from the Commons category [The game-birds and water-fowl of South Africa (1912)](https://commons.wikimedia.org/wiki/Category:The_game-birds_and_water-fowl_of_South_Africa_(1912)). Public domain (PD-scan / PD-old-70-expired). Manifest key: `finchdavies`.
 
@@ -116,7 +116,8 @@ Public domain. Manifest key: `legge`.
 **Werner** - plates drawn by **Jean-Charles Werner** for his *Atlas des oiseaux d'Europe*, lithographed by **Langlumé**. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain). Manifest key: `werner`.
 
 **Swainson** - *Zoological Illustrations* by
-**William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I).
+**William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I);
+and his plates for *A Fasciculus of the Birds of China* by **G. R. Gray** (1871), Cornell University Library scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) and the Internet Archive.
 Public domain. Manifest key: `swainson`.
 
 **Jardine** - *Illustrations of
@@ -127,3 +128,17 @@ CC BY 2.0. Manifest key: `jardine`.
 **Gordon** - bird studies from the **Gordon Atlas**, drawn at the Cape by **Robert Jacob Gordon** (1743-1795). Scans from the **Rijksmuseum**, Amsterdam (the `RP-T-1914-17` album, acquired 1914), via the Commons category [The Gordon African Collection Birds](https://commons.wikimedia.org/wiki/Category:The_Gordon_African_Collection_Birds). CC0 / public domain. Manifest key: `gordon`.
 
 **Lesson** - *Histoire naturelle des oiseaux-mouches* (1829) and its supplement in *Histoire naturelle des colibris* (1830) by **René Primevère Lesson**, plates drawn by **Antoine Germain Bévalet**, printed by **Rémond** and engraved by **Coutant**. Scans from the Ernst Mayr Library, Museum of Comparative Zoology, Harvard University, and Smithsonian Libraries via the [Internet Archive](https://archive.org/details/Histoirenaturel00Less); the plates are also in the Commons category [Calypte anna (illustrations)](https://commons.wikimedia.org/wiki/Category:Calypte_anna_(illustrations)). Public domain (PD-Art / PD-old-70). Manifest key: `lesson`.
+
+**Gwillim** - bird watercolours painted in Madras around 1800 by **Elizabeth Gwillim** (1763-1807), held by the **McGill University Library** (Blacker-Wood collection), from [McGill's digital archives](https://archivalcollections.library.mcgill.ca/) and Wikimedia Commons. Public domain. Manifest key: `gwillim`.
+
+**Collins** - bird watercolours by **Charles Collins** (died 1744) in the **Taylor White** collection of the **McGill University Library**, from [McGill's digital archives](https://archivalcollections.library.mcgill.ca/). Public domain. Manifest key: `collins`.
+
+**Edwards** - plates by **George Edwards** (1694-1773) from his *A Natural History of Uncommon Birds* (1743-1751), Smithsonian Libraries scans via the [Internet Archive](https://archive.org/details/naturalhistoryof11743edwa); and plates after him, engraved by **Johann Sebastian Leitner** for a German edition of his work, with scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain. Manifest key: `edwards`.
+
+**Knip** - *Les Pigeons* by **Pauline Knip** (1781-1851) and **Coenraad Jacob Temminck** (1808-1811), Ernst Mayr Library, Museum of Comparative Zoology, Harvard University scans via the [Internet Archive](https://archive.org/details/pigeons00temm). Public domain. Manifest key: `knip`.
+
+**Prévost** - plates painted by **Florent Prévost** for *Oiseaux* (1839) by **Fortuné Eydoux** and **Paul Gervais**, from the voyage of *La Favorite*. University of Illinois Urbana-Champaign scans via the Biodiversity Heritage Library, on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Oiseaux_(Plate_14)_(8202117797).jpg) and the [Internet Archive](https://archive.org/details/oiseaux00eydo). Public domain. Manifest key: `prevost`.
+
+**Siebold** - *Fauna Japonica*, Aves (1844-1850), edited by **Philipp Franz von Siebold** with text by **Coenraad Jacob Temminck** and **Hermann Schlegel**, hand-coloured lithographs. Ernst Mayr Library, Museum of Comparative Zoology, Harvard University scans via the [Internet Archive](https://archive.org/details/faunajaponicasi4sieb). Public domain. Manifest key: `siebold`.
+
+**Arnoul** - plates drawn and lithographed by **Arnoul** for *Les oiseaux de la Chine* by **Armand David** and **Émile Oustalet** (1877). Scans of the Bibliothèque de l'Arsenal copy from [Gallica](https://gallica.bnf.fr/), Bibliothèque nationale de France. Public domain. Manifest key: `arnoul`.

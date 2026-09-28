@@ -66,6 +66,12 @@ Frames people have running around the world. Click one to open it.
       <figcaption>Sevilla, Spain <small>fugleramme.gabi.is</small></figcaption>
     </a>
   </figure>
+  <figure>
+    <a href="https://feathers.daphnetowers.com/">
+      <img src="https://feathers.daphnetowers.com/collage.png" alt="The frame in London, UK" loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>London, UK <small>feathers.daphnetowers.com</small></figcaption>
+    </a>
+  </figure>
 </div>
 
 Running one yourself and want to share with others? Post the link in
