@@ -174,6 +174,7 @@ def run(config: Config) -> None:
             name_of,
             size,
             textured=False,
+            panel=panel is not None,
         )
         try:
             last_artless = _log_artless(ctx, last_artless)
@@ -188,7 +189,7 @@ def run(config: Config) -> None:
                     picks.retain(name for name, _ in source.species_since(settings.lookback_hours))
                 panel_image = dither(modes.render(ctx))
                 panel_image.save(config.output_path)
-                log.info("Rendered %s page at %dx%d", ctx.mode, *size)
+                log.info("Rendered %s for the panel at %dx%d", ctx.mode, *size)
                 status.rendered()
                 last_key, last_settings, last_render = key, _paced(settings), time.monotonic()
                 pending = (panel_image, settings.rotation) if panel is not None else None

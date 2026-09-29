@@ -276,6 +276,30 @@ def test_with_no_panel_the_lock_is_off_and_undeclared(tmp_path, source):
     assert _config(page)["webHeights"]["4K"] == 2160  # the Resolution labels follow the form
 
 
+def test_every_tab_has_the_pane_admin_js_shows(tmp_path, source):
+    page = _page(tmp_path, source())
+    for tab in re.findall(r'data-tab="([^"]+)"', page):
+        assert f'id="tab-{tab}"' in page
+
+
+def test_the_margin_offers_each_edge_only_with_a_panel(tmp_path, source):
+    unlocked = {"margin": 6, "margin_lock": False, "margin_top": 12}
+    page = _page(tmp_path, source(), **unlocked)
+    assert "margin_lock" in _declared(page) and 'name="margin_lock">' in page
+    assert 'name="margin_top" min="0" max="25" step="1" value="12"' in page
+    assert 'name="margin_left" min="0" max="25" step="1" value="6"' in page
+    bare = _page(tmp_path, source(), detected=False, **unlocked)
+    assert "margin_lock" not in bare and "margin_top" not in bare
+    assert 'name="margin" min="0"' in bare
+
+
+def test_unticking_the_margin_lock_is_a_change(tmp_path):
+    store = SettingsStore(tmp_path / "s.json")
+    post = {admin.CHECKBOXES: ["show_names margin_lock"], "margin_top": ["10"]}
+    saved = store.update(**admin.form_changes(post))
+    assert not saved.margin_lock and saved.glass_margins()[0] == 10
+
+
 @pytest.mark.parametrize(
     "url,expected",
     [

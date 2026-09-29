@@ -13,7 +13,7 @@ from PIL import Image, ImageFont
 from fugleramme.render import collage, fonts
 from fugleramme.render.collage import _Sprite, _with_label, render_collage
 from fugleramme.render.packing import _probes, spiral
-from fugleramme.render.page import INK, PANEL_INK, figures_mask, label_px, stamp, text_mask
+from fugleramme.render.page import INK, PANEL_INK, Edges, figures_mask, label_px, stamp, text_mask
 from fugleramme.render.paper import PANEL_PAPER
 
 
@@ -226,17 +226,17 @@ def test_the_panel_and_the_kiosk_share_one_pack(tmp_path, crowded, name_key):
 
 @pytest.mark.parametrize("size", [(700, 500), (500, 700)])
 @pytest.mark.parametrize("name_key", [False, True])
-@pytest.mark.parametrize("margin", [collage.DEFAULT_MARGIN, 0.15])
+@pytest.mark.parametrize(
+    "margin",
+    [Edges.even(collage.DEFAULT_MARGIN), Edges.even(0.15), Edges(0.02, 0.2, 0.1, 0.05)],
+)
 def test_nothing_is_drawn_against_the_page_edge(crowded, margin, name_key, size):
     page = render_collage(
         crowded(12), size, show_names=True, textured=False, margin=margin, name_key=name_key
     )
-    px = round(min(page.size) * margin)
+    x0, y0, x1, y1 = margin.window(page.size)
     band = np.asarray(page).copy()
-    band[px:-px, px:-px] = PANEL_PAPER
-    assert (band == PANEL_PAPER).all()
-    band = np.asarray(page).copy()
-    band[px:-px, px:-px] = PANEL_PAPER
+    band[y0:y1, x0:x1] = PANEL_PAPER
     assert (band == PANEL_PAPER).all()
 
 

@@ -28,7 +28,7 @@ from .languages import Namer
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
 from .render.collage import KEY_LIMIT, NO_LIMIT, gather_entries, render_collage, selected_species
-from .render.page import day_ordinal
+from .render.page import Edges, day_ordinal
 from .render.plate import effective_margin, render_plate
 from .source import Source, Species
 
@@ -60,7 +60,7 @@ class Context:
     species_limit: int
     ranking: str
     layout: str
-    margin: float  # of the short side; the setting is a percent
+    margin: Edges  # of the short side; the settings are percents
     textured: bool = True
 
     def perches(self):
@@ -80,7 +80,9 @@ def context(
     namer: Namer,
     resolution: tuple[int, int],
     textured: bool = True,
+    panel: bool = False,
 ) -> Context:
+    """`panel`: the page is the panel's or follows it, and takes its edges."""
     keyed = settings.show_names and settings.name_key
     return Context(
         mode=settings.mode,
@@ -98,7 +100,7 @@ def context(
         species_limit=_key_limit(settings.species_limit) if keyed else settings.species_limit,
         ranking=settings.ranking,
         layout=settings.layout,
-        margin=settings.margin / 100,
+        margin=Edges(*(m / 100 for m in settings.margins(panel))),
         textured=textured,
     )
 

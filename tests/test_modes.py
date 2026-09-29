@@ -16,6 +16,8 @@ from fugleramme.languages import namer
 from fugleramme.names import normalize
 from fugleramme.picks import Picks
 from fugleramme.render.collage import KEY_LIMIT, NO_LIMIT
+from fugleramme.render.paper import PANEL_PAPER
+from fugleramme.render.plate import effective_margin
 from fugleramme.settings import MARGIN_CEILING, Settings
 
 NOW = datetime.now().astimezone()
@@ -53,7 +55,7 @@ def _draw(images, name: str) -> None:
     )
 
 
-def _ctx(source, images, tmp_path, mode, **overrides):
+def _ctx(source, images, tmp_path, mode, panel=False, **overrides):
     settings = Settings(mode=mode, **overrides)
     return modes.context(
         source,
@@ -63,6 +65,7 @@ def _ctx(source, images, tmp_path, mode, **overrides):
         namer("sci", "", tmp_path),
         (400, 300),
         textured=False,
+        panel=panel,
     )
 
 
@@ -205,6 +208,17 @@ def test_a_margin_under_the_plates_own_does_not_change_its_key(tmp_path, images,
         modes.state_key(_ctx(detections, images, tmp_path, "collage", margin=m)) for m in (0, 7)
     ]
     assert keys[0] != keys[1]
+
+
+def test_a_plate_keeps_to_its_window_and_its_own_floor_on_each_edge(tmp_path, images, source):
+    detections = source(rows=[_row(1, BLACKBIRD, 1)])
+    edges = {"margin_lock": False, "margin_top": MARGIN_CEILING, "margin_right": 0}
+    ctx = _ctx(detections, images, tmp_path, "latest", panel=True, margin=0, **edges)
+    page = np.asarray(modes.render(ctx)).copy()
+    x0, y0, x1, y1 = effective_margin(ctx.margin).window((400, 300))
+    assert (x0, y0, x1, y1) == (24, 75, 376, 276)
+    page[y0:y1, x0:x1] = PANEL_PAPER
+    assert (page == PANEL_PAPER).all()
 
 
 def test_the_key_carries_what_the_page_is_drawn_from(tmp_path, images, source):

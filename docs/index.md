@@ -24,7 +24,7 @@ The birds are cut-outs from historic, public-domain natural-history drawings,
 hand-curated for this project - over 1000 of them across more than 500 species.
 Each detected species is matched to its illustration and packed onto a textured paper page - larger birds toward the centre, sized by real body mass.
 
-For more display options see [Display](display.md), and for TVs, HDMI and desktops [Screens](screens.md).
+For more display options see [Display](display.md) and [Frame](frame.md), and for TVs, HDMI and desktops [Screens](screens.md).
 
 > [!NOTE]
 > Still in early development: expect the odd bug and a few unpolished edges, with
@@ -40,6 +40,7 @@ For more display options see [Display](display.md), and for TVs, HDMI and deskto
 - **[Configuring BirdNET-Go](birdnetgo-config.md)** - the mic, your location, and
   avoiding incorrect detections
 - **[Display](display.md)** - modes, settings and names
+- **[Frame](frame.md)** - panel refresh, web resolution and margin
 - **[Screens](screens.md)** - a browser, an HDMI screen, a TV or your desktop
 - **[Operations](operations.md)** - buttons, services, logs, updates and authentication
 - **[Container](container.md)** - running Fugleramme with Docker

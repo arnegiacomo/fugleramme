@@ -45,6 +45,7 @@ nav:
     - Configuring BirdNET-Go: birdnetgo-config.md
   - Using it:
     - Display: display.md
+    - Frame: frame.md
     - Screens: screens.md
     - Operations: operations.md
     - Troubleshooting: troubleshooting.md

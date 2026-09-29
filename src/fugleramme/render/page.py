@@ -10,6 +10,7 @@ import math
 from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
+from typing import NamedTuple
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -23,6 +24,33 @@ MIN_LABEL_PX = 11
 _CUTOFF = 110  # alpha threshold when flattening text for the panel
 _LINE_SPACING = 0.1  # extra leading between a label's two lines, em
 _PERCH_FILL = 0.7  # of the page's short side
+
+
+class Edges(NamedTuple):
+    """Bare paper along each edge of the page as it hangs, fractions of the short side."""
+
+    top: float
+    right: float
+    bottom: float
+    left: float
+
+    @classmethod
+    def even(cls, margin: float) -> Edges:
+        return cls(margin, margin, margin, margin)
+
+    def window(self, size: tuple[int, int]) -> tuple[int, int, int, int]:
+        """The box inside the edges, as (x0, y0, x1, y1)."""
+        width, height = size
+        short = min(size)
+        return (
+            round(short * self.left),
+            round(short * self.top),
+            width - round(short * self.right),
+            height - round(short * self.bottom),
+        )
+
+
+NO_MARGIN = Edges(0, 0, 0, 0)
 
 
 def label_px(width: int, height: int, size_key: str) -> int:

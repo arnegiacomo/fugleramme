@@ -106,9 +106,8 @@ repo's README.
 
 The TV only offers its own mats when the picture is exactly its size. For
 that, turn off **Lock to panel** on the admin page and set **Resolution** to 4K
-and **Aspect** to 16:9. Set [Margin](display.md#margin) to 0 too, since the TV
-adds its own mat - margin is one setting for every screen, so an e-ink panel
-beside it loses its margin as well, and the two arrange the birds differently.
+and **Aspect** to 16:9. Set [Margin](frame.md#margin) to 0 too, since the TV
+adds its own mat - with an e-ink panel beside it, turn off **Uniform** first, so the panel keeps its own margin.
 
 ![A Samsung Frame showing a Fugleramme collage among framed artwork in a living room](assets/samsung-frame-room.jpg)
 

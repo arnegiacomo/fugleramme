@@ -313,6 +313,7 @@ def make_handler(
                 settings,
                 namer(settings.primary_language, settings.secondary_language, store.path.parent),
                 settings.web_size(attached),
+                panel=settings.web_lock and attached is not None,
             )
 
         def _edited(self) -> Settings:

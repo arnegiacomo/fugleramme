@@ -430,11 +430,36 @@ def _hint(text: str) -> str:
     return f'<span class="hint" tabindex="0" role="img" aria-label="{note}"></span>'
 
 
-LOCK = (
-    "The web view takes the panel's shape and rotation. Turn off to give it a "
-    "shape of its own, like a 16:9 TV. The panel and the screen then show "
-    "different pages."
-)
+LOCK = "The web view takes the panel's shape and rotation"
+
+
+EDGES = "The same margin on every edge of the panel"
+
+
+def _slider(field: str, caption: str, value: int) -> str:
+    return (
+        f'<label><span><span class="caption">{caption}</span> <small>{value}%</small></span>'
+        f'<input type="range" name="{field}" min="0" max="{MARGIN_CEILING}" step="1" value="{value}">'
+        "</label>"
+    )
+
+
+def _margin_field(settings: Settings, panel: bool) -> str:
+    """One margin, or with a panel one per edge of the glass (#184)."""
+    one = f'<div id="margin-one">{_slider("margin", "All edges", settings.margin)}</div>'
+    if not panel:
+        return one
+    edges = "".join(
+        _slider(f"margin_{edge}", edge.title(), value)
+        for edge, value in zip(
+            ("top", "right", "bottom", "left"), settings.glass_margins(), strict=True
+        )
+    )
+    lock = _checkbox("margin_lock", f"<span>Uniform {_hint(EDGES)}</span>", settings.margin_lock)
+    return (
+        f'<input type="hidden" name="{CHECKBOXES}" value="margin_lock">{lock}'
+        f'<div id="margin-edges">{edges}</div>{one}'
+    )
 
 
 def _web_field(settings: Settings, panel: tuple[int, int] | None) -> str:
@@ -454,7 +479,7 @@ def _web_field(settings: Settings, panel: tuple[int, int] | None) -> str:
         lambda r: "{} ({}×{})".format(r, *replace(settings, web_resolution=r).web_size(panel)),
     )
     return (
-        f'<div class="field"><span>Resolution {_hint("Web view only")}</span>'
+        f'<div class="field"><span>Resolution</span>'
         f'<select name="web_resolution" aria-label="Resolution">{resolutions}</select>'
         f'<div class="sub{"" if panel else " off"}">{declared}{lock}</div>'
         f'<div class="sub" id="web-shape">'
@@ -561,8 +586,7 @@ def page(
         ),
         web_field=_web_field(settings, attached),
         rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
-        margin=settings.margin,
-        margin_max=MARGIN_CEILING,
+        margin_field=_margin_field(settings, detected),
         refreshes=_refreshes(settings),
         lookback_off="" if windowed else ' class="off"',
         lookback_disabled="" if windowed else " disabled",

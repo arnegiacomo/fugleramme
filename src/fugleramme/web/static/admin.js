@@ -37,12 +37,15 @@ sessionStorage.setItem("version", cfg.version);
 if (state && was && was !== cfg.version) state.textContent = "updated to v" + cfg.version;
 
 const tabs = document.querySelectorAll("nav.tabs button");
+// Display and Frame share one form and one preview.
+const settings = document.getElementById("settings");
 function showTab(name) {
   for (const tab of tabs) {
     const on = tab.dataset.tab === name;
     tab.setAttribute("aria-selected", on);
     document.getElementById("tab-" + tab.dataset.tab).hidden = !on;
   }
+  settings.hidden = !settings.contains(document.getElementById("tab-" + name));
   localStorage.setItem("tab", name);
 }
 for (const tab of tabs) tab.addEventListener("click", () => showTab(tab.dataset.tab));
@@ -253,17 +256,53 @@ async function loadSpecies(query, id) {
   } catch (e) {}  // the preview alone is worth showing
 }
 
+const margin = form.querySelector("input[name=margin]");
+const one = document.getElementById("margin-one");
+const edgeLock = form.querySelector("input[name=margin_lock]");
+const edgeBox = document.getElementById("margin-edges");
+const edges = edgeBox ? [...edgeBox.querySelectorAll("input")] : [];  // the glass's top, right, bottom, left
+const SIDES = ["Top", "Right", "Bottom", "Left"];
+const unlocked = () => Boolean(edgeLock && !edgeLock.checked);
+const turns = () => form.rotation.value / 90;  // counter-clockwise: the glass's left comes to the top
+
+function hungMargins() {
+  if (!unlocked()) return SIDES.map(() => Number(margin.value));
+  return SIDES.map((_, i) => Number(edges[(i - turns() + 4) % 4].value));
+}
+
+function reveal(el, on) {
+  el.hidden = !on;
+  el.querySelectorAll("input").forEach((c) => { c.disabled = !on; });
+}
+function syncMargin() {
+  if (!edgeLock) return;  // no panel, no edges
+  const open = unlocked();
+  reveal(edgeBox, open);
+  // Unlocked, only a web view off the panel uses the one margin.
+  reveal(one, !open || !lock.checked);
+  one.querySelector(".caption").textContent = open ? "Web view" : "All edges";
+  edges.forEach((edge, i) => {
+    const side = (i + turns()) % 4;
+    edge.closest("label").style.order = side;
+    edge.closest("label").querySelector(".caption").textContent = SIDES[side];
+  });
+}
+
 // Shade the mat band on the page already on screen, so the margin can be judged
 // before the render catches up.
-const margin = form.querySelector("input[name=margin]");
-const readout = document.getElementById("margin-value");
-margin.addEventListener("input", () => {
-  readout.textContent = margin.value + "%";
+form.addEventListener("input", (e) => {
+  if (e.target.type !== "range") return;
+  e.target.closest("label").querySelector("small").textContent = e.target.value + "%";
+  // Locked, the edges follow, so unlocking starts them at the one margin.
+  if (e.target === margin && !unlocked()) edges.forEach((edge) => { edge.value = margin.value; });
   const box = preview.getBoundingClientRect();
-  mat.style.borderWidth = Math.min(box.width, box.height) * margin.value / 100 + "px";
+  const short = Math.min(box.width, box.height);
+  mat.style.borderWidth = hungMargins().map((m) => short * m / 100 + "px").join(" ");
   mat.hidden = preview.classList.contains("loading");  // no page on screen to shade
 });
-margin.addEventListener("change", queueRender);  // on release, or a keyboard step
+form.addEventListener("change", (e) => {  // on release, or a keyboard step
+  if (e.target.type === "range") queueRender();
+});
 
 // Settings the chosen mode ignores go dim and stop being submitted, so the
 // saved value survives a trip through a mode that has no use for it.
@@ -325,7 +364,8 @@ form.addEventListener("input", (e) => {
   syncShape();
   syncNames();
   syncSizes();
-  if (e.target === margin) return clearTimeout(timer);  // a drag renders on release only
+  syncMargin();
+  if (e.target.type === "range") return clearTimeout(timer);  // a drag renders on release only
   queueRender();
 }, true);
 
@@ -333,6 +373,7 @@ syncMode();
 syncShape();
 syncNames();
 syncSizes();
+syncMargin();
 
 // Save stays disabled until a form differs from what the server served. An
 // untouched password placeholder serializes the same both times, so it needs no

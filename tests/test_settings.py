@@ -10,9 +10,11 @@ import stat
 from dataclasses import replace
 
 import pytest
+from PIL import Image, ImageDraw
 
 from fugleramme.config import DEFAULT_DETECTOR_URL, FALLBACK_PANEL_RESOLUTION, WEB_HEIGHTS
 from fugleramme.languages import NONE, SCIENTIFIC
+from fugleramme.panel import _TRANSPOSE
 from fugleramme.render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
 from fugleramme.render.packing import DEFAULT_LAYOUT
 from fugleramme.settings import (
@@ -147,6 +149,57 @@ def test_the_margin_is_clamped_to_the_ceiling(tmp_path):
     assert SettingsStore(path).get().margin == MARGIN_CEILING
     path.write_text(json.dumps({"margin": "wide"}))
     assert SettingsStore(path).get().margin == Settings().margin
+
+
+def test_a_frame_with_nothing_saved_keeps_one_margin_on_every_edge():
+    settings = Settings(margin=7, margin_top=20)
+    assert settings.margin_lock
+    assert settings.margins(True) == (7, 7, 7, 7)
+
+
+def test_a_missing_edge_follows_the_one_margin(tmp_path):
+    path = tmp_path / "s.json"
+    path.write_text(
+        json.dumps({"margin": 9, "margin_lock": False, "margin_top": 20, "margin_left": 90})
+    )
+    assert SettingsStore(path).get().glass_margins() == (20, 9, 9, MARGIN_CEILING)
+
+
+def test_the_environment_seeds_the_edges_a_file_does_not_carry(tmp_path, monkeypatch):
+    monkeypatch.setenv("FUGLERAMME_MARGIN_LOCK", "false")
+    monkeypatch.setenv("FUGLERAMME_MARGIN_BOTTOM", "15")
+    path = tmp_path / "s.json"
+    path.write_text(json.dumps({"margin": 6}))
+    assert SettingsStore(path, from_env()).get().glass_margins() == (6, 6, 15, 6)
+
+
+def test_only_the_panel_s_page_takes_the_edges():
+    settings = Settings(margin=5, margin_lock=False, margin_top=1, margin_right=2)
+    assert settings.margins(True) == (1, 2, 5, 5)
+    assert settings.margins(False) == (5, 5, 5, 5)
+
+
+@pytest.mark.parametrize("rotation", ROTATIONS)
+def test_the_edges_are_the_glass_s_and_turn_with_the_frame(rotation):
+    """Pushed to the panel, each edge lands where it was set on the glass."""
+    settings = Settings(
+        rotation=rotation,
+        margin_lock=False,
+        margin_top=1,
+        margin_right=2,
+        margin_bottom=3,
+        margin_left=4,
+    )
+    w, h = settings.oriented((40, 30))
+    page = Image.new("L", (w, h))
+    draw = ImageDraw.Draw(page)
+    top, right, bottom, left = settings.margins(True)
+    draw.line((1, 0, w - 2, 0), fill=top)  # each edge short of the corners
+    draw.line((w - 1, 1, w - 1, h - 2), fill=right)
+    draw.line((1, h - 1, w - 2, h - 1), fill=bottom)
+    draw.line((0, 1, 0, h - 2), fill=left)
+    glass = page.transpose(_TRANSPOSE[rotation]) if rotation else page
+    assert [glass.getpixel(at) for at in ((20, 0), (39, 15), (20, 29), (0, 15))] == [1, 2, 3, 4]
 
 
 def test_unknown_layout_falls_back_to_the_default(tmp_path):

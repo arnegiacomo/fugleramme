@@ -41,6 +41,8 @@ from ..source import Source
 from . import fonts, packing
 from .page import (
     MIN_LABEL_PX,
+    NO_MARGIN,
+    Edges,
     blank,
     day_ordinal,
     draw_perch,
@@ -62,6 +64,7 @@ DEFAULT_RESOLUTION = (1280, 800)
 # panel and the kiosk on different pages.
 _PACK_SHORT = 1200
 DEFAULT_MARGIN = 0.04  # page edge to content, fraction of the short side (settings.margin)
+_DEFAULT_EDGES = Edges.even(DEFAULT_MARGIN)
 # How many species the admin lets on, and which ones (#53). NO_LIMIT is every
 # bird the window holds - the frame keeps no ceiling of its own.
 NO_LIMIT = 0
@@ -277,7 +280,7 @@ def _placements(
     name_px: int,
     label_text: Callable[[str], str],
     layout: str,
-    margin: float,
+    margin: Edges,
     mask_of: _Mask,
 ) -> tuple[tuple[_Placed, ...], int]:
     """Pack the page, or return the cached packing. A kiosk locked to the panel
@@ -300,8 +303,8 @@ def _placements(
         )
         # Pack inside the margin but size off the whole page, so only a set that
         # doesn't fit has to shrink.
-        inset = round(min(width, height) * margin)
-        box = (width - 2 * inset, height - 2 * inset)
+        x0, y0, x1, y1 = margin.window((width, height))
+        box = (x1 - x0, y1 - y0)
         alphas = [img.getchannel("A") for img in arts]
         args = (names, alphas, order, weights, flips, base, *box)
 
@@ -315,10 +318,10 @@ def _placements(
                 _Placed(
                     s.index,
                     s.dim,
-                    (x + inset + s.art_at[0], y + inset + s.art_at[1]),
+                    (x + x0 + s.art_at[0], y + y0 + s.art_at[1]),
                     None
                     if s.label_at is None
-                    else (x + inset + s.label_at[0], y + inset + s.label_at[1]),
+                    else (x + x0 + s.label_at[0], y + y0 + s.label_at[1]),
                     s.label_w,
                 )
                 for s, x, y in placed or ()
@@ -341,7 +344,7 @@ def render_collage(
     label_text: Callable[[str], str] = str,
     perches: Sequence[Path] = (),
     layout: str = packing.DEFAULT_LAYOUT,
-    margin: float = DEFAULT_MARGIN,
+    margin: Edges = _DEFAULT_EDGES,
     name_key: bool = False,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
@@ -351,7 +354,7 @@ def render_collage(
     label_text: scientific name -> what the label reads; str leaves it alone.
     perches: the active style's bare branches, for a page with no birds on it.
     layout: how the birds are packed (packing.LAYOUTS).
-    margin: bare paper along the edge, as a fraction of the short side.
+    margin: bare paper along each edge, as fractions of the short side.
     name_key: with names on, number the birds and list the names in a key.
     """
     canvas = blank(resolution, textured)
@@ -401,7 +404,7 @@ def _draw_birds(
     name_px: int,
     label_text: Callable[[str], str],
     layout: str,
-    margin: float,
+    margin: Edges,
     mask_of: _Mask = text_mask,
 ) -> tuple[tuple[_Placed, ...], int]:
     """Pack the birds into a `pack` box and draw them at `origin`, `scale`
@@ -556,17 +559,16 @@ def _draw_keyed(
     label_size: str,
     label_text: Callable[[str], str],
     layout: str,
-    margin: float,
+    margin: Edges,
 ) -> None:
     """The birds with a number each, and their names in a key. The key is fitted
     in pack pixels like the birds, so every output of one page gets one layout."""
     w, h = canvas.size
     scale = min(w, h) / _PACK_SHORT
     pw, ph = round(w / scale), round(h / scale)
-    inset = round(min(pw, ph) * margin)
     texts = [label_text(name).split("\n") for name, _ in kept]
     key, (bx0, by0, bx1, by1) = _fit_key(
-        texts, font_key, label_px(pw, ph, label_size), (inset, inset, pw - inset, ph - inset)
+        texts, font_key, label_px(pw, ph, label_size), margin.window((pw, ph))
     )
 
     # Numbering waits on the pack, so every bird reserves room for any number.
@@ -583,7 +585,7 @@ def _draw_keyed(
         label_px(pw, ph, label_size),
         lambda _: f"1-{count}",  # only the cache key reads this
         layout,
-        0,
+        NO_MARGIN,
         _figures_box(count),
     )
     order = _reading_order(placed, bx1 - bx0, by1 - by0)
@@ -609,11 +611,11 @@ def _draw_keyed(
     mask = mask if textured else flatten(mask)
     # Anchored by its ink to the page edge: the metrics miss the italic's overhang.
     ink = mask.crop(mask.getbbox())
-    edge = round(min(w, h) * margin)
+    _, _, right, bottom = margin.window((w, h))
     if key.below:
-        at = ((ax0 + ax1 - ink.width) // 2, h - edge - ink.height)
+        at = ((ax0 + ax1 - ink.width) // 2, bottom - ink.height)
     else:
-        at = (w - edge - ink.width, (ay0 + ay1 - ink.height) // 2)
+        at = (right - ink.width, (ay0 + ay1 - ink.height) // 2)
     stamp(canvas, ink, at, textured)
 
 
