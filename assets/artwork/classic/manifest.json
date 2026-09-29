@@ -903,6 +903,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIEuropean_Goatsucker.jpg"
   },
+  "birds/caprimulgus-pectoralis.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Caprimulgus_pectoralis_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16700045.tif"
+  },
   "birds/caprimulgus-ruficollis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRed-collared_Goatsucker.jpg"
@@ -1154,6 +1158,10 @@
   "birds/clangula-hyemalis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVLong-tailed_Duck.jpg"
+  },
+  "birds/coccopygia-melanotis.webp": {
+    "source": "temminck",
+    "url": "https://commons.wikimedia.org/wiki/File:Coccopygia_melanotis_1838.jpg"
   },
   "birds/coccothraustes-coccothraustes.webp": {
     "source": "vonwright",
@@ -2091,6 +2099,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack-headed_Gull.jpg"
   },
+  "birds/icthyophaga-vocifer.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Haliae%C3%ABtus_vocifer_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18100337.tif"
+  },
   "birds/iduna-opaca.webp": {
     "source": "bree",
     "url": "https://commons.wikimedia.org/wiki/File:A_history_of_the_birds_of_Europe_(Plate_47)_(8157837690).jpg"
@@ -2774,6 +2786,10 @@
   "birds/oenanthe-pleschanka.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIPied_Wheatear.jpg"
+  },
+  "birds/onychognathus-morio-2.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Juida_morio_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15800151.tif"
   },
   "birds/onychognathus-morio.webp": {
     "source": "levaillant",
@@ -4030,6 +4046,10 @@
   "birds/turdus-naumanni.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIINaumannsThrush.jpg"
+  },
+  "birds/turdus-olivaceus.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Turdus_olivaceus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300261.tif"
   },
   "birds/turdus-pallidus.webp": {
     "source": "gould",
