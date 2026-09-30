@@ -11771,6 +11771,18 @@
    1200
   ]
  },
+ "birds/spizella-passerina.webp": {
+  "box": [
+   0.03,
+   0.0,
+   0.87,
+   0.98
+  ],
+  "cut": [
+   603,
+   1200
+  ]
+ },
  "birds/stercorarius-longicaudus.webp": {
   "box": [
    0.13578463554382325,
