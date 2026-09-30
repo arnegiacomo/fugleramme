@@ -1543,6 +1543,10 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(18243151539).jpg"
   },
+  "birds/dumetella-carolinensis-2.webp": {
+    "source": "fuertes",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Annual_report_%281912%29_%2818425305152%29.jpg"
+  },
   "birds/dumetella-carolinensis.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-128-cat-bird.jpg"
@@ -2650,6 +2654,18 @@
   "birds/milvus-milvus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIKite.jpg"
+  },
+  "birds/mimus-polyglottos-2.webp": {
+    "source": "audubon",
+    "url": "https://en.wikipedia.org/wiki/Northern_mockingbird#/media/File:Mocking_Bird_(Audubon).jpg"
+  },
+  "birds/mimus-polyglottos-3.webp": {
+    "source": "fuertes",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Annual_report_%281912%29_%2818425305152%29.jpg"
+  },
+  "birds/mimus-polyglottos.webp": {
+    "source": "fuertes",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Annual_report_%281912%29_%2818425305152%29.jpg"
   },
   "birds/monticola-solitarius.webp": {
     "source": "gould",
@@ -3970,6 +3986,10 @@
   "birds/todiramphus-sanctus.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/15090"
+  },
+  "birds/toxostoma-rufum-2.webp": {
+    "source": "fuertes",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Annual_report_%281912%29_%2818425305152%29.jpg"
   },
   "birds/toxostoma-rufum.webp": {
     "source": "audubon",
