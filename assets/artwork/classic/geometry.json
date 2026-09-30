@@ -9935,6 +9935,18 @@
    1200
   ]
  },
+ "birds/pipilo-erythrophthalmus.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   0.77
+  ],
+  "cut": [
+   811,
+   1024
+  ]
+ },
  "birds/pipilo-maculatus.webp": {
   "box": [
    0.0,
