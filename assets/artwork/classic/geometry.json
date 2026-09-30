@@ -8531,6 +8531,18 @@
    787
   ]
  },
+ "birds/myiarchus-crinitus.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   0.6
+  ],
+  "cut": [
+   823,
+   1200
+  ]
+ },
  "birds/myiopsitta-monachus.webp": {
   "box": [
    0.059678169253482405,
