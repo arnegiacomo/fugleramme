@@ -9167,6 +9167,18 @@
    1200
   ]
  },
+ "birds/passerina-cyanea.webp": {
+  "box": [
+   0.03,
+   0.07,
+   0.995,
+   0.71
+  ],
+  "cut": [
+   731,
+   701
+  ]
+ },
  "birds/pastor-roseus.webp": {
   "box": [
    0.4437455749511719,
