@@ -1271,6 +1271,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/ruby-crowned-wren"
   },
+  "birds/corvus-albicollis.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Corvus_albicollis_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15700269.tif"
+  },
   "birds/corvus-albus.webp": {
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Corvus_scapulatus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15700251.tif"
@@ -1686,6 +1690,10 @@
   "birds/eudynamys-scolopaceus.webp": {
     "source": "martinet",
     "url": "https://commons.wikimedia.org/wiki/File:Eudynamys_horonata_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18800311.tif"
+  },
+  "birds/euplectes-orix.webp": {
+    "source": "hahn",
+    "url": "https://commons.wikimedia.org/wiki/File:Ploceus_oryx_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15900083.tif"
   },
   "birds/falco-biarmicus.webp": {
     "source": "gould",
@@ -3199,6 +3207,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVGlossy_Ibis.jpg"
   },
+  "birds/ploceus-capensis.webp": {
+    "source": "hahn",
+    "url": "https://commons.wikimedia.org/wiki/File:Hyphantornis_olivacea_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15900027.tif"
+  },
+  "birds/ploceus-cucullatus.webp": {
+    "source": "smith",
+    "url": "https://commons.wikimedia.org/wiki/File:Ploceus_cucullatus_spilonotus_male_1838.jpg"
+  },
   "birds/pluvialis-apricaria-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00337.jpg"
@@ -4151,6 +4167,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBrunnichs_Guillemot.jpg"
   },
+  "birds/urocolius-indicus.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Colius_erythromelon_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ19300011.tif"
+  },
   "birds/vanellus-spinosus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVSpur-winged_Plover.jpg"
@@ -4166,6 +4186,10 @@
   "birds/vanellus-vanellus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLapwing.jpg"
+  },
+  "birds/vidua-macroura.webp": {
+    "source": "gordon",
+    "url": "https://commons.wikimedia.org/wiki/File:Vidua_macroura_(Dominikanerwida)_en_sprinkhaan,_RP-T-1914-17-282.jpg"
   },
   "birds/xema-sabini.webp": {
     "source": "gould",
