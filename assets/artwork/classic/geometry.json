@@ -2879,18 +2879,6 @@
    889
   ]
  },
- "birds/cathartes-aura-2.webp": {
-  "box": [
-   0.223,
-   0.0,
-   0.8571,
-   0.849
-  ],
-  "cut": [
-   1085,
-   1199
-  ]
- },
  "birds/cathartes-aura.webp": {
   "box": [
    0.001,
@@ -6273,6 +6261,18 @@
   "cut": [
    1200,
    1191
+  ]
+ },
+ "birds/gymnogyps-californianus.webp": {
+  "box": [
+   0.223,
+   0.0,
+   0.8571,
+   0.849
+  ],
+  "cut": [
+   1085,
+   1199
   ]
  },
  "birds/gypaetus-barbatus.webp": {

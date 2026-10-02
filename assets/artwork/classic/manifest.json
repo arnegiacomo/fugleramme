@@ -959,10 +959,6 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00019.jpg"
   },
-  "birds/cathartes-aura-2.webp": {
-    "source": "audubon",
-    "url": "https://commons.wikimedia.org/wiki/File:Californian_Turkey_Vulture.png"
-  },
   "birds/cathartes-aura.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/turkey-buzzard"
@@ -2090,6 +2086,10 @@
   "birds/gymnorhina-tibicen.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14990"
+  },
+  "birds/gymnogyps-californianus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Californian_Turkey_Vulture.png"
   },
   "birds/gypaetus-barbatus.webp": {
     "source": "gould",
