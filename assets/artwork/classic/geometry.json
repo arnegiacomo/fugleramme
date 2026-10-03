@@ -3299,6 +3299,18 @@
    814
   ]
  },
+ "birds/cinnyris-jugularis.webp": {
+  "box": [
+   0.3247,
+   0.045,
+   0.5711,
+   0.4
+  ],
+  "cut": [
+   893,
+   1200
+  ]
+ },
  "birds/circaetus-gallicus.webp": {
   "box": [
    0.027714462720007993,
