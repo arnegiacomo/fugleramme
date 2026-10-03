@@ -6251,18 +6251,6 @@
    768
   ]
  },
- "birds/gymnorhina-tibicen.webp": {
-  "box": [
-   0.053143,
-   0.011056,
-   0.986911,
-   0.964056
-  ],
-  "cut": [
-   1200,
-   1191
-  ]
- },
  "birds/gymnogyps-californianus.webp": {
   "box": [
    0.223,
@@ -6273,6 +6261,18 @@
   "cut": [
    1085,
    1199
+  ]
+ },
+ "birds/gymnorhina-tibicen.webp": {
+  "box": [
+   0.053143,
+   0.011056,
+   0.986911,
+   0.964056
+  ],
+  "cut": [
+   1200,
+   1191
   ]
  },
  "birds/gypaetus-barbatus.webp": {
@@ -9179,18 +9179,6 @@
    1200
   ]
  },
- "birds/passerina-cyanea.webp": {
-  "box": [
-   0.03,
-   0.07,
-   0.995,
-   0.71
-  ],
-  "cut": [
-   731,
-   701
-  ]
- },
  "birds/pastor-roseus.webp": {
   "box": [
    0.4437455749511719,
@@ -11293,14 +11281,14 @@
  },
  "birds/setophaga-coronata-3.webp": {
   "box": [
-   0.02,
-   0.02,
-   0.98,
-   0.89
+   0.0267,
+   0.0771,
+   0.9773,
+   0.8782
   ],
   "cut": [
-   1009,
-   941
+   1019,
+   1022
   ]
  },
  "birds/setophaga-coronata.webp": {
@@ -11768,18 +11756,6 @@
   ],
   "cut": [
    1053,
-   1200
-  ]
- },
- "birds/spizella-passerina.webp": {
-  "box": [
-   0.03,
-   0.0,
-   0.87,
-   0.98
-  ],
-  "cut": [
-   603,
    1200
   ]
  },

@@ -97,10 +97,6 @@ And colour plates after his paintings in *Bird-Lore* (1916), Internet Archive sc
 from the Commons category [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)),
 public domain (no known copyright restrictions).
 
-**Seton** - *Bird-Life: A Guide to the Study of Our Common Birds* by **Frank M. Chapman** (1897-1899), plates by **Ernest Thompson Seton** (born Thompson; also credited as Ernest Seton Thompson), Appleton / Biodiversity Heritage Library scans on Wikimedia Commons (e.g. [Bird-Life plates](https://commons.wikimedia.org/wiki/Category:Bird-Life)). Public domain in the US (published before 1930; Seton died 1946). Manifest key: `seton`.
-
-**Ann Lee** - bird and plant watercolours by **Ann Lee** (1753-1790), from the **Royal Albert Memorial Museum & Art Gallery** (Exeter) collection on Wikimedia Commons. Public domain (PD-old); RAMM releases the digitizations under CC0. Manifest key: `annlee`.
-
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
 **Cassin** - *Illustrations of the Birds of California, Texas, Oregon, British and Russian America* by **John Cassin** (Philadelphia: J. B. Lippincott & Co., 1862), plates drawn by **George G. White**, put on stone by **William E. Hitchcock**, lithographed, printed and colored by **J. T. Bowen**, Biodiversity Heritage Library scans from the Commons category [Illustrations of the birds of California, Texas, Oregon, British and Russian America](https://commons.wikimedia.org/wiki/Category:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America); and Cassin's birds for the *Narrative of the Expedition of an American Squadron to the China Seas and Japan* (Perry expedition, vol. 2, 1856), lithographed by **William E. Hitchcock**, from the [Wellcome Collection](https://wellcomecollection.org/). Public domain (PD-scan / PD-old-70-expired). Manifest key: `cassin`.
@@ -167,4 +163,3 @@ CC BY 2.0. Manifest key: `jardine`.
 **Barbiers** - watercolour drawings by **Pieter Barbiers** in the **Rijksmuseum**, Amsterdam, via the Commons category [Drawings of birds in the Rijksmuseum Amsterdam](https://commons.wikimedia.org/wiki/Category:Drawings_of_birds_in_the_Rijksmuseum_Amsterdam). CC0. Manifest key: `barbiers`.
 
 **Lear** - *Illustrations of the Family of Psittacidae, or Parrots* by **Edward Lear** (1832), hand-coloured lithographs printed by **C. Hullmandel**, via the Commons category [Illustrations of the Family of Psittacidae, or Parrots (1832) by Edward Lear](https://commons.wikimedia.org/wiki/Category:Illustrations_of_the_Family_of_Psittacidae,_or_Parrots_(1832)_by_Edward_Lear). Public domain. Manifest key: `lear`.
-**Commons public domain** - assorted public-domain plates from Wikimedia Commons (PD-Art / PD-old / CC0 / Public domain), cut and edited for this project. Individual plate URLs are in `manifest.json`. Manifest key: `commons-pd`.

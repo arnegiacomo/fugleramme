@@ -2083,13 +2083,13 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack_Cormorant.jpg"
   },
-  "birds/gymnorhina-tibicen.webp": {
-    "source": "gould",
-    "url": "https://digital.lib.ku.edu/ku-gould/14990"
-  },
   "birds/gymnogyps-californianus.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Californian_Turkey_Vulture.png"
+  },
+  "birds/gymnorhina-tibicen.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14990"
   },
   "birds/gypaetus-barbatus.webp": {
     "source": "gould",
@@ -3059,10 +3059,6 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Blue_Song_Grosbeak._1._Male._2._Female._3._Young_(NYPL_b13559627-108463).tiff"
   },
-  "birds/passerina-cyanea.webp": {
-    "source": "annlee",
-    "url": "https://commons.wikimedia.org/wiki/File:CARDINALIDAE_Passerina_cyanea_(Linnaeus)_indigo_bunting_-_Ann_Lee_-_107-1973-15.jpg"
-  },
   "birds/pastor-roseus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIRose-coloured_Pastor.jpg"
@@ -3465,7 +3461,7 @@
   },
   "birds/poecile-carolinensis.webp": {
     "source": "audubon",
-    "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_America_(Pl._127)_(8569740762).jpg"
+    "url": "https://www.audubon.org/art/birds-of-america/carolina-titmouse"
   },
   "birds/poecile-cinctus-2.webp": {
     "source": "gould",
@@ -3922,10 +3918,6 @@
   "birds/spinus-tristis.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Yellow_Bird_or_American_Goldfinch,_1828,_NGA_32174.jpg"
-  },
-  "birds/spizella-passerina.webp": {
-    "source": "seton",
-    "url": "https://commons.wikimedia.org/wiki/File:Chipping_Sparrow-Bird-Life-0097-142.png"
   },
   "birds/stercorarius-longicaudus.webp": {
     "source": "vonwright",
