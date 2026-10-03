@@ -92,6 +92,9 @@ and [Metropolitan Museum of Art](https://www.metmuseum.org/art/collection) scans
 Also chromolithographs after his watercolours in the *Harriman Alaska series*
 (1904), from [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Harriman_Alaska_Expedition).
 Public domain (PD-US / PD-Art).
+And colour plates after his paintings in *Bird-Lore* (1916), Internet Archive scans
+from the Commons category [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)),
+public domain (no known copyright restrictions).
 
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
