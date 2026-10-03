@@ -131,7 +131,7 @@ Public domain. Manifest key: `legge`.
 
 **Swainson** - *Zoological Illustrations* by
 **William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I);
-and his plates for *A Fasciculus of the Birds of China* by **G. R. Gray** (1871), Cornell University Library scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) and the Internet Archive.
+and his plates for *A Fasciculus of the Birds of China* by **G. R. Gray** (1871), Cornell University Library scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) and the Internet Archive, and *Fauna Boreali-Americana* with **John Richardson** (1831), Smithsonian Libraries scans on the [Internet Archive](https://archive.org/details/faunaborealiamer22rich).
 Public domain. Manifest key: `swainson`.
 
 **Jardine** - *Illustrations of
