@@ -3443,6 +3443,14 @@
     "source": "hines",
     "url": "https://commons.wikimedia.org/wiki/File:Poecile_atricapillaFJ03P05CA.JPG"
   },
+  "birds/poecile-carolinensis-2.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_lore_(1916)_(14568678530).jpg"
+  },
+  "birds/poecile-carolinensis.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/carolina-titmouse"
+  },
   "birds/poecile-cinctus-2.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISombre_Tit_Siberian_Tit.jpg"
@@ -3722,6 +3730,14 @@
   "birds/scolopax-rusticola.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVWoodcock.jpg"
+  },
+  "birds/scythrops-novaehollandiae.webp": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg"
+  },
+  "birds/selasphorus-rufus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:379_Ruff-necked_Humming-bird.jpg"
   },
   "birds/serinus-serinus.webp": {
     "source": "gould",
@@ -4143,6 +4159,10 @@
     "source": "keulemans",
     "url": "https://archive.org/details/birdsaustralia3math/page/n508/mode/1up"
   },
+  "birds/thryothorus-ludovicianus-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/annualreport6631912newy/page/n790/mode/1up"
+  },
   "birds/thryothorus-ludovicianus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-78-great-carolina-wren.jpg"
@@ -4182,6 +4202,10 @@
   "birds/trichoglossus-chlorolepidotus.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/13696"
+  },
+  "birds/trichoglossus-concinnus.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/13688"
   },
   "birds/trichoglossus-moluccanus.webp": {
     "source": "gould",

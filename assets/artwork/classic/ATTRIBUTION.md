@@ -32,7 +32,8 @@ Sharpe** (1850-1883), from the Commons category
 public domain (PD-Art, PD-old-100); and *The Birds of Australia* (1840-1848),
 illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**,
 scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524),
-public domain; *A Century of Birds from the Himalaya Mountains* (1831-1832), drawn on stone
+public domain, and rawpixel's scan of the 1972 facsimile edition on
+[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg) (CC BY-SA 4.0); *A Century of Birds from the Himalaya Mountains* (1831-1832), drawn on stone
 by **Elizabeth Gould**, via the [Internet Archive](https://archive.org/details/centurybirdsfro00Goul); and *The Birds of Great Britain* (1862-1873), with **Henry Constantine Richter**,
 scans via the [Internet Archive](https://archive.org/details/birdsgreatbrita3goul),
 public domain. Manifest key: `gould`.
@@ -92,6 +93,9 @@ and [Metropolitan Museum of Art](https://www.metmuseum.org/art/collection) scans
 Also chromolithographs after his watercolours in the *Harriman Alaska series*
 (1904), from [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Harriman_Alaska_Expedition).
 Public domain (PD-US / PD-Art).
+And colour plates after his paintings in *Bird-Lore* (1916), Internet Archive scans
+from the Commons category [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)),
+public domain (no known copyright restrictions).
 
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
