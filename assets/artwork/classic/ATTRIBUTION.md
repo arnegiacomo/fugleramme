@@ -99,6 +99,9 @@ public domain (no known copyright restrictions).
 And plates after his paintings in *The Warblers of North America* by **Frank M. Chapman**
 (1907), Biodiversity Heritage Library scans on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(6308738451).jpg),
 public domain.
+Also his plates for **F. E. L. Beal**'s *Birds of California in Relation to the Fruit Industry, Part II*
+(U.S. Biological Survey Bulletin 34, 1910), via the [Internet Archive](https://archive.org/details/bulletinbiologic3238unit).
+Public domain (US Federal Government work).
 
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
