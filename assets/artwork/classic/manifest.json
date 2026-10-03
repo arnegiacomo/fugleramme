@@ -3399,6 +3399,18 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-44-summer-red-bird.jpg?"
   },
+  "birds/pitangus-sulphuratus-2.webp": {
+    "source": "wolf",
+    "url": "https://commons.wikimedia.org/wiki/File:SaurophagusDerbianusWolf.jpg"
+  },
+  "birds/pitangus-sulphuratus-3.webp": {
+    "source": "descourtilz",
+    "url": "https://commons.wikimedia.org/wiki/File:Ornithologie_Br%C3%A9silienne,_ou,_Histoire_des_oiseaux_du_Br%C3%A9sil_-_remarquables_par_leur_plumage,_leur_chant_ou_leurs_habitudes_(1854)_(14561917310).jpg"
+  },
+  "birds/pitangus-sulphuratus.webp": {
+    "source": "martinet",
+    "url": "https://commons.wikimedia.org/wiki/File:Pitangus_sulphuratus_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16500315.tif"
+  },
   "birds/pitta-versicolor.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14330"
