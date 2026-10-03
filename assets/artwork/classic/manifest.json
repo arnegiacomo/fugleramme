@@ -391,6 +391,10 @@
     "source": "dawson",
     "url": "https://archive.org/download/birdsofcaliforni01daws/page/n92.jpg"
   },
+  "birds/aphelocoma-woodhouseii.webp": {
+    "source": "emory-boundary-survey",
+    "url": "https://archive.org/details/mobot31753002023650/page/n144/mode/1up"
+  },
   "birds/apus-apus.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00010.jpg"
@@ -2895,6 +2899,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISpotted_Flycatcher.jpg"
   },
+  "birds/myadestes-townsendi.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/little-tawny-thrush-ptiliogonys-townsendi-canada-jay"
+  },
   "birds/myiarchus-crinitus.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:129_Great_Crested_Flycatcher.jpg"
@@ -3898,6 +3906,10 @@
   "birds/sitta-pusilla.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Brown-Headed_Nuthatch,_1831,_NGA_32266.jpg"
+  },
+  "birds/sitta-pygmaea.webp": {
+    "source": "birdlore-fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird-lore_(1915)_(14755098432).jpg"
   },
   "birds/somateria-mollissima-2.webp": {
     "source": "vonwright",
