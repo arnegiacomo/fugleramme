@@ -164,4 +164,4 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Lear** - *Illustrations of the Family of Psittacidae, or Parrots* by **Edward Lear** (1832), hand-coloured lithographs printed by **C. Hullmandel**, via the Commons category [Illustrations of the Family of Psittacidae, or Parrots (1832) by Edward Lear](https://commons.wikimedia.org/wiki/Category:Illustrations_of_the_Family_of_Psittacidae,_or_Parrots_(1832)_by_Edward_Lear). Public domain. Manifest key: `lear`.
 
-**Prang** - Louis Prang (1824–1909) was an influential American printer, lithographer, and publisher. Scans of lithographs from Library of Congress via Wikimedia Commons, no known restrictions on publication, Public Domain, Manifest key: `prang`.
+**Prang** - *Singing Birds. Family - Finches.*, a colour lithograph published by **Louis Prang** (1874), from the Library of Congress's Popular Graphic Arts collection via the Commons category [Popular Graphic Arts](https://commons.wikimedia.org/wiki/Category:Popular_Graphic_Arts). Public domain (PD-1923). Manifest key: `prang`.
