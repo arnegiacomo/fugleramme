@@ -85,7 +85,9 @@ uv run python ../add_bird.py final.png --style classic --key <key> --source <src
 bird, then per-plate hints in crop px - `remove` polygons over branches and neighbours, `discs`
 to round a cut branch end, `gaps` to tone enclosed paper to the page, `keep` to stop the paper
 flood walking into white plumage, and `outline` for a bird on painted ground (follow it with
-`snap.py`, which pulls a loose trace onto the ink edge).
+`snap.py`, which pulls a loose trace onto the ink edge). `fade` takes `[polygon, px]` pairs: inside
+each polygon the bird's edge fades into the page over about `2*px` instead of being sliced, for
+plumage the artist blurred into a painted ground.
 
 **Watch the pixel count.** `cut` prints how many pixels the bird came to. Record it for a cut
 you trust and compare after every edit: the cutter keeps only the piece your `seed` is in, so

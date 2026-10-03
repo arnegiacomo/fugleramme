@@ -163,6 +163,13 @@ def cut(spec, out):
     longest = max(rows[-1] - rows[0], cols[-1] - cols[0])
     halo_px = float(HALO_SHIPPED * max(1.0, longest / 1200))  # numpy scalars trip GaussianBlur
     soft = as_mask(bird & ~gap).filter(ImageFilter.GaussianBlur(0.8))
+    for polygon, px in spec.get("fade", []):
+        # a painted edge that blurs into its ground: fade the bird into the page over about
+        # 2*px inward rather than slice it; the zone itself is blurred so the fade never steps
+        faded = as_mask(bird & ~gap).filter(ImageFilter.MinFilter(2 * px + 1))
+        faded = faded.filter(ImageFilter.GaussianBlur(px / 2))
+        zone = as_mask(region([polygon], (w, h))).filter(ImageFilter.GaussianBlur(2 * px))
+        soft = Image.composite(faded, soft, zone)
     grown = np.asarray(as_mask(bird).filter(ImageFilter.GaussianBlur(halo_px / 2))) > 6
     alpha = as_mask(grown).filter(ImageFilter.GaussianBlur(0.8))
 
