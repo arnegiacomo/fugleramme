@@ -2083,6 +2083,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack_Cormorant.jpg"
   },
+  "birds/gymnogyps-californianus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Californian_Turkey_Vulture.png"
+  },
   "birds/gymnorhina-tibicen.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14990"
@@ -2843,6 +2847,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISpotted_Flycatcher.jpg"
   },
+  "birds/myiarchus-crinitus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:129_Great_Crested_Flycatcher.jpg"
+  },
   "birds/myiopsitta-monachus.webp": {
     "source": "greene",
     "url": "https://commons.wikimedia.org/wiki/File:Parrots_in_captivity_(Vol._3._PL._07)_Quaker_Grey_Breasted_or_Monte_Video_Parrakeet_(8527254257).jpg"
@@ -3311,6 +3319,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISiberian_Grosbeak.jpg"
   },
+  "birds/pipilo-erythrophthalmus.webp": {
+    "source": "vieillot",
+    "url": "https://commons.wikimedia.org/wiki/File:Pipilo_erythrophthalmus_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16000275.tif"
+  },
   "birds/pipilo-maculatus.webp": {
     "source": "jardine",
     "url": "https://commons.wikimedia.org/wiki/File:Flickr_-_BioDivLibrary_-_n208_w1150_(1).jpg"
@@ -3751,6 +3763,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
   },
+  "birds/setophaga-coronata-3.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(6308738451).jpg"
+  },
   "birds/setophaga-coronata.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
@@ -3906,6 +3922,14 @@
   "birds/spinus-tristis.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Yellow_Bird_or_American_Goldfinch,_1828,_NGA_32174.jpg"
+  },
+  "birds/spizella-passerina-2.webp": {
+    "source": "prang",
+    "url": "https://commons.wikimedia.org/wiki/File:1._Song_sparrow._Melospiza_melodia._2._Chipping_sparrow._Spizella_socialis._3._White_throated_sparrow._Zonotrichia_albicollis._4._Fox_colored_sparrow._Passerelia_iliaca_LCCN2003664031.jpg"
+  },
+  "birds/spizella-passerina.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18241716050).jpg"
   },
   "birds/stercorarius-longicaudus.webp": {
     "source": "vonwright",

@@ -39,6 +39,7 @@ EXCEPTIONS = {
     "curruca-ruppeli",  # Rüppell's Warbler
     "falco-biarmicus",  # Lanner Falcon
     "falco-concolor",  # Sooty Falcon
+    "gymnogyps-californianus",  # California Condor
     "gypaetus-barbatus",  # Bearded Vulture
     "neophron-percnopterus",  # Egyptian Vulture
     "numenius-tenuirostris",  # Slender-billed Curlew
