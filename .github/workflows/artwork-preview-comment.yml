@@ -56,7 +56,7 @@ jobs:
           cp preview/web.png preview/panel.png "site/pr-$PR/"
           cd site
           git add .
-          git -c user.name="github-actions[bot]" \
+          git diff --cached --quiet || git -c user.name="github-actions[bot]" \
             -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
             commit -q -m "PR #$PR at ${HEAD_SHA::7}"
           git push -q origin "HEAD:$BRANCH"
