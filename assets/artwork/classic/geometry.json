@@ -11221,14 +11221,14 @@
  },
  "birds/sayornis-phoebe.webp": {
   "box": [
-   0.0,
-   0.0,
-   1.0,
-   0.94
+   0.011,
+   0.242,
+   0.988,
+   0.755
   ],
   "cut": [
-   880,
-   647
+   881,
+   1159
   ]
  },
  "birds/scolopax-rusticola-2.webp": {
