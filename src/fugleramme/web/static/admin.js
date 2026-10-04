@@ -233,6 +233,17 @@ const mat = document.getElementById("mat");
 const caption = document.querySelector(".rendering");
 const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
+// The panel the page is laid out for: an Inky, else the external one while it is ticked.
+const external = form.querySelector("input[name=external_panel]");
+const externalSize = form.querySelector("select[name=external_panel_size]");
+const glass = () => {
+  if (cfg.detected) return cfg.panel;
+  return external.checked ? cfg.externalPanels[externalSize.value] : null;
+};
+// What the preview shows: the panel's page while there is a panel, else the
+// web view alone in the browser.
+const title = document.getElementById("preview-title");
+const syncTitle = () => { title.textContent = glass() ? "Preview Panel" : "Preview Browser"; };
 let shown = null, seq = 0, timer = null;
 let page = null;  // the kiosk's token: new birds move the preview too
 const queueRender = () => {
@@ -246,8 +257,8 @@ function loadPreview() {
   if (query === shown) return;
   const id = ++seq;
   // The panel's page where there is one, else the web view's own shape.
-  const [w, h] = cfg.panel || form.web_aspect.value.split(":");
-  const turned = cfg.panel ? form.rotation.value % 180 : form.web_portrait.checked;
+  const [w, h] = glass() || form.web_aspect.value.split(":");
+  const turned = glass() ? form.rotation.value % 180 : form.web_portrait.checked;
   // Turned now rather than when the render lands, so the box does not jump.
   preview.style.setProperty("--aspect", turned ? `${h} / ${w}` : `${w} / ${h}`);
   preview.classList.add("loading");
@@ -283,11 +294,13 @@ async function loadSpecies(query, id) {
 
 const margin = form.querySelector("input[name=margin]");
 const one = document.getElementById("margin-one");
+const uniform = document.getElementById("margin-uniform");
 const edgeLock = form.querySelector("input[name=margin_lock]");
 const edgeBox = document.getElementById("margin-edges");
-const edges = edgeBox ? [...edgeBox.querySelectorAll("input")] : [];  // the glass's top, right, bottom, left
+const edges = [...edgeBox.querySelectorAll("input")];  // the glass's top, right, bottom, left
 const SIDES = ["Top", "Right", "Bottom", "Left"];
-const unlocked = () => Boolean(edgeLock && !edgeLock.checked);
+// Only the panel's page has edges of its own.
+const unlocked = () => Boolean(glass()) && !edgeLock.checked;
 const turns = () => form.rotation.value / 90;  // counter-clockwise: the glass's left comes to the top
 
 function hungMargins() {
@@ -300,8 +313,8 @@ function reveal(el, on) {
   el.querySelectorAll("input").forEach((c) => { c.disabled = !on; });
 }
 function syncMargin() {
-  if (!edgeLock) return;  // no panel, no edges
   const open = unlocked();
+  dim(uniform, Boolean(glass()));
   reveal(edgeBox, open);
   // Unlocked, only a web view off the panel uses the one margin.
   reveal(one, !open || !lock.checked);
@@ -319,7 +332,7 @@ form.addEventListener("input", (e) => {
   if (e.target.type !== "range") return;
   e.target.closest("label").querySelector("small").textContent = e.target.value + "%";
   // Locked, the edges follow, so unlocking starts them at the one margin.
-  if (e.target === margin && !unlocked()) edges.forEach((edge) => { edge.value = margin.value; });
+  if (e.target === margin && edgeLock.checked) edges.forEach((edge) => { edge.value = margin.value; });
   const box = preview.getBoundingClientRect();
   const short = Math.min(box.width, box.height);
   mat.style.borderWidth = hungMargins().map((m) => short * m / 100 + "px").join(" ");
@@ -357,7 +370,7 @@ function syncMode() {
 // Locked to the panel, the web view has no shape of its own to pick.
 const lock = form.querySelector("input[name=web_lock]");
 const shape = document.getElementById("web-shape");
-const syncShape = () => dim(shape, !lock.checked);
+const syncShape = () => dim(shape, !(glass() && lock.checked));
 // With names off there is no label to set a language, typeface or size for.
 const showNames = form.querySelector("input[name=show_names]");
 const nameKey = form.querySelector("input[name=name_key]");
@@ -376,8 +389,8 @@ const syncNames = () => {
 };
 // The size each Resolution renders at, as settings.web_size works it out from the form.
 const sizeOf = (height) => {
-  const locked = cfg.panel && lock.checked;
-  const [a, b] = locked ? cfg.panel : form.web_aspect.value.split(":").map(Number);
+  const locked = glass() && lock.checked;
+  const [a, b] = locked ? glass() : form.web_aspect.value.split(":").map(Number);
   const turned = locked ? form.rotation.value % 180 : form.web_portrait.checked;
   const wide = Math.round(height * a / b);
   return turned ? [height, wide] : [wide, height];
@@ -385,25 +398,39 @@ const sizeOf = (height) => {
 const syncSizes = () => {
   for (const o of form.web_resolution.options) o.textContent = `${o.value} (${sizeOf(cfg.webHeights[o.value]).join("×")})`;
 };
-if (!cfg.panel) dim(form.rotation.closest("label"), false);  // nothing to turn
+// Without a panel there is nothing to turn or lock to; an Inky fixes the size.
+function syncPanel() {
+  dim(document.getElementById("panel-size"), !cfg.detected && external.checked);
+  dim(form.rotation.closest("label"), Boolean(glass()));
+  dim(document.getElementById("web-lock"), Boolean(glass()));
+  const hint = document.getElementById("lock-hint");
+  hint.setAttribute("aria-label", glass() ? hint.dataset.on : hint.dataset.off);
+}
 
 // Capture, so a mode change settles which fields still submit before the shared
 // dirty check reads them - a round trip back to the saved mode is not a change.
 form.addEventListener("input", (e) => {
   syncMode();
+  syncPanel();
   syncShape();
   syncNames();
   syncSizes();
   syncMargin();
+  syncTitle();
   if (e.target.type === "range") return clearTimeout(timer);  // a drag renders on release only
+  // A panel's page does not change with the web view's own settings, so with a
+  // panel those need no render.
+  if (glass() && e.target.closest("#web-view")) return;
   queueRender();
 }, true);
 
 syncMode();
+syncPanel();
 syncShape();
 syncNames();
 syncSizes();
 syncMargin();
+syncTitle();
 
 // Save stays disabled until a form differs from what the server served. An
 // untouched password placeholder serializes the same both times, so it needs no

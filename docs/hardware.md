@@ -1,6 +1,6 @@
 # Hardware
 
-There are two ways of assembling a fugleramme frame. Other hardware variants and
+There are multiple ways of assembling a fugleramme frame. Other hardware variants and
 combinations might work, but haven't been verified. If you come up with
 something cool, let me know!
 
@@ -68,6 +68,19 @@ you already run elsewhere on the network, so the frame can hang anywhere.
 - **You do need a BirdNET-Go it can reach.** Give its address during the install
   (see [Where BirdNET-Go "lives"](install.md#where-birdnet-go-lives)), or set it
   later on the admin page.
+
+## Battery-powered frame (external BirdNET-Go)
+
+This setup swaps the Raspberry Pi for a small, power-efficient microcontroller that drives the E Ink panel. Your existing Raspberry Pi with BirdNET-Go and Fugleramme does the heavy lifting, and the microcontroller simply downloads the raw image data from it to its own screen. That lets it run from a battery, so the frame has no wires.
+
+| Part | What works |
+| --- | --- |
+| Board | [XIAO ePaper Display Board EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html) |
+| Panel | [Seeed Studio 13.3" e-ink](https://www.seeedstudio.com/13-3inch-Six-Color-eInk-ePaper-Display-with-1200x1600-Pixels-p-6569.html) (Spectra 6, 1600x1200) |
+| Power | [Rechargeable single-cell lithium battery](https://docs.soldered.com/li-ion-battery/overview/) (3.7 V, with a JST 2.0 connector to match the XIAO board) |
+| Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) |
+
+- Seeed Studio also sells the board and panel together as a [kit](https://www.seeedstudio.com/XIAO-ePaper-DIY-Kit-EE02-for-13-3-Spectratm-6-E-Ink.html).
 
 ## Microphones
 

@@ -16,7 +16,7 @@ import logging
 
 from PIL import Image
 
-from .config import FALLBACK_PANEL_RESOLUTION
+from .config import EXTERNAL_PANELS
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +28,11 @@ _TRANSPOSE = {
 }
 
 
+def to_glass(image: Image.Image, rotation: int) -> Image.Image:
+    """A page as the viewer sees it, turned back to the glass's own landscape."""
+    return image.transpose(_TRANSPOSE[rotation]) if rotation else image
+
+
 class Panel:
     def __init__(self, device):
         self._device = device
@@ -36,17 +41,16 @@ class Panel:
         self.driver: str = type(device).__module__
 
     def push(self, image: Image.Image, rotation: int = 0) -> None:
-        if rotation:
-            image = image.transpose(_TRANSPOSE[rotation])
+        image = to_glass(image, rotation)
         if image.size != self.resolution:
             raise ValueError(f"image is {image.size}, panel is {self.resolution}")
         self._device.set_image(image)
         self._device.show()  # blocks ~35s on the 13.3" while the panel refreshes
 
 
-def resolution_of(panel: Panel | None) -> tuple[int, int]:
-    """The shape the panel's page is laid out for."""
-    return panel.resolution if panel else FALLBACK_PANEL_RESOLUTION
+def resolution_of(panel: Panel | None, external: str) -> tuple[int, int]:
+    """The shape the panel's page is laid out for: the Inky's, else the external panel's."""
+    return panel.resolution if panel else EXTERNAL_PANELS[external]
 
 
 def init_panel() -> Panel | None:

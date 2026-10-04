@@ -9,6 +9,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from PIL import Image
+
+# The panel page as dithered, and the rotation it hangs at.
+Frame = tuple[Image.Image, int]
+
 
 def _now() -> datetime:
     return datetime.now(UTC)
@@ -18,6 +23,8 @@ def _now() -> datetime:
 class Status:
     started_at: datetime = field(default_factory=_now)
     rendered_at: datetime | None = None
+    # For /frame.e6.
+    frame: Frame | None = None
     push_error: str | None = None
     # Update state: the admin view writes `requested`, the loop does the work.
     update_available: str | None = None
@@ -28,5 +35,6 @@ class Status:
     update_percent: int | None = None
     reboot_error: str | None = None
 
-    def rendered(self) -> None:
+    def rendered(self, frame: Frame) -> None:
         self.rendered_at = _now()
+        self.frame = frame

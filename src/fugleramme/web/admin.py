@@ -18,7 +18,14 @@ from PIL.ImageFont import FreeTypeFont
 
 from .. import __version__, modes, updates
 from ..api import probe
-from ..config import BIRDNET_PORT, DOCS_URL, NEW_ISSUE_URL, WEB_ASPECTS, WEB_HEIGHTS
+from ..config import (
+    BIRDNET_PORT,
+    DOCS_URL,
+    EXTERNAL_PANELS,
+    NEW_ISSUE_URL,
+    WEB_ASPECTS,
+    WEB_HEIGHTS,
+)
 from ..languages import (
     NONE,
     SCIENTIFIC,
@@ -579,10 +586,78 @@ def _warning(text: str) -> str:
     )
 
 
-LOCK = "The web view takes the panel's shape and rotation"
+def _panel_hint(id: str, on: str, off: str, panel: bool) -> str:
+    """A hint admin.js swaps between `on` and `off` as the form gains or loses a panel."""
+    texts = {"on": on, "off": off}
+    data = "".join(f' data-{k}="{html.escape(v, quote=True)}"' for k, v in texts.items())
+    return _hint(on if panel else off).replace('class="hint"', f'class="hint" id="{id}"{data}', 1)
+
+
+LOCK = "The web view takes the panel's shape and rotation."
+LOCK_OFF = (
+    f"{LOCK} Only available with an Inky Impression panel connected "
+    "or the external e-ink panel enabled."
+)
 
 
 EDGES = "The same margin on every edge of the panel"
+
+
+EXTERNAL = (
+    "Serves the panel's page at /frame.e6, for an external e-ink panel "
+    "driven by its own board. Without an Inky Impression, the page is laid "
+    "out for that panel. Anyone who can reach the frame can access /frame.e6."
+)
+
+
+def _output_field(settings: Settings, detected: bool) -> str:
+    # Only the external panel is a setting; the disabled rows post nothing, so declare none.
+    inky = (
+        "Always enabled as an Inky Impression panel is currently connected."
+        if detected
+        else "Only enabled when an Inky Impression panel is connected and detected."
+    )
+    return (
+        '<div class="field" id="outputs"><span>Outputs</span>'
+        + _checkbox(
+            "inky_impression_enable",
+            f"<span>Inky Impression panel {_hint(inky)}</span>",
+            checked=detected,
+            disabled=True,
+        )
+        + f'<input type="hidden" name="{CHECKBOXES}" value="external_panel">'
+        + _checkbox(
+            "external_panel",
+            f"<span>External e-ink panel {_hint(EXTERNAL)}</span>",
+            checked=settings.external_panel,
+        )
+        + _checkbox(
+            "web_enable",
+            f"<span>Browser kiosk {_hint('Web access is always enabled.')}</span>",
+            checked=True,
+            disabled=True,
+        )
+        + "</div>"
+    )
+
+
+SIZE = "The size of the external e-ink panel the page is laid out for."
+SIZE_INKY = "Set by the connected Inky Impression panel, which every output follows."
+
+
+def _size_field(settings: Settings, panel_size: tuple[int, int], detected: bool) -> str:
+    """The external panel's size, or the connected Inky's, fixed."""
+    labels = {key: f'{key}" ({w}×{h})' for key, (w, h) in EXTERNAL_PANELS.items()}
+    selected = settings.external_panel_size
+    if detected:
+        landscape = (max(panel_size), min(panel_size))
+        selected = next((k for k, size in EXTERNAL_PANELS.items() if size == landscape), "")
+        labels.setdefault(selected, "{}×{}".format(*landscape))  # an Inky the list lacks
+    return (
+        f'<label id="panel-size"><span>Size {_hint(SIZE_INKY if detected else SIZE)}</span>'
+        f'<select name="external_panel_size"{" disabled" if detected else ""}>'
+        f"{_options(labels, selected, labels.get)}</select></label>"
+    )
 
 
 def _slider(field: str, caption: str, value: int) -> str:
@@ -594,43 +669,44 @@ def _slider(field: str, caption: str, value: int) -> str:
 
 
 def _margin_field(settings: Settings, panel: bool) -> str:
-    """One margin, or with a panel one per edge of the glass (#184)."""
+    """One margin, and one per edge of the glass (#184). The edges are always
+    rendered: admin.js offers them while the form has a panel."""
     one = f'<div id="margin-one">{_slider("margin", "All edges", settings.margin)}</div>'
-    if not panel:
-        return one
     edges = "".join(
         _slider(f"margin_{edge}", edge.title(), value)
         for edge, value in zip(
             ("top", "right", "bottom", "left"), settings.glass_margins(), strict=True
         )
     )
-    lock = _checkbox("margin_lock", f"<span>Uniform {_hint(EDGES)}</span>", settings.margin_lock)
+    lock = _checkbox(
+        "margin_lock", f"<span>Uniform {_hint(EDGES)}</span>", settings.margin_lock, not panel
+    )
+    off = "" if panel else " disabled"
+    dimmed = "" if panel else ' class="off"'
     return (
-        f'<input type="hidden" name="{CHECKBOXES}" value="margin_lock">{lock}'
-        f'<div id="margin-edges">{edges}</div>{one}'
+        f'<div id="margin-uniform"{dimmed}>'
+        f'<input type="hidden" name="{CHECKBOXES}" value="margin_lock"{off}>{lock}</div>'
+        f'<div id="margin-edges"{"" if panel else " hidden"}>{edges}</div>{one}'
     )
 
 
 def _web_field(settings: Settings, panel: tuple[int, int] | None) -> str:
-    """The web view's size and, once unlocked from the panel, its own shape (#147)."""
-    note = "" if panel else "<small>· no panel detected</small>"
-    # Undeclared with no panel, so a save leaves the stored lock alone.
-    declared = f'<input type="hidden" name="{CHECKBOXES}" value="web_lock">' if panel else ""
-    lock = _checkbox(
-        "web_lock",
-        f"<span>Lock to panel {_hint(LOCK)}{note}</span>",
-        settings.web_lock and bool(panel),
-        not panel,
-    )
+    """The web view's size and, once unlocked from the panel, its own shape (#147).
+    The lock is always declared: admin.js enables it, declaration and all, while
+    the form has a panel, so ticking the external panel offers it before a save."""
+    off = "" if panel else " disabled"
+    hint = _panel_hint("lock-hint", LOCK, LOCK_OFF, bool(panel))
+    lock = _checkbox("web_lock", f"<span>Lock to panel {hint}</span>", settings.web_lock, not panel)
     resolutions = _options(
         WEB_HEIGHTS,
         settings.web_resolution,
         lambda r: "{} ({}×{})".format(r, *replace(settings, web_resolution=r).web_size(panel)),
     )
     return (
-        f'<div class="field"><span>Resolution</span>'
+        f'<div class="field" id="web-view"><span>Resolution</span>'
         f'<select name="web_resolution" aria-label="Resolution">{resolutions}</select>'
-        f'<div class="sub{"" if panel else " off"}">{declared}{lock}</div>'
+        f'<div class="sub{"" if panel else " off"}" id="web-lock">'
+        f'<input type="hidden" name="{CHECKBOXES}" value="web_lock"{off}>{lock}</div>'
         f'<div class="sub" id="web-shape">'
         f'<input type="hidden" name="{CHECKBOXES}" value="web_portrait">'
         f'<label><small>Aspect</small><select name="web_aspect">'
@@ -724,7 +800,10 @@ def page(
     rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
     if status.push_error:
         rendered += f" · panel push failing ({status.push_error})"
-    attached = panel_size if detected else None
+    # Without an Inky Impression connected, the external e-ink panel is the
+    # one the page is laid out for.
+    paneled = detected or settings.external_panel
+    attached = panel_size if paneled else None
     w, h = settings.web_size(attached)
     glass = f"{panel_size[0]}×{panel_size[1]}"
     birdnet_url, birdnet_port = birdnet_link(settings.detector_url)
@@ -742,8 +821,11 @@ def page(
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
                 "keyLimit": KEY_LIMIT,
                 "webHeights": WEB_HEIGHTS,  # so the Resolution labels follow the form
-                # Landscape, as oriented() reads it; null leaves the preview the web view's shape.
-                "panel": [max(panel_size), min(panel_size)] if detected else None,
+                # Landscape, as oriented() reads it: the Inky's while one is detected,
+                # else one of the external panel's sizes as the form picks it.
+                "panel": [max(panel_size), min(panel_size)],
+                "externalPanels": EXTERNAL_PANELS,
+                "detected": detected,
                 "faceNotes": face_notes,  # so the Typeface warning follows the form
             }
         ),
@@ -752,7 +834,9 @@ def page(
         ),
         web_field=_web_field(settings, attached),
         rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
-        margin_field=_margin_field(settings, detected),
+        output_field=_output_field(settings, detected),
+        size_field=_size_field(settings, panel_size, detected),
+        margin_field=_margin_field(settings, paneled),
         refreshes=_refreshes(settings),
         lookback_off="" if windowed else ' class="off"',
         lookback_disabled="" if windowed else " disabled",

@@ -12,7 +12,12 @@ from dataclasses import replace
 import pytest
 from PIL import Image, ImageDraw
 
-from fugleramme.config import DEFAULT_DETECTOR_URL, FALLBACK_PANEL_RESOLUTION, WEB_HEIGHTS
+from fugleramme.config import (
+    DEFAULT_DETECTOR_URL,
+    EXTERNAL_PANELS,
+    FALLBACK_PANEL_RESOLUTION,
+    WEB_HEIGHTS,
+)
 from fugleramme.languages import NONE, SCIENTIFIC
 from fugleramme.panel import _TRANSPOSE
 from fugleramme.render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE
@@ -420,6 +425,29 @@ def test_the_environment_is_a_seed_and_the_saved_file_still_wins(tmp_path, monke
 
     path.write_text(json.dumps({"style": "custom"}))
     assert SettingsStore(path, from_env()).get().style == "custom"
+
+
+def test_the_external_panel_is_off_until_seeded_or_saved(tmp_path, monkeypatch):
+    """Off by default, so a frame that updates into it serves nothing new."""
+    assert Settings().external_panel is False
+    monkeypatch.setenv("FUGLERAMME_EXTERNAL_PANEL", "true")
+    path = tmp_path / "s.json"
+    assert SettingsStore(path, from_env()).get().external_panel is True
+
+    path.write_text(json.dumps({"external_panel": False}))
+    assert SettingsStore(path, from_env()).get().external_panel is False
+    path.write_text(json.dumps({"external_panel": "nonsense"}))
+    assert SettingsStore(path, Settings()).get().external_panel is False
+
+
+def test_the_external_panel_size_is_the_13_inch_until_saved(tmp_path):
+    """The size every external panel was laid out for before it was a setting."""
+    assert EXTERNAL_PANELS[Settings().external_panel_size] == FALLBACK_PANEL_RESOLUTION
+    path = tmp_path / "s.json"
+    path.write_text(json.dumps({"external_panel_size": "7.3"}))
+    assert SettingsStore(path).get().external_panel_size == "7.3"
+    path.write_text(json.dumps({"external_panel_size": "5.7"}))
+    assert SettingsStore(path).get().external_panel_size == "13.3"
 
 
 def test_a_seeded_rotation_never_turns_a_page_the_file_holds_flat(tmp_path, monkeypatch):

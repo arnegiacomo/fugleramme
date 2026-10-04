@@ -30,7 +30,7 @@ SETTINGS = "s.json"
 PASSWORD = "wren-house"
 
 
-def _serve(tmp_path, source, store=None, panel=None):
+def _serve(tmp_path, source, store=None, panel=None, status=None):
     """A served frame with artwork for two of the fake's species."""
     style = tmp_path / "images" / "classic"
     (style / "birds").mkdir(parents=True)
@@ -43,7 +43,7 @@ def _serve(tmp_path, source, store=None, panel=None):
         store or SettingsStore(tmp_path / SETTINGS),
         Picks(tmp_path / "artwork.json"),
         panel,
-        Status(),
+        status or Status(),
     )
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
@@ -220,6 +220,107 @@ def test_with_no_panel_the_preview_is_the_kiosk_s_page(frame):
     assert _size(_fetch(frame + "/preview.png?web_aspect=16:9")[2]) == (1920, 1080)
 
 
+def _dithered(index: int) -> Image.Image:
+    return Image.new("P", (1600, 1200), index)
+
+
+@pytest.fixture
+def ext_eink_panel(tmp_path, source):
+    """A frame with no Inky Impression, driving an external e-ink panel over /frame.e6."""
+    store = SettingsStore(tmp_path / SETTINGS, Settings(external_panel=True))
+    status = Status()
+    for base in _serve(tmp_path, source(count=40, seed=0), store=store, status=status):
+        yield SimpleNamespace(base=base, store=store, status=status)
+
+
+def test_the_e6_page_is_not_there_until_it_is_switched_on(frame):
+    assert _fetch(frame + "/frame.e6")[0] == 404
+
+
+def test_the_e6_page_waits_for_the_loop_s_first_render(ext_eink_panel):
+    assert _fetch(ext_eink_panel.base + "/frame.e6")[0] == 503
+
+
+def test_the_e6_page_is_the_loop_s_frame_packed(ext_eink_panel):
+    ext_eink_panel.status.frame = (_dithered(1), 0)
+    status, headers, body = _fetch(ext_eink_panel.base + "/frame.e6")
+
+    assert status == 200
+    assert headers["Content-Type"] == "application/octet-stream"
+    assert body[:4] == b"E6F1" and len(body) == 20 + 960_000
+
+
+def test_a_changed_panel_refresh_reaches_the_e6_header(ext_eink_panel):
+    """Panel refresh rides in the packed header, so a change to it alone has to
+    repack: the panel sleeps by it and would otherwise never hear the new one."""
+    ext_eink_panel.status.frame = (_dithered(1), 0)
+    etag = _fetch(ext_eink_panel.base + "/frame.e6")[1]["ETag"]
+
+    ext_eink_panel.store.update(refresh_minutes=30)
+    status, headers, body = _fetch(
+        ext_eink_panel.base + "/frame.e6", headers={"If-None-Match": etag}
+    )
+
+    assert status == 200 and headers["ETag"] != etag
+    assert body[7] == 30
+
+
+def test_an_unchanged_e6_page_revalidates_to_304_and_a_new_one_does_not(ext_eink_panel):
+    """The ESP polls on a battery: an unchanged page must cost it no download and
+    no refresh."""
+    ext_eink_panel.status.frame = (_dithered(1), 0)
+    etag = _fetch(ext_eink_panel.base + "/frame.e6")[1]["ETag"]
+    assert _fetch(ext_eink_panel.base + "/frame.e6", headers={"If-None-Match": etag})[0] == 304
+
+    ext_eink_panel.status.frame = (_dithered(0), 0)
+    status, headers, _body = _fetch(
+        ext_eink_panel.base + "/frame.e6", headers={"If-None-Match": etag}
+    )
+    assert status == 200 and headers["ETag"] != etag
+
+
+def test_switching_the_e6_page_off_takes_it_away_without_a_restart(ext_eink_panel):
+    ext_eink_panel.status.frame = (_dithered(1), 0)
+    ext_eink_panel.store.update(external_panel=False)
+    assert _fetch(ext_eink_panel.base + "/frame.e6")[0] == 404
+
+
+def test_the_e6_page_is_open_like_the_kiosk(tmp_path, source):
+    store = SettingsStore(
+        tmp_path / SETTINGS,
+        Settings(external_panel=True, admin_password=PASSWORD, require_sign_in=True),
+    )
+    status = Status(frame=(_dithered(1), 0))
+    for base in _serve(tmp_path, source(count=40, seed=0), store=store, status=status):
+        assert _fetch(base + "/frame.e6")[0] == 200
+
+
+def test_with_the_e6_page_on_the_frame_is_laid_out_for_a_13_inch_panel(ext_eink_panel):
+    """No Inky Impression connected, but a panel all the same: its edges, and a preview
+    in its shape."""
+    page = _fetch(ext_eink_panel.base + "/admin")[2].decode()
+    assert 'name="margin_top"' in page
+    assert "not detected" in page  # the Inky row still tells the truth
+    assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1440, 1080)
+
+
+def test_the_preview_takes_the_external_panel_s_size_edited_or_saved(ext_eink_panel):
+    assert _size(_fetch(ext_eink_panel.base + "/preview.png?external_panel_size=7.3")[2]) == (
+        1800,
+        1080,
+    )
+    ext_eink_panel.store.update(external_panel_size="4.0")
+    assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1620, 1080)
+
+
+def test_the_admin_form_switches_the_e6_page(frame, tmp_path):
+    fields = {"checkboxes": "external_panel", "external_panel": "on"}
+    _post(frame + "/admin", fields)
+    assert json.loads((tmp_path / SETTINGS).read_text())["external_panel"] is True
+    _post(frame + "/admin", {"checkboxes": "external_panel"})
+    assert json.loads((tmp_path / SETTINGS).read_text())["external_panel"] is False
+
+
 def test_the_species_listing_marks_what_the_collage_cannot_draw(frame):
     body = json.loads(_fetch(frame + "/species")[2])
     assert 'class="noart"' in body["html"]
@@ -320,6 +421,7 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
         "/admin.css",
         "/admin.js",
         "/collage.png",
+        "/frame.e6",
         "/state",
         "/paper.png",
         "/health",

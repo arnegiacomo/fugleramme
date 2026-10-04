@@ -162,7 +162,7 @@ def run(config: Config) -> None:
         settings = store.get()
         if _update(status, settings.auto_update):
             return  # new code is checked out; systemd restarts us into it
-        size = settings.oriented(resolution_of(panel))
+        size = settings.oriented(resolution_of(panel, settings.external_panel_size))
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
@@ -174,7 +174,7 @@ def run(config: Config) -> None:
             name_of,
             size,
             textured=False,
-            panel=panel is not None,
+            panel=panel is not None or settings.external_panel,
         )
         try:
             last_artless = _log_artless(ctx, last_artless)
@@ -190,9 +190,10 @@ def run(config: Config) -> None:
                 panel_image = dither(modes.render(ctx))
                 panel_image.save(config.output_path)
                 log.info("Rendered %s for the panel at %dx%d", ctx.mode, *size)
-                status.rendered()
+                frame = (panel_image, settings.rotation)
+                status.rendered(frame)
                 last_key, last_settings, last_render = key, _paced(settings), time.monotonic()
-                pending = (panel_image, settings.rotation) if panel is not None else None
+                pending = frame if panel is not None else None
             if unreachable:
                 log.info("Detector reachable again")
                 unreachable = False
