@@ -114,6 +114,11 @@ def request_url(species: str = "") -> str:
     return f"{NEW_ISSUE_URL}?{urlencode(query)}"
 
 
+def bug_url() -> str:
+    query = {"template": "bug_report.yml", "version": f"v{__version__}"}
+    return f"{NEW_ISSUE_URL}?{urlencode(query)}"
+
+
 MISSING = "Birds your station has heard (all time) that have no artwork yet"
 
 
@@ -636,6 +641,7 @@ def page(
     return Template((STATIC_DIR / "admin.html").read_text()).substitute(
         version=__version__,
         docs_url=DOCS_URL,
+        bug_url=html.escape(bug_url()),
         checkboxes=CHECKBOXES,
         config=json.dumps(
             {

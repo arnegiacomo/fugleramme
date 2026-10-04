@@ -90,6 +90,12 @@ Frames people have running around the world. Click one to open it.
       <figcaption>Portland, Oregon, USA <small>fugleramme.tawnyswallow.com</small></figcaption>
     </a>
   </figure>
+  <figure>
+    <a href="https://fugleramme.seanjones.dev/">
+      <img src="https://fugleramme.seanjones.dev/collage.png" alt="The frame in Victoria, British Columbia, Canada" loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>Victoria, British Columbia, Canada <small>fugleramme.seanjones.dev</small></figcaption>
+    </a>
+  </figure>
 </div>
 
 Running one yourself and want to share with others? Post the link in

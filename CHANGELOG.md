@@ -2,6 +2,40 @@
 
 <!-- version list -->
 
+## v0.27.1 (2026-10-04)
+
+### Bug Fixes
+
+- **admin**: Add a footer with version, source, bug report and sponsor links
+  ([`5f0bb89`](https://github.com/arnegiacomo/fugleramme/commit/5f0bb89af94176a5632764e2acf1353fb2557c1f))
+
+- **admin**: Fold the header links behind a menu button on phones
+  ([`908acca`](https://github.com/arnegiacomo/fugleramme/commit/908acca2b03856d56c51eb0d44d0345d7b7e8dda))
+
+- **admin**: Stretch the tabs to the screen width on phones
+  ([`a0ecbed`](https://github.com/arnegiacomo/fugleramme/commit/a0ecbede6747c4f20d438cb48015f7594ae558df))
+
+### Chores
+
+- **assets**: #159 #33 add Steller's jay by Bob Hines
+  ([#161](https://github.com/arnegiacomo/fugleramme/pull/161),
+  [`31f5481`](https://github.com/arnegiacomo/fugleramme/commit/31f5481fb3134685fff42e57176e83fb3d41b4af))
+
+- **assets**: #33 add branta-hutchinsii ([#229](https://github.com/arnegiacomo/fugleramme/pull/229),
+  [`16f9b5e`](https://github.com/arnegiacomo/fugleramme/commit/16f9b5e6ee80950c1a470dca76eac765cfe0f0ce))
+
+- **assets**: #33 Add Passerina cyanea ([#228](https://github.com/arnegiacomo/fugleramme/pull/228),
+  [`4cf046a`](https://github.com/arnegiacomo/fugleramme/commit/4cf046ad10cfe8d9f4a76d8538a43e9f26749b7b))
+
+- **ci**: Credit commit authors in the release notes
+  ([`21ef8b0`](https://github.com/arnegiacomo/fugleramme/commit/21ef8b08e5245b230224c28b397917e28cd04146))
+
+### Documentation
+
+- **showcase**: Add a frame in Victoria, shared by @SeanAJ in #224
+  ([`19d53b2`](https://github.com/arnegiacomo/fugleramme/commit/19d53b2a8f384eedc0eed588bef59ed578a2032a))
+
+
 ## v0.27.0 (2026-10-04)
 
 ### Chores

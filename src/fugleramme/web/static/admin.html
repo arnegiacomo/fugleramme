@@ -9,7 +9,10 @@
 <body>
 <header>
   <h1>Fugleramme</h1>
-  <nav><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a><a href="$docs_url" target="_blank" rel="noopener">Docs</a>$signout</nav>
+  <button type="button" id="menu" aria-label="Menu" aria-expanded="false" aria-controls="links">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <nav id="links"><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a><a href="$docs_url" target="_blank" rel="noopener">Docs</a>$signout</nav>
 </header>
 <nav class="tabs" role="tablist">
   <button type="button" role="tab" data-tab="display">Display</button>
@@ -80,7 +83,7 @@
 <section id="tab-system" hidden>
   <h2>Updates</h2>
   <dl class="status">
-    <dt>Version</dt><dd>v$version</dd>
+    <dt>Version</dt><dd><a href="https://github.com/arnegiacomo/fugleramme/releases/tag/v$version" target="_blank" rel="noopener">v$version</a></dd>
     <dt>Update</dt><dd class="update">$update</dd>
   </dl>
   $auto_update
@@ -98,6 +101,12 @@
     <dt>Last render</dt><dd>$rendered</dd>
   </dl>
 </section>
+<footer>
+  <a href="https://github.com/arnegiacomo/fugleramme/releases/tag/v$version" target="_blank" rel="noopener">v$version</a>
+  <a href="https://github.com/arnegiacomo/fugleramme" target="_blank" rel="noopener">Source</a>
+  <a href="$bug_url" target="_blank" rel="noopener">Report a bug</a>
+  <a href="https://github.com/sponsors/arnegiacomo" target="_blank" rel="noopener">Sponsor</a>
+</footer>
 <script id="config" type="application/json">$config</script>
 <script src="/admin.js?v=$version"></script>
 </body>

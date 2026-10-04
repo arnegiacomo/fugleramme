@@ -96,6 +96,15 @@ for (const hint of document.querySelectorAll(".hint")) {
 document.addEventListener("click", closeHint);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeHint(); });
 
+const menu = document.getElementById("menu");
+const closeMenu = () => menu.setAttribute("aria-expanded", "false");
+menu.addEventListener("click", (e) => {
+  e.stopPropagation();
+  menu.setAttribute("aria-expanded", String(menu.getAttribute("aria-expanded") !== "true"));
+});
+document.addEventListener("click", closeMenu);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+
 // The check runs inside its own POST, so the spinner only has to outlive the navigation.
 const check = document.querySelector("dd.update form.check");
 if (check) {

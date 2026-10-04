@@ -392,7 +392,7 @@
     "url": "https://archive.org/download/birdsofcaliforni01daws/page/n92.jpg"
   },
   "birds/aphelocoma-woodhouseii.webp": {
-    "source": "emory-boundary-survey",
+    "source": "emory",
     "url": "https://archive.org/details/mobot31753002023650/page/n144/mode/1up"
   },
   "birds/apus-apus.webp": {
@@ -638,6 +638,10 @@
   "birds/branta-canadensis.webp": {
     "source": "morris",
     "url": "https://commons.wikimedia.org/wiki/File:British_game_birds_and_wildfowl_(Plate_32)_(8093637854).jpg"
+  },
+  "birds/branta-hutchinsii.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:277_Hutchins's_Barnacle_Goose.jpg"
   },
   "birds/branta-leucopsis-2.webp": {
     "source": "vonwright",
@@ -1527,6 +1531,10 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-102-blue-jay.jpg"
   },
+  "birds/cyanocitta-stelleri-2.webp": {
+    "source": "hines",
+    "url": "https://commons.wikimedia.org/wiki/File:Cyanocitta_stelleriFJ03P04CA.JPG"
+  },
   "birds/cyanocitta-stelleri.webp": {
     "source": "swainson",
     "url": "https://archive.org/download/faunaborealiamer22rich/page/n430.jpg"
@@ -2068,7 +2076,7 @@
     "url": "https://www.biodiversitylibrary.org/page/38625673"
   },
   "birds/gavia-adamsii.webp": {
-    "source": "ibis",
+    "source": "smit",
     "url": "https://archive.org/details/ibis661894188994brit/page/n704"
   },
   "birds/gavia-arctica-2.webp": {
@@ -2110,6 +2118,10 @@
   "birds/geokichla-sibirica.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISiberianThrush.jpg"
+  },
+  "birds/geopelia-humeralis.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/13608"
   },
   "birds/glareola-pratincola.webp": {
     "source": "gould",
@@ -3146,6 +3158,9 @@
   "birds/passerina-ciris.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Painted_Finch_(Audubon).jpg"
+  "birds/passerina-cyanea.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Indigo_Bird_(Fringilla_Cyanea).jpg"
   },
   "birds/pastor-roseus.webp": {
     "source": "gould",
@@ -3430,6 +3445,18 @@
   "birds/piranga-rubra.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-44-summer-red-bird.jpg?"
+  },
+  "birds/pitangus-sulphuratus-2.webp": {
+    "source": "wolf",
+    "url": "https://archive.org/details/proceedingsofgen51zool/page/n61"
+  },
+  "birds/pitangus-sulphuratus-3.webp": {
+    "source": "descourtilz",
+    "url": "https://commons.wikimedia.org/wiki/File:Ornithologie_Br%C3%A9silienne,_ou,_Histoire_des_oiseaux_du_Br%C3%A9sil_-_remarquables_par_leur_plumage,_leur_chant_ou_leurs_habitudes_(1854)_(14561917310).jpg"
+  },
+  "birds/pitangus-sulphuratus.webp": {
+    "source": "martinet",
+    "url": "https://commons.wikimedia.org/wiki/File:Pitangus_sulphuratus_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16500315.tif"
   },
   "birds/pitta-versicolor.webp": {
     "source": "gould",
@@ -3932,7 +3959,7 @@
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Brown-Headed_Nuthatch,_1831,_NGA_32266.jpg"
   },
   "birds/sitta-pygmaea.webp": {
-    "source": "birdlore-fuertes",
+    "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Bird-lore_(1915)_(14755098432).jpg"
   },
   "birds/somateria-mollissima-2.webp": {
@@ -4286,6 +4313,14 @@
   "birds/threskiornis-molucca.webp": {
     "source": "keulemans",
     "url": "https://archive.org/details/birdsaustralia3math/page/n508/mode/1up"
+  },
+  "birds/thryomanes-bewickii-2.webp": {
+    "source": "reed",
+    "url": "https://archive.org/details/birdbookillustra00reedrich/page/426/mode/1up"
+  },
+  "birds/thryomanes-bewickii.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:18_Bewick%27s_Wren.jpg"
   },
   "birds/thryothorus-ludovicianus-2.webp": {
     "source": "fuertes",
