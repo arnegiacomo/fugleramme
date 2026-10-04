@@ -391,6 +391,10 @@
     "source": "dawson",
     "url": "https://archive.org/download/birdsofcaliforni01daws/page/n92.jpg"
   },
+  "birds/aphelocoma-woodhouseii.webp": {
+    "source": "emory-boundary-survey",
+    "url": "https://archive.org/details/mobot31753002023650/page/n144/mode/1up"
+  },
   "birds/apus-apus.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00010.jpg"
@@ -634,6 +638,10 @@
   "birds/branta-canadensis.webp": {
     "source": "morris",
     "url": "https://commons.wikimedia.org/wiki/File:British_game_birds_and_wildfowl_(Plate_32)_(8093637854).jpg"
+  },
+  "birds/branta-hutchinsii.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:277_Hutchins's_Barnacle_Goose.jpg"
   },
   "birds/branta-leucopsis-2.webp": {
     "source": "vonwright",
@@ -1127,6 +1135,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIPallasWater_Ouzel.jpg"
   },
+  "birds/cinnyris-jugularis-2.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/12623"
+  },
+  "birds/cinnyris-jugularis.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/12623"
+  },
   "birds/circaetus-gallicus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIShort-toed_Eagle.jpg"
@@ -1387,6 +1403,10 @@
     "source": "siebold",
     "url": "https://archive.org/details/faunajaponicasi4sieb/page/n264"
   },
+  "birds/corvus-orru.webp": {
+    "source": "gronvold",
+    "url": "https://archive.org/details/birdsaustraliaxiimath/page/n531/mode/1up"
+  },
   "birds/coturnix-coturnix-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00096.jpg"
@@ -1398,6 +1418,14 @@
   "birds/cracticus-nigrogularis.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14978"
+  },
+  "birds/cracticus-torquatus-2.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/birdsAustraliav2Goul/page/n215/mode/1up"
+  },
+  "birds/cracticus-torquatus.webp": {
+    "source": "temminck",
+    "url": "https://archive.org/details/Nouveaurecueild2Temm/page/n253/mode/1up"
   },
   "birds/crex-crex-2.webp": {
     "source": "vonwright",
@@ -1502,6 +1530,10 @@
   "birds/cyanocitta-cristata.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-102-blue-jay.jpg"
+  },
+  "birds/cyanocitta-stelleri-2.webp": {
+    "source": "hines",
+    "url": "https://commons.wikimedia.org/wiki/File:Cyanocitta_stelleriFJ03P04CA.JPG"
   },
   "birds/cyanocitta-stelleri.webp": {
     "source": "swainson",
@@ -2086,6 +2118,10 @@
   "birds/geokichla-sibirica.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISiberianThrush.jpg"
+  },
+  "birds/geopelia-humeralis.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/13608"
   },
   "birds/glareola-pratincola.webp": {
     "source": "gould",
@@ -2895,6 +2931,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISpotted_Flycatcher.jpg"
   },
+  "birds/myadestes-townsendi.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/little-tawny-thrush-ptiliogonys-townsendi-canada-jay"
+  },
   "birds/myiarchus-crinitus.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:129_Great_Crested_Flycatcher.jpg"
@@ -3114,6 +3154,10 @@
   "birds/passerina-caerulea.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Blue_Song_Grosbeak._1._Male._2._Female._3._Young_(NYPL_b13559627-108463).tiff"
+  },
+  "birds/passerina-cyanea.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Indigo_Bird_(Fringilla_Cyanea).jpg"
   },
   "birds/pastor-roseus.webp": {
     "source": "gould",
@@ -3911,6 +3955,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Brown-Headed_Nuthatch,_1831,_NGA_32266.jpg"
   },
+  "birds/sitta-pygmaea.webp": {
+    "source": "birdlore-fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird-lore_(1915)_(14755098432).jpg"
+  },
   "birds/somateria-mollissima-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00173.jpg"
@@ -4159,9 +4207,17 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVLittle_Grebe.jpg"
   },
+  "birds/tachycineta-thalassina.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:385_I._Bank_Swallow_-_2._Violet-green_Swallow.jpg"
+  },
   "birds/tachymarptis-melba.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIWhite-bellied_Swift.jpg"
+  },
+  "birds/tachyspiza-fasciata.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/15264"
   },
   "birds/tadorna-ferruginea.webp": {
     "source": "gould",
@@ -4254,6 +4310,14 @@
   "birds/threskiornis-molucca.webp": {
     "source": "keulemans",
     "url": "https://archive.org/details/birdsaustralia3math/page/n508/mode/1up"
+  },
+  "birds/thryomanes-bewickii-2.webp": {
+    "source": "reed",
+    "url": "https://archive.org/details/birdbookillustra00reedrich/page/426/mode/1up"
+  },
+  "birds/thryomanes-bewickii.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:18_Bewick%27s_Wren.jpg"
   },
   "birds/thryothorus-ludovicianus-2.webp": {
     "source": "fuertes",

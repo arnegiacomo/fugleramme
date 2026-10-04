@@ -64,6 +64,24 @@ jobs:
             exit 0
           fi
           gh workflow run image.yml --ref "$tag"
+      # GitHub shows a Contributors avatar list for every @mention in the notes.
+      # Authors whose commit email is not on a GitHub account have no login and are left out.
+      - name: Credit the commit authors in the release notes
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ steps.before.outputs.tag }}
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+          if [ -z "$BEFORE" ] || [ "$tag" = "$BEFORE" ]; then
+            exit 0
+          fi
+          authors=$(gh api --paginate "repos/$GITHUB_REPOSITORY/compare/$BEFORE...$tag" \
+            --jq '.commits[].author.login // empty | select(endswith("[bot]") | not)' \
+            | sort -uf | sed 's/^/@/' | paste -sd ' ' -)
+          [ -n "$authors" ] || exit 0
+          notes=$(gh release view "$tag" --json body --jq .body)
+          printf '%s\n\n### Contributors\n\n%s\n' "$notes" "$authors" | gh release edit "$tag" --notes-file -
       # Open issues are skipped
       - name: Say where each merged PR and closed issue shipped
         continue-on-error: true

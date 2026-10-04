@@ -16,6 +16,10 @@ Four buttons down the back edge of the panel:
 These settings are saved and will override any settings set in the admin panel.
 Give the panel up to a minute to catch up - it redraws slowly.
 
+## Rebooting
+
+Press **Reboot** on the admin page's System tab to restart the Pi. (Disabled for container)
+
 ## Updates
 
 The frame checks GitHub hourly for new releases and shows it on the admin

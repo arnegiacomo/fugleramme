@@ -126,3 +126,17 @@ def test_a_reclassified_species_takes_one_place_on_the_page(tmp_path):
     Image.new("RGBA", (20, 16), (30, 30, 30, 255)).save(birds / "corvus-monedula.png")
     source = _Counted({"Corvus monedula": 12, "Coloeus monedula": 3})
     assert collage.selected_species(source, tmp_path, "classic") == ["Coloeus monedula"]
+
+
+def test_the_spotlit_bird_takes_a_place_ahead_of_the_ranking(tmp_path):
+    """The latest bird is in the middle whatever the ranking makes of it, and the
+    limit still counts every bird on the page."""
+    names = _garden(tmp_path, 20)
+    quietest = names[0]
+    assert _on_page(tmp_path, names, limit=5, spotlight=quietest) == sorted([quietest, *names[-4:]])
+    assert _on_page(tmp_path, names, limit=1, spotlight=quietest) == [quietest]
+
+
+def test_a_spotlight_the_window_never_heard_takes_no_place(tmp_path):
+    names = _garden(tmp_path, 6)
+    assert _on_page(tmp_path, names, limit=3, spotlight="Absentus avis") == sorted(names[-3:])

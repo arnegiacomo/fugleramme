@@ -114,6 +114,11 @@ def request_url(species: str = "") -> str:
     return f"{NEW_ISSUE_URL}?{urlencode(query)}"
 
 
+def bug_url() -> str:
+    query = {"template": "bug_report.yml", "version": f"v{__version__}"}
+    return f"{NEW_ISSUE_URL}?{urlencode(query)}"
+
+
 MISSING = "Birds your station has heard (all time) that have no artwork yet"
 
 
@@ -290,6 +295,19 @@ def _update(status: Status) -> str:
     return f'<span id="state">up to date</span>{_action("check", "Check")}'
 
 
+def _reboot(status: Status) -> str:
+    """The Reboot button beside when the frame started, on the Pi alone
+    (`updates.can_reboot`)."""
+    if not updates.can_reboot():
+        return ""
+    failed = (
+        f'<span class="bad">{html.escape(status.reboot_error)}</span>'
+        if status.reboot_error
+        else ""
+    )
+    return f"{_action('reboot', 'Reboot')}{failed}"
+
+
 def _auto_update(settings: Settings) -> str:
     """The auto-install toggle, shown disabled in a container: nothing in here can
     pull an image, and a switch that does nothing is worse than no switch."""
@@ -316,7 +334,7 @@ def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: 
     one to fix rather than as all the frame can do."""
     note = f'<p class="note bad">{_fix(f"No languages: {failure}")}</p>' if failure else ""
     return (
-        f'<div class="field" id="names"><span>Species names</span>'
+        f'<div class="field" id="names"><span>Labels</span>'
         f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
         f"{note}"
         f'<div class="sub" id="name-key"><input type="hidden" name="{CHECKBOXES}" value="name_key">'
@@ -570,12 +588,24 @@ def _radio_field(
     return f'<div class="field"{tag}><span>{label}</span>{_radios(name, options, active)}</div>'
 
 
+SPOTLIGHT = "Showcase the latest heard bird in the middle."
+
+
 def _layout_field(settings: Settings) -> str:
-    """How the collage packs its birds (#47). Dimmed with the lookback for the
-    modes that draw one bird."""
+    """How the collage packs its birds (#47), and whether one takes the middle
+    (#185). Dimmed with the lookback for the modes that draw one bird."""
     hint = "\n\n".join(f"{layout.label}: {layout.blurb}" for layout in LAYOUTS.values())
     options = [(k, layout.label) for k, layout in LAYOUTS.items()]
-    return _radio_field(f"Layout {_hint(hint)}", "layout", options, settings.layout, id="layout")
+    spotlight = _checkbox(
+        "spotlight",
+        f"<span>Spotlight mode {_hint(SPOTLIGHT)}</span>",
+        settings.spotlight,
+    )
+    return (
+        f'<div class="field" id="layout"><span>Layout {_hint(hint)}</span>'
+        f"{_radios('layout', options, settings.layout)}"
+        f'<input type="hidden" name="{CHECKBOXES}" value="spotlight">{spotlight}</div>'
+    )
 
 
 def page(
@@ -611,6 +641,7 @@ def page(
     return Template((STATIC_DIR / "admin.html").read_text()).substitute(
         version=__version__,
         docs_url=DOCS_URL,
+        bug_url=html.escape(bug_url()),
         checkboxes=CHECKBOXES,
         config=json.dumps(
             {
@@ -661,6 +692,7 @@ def page(
         online=_state(online, "online", "offline") + (f" · {iface}" if iface else ""),
         disk=hostinfo.disk_free(names_dir),
         started=_stamp(status.started_at),
+        reboot=_reboot(status),
         kiosk_size=f"{w}×{h}",
         rendered=rendered,
         latest=(

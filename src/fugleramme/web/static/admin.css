@@ -3,6 +3,15 @@ header { display: flex; justify-content: space-between; align-items: baseline; f
          gap: 0.5rem; border-bottom: 1px solid #e5e2dc; padding-bottom: 0.75rem; margin-bottom: 2rem; }
 header h1 { margin: 0; }
 header nav a { margin-left: 1.25rem; }
+#menu { display: none; background: none; border: 0; padding: 0.5rem; margin: -0.5rem; border-radius: 6px; color: #446; cursor: pointer;
+        -webkit-tap-highlight-color: transparent; }
+#menu svg { display: block; }
+#menu[aria-expanded="true"] { background: #e8e7f0; }
+footer { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 0.5rem; margin-top: 3rem; padding-top: 0.75rem;
+         border-top: 1px solid #e5e2dc; font-size: 0.85rem; }
+footer a { color: #666; white-space: nowrap; }
+/* inline-block, or the link's underline runs under the dot too. */
+footer a + a::before { content: "·"; display: inline-block; margin-right: 0.5rem; color: #aaa; }
 h2 { font-size: 1.05rem; margin: 0 0 0.5rem; }
 /* Undoes the page-wide block `span`, which would break a heading over three lines. */
 h2 span { display: inline; font-weight: inherit; margin: 0; }
@@ -66,10 +75,10 @@ dl.status { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
 dl.status dt { color: #666; position: relative; }  /* the Without art hint's bubble hangs off it */
 dl.status dd { margin: 0; }
 dl.status dd span { display: inline; font-weight: inherit; margin: 0; }
-dl.status dd.update { display: flex; align-items: center; gap: 0.5rem; }
+dl.status dd.update, dl.status dd.action { display: flex; align-items: center; gap: 0.5rem; }
 dl.status .missing { align-self: center; }  /* the Copy button makes the row taller */
 dl.status dd.missing { display: flex; align-items: center; gap: 0.3rem; }
-dl.status dd.update button { margin: 0; }
+dl.status dd.update button, dl.status dd.action button { margin: 0; }
 time { border-bottom: 1px dotted #bbb; cursor: help; }
 /* White, not the panel's own #f4f2ee, or the box vanishes into it. `user-select:
    all` takes the whole line in one click - plain http has no clipboard API. */
@@ -148,6 +157,16 @@ ul.species li.problem { color: #a4392f; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
 @media (max-width: 40rem) {
+  header { position: relative; align-items: center; }
+  #menu { display: block; }
+  header nav { display: none; position: absolute; right: 0; top: 100%; z-index: 1; flex-direction: column;
+               align-items: flex-start; min-width: 10rem; padding: 0.35rem 0; background: #fff;
+               border: 1px solid #e5e2dc; border-radius: 8px; box-shadow: 0 4px 14px rgb(0 0 0 / 0.12); }
+  #menu[aria-expanded="true"] + nav { display: flex; }
+  header nav a { margin: 0; padding: 0.55rem 0.9rem; text-decoration: none; }
+  header nav form.inline button { margin: 0.35rem 0.9rem; }
+  nav.tabs { gap: 0; }
+  nav.tabs button { flex: 1; font-size: 0.9rem; padding: 0.4rem 0.25rem; }
   .cols { flex-direction: column; }
   form.settings { flex: none; }
 }

@@ -69,7 +69,12 @@ How the birds are arranged on the page. Default is **Spiral**.
 | Spiral | Big birds in the middle, small ones around them |
 | Voids | Birds spread out to fill the whole sheet, corners included |
 
-### Species names
+**Spotlight mode** places the latest heard bird in the middle, with the rest
+packed around it. Default is **off**.
+
+![A large Common Kingfisher in the middle of the collage](assets/spotlight.jpg)
+
+### Labels
 
 **Show species names** turns the labels on and off, same as **B** on the panel.
 
@@ -81,6 +86,8 @@ scientific name alone.
 **Typeface** and **size** apply to every label.
 
 **Numbered key** (collage only) gives each bird a number and lists the names to the right in landscape, or below them in portrait, like a poster. (40 birds max, or whatever **Species on the page** is set to)
+
+A bird the station has never heard before gets an asterisk after its name for its first 24 hours.
 
 | No names | Names next to the birds | Two languages |
 | :---: | :---: | :---: |

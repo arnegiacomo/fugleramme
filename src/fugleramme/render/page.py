@@ -24,6 +24,11 @@ MIN_LABEL_PX = 11
 _CUTOFF = 110  # alpha threshold when flattening text for the panel
 _LINE_SPACING = 0.1  # extra leading between a label's two lines, em
 _PERCH_FILL = 0.7  # of the page's short side
+# Ends a label's first line for a bird new to the station. Drawn as the face's
+# own asterisk, larger and centred on the capitals rather than raised.
+NEW = "\u2605"
+_MARK_SCALE = 1.5  # the asterisk, against the text's size
+_MARK_GAP = 0.2  # text to asterisk, of the cap height
 
 
 class Edges(NamedTuple):
@@ -73,11 +78,51 @@ def fit(img: Image.Image, box: tuple[int, int]) -> Image.Image:
     )
 
 
+def _cap(font: ImageFont.FreeTypeFont) -> float:
+    return -font.getbbox("H", anchor="ls")[1]
+
+
+def _mark(font: ImageFont.FreeTypeFont) -> tuple[Image.Image, int]:
+    """The face's asterisk at `_MARK_SCALE`, trimmed to its ink, and how far its
+    middle sits past the end of the text."""
+    mark = Image.new("L", (1, 1))
+    big = fonts.resized(font, round(font.size * _MARK_SCALE))
+    x0, y0, x1, y1 = ImageDraw.Draw(mark).textbbox((0, 0), "*", font=big)
+    mark = Image.new("L", (math.ceil(x1 - x0) + 2, math.ceil(y1 - y0) + 2), 0)
+    ImageDraw.Draw(mark).text((1 - x0, 1 - y0), "*", font=big, fill=255)
+    ink = mark.crop(mark.getbbox())
+    mark = Image.new("L", (ink.width + 2, ink.height + 2), 0)  # +1px, as the text has
+    mark.paste(ink, (1, 1))
+    return mark, round(_cap(font) * _MARK_GAP + mark.width / 2)
+
+
+def _mark_corner(mark: Image.Image, offset: int, x: float, baseline: float, cap: float):
+    """Where the mark goes for text ending at `x`: in line, centred on the caps."""
+    return round(x + offset - mark.width / 2), round(baseline - cap / 2 - mark.height / 2)
+
+
+def mark_room(font: ImageFont.FreeTypeFont) -> int:
+    """How far past the end of its text a mark reaches."""
+    mark, offset = _mark(font)
+    return offset + math.ceil(mark.width / 2)
+
+
+def draw_mark(mask: Image.Image, x: float, baseline: float, font: ImageFont.FreeTypeFont) -> None:
+    """A newcomer's mark into `mask`, in line with text that ends at `x`."""
+    mark, offset = _mark(font)
+    mask.paste(255, _mark_corner(mark, offset, x, baseline, _cap(font)), mark)
+
+
 def text_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:
     """Text as an "L" alpha mask, +1px so the italic's overhang is not shaved.
     Newlines stack centred (a second language) on the text layout's own
     baselines - separately trimmed masks would sit unevenly. Flat drops the
-    antialiasing, which would otherwise dither into colour speckle."""
+    antialiasing, which would otherwise dither into colour speckle. A first
+    line ending in NEW gets its mark; whatever it reaches past the text on the
+    right is matched on the left, so the name stays centred."""
+    first, *rest = text.split("\n")
+    marked = first.endswith(NEW)
+    text = "\n".join([first.removesuffix(NEW), *rest])
     spacing = round(font.size * _LINE_SPACING)
     measure = ImageDraw.Draw(Image.new("L", (1, 1)))
     x0, y0, x1, y1 = measure.multiline_textbbox(
@@ -85,10 +130,30 @@ def text_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Imag
     )
     # Ceil: a multi-line bbox is fractional, and a short box shaves the text.
     mask = Image.new("L", (math.ceil(x1 - x0) + 2, math.ceil(y1 - y0) + 2), 0)
+    origin = (1 - x0, 1 - y0)
     ImageDraw.Draw(mask).multiline_text(
-        (1 - x0, 1 - y0), text, font=font, fill=255, spacing=spacing, align="center"
+        origin, text, font=font, fill=255, spacing=spacing, align="center"
     )
+    if marked:
+        mask = _with_mark(mask, text, font, origin)
     return flatten(mask) if flat else mask
+
+
+def _with_mark(
+    mask: Image.Image, text: str, font: ImageFont.FreeTypeFont, origin: tuple[float, float]
+) -> Image.Image:
+    """`mask` grown to hold the mark after its first line, as much on each side."""
+    mark, offset = _mark(font)
+    # Lines are centred on the widest, so a short first line ends short of it.
+    widths = [font.getlength(line) for line in text.split("\n")]
+    end = origin[0] + (max(widths) + widths[0]) / 2
+    sx, sy = _mark_corner(mark, offset, end, origin[1] + font.getmetrics()[0], _cap(font))
+    side = max(0, sx + mark.width - mask.width)
+    top, bottom = min(0, sy), max(mask.height, sy + mark.height)
+    grown = Image.new("L", (mask.width + 2 * side, bottom - top), 0)
+    grown.paste(mask, (side, -top))
+    grown.paste(255, (sx + side, sy - top), mark)
+    return grown
 
 
 def figures_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:

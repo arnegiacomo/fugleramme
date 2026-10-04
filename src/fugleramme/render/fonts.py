@@ -52,6 +52,13 @@ def load(key: str, size: int) -> ImageFont.FreeTypeFont:
     return font
 
 
+def resized(font: ImageFont.FreeTypeFont, size: int) -> ImageFont.FreeTypeFont:
+    """The same face at another size, its weight pinned as `load` pins it."""
+    sized = font.font_variant(size=size)
+    _pin_weight(sized)
+    return sized
+
+
 def _pin_weight(font: ImageFont.FreeTypeFont) -> None:
     """Pillow instantiates a variable font at each axis's minimum, which would
     draw Bitter as Thin."""

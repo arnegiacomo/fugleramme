@@ -16,6 +16,7 @@ from fugleramme.languages import namer
 from fugleramme.names import normalize
 from fugleramme.picks import Picks
 from fugleramme.render.collage import KEY_LIMIT, NO_LIMIT
+from fugleramme.render.page import NEW
 from fugleramme.render.paper import PANEL_PAPER
 from fugleramme.render.plate import effective_margin
 from fugleramme.settings import MARGIN_CEILING, Settings
@@ -259,3 +260,42 @@ def test_the_numbered_key_moves_only_the_collage(tmp_path, images, source):
             for on in (False, True)
         ]
         assert (keys[0] != keys[1]) is moves
+
+
+def test_the_spotlight_puts_the_latest_bird_on_a_limited_page(tmp_path, images, source):
+    detections = source(rows=[_row(3, TIT, 0), _row(2, BLACKBIRD, 1), _row(1, BLACKBIRD, 2)])
+    for on, expected in ((False, BLACKBIRD), (True, TIT)):
+        ctx = _ctx(detections, images, tmp_path, "collage", species_limit=1, spotlight=on)
+        assert modes._selected(ctx) == [expected]
+
+
+def test_the_spotlight_moves_only_when_a_different_species_calls(tmp_path, images, detector):
+    rows = [_row(2, TIT, 1), _row(1, BLACKBIRD, 2)]
+    url, _httpd = detector(rows=rows)
+    detections = ApiSource(url)
+
+    def key():
+        return modes.state_key(_ctx(detections, images, tmp_path, "collage", spotlight=True))
+
+    before = key()
+    _heard(detections, rows, _row(3, TIT, 0))
+    assert key() == before
+    _heard(detections, rows, _row(4, BLACKBIRD, 0))
+    assert key() != before  # the same two birds, a different one in the middle
+
+
+def test_a_bird_first_heard_today_is_marked_on_every_page(tmp_path, images, source):
+    detections = source(rows=[_row(2, TIT, 1), _row(1, BLACKBIRD, 30)])
+    for mode in modes.MODES:
+        ctx = _ctx(detections, images, tmp_path, mode)
+        label = modes._labeller(ctx)
+        assert label(TIT).endswith(NEW) and not label(BLACKBIRD).endswith(NEW)
+        assert modes.state_key(ctx) != modes.state_key(
+            _ctx(detections, images, tmp_path, mode, show_names=False)
+        )
+
+
+def test_no_mark_without_names(tmp_path, images, source):
+    detections = source(rows=[_row(1, TIT, 1)])
+    ctx = _ctx(detections, images, tmp_path, "collage", show_names=False)
+    assert not modes._labeller(ctx)(TIT).endswith(NEW)

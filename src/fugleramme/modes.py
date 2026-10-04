@@ -18,7 +18,7 @@ import io
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -28,7 +28,7 @@ from .languages import Namer
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
 from .render.collage import KEY_LIMIT, NO_LIMIT, gather_entries, render_collage, selected_species
-from .render.page import Edges, day_ordinal
+from .render.page import NEW, Edges, day_ordinal
 from .render.plate import effective_margin, render_plate
 from .source import Source, Species
 
@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 # the run the holder is on. A species with no plate cannot hold the page, so the
 # latest one that can does instead.
 _RECENT_SCAN = 500
+NEW_HOURS = 24  # how long a bird first heard counts as new, for its mark
 
 
 @dataclass(frozen=True)
@@ -60,6 +61,7 @@ class Context:
     species_limit: int
     ranking: str
     layout: str
+    spotlight: bool
     margin: Edges  # of the short side; the settings are percents
     textured: bool = True
 
@@ -100,6 +102,7 @@ def context(
         species_limit=_key_limit(settings.species_limit) if keyed else settings.species_limit,
         ranking=settings.ranking,
         layout=settings.layout,
+        spotlight=settings.spotlight,
         margin=Edges(*(m / 100 for m in settings.margins(panel))),
         textured=textured,
     )
@@ -121,12 +124,34 @@ class Mode:
     windowed: bool = False
 
 
+def _newcomers(ctx: Context) -> frozenset[str]:
+    """Species first heard in the last `NEW_HOURS`, while names are on to mark."""
+    if not ctx.show_names:
+        return frozenset()
+    since = datetime.now(UTC) - timedelta(hours=NEW_HOURS)
+    return frozenset(s.scientific_name for s in ctx.source.life_list() if s.first_seen >= since)
+
+
+def _labeller(ctx: Context) -> Callable[[str], str]:
+    """Scientific name -> label, a newcomer's first line ending in its mark."""
+    new = _newcomers(ctx)
+
+    def label(name: str) -> str:
+        text = ctx.namer.label(name)
+        if name not in new:
+            return text
+        first, *rest = text.split("\n")
+        return "\n".join([first + NEW, *rest])
+
+    return label
+
+
 def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = None) -> Image.Image:
     if name and art is None:
         art = image_for(name, ctx.images_dir, ctx.style, ctx.picks)
     return render_plate(
         art,
-        ctx.namer.label(name) if name else "",
+        _labeller(ctx)(name) if name else "",
         note,
         ctx.resolution,
         ctx.show_names,
@@ -136,6 +161,15 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
         ctx.perches(),
         margin=ctx.margin,
     )
+
+
+def _spotlit(ctx: Context) -> str | None:
+    """The bird in the collage's middle: the species of the latest call, as
+    the Latest bird page has it."""
+    if not ctx.spotlight:
+        return None
+    holder = _holder(ctx)
+    return holder[0] if holder else None
 
 
 def _selected(ctx: Context, keys: set[str] | None = None) -> list[str]:
@@ -149,6 +183,7 @@ def _selected(ctx: Context, keys: set[str] | None = None) -> list[str]:
         ctx.species_limit,
         ctx.ranking,
         keys,
+        _spotlit(ctx),
     )
 
 
@@ -156,10 +191,16 @@ def _collage_key(ctx: Context) -> tuple:
     # The page's species, not the window's: under a limit two birds can trade
     # places across it while the set of species heard sits still.
     species = tuple(_selected(ctx))
-    return (species, day_ordinal() if not species else None)
+    spotlit = _spotlit(ctx)
+    return (
+        species,
+        spotlit if spotlit in species else None,
+        day_ordinal() if not species else None,
+    )
 
 
 def _collage(ctx: Context) -> Image.Image:
+    spotlit = _spotlit(ctx)
     return render_collage(
         gather_entries(
             ctx.source,
@@ -169,17 +210,19 @@ def _collage(ctx: Context) -> Image.Image:
             ctx.lookback_hours,
             ctx.species_limit,
             ctx.ranking,
+            spotlit,
         ),
         ctx.resolution,
         ctx.show_names,
         ctx.textured,
         ctx.font_key,
         ctx.label_size,
-        ctx.namer.label,
+        _labeller(ctx),
         ctx.perches(),
         ctx.layout,
         ctx.margin,
         ctx.name_key,
+        spotlit,
     )
 
 
@@ -295,8 +338,15 @@ def state_key(ctx: Context) -> tuple:
         # The plate clamps to its own margin, so a nudge under it must not repaint.
         ctx.margin if mode.windowed else effective_margin(ctx.margin),
         ctx.namer.key,
+        _marked(ctx),
         mode.key(ctx),
     )
+
+
+def _marked(ctx: Context) -> tuple[str, ...]:
+    """The page's newcomers: a mark dropping off after a day repaints it."""
+    new = _newcomers(ctx)
+    return tuple(sorted(new & set(subjects(ctx)))) if new else ()
 
 
 def token(key: tuple) -> str:

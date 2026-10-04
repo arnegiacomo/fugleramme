@@ -36,7 +36,9 @@ class Sprite(Protocol):
 
 
 Placed = list[tuple[Sprite, int, int]]
-Packer = Callable[[Sequence[Sprite], int, int], Placed | None]
+# (sprites, width, height, anchor): `anchor` is the point of the first sprite
+# pinned to the middle of the page.
+Packer = Callable[[Sequence[Sprite], int, int, tuple[int, int] | None], Placed | None]
 Cost = Callable[["Board", np.ndarray], np.ndarray]
 
 _STEP = 6  # spiral: pixels between candidate positions
@@ -71,30 +73,53 @@ def _probes(mask: np.ndarray) -> list[tuple[int, np.ndarray]]:
     return probes
 
 
-def spiral(sprites: Sequence[Sprite], width: int, height: int) -> Placed | None:
+def _pinned(
+    sprite: Sprite, anchor: tuple[int, int], width: int, height: int
+) -> tuple[int, int] | None:
+    """Where `anchor` lands on the middle of the page, slid back on if that runs
+    the sprite off an edge. None if the sprite is bigger than the page."""
+    h, w = sprite.mask.shape
+    if w > width or h > height:
+        return None
+    x = min(max(0, width // 2 - anchor[0]), width - w)
+    y = min(max(0, height // 2 - anchor[1]), height - h)
+    return x, y
+
+
+def _first_free(occ: np.ndarray, mask: np.ndarray) -> tuple[int, int] | None:
+    """The first position on an outward walk from the middle where `mask` fits."""
+    height, width = occ.shape
+    h, w = mask.shape
+    probes = _probes(mask)
+    for px, py in _ring(width / 2, height / 2, math.hypot(width, height)):
+        x, y = int(px - w / 2), int(py - h / 2)
+        if x < 0 or y < 0 or x + w > width or y + h > height:
+            continue
+        # A colliding probe row is a real collision, so this only ever skips
+        # the box test for positions it would have rejected anyway.
+        if any((occ[y + r, x : x + w] & row).any() for r, row in probes):
+            continue
+        if not (occ[y : y + h, x : x + w] & mask).any():
+            return x, y
+    return None
+
+
+def spiral(
+    sprites: Sequence[Sprite], width: int, height: int, anchor: tuple[int, int] | None = None
+) -> Placed | None:
     """Place every sprite with no opaque overlap and fully on-screen, or return
     None if one does not fit. Sprites should be pre-sorted largest-first."""
     occ = np.zeros((height, width), dtype=bool)
     placed: Placed = []
-    max_r = math.hypot(width, height)
-    for sprite in sprites:
-        h, w = sprite.mask.shape
-        probes = _probes(sprite.mask)
-        spot = None
-        for px, py in _ring(width / 2, height / 2, max_r):
-            x, y = int(px - w / 2), int(py - h / 2)
-            if x < 0 or y < 0 or x + w > width or y + h > height:
-                continue
-            # A colliding probe row is a real collision, so this only ever skips
-            # the box test for positions it would have rejected anyway.
-            if any((occ[y + r, x : x + w] & row).any() for r, row in probes):
-                continue
-            if not (occ[y : y + h, x : x + w] & sprite.mask).any():
-                spot = (x, y)
-                break
+    for n, sprite in enumerate(sprites):
+        if anchor and n == 0:
+            spot = _pinned(sprite, anchor, width, height)
+        else:
+            spot = _first_free(occ, sprite.mask)
         if spot is None:
             return None
         x, y = spot
+        h, w = sprite.mask.shape
         occ[y : y + h, x : x + w] |= sprite.mask
         placed.append((sprite, x, y))
     return placed
@@ -182,20 +207,32 @@ class Board:
         return blurred[_PAD : _PAD + self.H, _PAD : _PAD + self.W]
 
 
-def scored(sprites: Sequence[Sprite], width: int, height: int, cost: Cost) -> Placed | None:
+def scored(
+    sprites: Sequence[Sprite],
+    width: int,
+    height: int,
+    anchor: tuple[int, int] | None = None,
+    *,
+    cost: Cost,
+) -> Placed | None:
     """Place each sprite at the cheapest legal offset, largest first as `spiral`
-    takes them. None if one does not fit."""
+    takes them, the first pinned by `anchor` if given. None if one does not fit."""
     board = Board(width, height)
     placed: Placed = []
-    for sprite in sprites:
+    for n, sprite in enumerate(sprites):
         h, w = sprite.mask.shape
         mask = _pool(sprite.mask)
         ok = board.legal(mask, w, h)
         if not ok.any():
             return None
-        y, x = np.unravel_index(np.argmin(np.where(ok, cost(board, mask), np.inf)), ok.shape)
-        board.take(mask, int(y), int(x))
-        placed.append((sprite, int(x) * K, int(y) * K))
+        spot = _pinned(sprite, anchor, width, height) if anchor and n == 0 else None
+        if spot:
+            y, x = spot[1] // K, spot[0] // K
+        else:
+            best = np.unravel_index(np.argmin(np.where(ok, cost(board, mask), np.inf)), ok.shape)
+            y, x = int(best[0]), int(best[1])
+        board.take(mask, y, x)
+        placed.append((sprite, x * K, y * K))
     return placed
 
 

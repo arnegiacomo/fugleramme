@@ -68,6 +68,7 @@ Every setting on the admin page can be seeded with `FUGLERAMME_<NAME>`:
       FUGLERAMME_REFRESH_MINUTES: 0                  # 0 | 5 | 10 | 15 | 30 | 60
       FUGLERAMME_SPECIES_LIMIT: 40                   # 0 for no limit
       FUGLERAMME_RANKING: heard                      # heard | rarest | rarest_ever
+      FUGLERAMME_SPOTLIGHT: "false"                  # spotlight the latest heard bird
       FUGLERAMME_STYLE: classic
       FUGLERAMME_SHOW_NAMES: "true"
       FUGLERAMME_NAME_KEY: "false"                   # numbered key instead of names beside the birds

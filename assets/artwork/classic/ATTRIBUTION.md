@@ -60,6 +60,12 @@ Public domain (PD-old-70-expired; Keulemans died 1912); the *Onze vogels* scans 
 by the Biodiversity Heritage Library are additionally offered under CC BY 2.0.
 Manifest key: `keulemans`.
 
+**Grönvold** - plates by **Henrik Grönvold** (1858-1940) for *The Birds of Australia* by
+**Gregory M. Mathews**, vol. 12 (1925-1927), Museums Victoria scans via the
+[Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/126732) and the
+[Internet Archive](https://archive.org/details/birdsaustraliaxiimath).
+Public domain (PD-old-70-expired; Grönvold died 1940). Manifest key: `gronvold`.
+
 **Morris** - *British Game Birds and Wildfowl* by **Beverley R. Morris**
 (1855), Biodiversity Heritage Library scans from the Commons category
 [British game birds and wildfowl](https://commons.wikimedia.org/wiki/Category:British_game_birds_and_wildfowl).
@@ -178,6 +184,12 @@ CC BY 2.0. Manifest key: `jardine`.
 **Bonaparte** - *Iconografia della fauna italica per le quattro classi degli animali vertebrati* by **Charles Lucien Bonaparte** (1832-1841), hand-coloured lithographs, via the [Internet Archive](https://archive.org/details/Iconografiadellt1c1Bona). Public domain. Manifest key: `bonaparte`.
 
 **Ibis** - a plate from *The Ibis* (1894) by **Joseph Smit**, printed by **Mintern Bros.**, via the [Internet Archive](https://archive.org/details/ibis661894188994brit). Public domain (Smit died 1929). Manifest key: `ibis`.
+
+**Fuertes (Bird-Lore)** - *Bird-Lore*, volume 17 (1915), color illustrations by **Louis Agassiz Fuertes**, American Museum of Natural History Library scan via the [Internet Archive](https://archive.org/details/birdlore17nati) and Wikimedia Commons. Public domain (1915 U.S. publication; Fuertes died 1927; Commons marks the scan as having no known copyright restrictions). Manifest key: `birdlore-fuertes`.
+
+**Emory (Boundary Survey)** - *Report on the United States and Mexican boundary survey* (1857-1859), directed by **William H. Emory**, with ornithology by **Spencer Fullerton Baird**. Missouri Botanical Garden Library scan via [Internet Archive / BHL](https://archive.org/details/mobot31753002023650). Public domain. Manifest key: `emory-boundary-survey`.
+
+**Reed** - *The Bird Book* by **Chester A. Reed** (Worcester, Mass.: C. K. Reed, 1914). Prelinger Library scan via the [Internet Archive](https://archive.org/details/birdbookillustra00reedrich). Public domain (published in the US before 1929; Reed died 1912). Manifest key: `reed`.
 
 **Wolf** - a plate drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851), printed by **M. & N. Hanhart**, Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool). Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
 

@@ -96,6 +96,15 @@ for (const hint of document.querySelectorAll(".hint")) {
 document.addEventListener("click", closeHint);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeHint(); });
 
+const menu = document.getElementById("menu");
+const closeMenu = () => menu.setAttribute("aria-expanded", "false");
+menu.addEventListener("click", (e) => {
+  e.stopPropagation();
+  menu.setAttribute("aria-expanded", String(menu.getAttribute("aria-expanded") !== "true"));
+});
+document.addEventListener("click", closeMenu);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+
 // The check runs inside its own POST, so the spinner only has to outlive the navigation.
 const check = document.querySelector("dd.update form.check");
 if (check) {
@@ -225,6 +234,7 @@ const caption = document.querySelector(".rendering");
 const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
 let shown = null, seq = 0, timer = null;
+let page = null;  // the kiosk's token: new birds move the preview too
 const queueRender = () => {
   clearTimeout(timer);  // debounced: a render is expensive on the Pi
   timer = setTimeout(loadPreview, 500);
@@ -253,7 +263,8 @@ function loadPreview() {
     if (id !== seq) return;
     caption.textContent = "Preview unavailable";
   };
-  next.src = "/preview.png?" + query;
+  // The token busts the browser's in-page image cache, which ignores no-cache.
+  next.src = "/preview.png?" + query + (page ? "&page=" + page : "");
   loadSpecies(query, id);
 }
 
@@ -412,5 +423,22 @@ window.addEventListener("beforeunload", (e) => {
   e.returnValue = "";
 });
 
+document.querySelector("form.reboot")?.addEventListener("submit", (e) => {
+  if (!confirm("Are you sure you want to reboot?")) e.preventDefault();
+});
+
 loadPreview();
+(async function follow() {
+  try {
+    const state = await (await fetch("/state", {cache: "no-store"})).json();
+    const moved = page !== null && state.token !== page;
+    page = state.token;
+    if (!moved) return;
+    shown = null;  // the same form, a different page
+    loadPreview();
+  } catch (e) {  // a missed poll is caught by the next
+  } finally {
+    setTimeout(follow, 5000);
+  }
+})();
 if (scrolled !== null) window.scrollTo(0, Number(scrolled));

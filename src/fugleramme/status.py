@@ -26,6 +26,7 @@ class Status:
     update_error: str | None = None
     update_phase: str | None = None
     update_percent: int | None = None
+    reboot_error: str | None = None
 
     def rendered(self) -> None:
         self.rendered_at = _now()
