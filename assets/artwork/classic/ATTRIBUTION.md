@@ -179,6 +179,6 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Ibis** - a plate from *The Ibis* (1894) by **Joseph Smit**, printed by **Mintern Bros.**, via the [Internet Archive](https://archive.org/details/ibis661894188994brit). Public domain (Smit died 1929). Manifest key: `ibis`.
 
-**Wolf** - a plate drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851), printed by **M. & N. Hanhart**, Natural History Museum Library scan via the [Internet Archive](https://archive.org/details/lietuvostsrmoksl50liet) and Wikimedia Commons. Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
+**Wolf** - a plate drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851), printed by **M. & N. Hanhart**, Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool). Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
 
 **Descourtilz** - *Ornithologie Brésilienne, ou, Histoire des oiseaux du Brésil* by **Jean Théodore Descourtilz** (Rio de Janeiro: Thomas Reeves, 1854), lithographed by **Waterlow and Sons**, Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/OrnithologieBre00Desc) and Wikimedia Commons. Public domain (Descourtilz died 1855). Manifest key: `descourtilz`.
