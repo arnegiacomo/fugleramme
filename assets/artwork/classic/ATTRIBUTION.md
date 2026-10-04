@@ -188,3 +188,5 @@ CC BY 2.0. Manifest key: `jardine`.
 **Fuertes (Bird-Lore)** - *Bird-Lore*, volume 17 (1915), color illustrations by **Louis Agassiz Fuertes**, American Museum of Natural History Library scan via the [Internet Archive](https://archive.org/details/birdlore17nati) and Wikimedia Commons. Public domain (1915 U.S. publication; Fuertes died 1927; Commons marks the scan as having no known copyright restrictions). Manifest key: `birdlore-fuertes`.
 
 **Emory (Boundary Survey)** - *Report on the United States and Mexican boundary survey* (1857-1859), directed by **William H. Emory**, with ornithology by **Spencer Fullerton Baird**. Missouri Botanical Garden Library scan via [Internet Archive / BHL](https://archive.org/details/mobot31753002023650). Public domain. Manifest key: `emory-boundary-survey`.
+
+**Reed** - *The Bird Book* by **Chester A. Reed** (Worcester, Mass.: C. K. Reed, 1914). Prelinger Library scan via the [Internet Archive](https://archive.org/details/birdbookillustra00reedrich). Public domain (published in the US before 1929; Reed died 1912). Manifest key: `reed`.
