@@ -17,7 +17,7 @@ from urllib.parse import urlencode, urlparse
 from .. import __version__, modes, updates
 from ..api import probe
 from ..config import BIRDNET_PORT, DOCS_URL, NEW_ISSUE_URL, WEB_ASPECTS, WEB_HEIGHTS
-from ..languages import NONE, Namer, catalog, catalog_failure, ordered
+from ..languages import NONE, STATION, STATION_NAME, Namer, catalog, catalog_failure, ordered
 from ..modes import MODES
 from ..names import available_styles, image_for, normalize, origin_of, source_of
 from ..render.collage import KEY_LIMIT, NO_LIMIT, RANKINGS
@@ -268,7 +268,8 @@ def _language_select(
     items = [(NONE, "None")] if optional else []
     items += [(code, name) for code, name in languages if code != NONE]
     if selected not in dict(items):
-        items.append((selected, f"{selected} (unavailable)"))
+        shown = STATION_NAME if selected == STATION else selected
+        items.append((selected, f"{shown} (unavailable)"))
     labels = dict(items)
     codes = [code for code, _ in items]
     return f'<select name="{field}">{_options(codes, selected, labels.get)}</select>'

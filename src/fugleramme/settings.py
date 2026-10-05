@@ -25,7 +25,7 @@ from .config import (
     WEB_ASPECTS,
     WEB_HEIGHTS,
 )
-from .languages import NONE, SCIENTIFIC
+from .languages import NONE, SCIENTIFIC, STATION
 from .modes import DEFAULT_MODE, MODES
 from .render.collage import DEFAULT_MARGIN, DEFAULT_RANKING, NO_LIMIT, RANKINGS
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
@@ -242,7 +242,7 @@ def _language(value, default: str) -> str:
     if not isinstance(value, str):
         return default
     value = value.strip().lower()
-    return value if value in (NONE, SCIENTIFIC) or _LOCALE_RE.fullmatch(value) else default
+    return value if value in (NONE, SCIENTIFIC, STATION) or _LOCALE_RE.fullmatch(value) else default
 
 
 def _url(value, default: str) -> str:

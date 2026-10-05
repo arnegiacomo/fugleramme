@@ -13,7 +13,17 @@ import pytest
 
 from fugleramme import languages
 from fugleramme.api import ApiSource, Configured
-from fugleramme.languages import NONE, SCIENTIFIC, Namer, catalog, dictionary, namer, ordered
+from fugleramme.languages import (
+    NONE,
+    SCIENTIFIC,
+    STATION,
+    STATION_NAME,
+    Namer,
+    catalog,
+    dictionary,
+    namer,
+    ordered,
+)
 from fugleramme.settings import Settings, SettingsStore
 from fugleramme.web.admin import _language_select
 
@@ -199,7 +209,12 @@ def test_names_come_through_the_detectors_own_session(detector, tmp_path):
 
     languages._catalog = None
     languages.use(ApiSource(url, "birdnet", "hunter2"))
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific", "nb": "Norwegian", "en": "English"}
+    assert catalog(tmp_path) == {
+        SCIENTIFIC: "Scientific",
+        "nb": "Norwegian",
+        "en": "English",
+        STATION: STATION_NAME,
+    }
     assert namer("nb", SCIENTIFIC, tmp_path).label("Turdus merula") == "Svarttrost\n(Turdus merula)"
 
 
@@ -363,9 +378,146 @@ def test_credentials_the_locale_list_was_waiting_for_expire_the_empty_catalog(de
     store = SettingsStore(tmp_path / "s.json", Settings(detector_url=url))
     languages.use(Configured(store))
 
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+    # /species/all is public: BirdNET-Go's own language needs no password.
+    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific", STATION: STATION_NAME}
     assert languages.catalog_failure() == "needs a password"
 
     store.update(detector_password="hunter2")
     assert NB in catalog(tmp_path)
     assert languages.catalog_failure() == ""
+
+
+STATION_ROWS = {
+    "species": [
+        {"scientificName": "Parus major", "commonName": "Rasvatihane"},
+        {"scientificName": "Corvus monedula", "commonName": "Hakk"},
+        {"scientificName": "Myotis daubentonii", "commonName": "Myotis daubentonii"},
+    ]
+}
+
+
+def _station_api(monkeypatch, locale="et", rows=STATION_ROWS, answers=True, gated=False):
+    """BirdNET-Go with Estonian (or `locale`) as its species language and no
+    dictionaries. `answers=False` is a station that cannot be reached; `gated`
+    refuses /settings/birdnet as a frame with no password sees it. Returns the
+    (method, path) asked for."""
+    asked = []
+
+    def request(path, method="GET", headers=None):
+        asked.append((method, path))
+        if not answers:
+            return None
+        if path == "/species/all":
+            return 200, {}, b"" if method == "HEAD" else json.dumps(rows).encode()
+        if path == "/settings/birdnet":
+            return (401, {}, b"") if gated else (200, {}, json.dumps({"locale": locale}).encode())
+        if path == "/settings/locales":
+            return 200, {}, json.dumps({"et": "Estonian", "no": "Norwegian"}).encode()
+        if path == f"/species/dictionary/{NB}":
+            return 200, {"etag": "v1"}, json.dumps(NAMES[NB]).encode()
+        return 404, {}, b""
+
+    monkeypatch.setattr(languages, "_request", request)
+    return asked
+
+
+def _expire_station():
+    languages._dicts[STATION] = (0.0, *languages._dicts[STATION][1:])
+
+
+def test_station_language_reads_species_all(monkeypatch, tmp_path):
+    """A label locale with no dictionary (Estonian) still names birds through
+    /species/all, keyed under both the label's name and the current one."""
+    _station_api(monkeypatch)
+
+    offered = catalog(tmp_path)
+    assert STATION in offered and "et" not in offered
+
+    names, version = dictionary(STATION, tmp_path)
+    assert names["Parus major"] == "Rasvatihane"
+    assert "Myotis daubentonii" not in names  # no common name, no entry
+    assert version
+
+    n = namer(STATION, SCIENTIFIC, tmp_path)
+    assert n.parts("Parus major") == ("Rasvatihane", "Parus major")
+    assert n.date(datetime(2026, 10, 6, 12).astimezone()) == "6. oktoober 2026"
+    assert catalog(tmp_path)[STATION] == "Estonian (BirdNET-Go locale)"
+
+    from fugleramme.settings import _language
+
+    assert _language("station", SCIENTIFIC) == "station"  # survives a save
+
+
+def test_the_catalog_asks_for_the_station_language_once_per_ttl(monkeypatch, tmp_path):
+    """BirdNET-Go answers HEAD by building the whole list, so an admin page
+    load must not cost one."""
+    asked = _station_api(monkeypatch)
+    for _ in range(3):
+        assert STATION in catalog(tmp_path)
+    assert asked.count(("HEAD", "/species/all")) == 1
+
+
+def test_a_station_that_stops_answering_keeps_its_language(monkeypatch, tmp_path):
+    _station_api(monkeypatch)
+    dictionary(STATION, tmp_path)
+    assert STATION in catalog(tmp_path)
+
+    monkeypatch.setattr(languages, "_catalog", None)
+    monkeypatch.setattr(languages, "_dicts", {})
+    monkeypatch.setattr(languages, "_station_locale", None)
+    _station_api(monkeypatch, answers=False)
+
+    # Off the disk, label and all.
+    assert catalog(tmp_path)[STATION] == "Estonian (BirdNET-Go locale)"
+
+
+def test_without_the_password_the_station_language_has_no_name(monkeypatch, tmp_path):
+    _station_api(monkeypatch, gated=True)
+
+    n = namer(STATION, NONE, tmp_path)
+    assert n.label("Parus major") == "Rasvatihane"
+    assert n.date(datetime(2026, 10, 6, 12).astimezone()) == "6.10.2026"
+    assert catalog(tmp_path)[STATION] == STATION_NAME
+
+
+def test_the_station_language_sits_beside_its_own_dictionary(monkeypatch, tmp_path):
+    """Not a duplicate: Norwegian stays Norwegian, the station's language
+    follows whatever BirdNET-Go is changed to."""
+    _station_api(monkeypatch, locale="no")
+    dictionary(STATION, tmp_path)
+
+    offered = catalog(tmp_path)
+    assert offered[NB] == "Norwegian"
+    assert offered[STATION] == "Norwegian (BirdNET-Go locale)"
+
+
+def test_changing_birdnet_go_s_language_reaches_the_page(monkeypatch, tmp_path):
+    _station_api(monkeypatch)
+    before = namer(STATION, NONE, tmp_path)
+
+    _station_api(
+        monkeypatch,
+        locale="no",
+        rows={"species": [{"scientificName": "Parus major", "commonName": "kjøttmeis"}]},
+    )
+    assert namer(STATION, NONE, tmp_path).key == before.key  # until the TTL runs out
+
+    _expire_station()
+    after = namer(STATION, NONE, tmp_path)
+    assert after.key != before.key
+    assert after.label("Parus major") == "Kjøttmeis"
+    assert after.date(datetime(2026, 10, 6, 12).astimezone()) == "6. oktober 2026"
+    assert languages._dicts[STATION][0] - time.monotonic() <= languages._STATION_TTL
+
+
+def test_the_fake_serves_its_own_species_language(detector, tmp_path):
+    url, _httpd = detector()
+    languages.use(ApiSource(url))
+
+    assert namer(STATION, NONE, tmp_path).label("Parus major") == "Rasvatihane"
+    assert catalog(tmp_path)[STATION] == "Estonian (BirdNET-Go locale)"
+
+
+def test_an_unoffered_station_language_keeps_its_name():
+    select = _language_select("primary_language", [(SCIENTIFIC, "Scientific")], STATION)
+    assert f"{STATION_NAME} (unavailable)" in select

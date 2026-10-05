@@ -6,12 +6,21 @@ source's session, since PrivateMode gates these two endpoints as well:
 
     GET /api/v2/settings/locales           -> {code: English name}, all label locales
     GET /api/v2/species/dictionary/<code>   -> {scientific name: common name}, gzipped
+    GET /api/v2/species/all                 -> every species, named in birdnet.locale
+    GET /api/v2/settings/birdnet            -> {"locale": ...}, which language that is
 
 Only some of those locales have a dictionary and the two endpoints disagree on
 codes (the list's "no" answers as "nb"), so the offered languages are the probed
 intersection - HEAD is enough to ask. Dictionaries cache under `<cache_dir>/names/`
 and revalidate by ETag, which is BirdNET-Go's own speciesDictVersion. With it
 unreachable and nothing cached, SCIENTIFIC is the only language left.
+
+STATION is the one language outside the dictionaries: whatever BirdNET-Go's
+species language (birdnet.locale) is set to, read from `/species/all`. It
+follows that setting, so it stays on offer beside a dictionary of the same
+language, and refreshes often enough that changing it in BirdNET-Go reaches the
+page within minutes. `/species/all` needs no password; only the locale's name,
+used for the label and the dates, does.
 
 The two are not gated alike. `/settings/*` sits behind BirdNET-Go's
 authentication whenever any provider is configured, where the detections are
@@ -22,6 +31,7 @@ exists so the admin can say that instead of silently offering one language.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import threading
@@ -37,15 +47,25 @@ log = logging.getLogger(__name__)
 # Pseudo-language: the scientific name, the only one needing no BirdNET-Go.
 SCIENTIFIC = "sci"
 NONE = ""  # secondary language unset
+# Pseudo-language: whatever BirdNET-Go's own species language (birdnet.locale)
+# is set to. Read from /species/all, which every station serves in that one
+# language - so it reaches the label locales the dictionary endpoint does not.
+STATION = "station"
+# Labels it "Estonian (BirdNET-Go locale)", or this alone while the language is unknown.
+STATION_NAME = "BirdNET-Go locale"
+_STATION_PATH = "/species/all"
 
 # Locale codes the dictionary spells differently; the rest just drop the region.
 _ALIASES = {"no": "nb"}
 
 # Offered first, ahead of the alphabetical rest.
-_PREFERRED = (SCIENTIFIC, "en", "nb")
+_PREFERRED = (SCIENTIFIC, STATION, "en", "nb")
 
 _CATALOG_TTL = 24 * 3600
 _DICT_TTL = 3600
+# /species/all has no ETag to revalidate by, and a changed birdnet.locale should
+# reach the page soon. The list is cheap for BirdNET-Go to build.
+_STATION_TTL = 300
 _RETRY_TTL = 120  # BirdNET-Go down or still starting: retry soon, not tomorrow
 
 _UNCHANGED = object()  # 304: the cached copy is still current
@@ -55,10 +75,13 @@ _lock = threading.Lock()
 # Both caches carry the station they came from: a dictionary and its ETag are
 # one detector's answer, so pointing the frame at another expires them rather
 # than serving the old station's names under the new one's.
-_Catalog = tuple[float, str, dict[str, str], str]
+# (deadline, station, languages, offers STATION, why there are none)
+_Catalog = tuple[float, str, dict[str, str], bool, str]
 _Dictionary = tuple[float, str, str, dict[str, str]]
 _catalog: _Catalog | None = None
 _dicts: dict[str, _Dictionary] = {}
+# (station, birdnet.locale) behind the STATION dictionary; the locale is "" when unknown.
+_station_locale: tuple[str, str] | None = None
 
 _source: Any = None
 
@@ -175,19 +198,115 @@ def catalog(cache_dir: Path) -> dict[str, str]:
         station = _station()
         path = cache_path(cache_dir, "languages")
         if _catalog is None or _catalog[1] != station:
-            _catalog = (0.0, station, _read(path).get("languages") or {}, "")
-        deadline, _held, found, _why = _catalog
+            cached = _read(path)
+            _catalog = (
+                0.0,
+                station,
+                cached.get("languages") or {},
+                cached.get("station") is True,
+                "",
+            )
+        deadline, _held, found, offers_station, _why = _catalog
         if time.monotonic() >= deadline:
             # An empty probe is a failure, not an answer: caching it for a day
             # and writing it over a good list on disk would turn one bad moment
-            # into a frame with no languages until someone restarted it.
+            # into a frame with no languages until someone restarted it. The
+            # same goes for STATION: only an answer adds it, nothing removes it.
             probed, why = _probe()
+            answered = _station_answers()
             if probed:
                 found = probed
-                _write(path, {"languages": found})
+            offers_station = offers_station or answered
+            if probed or answered:
+                _write(path, {"languages": found, "station": offers_station})
             ttl = _CATALOG_TTL if probed else _RETRY_TTL
-            _catalog = (time.monotonic() + ttl, station, found, why if not found else "")
-        return {SCIENTIFIC: "Scientific", **found}
+            _catalog = (
+                time.monotonic() + ttl,
+                station,
+                found,
+                offers_station,
+                why if not found else "",
+            )
+        offered = {SCIENTIFIC: "Scientific", **found}
+        if offers_station:
+            offered[STATION] = _station_label(_held_locale(cache_dir, station))
+        return offered
+
+
+def _station_answers() -> bool:
+    # BirdNET-Go answers HEAD with its full GET handler, so this is no cheaper
+    # than fetching - which is why the catalog asks once per TTL, not per call.
+    answer = _request(_STATION_PATH, "HEAD")
+    return answer is not None and answer[0] == 200
+
+
+def _held_locale(cache_dir: Path, station: str) -> str:
+    """birdnet.locale as the STATION names last found it. Called under _lock."""
+    if _station_locale is not None and _station_locale[0] == station:
+        return _station_locale[1]
+    return str(_read(cache_path(cache_dir, STATION)).get("locale") or "")
+
+
+def _station_label(locale: str) -> str:
+    """The STATION option's name, "Estonian (BirdNET-Go locale)", or without the
+    language when the frame cannot tell which it is."""
+    if not locale or Locale is None:
+        return STATION_NAME
+    try:
+        return f"{Locale.parse(locale.split('-')[0]).english_name} ({STATION_NAME})"
+    except (UnknownLocaleError, ValueError):
+        return STATION_NAME
+
+
+def _birdnet_locale() -> str:
+    """birdnet.locale, or "" when /settings/birdnet refuses a frame with no password."""
+    answer = _request("/settings/birdnet")
+    if answer is None or answer[0] != 200:
+        return ""
+    try:
+        locale = json.loads(answer[2]).get("locale")
+    except (ValueError, AttributeError):
+        return ""
+    return locale.strip().lower() if isinstance(locale, str) else ""
+
+
+def _station_names() -> tuple[dict[str, str], str, str] | None:
+    """(names, locale, version) of BirdNET-Go's species language, or None when
+    the station does not answer.
+
+    Names are {scientific: common} from /species/all, under both the name
+    BirdNET-Go labels with and the current one `canonical` folds it to. A common
+    name equal to the scientific one is no name at all and is left out, so the
+    label falls back the usual way. /species/all sends no ETag, so the version
+    hashes the body and the locale: a changed birdnet.locale re-renders the page.
+    """
+    answer = _request(_STATION_PATH)
+    if answer is None or answer[0] != 200:
+        return None
+    try:
+        payload = json.loads(answer[2])
+    except ValueError:
+        return None
+    rows = payload.get("species") if isinstance(payload, dict) else None
+    if not isinstance(rows, list):
+        return None
+    from .names import canonical  # late: names sits above this module
+
+    names: dict[str, str] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        sci, common = row.get("scientificName"), row.get("commonName")
+        if not (isinstance(sci, str) and isinstance(common, str)):
+            continue
+        sci, common = sci.strip(), common.strip()
+        if not sci or not common or common.lower() == sci.lower():
+            continue
+        names.setdefault(sci, common)
+        names.setdefault(canonical(sci), common)
+    locale = _birdnet_locale()
+    version = hashlib.sha256(answer[2] + locale.encode()).hexdigest()[:12]
+    return names, locale, version
 
 
 def catalog_failure() -> str:
@@ -195,7 +314,7 @@ def catalog_failure() -> str:
     with the catalog rather than returned beside it: a list served off the disk
     cache is a working menu whatever the probe behind it just did."""
     with _lock:
-        return _catalog[3] if _catalog else ""
+        return _catalog[4] if _catalog else ""
 
 
 def ordered(languages: dict[str, str]) -> list[tuple[str, str]]:
@@ -211,21 +330,39 @@ def dictionary(code: str, cache_dir: Path) -> tuple[dict[str, str], str]:
     when BirdNET-Go has never been reachable for it."""
     if code in (SCIENTIFIC, NONE):
         return {}, ""
+    global _station_locale
     with _lock:
         station = _station()
         path = cache_path(cache_dir, code)
         if code not in _dicts or _dicts[code][1] != station:
             cached = _read(path)
             _dicts[code] = (0.0, station, cached.get("etag", ""), cached.get("names") or {})
+            if code == STATION:
+                _station_locale = (station, str(cached.get("locale") or ""))
         deadline, _held, etag, names = _dicts[code]
         if time.monotonic() >= deadline:
-            payload, fresh = _fetch(f"/species/dictionary/{code}", etag)
-            if isinstance(payload, dict):
-                etag, names = fresh, payload
-                _write(path, {"etag": etag, "names": names})
-            ttl = _DICT_TTL if payload is not None else _RETRY_TTL
+            if code == STATION:
+                answer = _station_names()
+                ttl = _STATION_TTL if answer is not None else _RETRY_TTL
+                if answer is not None:
+                    names, locale, etag = answer
+                    _station_locale = (station, locale)
+                    _write(path, {"etag": etag, "names": names, "locale": locale})
+            else:
+                payload, fresh = _fetch(f"/species/dictionary/{code}", etag)
+                if isinstance(payload, dict):
+                    etag, names = fresh, payload
+                    _write(path, {"etag": etag, "names": names})
+                ttl = _DICT_TTL if payload is not None else _RETRY_TTL
             _dicts[code] = (time.monotonic() + ttl, station, etag, names)
         return names, etag
+
+
+def station_locale() -> str:
+    """birdnet.locale behind the STATION names `dictionary` last loaded, or ""."""
+    with _lock:
+        held = _station_locale
+        return held[1] if held is not None and held[0] == _station() else ""
 
 
 try:
@@ -280,11 +417,19 @@ class Namer:
     """Renders a scientific name into the configured language(s). Built by `namer`."""
 
     def __init__(
-        self, primary: str, secondary: str, names: dict[str, dict[str, str]], version: tuple
+        self,
+        primary: str,
+        secondary: str,
+        names: dict[str, dict[str, str]],
+        version: tuple,
+        station_locale: str = "",
     ):
         self.primary = primary
         self.secondary = secondary
         self._names = names
+        # The language dates are written in: STATION's is whatever BirdNET-Go is
+        # set to ("pt-br" as babel's "pt"), numeric while that is unknown.
+        self._dates = station_locale.split("-")[0] if primary == STATION else primary
         # Cache key: the names change with the dictionaries, not just the setting.
         self.key = (primary, secondary, version)
 
@@ -313,11 +458,11 @@ class Namer:
 
     def date(self, when: datetime) -> str:
         """A day, with its year: the newest arrival's can be months back."""
-        return _written(self.primary, when, clock=False)
+        return _written(self._dates, when, clock=False)
 
     def moment(self, when: datetime) -> str:
         """A day and a clock time, for the bird holding the page now."""
-        return _written(self.primary, when, clock=True)
+        return _written(self._dates, when, clock=True)
 
 
 def namer(primary: str, secondary: str, cache_dir: Path) -> Namer:
@@ -328,4 +473,5 @@ def namer(primary: str, secondary: str, cache_dir: Path) -> Namer:
         if code not in (SCIENTIFIC, NONE) and code not in names:
             names[code], version = dictionary(code, cache_dir)
             versions.append((code, version))
-    return Namer(primary, secondary, names, tuple(versions))
+    locale = station_locale() if primary == STATION else ""
+    return Namer(primary, secondary, names, tuple(versions), locale)

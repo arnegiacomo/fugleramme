@@ -83,6 +83,11 @@ language** and optionally a second, which stacks underneath in parentheses. Only
 downloaded dictionaries are offered - on a fresh install that may be the
 scientific name alone.
 
+**BirdNET-Go locale**, shown as for example "Estonian (BirdNET-Go locale)",
+uses whatever BirdNET-Go's own Settings -> Analysis -> Species Language is set
+to, including languages with no dictionary here. Change it there and the page
+follows within a few minutes.
+
 **Typeface** and **size** apply to every label.
 
 **Numbered key** (collage only) gives each bird a number and lists the names to the right in landscape, or below them in portrait, like a poster. (40 birds max, or whatever **Species on the page** is set to)

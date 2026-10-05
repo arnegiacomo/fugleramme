@@ -1,8 +1,8 @@
 """A fake BirdNET-Go for a hardware-free dev loop.
 
 Serves the slice of `/api/v2` the frame reads - the species summary, the recent
-detections, the locale list and the name dictionaries - over generated
-in-memory detections.
+detections, the locale list, the name dictionaries and the species list in the
+station's own language - over generated in-memory detections.
 
 The shapes are upstream's, warts and all: a detection carries its date and time
 as two strings of station-local wall clock with no offset, while the summary's
@@ -89,6 +89,23 @@ NAMES: dict[str, tuple[str, dict[str, str]]] = {
 _LISTED_AS = {"nb": "no"}
 _NO_DICTIONARY = {"el": "Greek", "pt-br": "Brazilian Portuguese"}
 
+# The station's own species language (birdnet.locale), which /species/all names
+# every species in. Estonian by default: a label locale with no dictionary, the
+# gap the frame's "station" language exists for.
+LOCALE = "et"
+LABELS = {
+    "et": {
+        "Turdus merula": "musträstas",
+        "Parus major": "rasvatihane",
+        "Fringilla coelebs": "metsvint",
+        "Pica pica": "harakas",
+        "Passer domesticus": "koduvarblane",
+        "Cyanistes caeruleus": "sinitihane",
+        "Erithacus rubecula": "punarind",
+        "Corvus cornix": "hallvares",
+    },
+}
+
 API = "/api/v2"
 
 # gothic's default session cookie, set by the OAuth callback that completes a login.
@@ -147,6 +164,19 @@ def locales() -> dict[str, str]:
     return {_LISTED_AS.get(code, code): display for code, (display, _) in NAMES.items()} | (
         _NO_DICTIONARY
     )
+
+
+def species_all(locale: str) -> dict[str, Any]:
+    """`/species/all`: every species in `locale`, English where it has no name.
+    "Human vocal" comes back as its own scientific name, as upstream's labels do."""
+    listed = {listed: code for code, listed in _LISTED_AS.items()}
+    names = LABELS.get(locale) or NAMES.get(listed.get(locale, locale), ("", {}))[1]
+    common = {sci: names.get(sci) or _common(sci) or sci for sci in sorted(HEARD)}
+    rows = [
+        {"label": f"{sci}_{name}", "scientificName": sci, "commonName": name}
+        for sci, name in common.items()
+    ]
+    return {"species": rows, "count": len(rows)}
 
 
 def summary(
@@ -210,7 +240,11 @@ def _one(query: dict[str, list[str]], name: str) -> str:
 
 
 def make_handler(
-    rows: list[Detection], password: str = "", down: bool = False, private: bool = True
+    rows: list[Detection],
+    password: str = "",
+    down: bool = False,
+    private: bool = True,
+    locale: str = LOCALE,
 ):
     dictionaries = {code: names for code, (_, names) in NAMES.items()}
     codes: set[str] = set()
@@ -351,6 +385,10 @@ def make_handler(
                 self._json(200, detections(rows, _int(query, "limit", 10) or 10))
             elif route == f"{API}/settings/locales":
                 self._json(200, locales())
+            elif route == f"{API}/settings/birdnet":
+                self._json(200, {"locale": locale})
+            elif route == f"{API}/species/all":
+                self._json(200, species_all(locale))
             elif route.startswith(f"{API}/species/dictionary/"):
                 self._dictionary(route.rsplit("/", 1)[1])
             else:
@@ -380,10 +418,11 @@ def serve(
     password: str = "",
     down: bool = False,
     private: bool = True,
+    locale: str = LOCALE,
 ) -> ThreadingHTTPServer:
     """Start the fake on a daemon thread. Port 0 asks the OS for one - read it
     back from `server_address[1]`."""
-    httpd = ThreadingHTTPServer((host, port), make_handler(rows, password, down, private))
+    httpd = ThreadingHTTPServer((host, port), make_handler(rows, password, down, private, locale))
     # `shutdown()` blocks until the loop next comes round, so the default half second
     # is half a second per fake the tests start and stop.
     threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
@@ -405,6 +444,9 @@ def main() -> None:
         help="with --auth: leave the detections open and gate only /settings/*",
     )
     parser.add_argument("--down", action="store_true", help="answer every request 503")
+    parser.add_argument(
+        "--locale", default=LOCALE, help="the station's species language (birdnet.locale)"
+    )
     args = parser.parse_args()
 
     httpd = serve(
@@ -414,6 +456,7 @@ def main() -> None:
         args.auth,
         args.down,
         private=not args.auth_names_only,
+        locale=args.locale,
     )
     print(f"fake BirdNET-Go on http://{args.host}:{httpd.server_address[1]}{API}")
     with contextlib.suppress(KeyboardInterrupt):
