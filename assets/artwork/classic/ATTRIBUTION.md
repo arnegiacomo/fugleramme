@@ -86,10 +86,11 @@ Public domain (PD-scan / PD-old-70-expired). Manifest key: `greene`.
 
 **Whitaker** - *The Birds of Tunisia* by **Joseph I. S. Whitaker** (1905), plates by **Henrik Grönvold**, Smithsonian Libraries scans from the Commons category [The birds of Tunisia; being a history of the birds found in the regency of Tunis (1905)](https://commons.wikimedia.org/wiki/Category:The_birds_of_Tunisia%3B_being_a_history_of_the_birds_found_in_the_regency_of_Tunis_(1905)) and the Internet Archive. Public domain (Commons: no known copyright restrictions). Manifest key: `whitaker`.
 
-**Audubon** - *Birds of America* by **John James Audubon** (1829-1838), engraved, printed, and colored by **R. Havell**, [Courtesy of the John James Audubon Center at Mill Grove, Montgomery County Audubon Collection, and Zebra Publishing](https://www.audubon.org/art/birds-of-america). Public domain (PD-scan / PD-old-70-expired). Also the octavo edition (1840-1844), lithographed, printed, and colored by **J. T. Bowen**, Biodiversity Heritage Library scan on Wikimedia Commons, public domain. Manifest key: `audubon`.
+**Audubon** - *Birds of America* by **John James Audubon** (1829-1838), engraved, printed, and colored by **R. Havell**, [Courtesy of the John James Audubon Center at Mill Grove, Montgomery County Audubon Collection, and Zebra Publishing](https://www.audubon.org/art/birds-of-america). Public domain (PD-scan / PD-old-70-expired). Manifest key: `audubon`.
 Also the octavo edition, *The birds of America, from drawings made in the United
 States and their territories*, with hand-coloured lithographs by **John T. Bowen**:
 Internet Archive scans via Wikimedia Commons (no known copyright restrictions),
+Biodiversity Heritage Library scans via Wikimedia Commons (CC BY 2.0),
 and [Metropolitan Museum of Art](https://www.metmuseum.org/art/collection) scans
 (CC0).
 
