@@ -134,8 +134,6 @@ Public domain. Manifest key: `legge`.
 
 **Dawson** - *The Birds of California* by **William Leon Dawson** (San Diego: South Moulton Company, 1923), color plates by **Allan Brooks**, Biodiversity Heritage Library scan on the [Internet Archive](https://archive.org/details/birdsofcaliforni02daws). Public domain (published in the US before 1929; Brooks died 1946). Manifest key: `dawson`.
 
-**Horsfall** - *Birds of the Pacific Coast* by **Willard Ayres Eliot** (New York and London: G. P. Putnam's Sons, 1923), color plates by **R. Bruce Horsfall**, Biodiversity Heritage Library scan on the [Internet Archive](https://archive.org/details/birdsofpacificco00elio). Public domain (published in the US before 1929; Horsfall died 1948). Manifest key: `horsfall`.
-
 **Werner** - plates drawn by **Jean-Charles Werner** for his *Atlas des oiseaux d'Europe*, lithographed by **Langlumé**. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain). Manifest key: `werner`.
 
 **Swainson** - *Zoological Illustrations* by
