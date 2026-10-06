@@ -15,18 +15,15 @@ intersection - HEAD is enough to ask. Dictionaries cache under `<cache_dir>/name
 and revalidate by ETag, which is BirdNET-Go's own speciesDictVersion. With it
 unreachable and nothing cached, SCIENTIFIC is the only language left.
 
-STATION is the one language outside the dictionaries: whatever BirdNET-Go's
-species language (birdnet.locale) is set to, read from `/species/all`. It
-follows that setting, so it stays on offer beside a dictionary of the same
-language, and refreshes often enough that changing it in BirdNET-Go reaches the
-page within minutes. `/species/all` needs no password; only the locale's name,
-used for the label and the dates, does.
-
 The two are not gated alike. `/settings/*` sits behind BirdNET-Go's
 authentication whenever any provider is configured, where the detections are
 only behind PrivateMode - so the locale list is the first thing to refuse a
 frame that has no credentials, while the birds keep arriving. `catalog_failure`
 exists so the admin can say that instead of silently offering one language.
+
+STATION, BirdNET-Go's own species language (birdnet.locale), is the one outside
+the dictionaries. `/species/all` names it with no password; only which language
+it is, for the label and the dates, needs one.
 """
 
 from __future__ import annotations
@@ -36,6 +33,7 @@ import json
 import logging
 import threading
 import time
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -47,11 +45,9 @@ log = logging.getLogger(__name__)
 # Pseudo-language: the scientific name, the only one needing no BirdNET-Go.
 SCIENTIFIC = "sci"
 NONE = ""  # secondary language unset
-# Pseudo-language: whatever BirdNET-Go's own species language (birdnet.locale)
-# is set to. Read from /species/all, which every station serves in that one
-# language - so it reaches the label locales the dictionary endpoint does not.
+# Pseudo-language: BirdNET-Go's own species language (birdnet.locale).
 STATION = "station"
-# Labels it "Estonian (BirdNET-Go locale)", or this alone while the language is unknown.
+# As in "Estonian (BirdNET-Go locale)", or alone while the language is unknown.
 STATION_NAME = "BirdNET-Go locale"
 _STATION_PATH = "/species/all"
 
@@ -63,8 +59,7 @@ _PREFERRED = (SCIENTIFIC, STATION, "en", "nb")
 
 _CATALOG_TTL = 24 * 3600
 _DICT_TTL = 3600
-# /species/all has no ETag to revalidate by, and a changed birdnet.locale should
-# reach the page soon. The list is cheap for BirdNET-Go to build.
+# No ETag to revalidate by, and a changed birdnet.locale should show within minutes.
 _STATION_TTL = 300
 _RETRY_TTL = 120  # BirdNET-Go down or still starting: retry soon, not tomorrow
 
@@ -80,7 +75,7 @@ _Catalog = tuple[float, str, dict[str, str], bool, str]
 _Dictionary = tuple[float, str, str, dict[str, str]]
 _catalog: _Catalog | None = None
 _dicts: dict[str, _Dictionary] = {}
-# (station, birdnet.locale) behind the STATION dictionary; the locale is "" when unknown.
+# (station, birdnet.locale) of the STATION names; "" when the locale is unknown.
 _station_locale: tuple[str, str] | None = None
 
 _source: Any = None
@@ -210,8 +205,8 @@ def catalog(cache_dir: Path) -> dict[str, str]:
         if time.monotonic() >= deadline:
             # An empty probe is a failure, not an answer: caching it for a day
             # and writing it over a good list on disk would turn one bad moment
-            # into a frame with no languages until someone restarted it. The
-            # same goes for STATION: only an answer adds it, nothing removes it.
+            # into a frame with no languages until someone restarted it. So is
+            # STATION's: an answer adds it, nothing removes it.
             probed, why = _probe()
             answered = _station_answers()
             if probed:
@@ -234,8 +229,7 @@ def catalog(cache_dir: Path) -> dict[str, str]:
 
 
 def _station_answers() -> bool:
-    # BirdNET-Go answers HEAD with its full GET handler, so this is no cheaper
-    # than fetching - which is why the catalog asks once per TTL, not per call.
+    # No cheaper than a GET: BirdNET-Go answers HEAD with its full GET handler.
     answer = _request(_STATION_PATH, "HEAD")
     return answer is not None and answer[0] == 200
 
@@ -248,14 +242,8 @@ def _held_locale(cache_dir: Path, station: str) -> str:
 
 
 def _station_label(locale: str) -> str:
-    """The STATION option's name, "Estonian (BirdNET-Go locale)", or without the
-    language when the frame cannot tell which it is."""
-    if not locale or Locale is None:
-        return STATION_NAME
-    try:
-        return f"{Locale.parse(locale.split('-')[0]).english_name} ({STATION_NAME})"
-    except (UnknownLocaleError, ValueError):
-        return STATION_NAME
+    name = english_name(locale)
+    return f"{name} ({STATION_NAME})" if name else STATION_NAME
 
 
 def _birdnet_locale() -> str:
@@ -274,11 +262,10 @@ def _station_names() -> tuple[dict[str, str], str, str] | None:
     """(names, locale, version) of BirdNET-Go's species language, or None when
     the station does not answer.
 
-    Names are {scientific: common} from /species/all, under both the name
-    BirdNET-Go labels with and the current one `canonical` folds it to. A common
-    name equal to the scientific one is no name at all and is left out, so the
-    label falls back the usual way. /species/all sends no ETag, so the version
-    hashes the body and the locale: a changed birdnet.locale re-renders the page.
+    Names are keyed under both BirdNET-Go's scientific name and its `canonical`
+    one. A common name equal to the scientific one is left out, so the label
+    falls back as usual. The version hashes the locale too, so changing it
+    re-renders the page.
     """
     answer = _request(_STATION_PATH)
     if answer is None or answer[0] != 200:
@@ -382,6 +369,16 @@ except ImportError:  # a half-finished self-update: numeric dates still read fin
 _PLAIN_SPACES = str.maketrans({"\u202f": " ", "\u00a0": " "})
 
 
+def english_name(locale: str) -> str:
+    """English name: "Arabic" for "ar", "Portuguese" for "pt-br", "" if babel lacks it."""
+    if not locale or Locale is None:
+        return ""
+    try:
+        return str(Locale.parse(locale.split("-")[0]).english_name or "")
+    except (UnknownLocaleError, ValueError):
+        return ""
+
+
 def _spelled(code: str, local: datetime, clock: bool) -> str | None:
     """The date in the language's own words, or None when babel cannot."""
     if code in (SCIENTIFIC, NONE) or format_date is None:
@@ -403,17 +400,28 @@ def _spelled(code: str, local: datetime, clock: bool) -> str | None:
 def _written(code: str, when: datetime, clock: bool) -> str:
     """A date the way the language writes it - more than the month's name, since
     Hungarian and Latvian put the year first and Spanish joins with "de"."""
-    local = when.astimezone()
-    written = _spelled(code, local, clock) or local.strftime(
-        "%-d.%m %H:%M" if clock else "%-d.%m.%Y"
-    )
+    written = _spelled(code, when.astimezone(), clock) or numeric(when, clock)
     return written.translate(_PLAIN_SPACES)
+
+
+def numeric(when: datetime, clock: bool) -> str:
+    """A date in figures alone, which any face can set."""
+    return when.astimezone().strftime("%-d.%m %H:%M" if clock else "%-d.%m.%Y")
 
 
 def _capitalized(name: str) -> str:
     """Norwegian names come lowercase, English titled; a standalone label reads
     better capitalized, and a mixed dictionary evenly."""
     return name[:1].upper() + name[1:]
+
+
+# (language code, text) -> whether the page can draw it; a name it cannot falls
+# back to the scientific one, a date to `numeric`.
+Drawable = Callable[[str, str], bool]
+
+
+def _anything(_code: str, _text: str) -> bool:
+    return True
 
 
 class Namer:
@@ -430,42 +438,47 @@ class Namer:
         self.primary = primary
         self.secondary = secondary
         self._names = names
-        # The language dates are written in: STATION's is whatever BirdNET-Go is
-        # set to ("pt-br" as babel's "pt"), numeric while that is unknown.
+        # STATION's dates follow birdnet.locale ("pt-br" as babel's "pt"), and are
+        # numeric while it is unknown.
         self._dates = station_locale.split("-")[0] if primary == STATION else primary
         # Cache key: the names change with the dictionaries, not just the setting.
         self.key = (primary, secondary, version)
 
-    def _one(self, code: str, scientific: str) -> str:
+    def _one(self, code: str, scientific: str, drawable: Drawable) -> str:
         if code in (SCIENTIFIC, NONE):
             return scientific
         common = self._names.get(code, {}).get(scientific)
-        return _capitalized(common) if common else scientific
+        name = _capitalized(common) if common else scientific
+        return name if drawable(code, name) else scientific
 
-    def parts(self, scientific: str) -> tuple[str, ...]:
+    def parts(self, scientific: str, drawable: Drawable = _anything) -> tuple[str, ...]:
         """The primary name, plus the second language's when it differs."""
-        primary = self._one(self.primary, scientific)
+        primary = self._one(self.primary, scientific, drawable)
         if self.secondary == NONE:
             return (primary,)
-        secondary = self._one(self.secondary, scientific)
+        secondary = self._one(self.secondary, scientific, drawable)
         return (primary,) if secondary == primary else (primary, secondary)
 
-    def label(self, scientific: str) -> str:
+    def label(self, scientific: str, drawable: Drawable = _anything) -> str:
         """Collage label: the second language on its own line, in parentheses."""
-        parts = self.parts(scientific)
+        parts = self.parts(scientific, drawable)
         return parts[0] if len(parts) == 1 else f"{parts[0]}\n({parts[1]})"
 
     def inline(self, scientific: str) -> str:
         """One line, for the admin listings."""
         return self.label(scientific).replace("\n", " ")
 
-    def date(self, when: datetime) -> str:
+    def date(self, when: datetime, drawable: Drawable = _anything) -> str:
         """A day, with its year: the newest arrival's can be months back."""
-        return _written(self._dates, when, clock=False)
+        return self._dated(when, False, drawable)
 
-    def moment(self, when: datetime) -> str:
+    def moment(self, when: datetime, drawable: Drawable = _anything) -> str:
         """A day and a clock time, for the bird holding the page now."""
-        return _written(self._dates, when, clock=True)
+        return self._dated(when, True, drawable)
+
+    def _dated(self, when: datetime, clock: bool, drawable: Drawable) -> str:
+        written = _written(self._dates, when, clock)
+        return written if drawable(self._dates, written) else numeric(when, clock)
 
 
 def namer(primary: str, secondary: str, cache_dir: Path) -> Namer:

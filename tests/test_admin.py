@@ -4,10 +4,12 @@ asset links and the values admin.js reads still line up."""
 
 from __future__ import annotations
 
+import html
 import json
 import re
 
 import pytest
+from PIL import features
 
 from fugleramme import languages, modes
 from fugleramme.config import BIRDNET_PORT
@@ -449,3 +451,69 @@ def test_the_display_tab_names_the_password_rather_than_calling_it_unreachable(t
     assert "detector unreachable" not in page
     assert f'<li class="problem">detector {NEEDS_PASSWORD}. See <a href="#detector"' in page
     assert f"<dd>detector {NEEDS_PASSWORD}</dd>" in page  # beside the row that says it too
+
+
+@pytest.mark.parametrize(
+    ("chosen", "raqm", "noted"),
+    [
+        ({"primary_language": "station"}, False, True),
+        ({"primary_language": "station"}, True, False),
+        ({"primary_language": "ja"}, False, False),
+        # Not English, which Naskh has too.
+        ({"primary_language": "en", "secondary_language": "ar"}, False, True),
+        ({}, False, False),  # not while the station's names are unused
+    ],
+)
+def test_the_names_field_says_when_this_pi_cannot_draw_a_chosen_language(
+    tmp_path, source, monkeypatch, chosen, raqm, noted
+):
+    """libfribidi0 is an apt package, which an update never installs."""
+    check = features.check
+    monkeypatch.setattr(features, "check", lambda name: raqm if name == "raqm" else check(name))
+    monkeypatch.setattr(admin, "station_locale", lambda: "ar")
+    note = (
+        "This Pi can't draw Arabic yet. "
+        'Run <code class="cmd">sudo apt install libfribidi0</code> and reboot.'
+    )
+    assert (note in _page(tmp_path, source(), **chosen)) is noted
+
+
+@pytest.mark.parametrize(
+    ("overrides", "note"),
+    [
+        (
+            {"primary_language": "station"},
+            "Gentium Book Plus doesn't support Chinese - using Noto Sans CJK SC instead.",
+        ),
+        (
+            {"primary_language": "sci", "secondary_language": "station"},
+            "Gentium Book Plus doesn't support Chinese - using Noto Sans CJK SC instead.",
+        ),
+        (
+            {"primary_language": "el", "label_font": "baskerville"},
+            "Libre Baskerville doesn't support Greek - using Gentium Book Plus instead.",
+        ),
+        (
+            {"primary_language": "el", "label_font": "bitter"},
+            "Bitter doesn't support Greek - using Gentium Book Plus instead.",
+        ),
+        ({"primary_language": "el", "label_font": "gentium"}, ""),  # Gentium has Greek
+        ({"primary_language": "nb", "label_font": "baskerville"}, ""),
+        ({"primary_language": "en", "secondary_language": "sci"}, ""),
+    ],
+)
+def test_the_typeface_warns_of_a_language_it_leaves_to_a_fallback(
+    tmp_path, source, monkeypatch, overrides, note
+):
+    monkeypatch.setattr(admin, "station_locale", lambda: "zh")
+    page = _page(tmp_path, source(), **overrides)
+    warning = re.search(r'<span class="hint caution" id="face-note"[^>]*>', page).group()
+    assert (" hidden" in warning) is not bool(note)
+    assert f'aria-label="{html.escape(note)}"' in warning
+
+
+def test_the_typeface_warning_is_a_triangle_not_the_info_badge(tmp_path, source):
+    page = _page(tmp_path, source(), primary_language="zh")
+    warning = re.search(r'<span class="hint caution" id="face-note".*?</span>', page).group()
+    assert "<svg" in warning  # the info badge is an empty hint
+    assert "⚠" not in page  # a colour emoji on some systems

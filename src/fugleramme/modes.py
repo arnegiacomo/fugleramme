@@ -15,18 +15,21 @@ from __future__ import annotations
 
 import hashlib
 import io
+import logging
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PIL import Image
 
-from .languages import Namer
+from .languages import STATION, Drawable, Namer, english_name, station_locale
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
+from .render import fonts
 from .render.collage import KEY_LIMIT, NO_LIMIT, gather_entries, render_collage, selected_species
 from .render.page import NEW, Edges, day_ordinal
 from .render.plate import effective_margin, render_plate
@@ -34,6 +37,8 @@ from .source import Source, Species
 
 if TYPE_CHECKING:
     from .settings import Settings
+
+log = logging.getLogger(__name__)
 
 # How far back to look for a detection we have artwork for, and for the start of
 # the run the holder is on. A species with no plate cannot hold the page, so the
@@ -132,12 +137,33 @@ def _newcomers(ctx: Context) -> frozenset[str]:
     return frozenset(s.scientific_name for s in ctx.source.life_list() if s.first_seen >= since)
 
 
+def _drawable(ctx: Context) -> Drawable:
+    """Whether a name or date has a face here. Asked where the label is written,
+    so the collage's cache key carries the fallback."""
+
+    def drawable(code: str, text: str) -> bool:
+        if fonts.settable(text, ctx.font_key):
+            return True
+        locale = station_locale() if code == STATION else code
+        _cannot_draw(english_name(locale) or locale or code)
+        return False
+
+    return drawable
+
+
+@cache
+def _cannot_draw(language: str) -> None:
+    """Said once per language: it falls back on every render."""
+    log.warning("%s can't be drawn here; showing scientific names and numeric dates", language)
+
+
 def _labeller(ctx: Context) -> Callable[[str], str]:
     """Scientific name -> label, a newcomer's first line ending in its mark."""
     new = _newcomers(ctx)
+    drawable = _drawable(ctx)
 
     def label(name: str) -> str:
-        text = ctx.namer.label(name)
+        text = ctx.namer.label(name, drawable)
         if name not in new:
             return text
         first, *rest = text.split("\n")
@@ -256,7 +282,7 @@ def _latest_page(ctx: Context) -> Image.Image:
     if holder is None:
         return _plate(ctx, None)
     name, since = holder
-    return _plate(ctx, name, ctx.namer.moment(since))
+    return _plate(ctx, name, ctx.namer.moment(since, _drawable(ctx)))
 
 
 def _arrival(ctx: Context) -> Species | None:
@@ -281,7 +307,7 @@ def _arrival_page(ctx: Context) -> Image.Image:
         return _plate(ctx, None)
     # The year stands in for "first heard": only names get translated, and this
     # one can be months old.
-    return _plate(ctx, species.scientific_name, ctx.namer.date(species.first_seen))
+    return _plate(ctx, species.scientific_name, ctx.namer.date(species.first_seen, _drawable(ctx)))
 
 
 def _one(species) -> list[str]:

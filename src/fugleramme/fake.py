@@ -28,6 +28,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import parse_qs, quote, urlparse
 
+from babel import Locale
+
 from .config import BIRDNET_PORT
 
 # Common Norwegian species; some without artwork (Cyanistes, Erithacus), which the collage omits.
@@ -89,10 +91,23 @@ NAMES: dict[str, tuple[str, dict[str, str]]] = {
 _LISTED_AS = {"nb": "no"}
 _NO_DICTIONARY = {"el": "Greek", "pt-br": "Brazilian Portuguese"}
 
-# The station's own species language (birdnet.locale), which /species/all names
-# every species in. Estonian by default: a label locale with no dictionary, the
-# gap the frame's "station" language exists for.
+# The station's species language (birdnet.locale). Estonian: a label locale with
+# no dictionary, the gap the frame's "station" language fills.
 LOCALE = "et"
+
+# Label locales in other scripts, in SPECIES order, verbatim from BirdNET v2.4's
+# label files - English where a file has no name of its own.
+_SCRIPTS = {
+    "ja": "ニシクロウタドリ|ヨーロッパシジュウカラ|ズアオアトリ|ユーラシアカササギ|イエスズメ|アオガラ|ヨーロッパコマドリ|ズキンガラス",
+    "zh": "欧乌鸫|欧亚大山雀|苍头燕雀|欧亚喜鹊|家麻雀|青山雀|欧亚鸲|冠小嘴乌鸦",
+    "ko": "Eurasian Blackbird|노랑배박새|푸른머리되새|Eurasian Magpie|집참새|Eurasian Blue Tit|꼬까울새|Hooded Crow",
+    "ar": "شحرور|قرقف كبير|شرشور ظالم-صلنج|العقعق الأوراسي|دوري منزلي|قرقف أزرق|أبو الحناء الأوروبي|غراب ابقع",
+    "he": "שחרור|ירגזי מצוי|פרוש מצוי|עקעק זנבתן|דרור הבית|ירגזי כחול|אדום חזה|עורב אפור",
+    "th": "Eurasian Blackbird|Great Tit|นกจาบปีกอ่อนหัวเทาอกชมพู|Eurasian Magpie|นกกระจอกใหญ่|Eurasian Blue Tit|European Robin|Hooded Crow",
+    "ml": "Eurasian Blackbird|European Great Tit|Common Chaffinch|Eurasian Magpie|അങ്ങാടിക്കുരുവി|Eurasian Blue Tit|European Robin|Hooded Crow",
+    "ru": "Чёрный дрозд|Большая синица|Зяблик|Сорока|Домовый воробей|Лазоревка|Зарянка|Серая ворона",
+    "el": "(Κοινός) Κότσυφας|Καλόγερος|(Κοινός) Σπίνος|Καρακάξα|Σπιτοσπουργίτης|(Ευρωπαϊκή) Γαλαζοπαπαδίτσα|Κοκκινολαίμης|(Σταχτιά) Κουρούνα",
+}
 LABELS = {
     "et": {
         "Turdus merula": "musträstas",
@@ -104,7 +119,7 @@ LABELS = {
         "Erithacus rubecula": "punarind",
         "Corvus cornix": "hallvares",
     },
-}
+} | {code: dict(zip(SPECIES, names.split("|"), strict=True)) for code, names in _SCRIPTS.items()}
 
 API = "/api/v2"
 
@@ -160,10 +175,10 @@ def generate(count: int, seed: int | None = None) -> list[Detection]:
     ]
 
 
-def locales() -> dict[str, str]:
-    return {_LISTED_AS.get(code, code): display for code, (display, _) in NAMES.items()} | (
-        _NO_DICTIONARY
-    )
+def locales(every_language: bool = False) -> dict[str, str]:
+    listed = {_LISTED_AS.get(code, code): display for code, (display, _) in NAMES.items()}
+    every = {code: str(Locale.parse(code).english_name) for code in LABELS}
+    return listed | _NO_DICTIONARY | (every if every_language else {})
 
 
 def species_all(locale: str) -> dict[str, Any]:
@@ -245,8 +260,11 @@ def make_handler(
     down: bool = False,
     private: bool = True,
     locale: str = LOCALE,
+    every_language: bool = False,
 ):
-    dictionaries = {code: names for code, (_, names) in NAMES.items()}
+    dictionaries = {code: names for code, (_, names) in NAMES.items()} | (
+        LABELS if every_language else {}
+    )
     codes: set[str] = set()
     sessions: set[str] = set()
 
@@ -384,7 +402,7 @@ def make_handler(
             elif route == f"{API}/detections/recent":
                 self._json(200, detections(rows, _int(query, "limit", 10) or 10))
             elif route == f"{API}/settings/locales":
-                self._json(200, locales())
+                self._json(200, locales(every_language))
             elif route == f"{API}/settings/birdnet":
                 self._json(200, {"locale": locale})
             elif route == f"{API}/species/all":
@@ -419,10 +437,12 @@ def serve(
     down: bool = False,
     private: bool = True,
     locale: str = LOCALE,
+    every_language: bool = False,
 ) -> ThreadingHTTPServer:
     """Start the fake on a daemon thread. Port 0 asks the OS for one - read it
     back from `server_address[1]`."""
-    httpd = ThreadingHTTPServer((host, port), make_handler(rows, password, down, private, locale))
+    handler = make_handler(rows, password, down, private, locale, every_language)
+    httpd = ThreadingHTTPServer((host, port), handler)
     # `shutdown()` blocks until the loop next comes round, so the default half second
     # is half a second per fake the tests start and stop.
     threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
@@ -447,6 +467,12 @@ def main() -> None:
     parser.add_argument(
         "--locale", default=LOCALE, help="the station's species language (birdnet.locale)"
     )
+    parser.add_argument(
+        "--every-language",
+        action="store_true",
+        help="also serve a dictionary for every label locale the fake has, in any script, "
+        "so each is its own Language entry; BirdNET-Go serves only its 16 UI locales",
+    )
     args = parser.parse_args()
 
     httpd = serve(
@@ -457,6 +483,7 @@ def main() -> None:
         args.down,
         private=not args.auth_names_only,
         locale=args.locale,
+        every_language=args.every_language,
     )
     print(f"fake BirdNET-Go on http://{args.host}:{httpd.server_address[1]}{API}")
     with contextlib.suppress(KeyboardInterrupt):

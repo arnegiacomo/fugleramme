@@ -14,14 +14,27 @@ from pathlib import Path
 from string import Template
 from urllib.parse import urlencode, urlparse
 
+from PIL.ImageFont import FreeTypeFont
+
 from .. import __version__, modes, updates
 from ..api import probe
 from ..config import BIRDNET_PORT, DOCS_URL, NEW_ISSUE_URL, WEB_ASPECTS, WEB_HEIGHTS
-from ..languages import NONE, STATION, STATION_NAME, Namer, catalog, catalog_failure, ordered
+from ..languages import (
+    NONE,
+    SCIENTIFIC,
+    STATION,
+    STATION_NAME,
+    Namer,
+    catalog,
+    catalog_failure,
+    english_name,
+    ordered,
+    station_locale,
+)
 from ..modes import MODES
 from ..names import available_styles, image_for, normalize, origin_of, source_of
 from ..render.collage import KEY_LIMIT, NO_LIMIT, RANKINGS
-from ..render.fonts import FONTS, LABEL_SIZES
+from ..render.fonts import FONTS, LABEL_SIZES, face, load, needs_shaping
 from ..render.packing import LAYOUTS
 from ..settings import (
     DEFAULT_LIMIT,
@@ -329,11 +342,18 @@ NAME_KEY = (
 )
 
 
-def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: str) -> str:
+def _names_field(
+    settings: Settings,
+    languages: list[tuple[str, str]],
+    failure: str,
+    face_notes: dict[str, dict[str, str]],
+) -> str:
     """The names block. `failure` says why the menu holds nothing but the
     scientific name, so a detector that will not serve its locale list reads as
     one to fix rather than as all the frame can do."""
     note = f'<p class="note bad">{_fix(f"No languages: {failure}")}</p>' if failure else ""
+    said = face_notes.get(settings.label_font, {})
+    face_note = said.get(settings.primary_language) or said.get(settings.secondary_language, "")
     return (
         f'<div class="field" id="names"><span>Labels</span>'
         f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
@@ -344,12 +364,60 @@ def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: 
         f"{_language_select('primary_language', languages, settings.primary_language)}</label>"
         f'<label class="sub"><small>Second language (optional)</small>'
         f"{_language_select('secondary_language', languages, settings.secondary_language, optional=True)}</label>"
-        f'<label class="sub"><small>Typeface</small><select name="label_font">'
+        f"{_shaping_note(settings)}"
+        f'<label class="sub"><small>Typeface {_warning(face_note)}</small><select name="label_font">'
         f"{_options(FONTS, settings.label_font, lambda k: FONTS[k][0])}</select></label>"
         f'<label class="sub"><small>Text size</small><select name="label_size">'
         f"{_options(LABEL_SIZES, settings.label_size, lambda k: LABEL_SIZES[k][0])}</select></label>"
         f"</div>"
     )
+
+
+# A script is judged on a date in it: the CJK subset holds every date, but not "日本語".
+_SAMPLE_DAY = datetime(2026, 10, 6, 12, tzinfo=UTC)
+
+
+def _shaping_note(settings: Settings) -> str:
+    """Said while a chosen language waits on raqm, which an update cannot install."""
+    station = station_locale()
+    waiting = [
+        english_name(station if code == STATION else code)
+        for code in (settings.primary_language, settings.secondary_language)
+        if code not in (SCIENTIFIC, NONE)
+        and needs_shaping(Namer(code, NONE, {}, (), station).date(_SAMPLE_DAY))
+    ]
+    if not waiting:
+        return ""
+    return (
+        f'<p class="note warn">This Pi can\'t draw {html.escape(" or ".join(waiting))} yet. '
+        'Run <code class="cmd">sudo apt install libfribidi0</code> and reboot.</p>'
+    )
+
+
+def _face_notes(codes: set[str]) -> dict[str, dict[str, str]]:
+    """Per typeface, the Typeface warning for each of `codes` it leaves to a
+    fallback face."""
+    station = station_locale()
+    languages = {code: english_name(station if code == STATION else code) for code in codes}
+    samples = {code: Namer(code, NONE, {}, (), station).date(_SAMPLE_DAY) for code in codes}
+    typefaces = {key: load(key, 20) for key in FONTS}
+    set_in = {
+        key: {code: name for code, sample in samples.items() if (name := _fallback(sample, font))}
+        for key, font in typefaces.items()
+    }
+    return {
+        key: {
+            code: f"{FONTS[key][0]} doesn't support {languages[code]} - using {name} instead."
+            for code, name in fallbacks.items()
+        }
+        for key, fallbacks in set_in.items()
+    }
+
+
+def _fallback(sample: str, font: FreeTypeFont) -> str:
+    """The fallback face's name for a line `font` cannot set, or ""."""
+    used = face(sample, font)
+    return "" if used is font else str(used.getname()[0])
 
 
 def _text_field(field: str, label: str, value: str, kind: str = "text", hint: str = "") -> str:
@@ -493,6 +561,24 @@ def _hint(text: str) -> str:
     return f'<span class="hint" tabindex="0" role="img" aria-label="{note}"></span>'
 
 
+# Drawn rather than the warning sign character, which some systems set as a colour emoji.
+_TRIANGLE = (
+    '<svg viewBox="0 0 16 16" width="100%" height="100%" aria-hidden="true">'
+    '<path d="M8 1 15.5 15H.5z" fill="currentColor"/>'
+    '<path d="M8 6v4.5M8 12.6v.1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>'
+)
+
+
+def _warning(text: str) -> str:
+    """The Typeface warning, hidden while empty. admin.js updates it as the form changes."""
+    note = html.escape(text, quote=True)
+    hidden = "" if text else " hidden"
+    return (
+        f'<span class="hint caution" id="face-note" tabindex="0" role="img" aria-label="{note}"'
+        f"{hidden}>{_TRIANGLE}</span>"
+    )
+
+
 LOCK = "The web view takes the panel's shape and rotation"
 
 
@@ -624,6 +710,9 @@ def page(
     when it is, so the rows that need it say so rather than vanish.
     """
     languages = ordered(catalog(names_dir))
+    face_notes = _face_notes(
+        {code for code, _ in languages} | {settings.primary_language, settings.secondary_language}
+    )
     names_failure = catalog_failure()
     detector_state, detector_version = hostinfo.detector(settings.detector_url)
     try:
@@ -655,6 +744,7 @@ def page(
                 "webHeights": WEB_HEIGHTS,  # so the Resolution labels follow the form
                 # Landscape, as oriented() reads it; null leaves the preview the web view's shape.
                 "panel": [max(panel_size), min(panel_size)] if detected else None,
+                "faceNotes": face_notes,  # so the Typeface warning follows the form
             }
         ),
         mode_field=_radio_field(
@@ -669,7 +759,7 @@ def page(
         lookbacks=_lookbacks(settings),
         limit_field=_species_field(settings),
         layout_field=_layout_field(settings),
-        names_field=_names_field(settings, languages, names_failure),
+        names_field=_names_field(settings, languages, names_failure, face_notes),
         style_field=_radio_field(
             "Artwork style",
             "style",

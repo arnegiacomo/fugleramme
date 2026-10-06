@@ -362,12 +362,17 @@ const syncShape = () => dim(shape, !lock.checked);
 const showNames = form.querySelector("input[name=show_names]");
 const nameKey = form.querySelector("input[name=name_key]");
 const keyCap = document.getElementById("key-cap");
+const faceNote = document.getElementById("face-note");
 const syncNames = () => {
   document.querySelectorAll("#names .sub").forEach((l) => dim(l, showNames.checked));
   dim(document.getElementById("name-key"), showNames.checked && windowed());  // collage only
   const all = form.querySelector("input[name=limit_mode]:checked")?.value === "all";
   const over = all || Number(form.species_limit.value) > cfg.keyLimit;
   keyCap.hidden = !(nameKey.checked && !nameKey.disabled && over);
+  const said = cfg.faceNotes[form.label_font.value];
+  const note = said[form.primary_language.value] || said[form.secondary_language.value] || "";
+  faceNote.hidden = !note;
+  faceNote.setAttribute("aria-label", note);
 };
 // The size each Resolution renders at, as settings.web_size works it out from the form.
 const sizeOf = (height) => {

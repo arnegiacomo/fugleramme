@@ -378,7 +378,7 @@ def test_credentials_the_locale_list_was_waiting_for_expire_the_empty_catalog(de
     store = SettingsStore(tmp_path / "s.json", Settings(detector_url=url))
     languages.use(Configured(store))
 
-    # /species/all is public: BirdNET-Go's own language needs no password.
+    # /species/all needs no password.
     assert catalog(tmp_path) == {SCIENTIFIC: "Scientific", STATION: STATION_NAME}
     assert languages.catalog_failure() == "needs a password"
 
@@ -397,10 +397,8 @@ STATION_ROWS = {
 
 
 def _station_api(monkeypatch, locale="et", rows=STATION_ROWS, answers=True, gated=False):
-    """BirdNET-Go with Estonian (or `locale`) as its species language and no
-    dictionaries. `answers=False` is a station that cannot be reached; `gated`
-    refuses /settings/birdnet as a frame with no password sees it. Returns the
-    (method, path) asked for."""
+    """BirdNET-Go in `locale` with no dictionaries. `answers=False` is unreachable;
+    `gated` refuses /settings/birdnet. Returns the (method, path) pairs asked for."""
     asked = []
 
     def request(path, method="GET", headers=None):
@@ -426,8 +424,7 @@ def _expire_station():
 
 
 def test_station_language_reads_species_all(monkeypatch, tmp_path):
-    """A label locale with no dictionary (Estonian) still names birds through
-    /species/all, keyed under both the label's name and the current one."""
+    """Estonian has no dictionary, so only /species/all names its birds."""
     _station_api(monkeypatch)
 
     offered = catalog(tmp_path)
@@ -481,8 +478,7 @@ def test_without_the_password_the_station_language_has_no_name(monkeypatch, tmp_
 
 
 def test_the_station_language_sits_beside_its_own_dictionary(monkeypatch, tmp_path):
-    """Not a duplicate: Norwegian stays Norwegian, the station's language
-    follows whatever BirdNET-Go is changed to."""
+    """Not a duplicate: the station's language follows BirdNET-Go, the dictionary stays."""
     _station_api(monkeypatch, locale="no")
     dictionary(STATION, tmp_path)
 

@@ -83,12 +83,16 @@ language** and optionally a second, which stacks underneath in parentheses. Only
 downloaded dictionaries are offered - on a fresh install that may be the
 scientific name alone.
 
-**BirdNET-Go locale**, shown as for example "Estonian (BirdNET-Go locale)",
-uses whatever BirdNET-Go's own Settings -> Analysis -> Species Language is set
-to, including languages with no dictionary here. Change it there and the page
-follows within a few minutes.
+**BirdNET-Go locale**, shown in the language list as e.g. "Estonian (BirdNET-Go locale)", uses whatever BirdNET-Go's Settings -> Analysis -> Species Language is set to. That
+can be any of [BirdNET-Go's species languages](https://github.com/tphakala/birdnet-go/wiki/BirdNET-Go-Guide#supported-languages-for-species-labels),
+not only the ones with a dictionary.
 
-**Typeface** and **size** apply to every label.
+> [!NOTE]
+> Arabic, Hebrew and Malayalam names need `libfribidi0`. A frame installed before
+> v0.28.0 doesn't have it: run `sudo apt install libfribidi0` and reboot (Until
+> then those names show as scientific names). Docker unaffected.
+
+**Typeface** and **size** apply to every label. Some languages aren't supported by every typeface (e.g. Chinese, Hebrew or Korean).
 
 **Numbered key** (collage only) gives each bird a number and lists the names to the right in landscape, or below them in portrait, like a poster. (40 birds max, or whatever **Species on the page** is set to)
 

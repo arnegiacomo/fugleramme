@@ -4,15 +4,16 @@ would freeze the frame."""
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timedelta
 
 import numpy as np
 import pytest
-from PIL import Image
+from PIL import Image, features
 
 from fugleramme import fake, modes
 from fugleramme.api import ApiSource
-from fugleramme.languages import namer
+from fugleramme.languages import NONE, STATION, Namer, namer, numeric
 from fugleramme.names import normalize
 from fugleramme.picks import Picks
 from fugleramme.render.collage import KEY_LIMIT, NO_LIMIT
@@ -299,3 +300,26 @@ def test_no_mark_without_names(tmp_path, images, source):
     detections = source(rows=[_row(1, TIT, 1)])
     ctx = _ctx(detections, images, tmp_path, "collage", show_names=False)
     assert not modes._labeller(ctx)(TIT).endswith(NEW)
+
+
+def test_a_name_no_face_here_can_draw_reads_as_the_scientific_one(
+    tmp_path, images, source, monkeypatch, caplog
+):
+    """Arabic is unreadable without raqm. Decided in the label string, so the
+    collage's cache key carries it."""
+    check = features.check
+    monkeypatch.setattr(features, "check", lambda name: name != "raqm" and check(name))
+    monkeypatch.setattr(modes, "station_locale", lambda: "ar")
+    modes._cannot_draw.cache_clear()
+    arabic = fake.LABELS["ar"][TIT]
+    ctx = replace(
+        _ctx(source(rows=[]), images, tmp_path, "collage"),
+        namer=Namer(STATION, NONE, {STATION: {TIT: arabic}}, (), "ar"),
+    )
+
+    assert modes._labeller(ctx)(TIT) == TIT
+    assert ctx.namer.date(NOW, modes._drawable(ctx)) == numeric(NOW, clock=False)
+    assert "Arabic can't be drawn here" in caplog.text
+
+    monkeypatch.setattr(features, "check", lambda name: name == "raqm" or check(name))
+    assert modes._labeller(ctx)(TIT) == arabic

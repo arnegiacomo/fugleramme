@@ -122,6 +122,14 @@ TZ=${tz:-Europe/Oslo}
 EOF
 }
 
+# Pillow shapes Arabic, Hebrew and Malayalam names with it. Not fatal: without it
+# those names are drawn as scientific ones.
+ensure_fribidi() {
+  dpkg -s libfribidi0 >/dev/null 2>&1 && return 0
+  echo "==> libfribidi0"
+  { sudo apt-get update && sudo apt-get install -y libfribidi0; } || echo "   could not install libfribidi0"
+}
+
 sync_python() {
   echo "==> python env"
   # Panel extra is Pi-only; if its driver can't build, the frame still runs
@@ -159,6 +167,7 @@ converge_frame() {
 require_linux
 require_deps
 echo "==> fugleramme v$VERSION"
+ensure_fribidi
 sync_python
 echo "==> data dir"
 # Settings, artwork picks and name caches; also BirdNET-Go's bind mount, which

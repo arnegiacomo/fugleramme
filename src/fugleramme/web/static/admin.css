@@ -54,7 +54,7 @@ button:disabled { opacity: 0.45; }
 a { color: #446; }
 /* The bubble hangs off the label's span, not the badge, so it starts at the
    column edge and cannot run out of the 15rem form. */
-label > span, .field > span { position: relative; }
+label > span, label > small, .field > span { position: relative; }
 /* Bottom margin: `middle` aligns to the x-height, a Title Case label to the cap. */
 .hint { display: inline-flex; align-items: center; justify-content: center;
         width: 0.9rem; height: 0.9rem; margin: 0 0 0.125rem 0.05em; vertical-align: middle;
@@ -64,6 +64,11 @@ label > span, .field > span { position: relative; }
 /* `focus-visible`: a mouse click focuses the span too, and the bubble would
    then outlive the tap that closed it. */
 .hint:hover, .hint:focus-visible, .hint.open { color: #446; border-color: #446; }
+/* The triangle inside replaces the circled "i". Not `.warn`, whose
+   `display: inline` would outrank the badge's flex. */
+.hint.caution { color: #8a6d1f; border: 0; }
+.hint.caution::before { content: none; }
+.hint[hidden] { display: none; }
 .hint::after { content: attr(aria-label); position: absolute; left: 0; top: 100%; z-index: 2;
                width: max-content; max-width: 13rem; margin-top: 0.3rem;
                padding: 0.35rem 0.55rem; border-radius: 4px; background: #446; color: #fff;
@@ -81,10 +86,10 @@ dl.status dd.missing { display: flex; align-items: center; gap: 0.3rem; }
 dl.status dd.update button, dl.status dd.action button { margin: 0; }
 time { border-bottom: 1px dotted #bbb; cursor: help; }
 /* White, not the panel's own #f4f2ee, or the box vanishes into it. `user-select:
-   all` takes the whole line in one click - plain http has no clipboard API. */
-pre.cmd { font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
-          background: #fff; border: 1px solid #e5e2dc; border-radius: 4px;
-          padding: 0.15rem 0.5rem; margin: 0; user-select: all; overflow-x: auto; }
+   all` takes the whole command in one click - plain http has no clipboard API. */
+pre.cmd, code.cmd { font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+                    background: #fff; border: 1px solid #e5e2dc; border-radius: 4px;
+                    padding: 0.15rem 0.5rem; margin: 0; user-select: all; overflow-x: auto; }
 .ok, .bad, .warn { display: inline; font-weight: inherit; margin: 0; }
 .ok { color: #3a7d44; }
 .bad { color: #a4392f; }

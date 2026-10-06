@@ -636,9 +636,10 @@ def _fit_key(
 
 
 def _line_width(line: str, font: ImageFont.FreeTypeFont) -> float:
-    """A key line's width, its mark included."""
+    """A key line's width in the face it is set in, its mark included."""
     text = line.removesuffix(NEW)
-    return font.getlength(text) + (mark_room(font) if text != line else 0)
+    face = fonts.face(text, font)
+    return face.getlength(text) + (mark_room(face) if text != line else 0)
 
 
 def _reading_order(placed: Sequence[_Placed], width: int, height: int) -> list[_Placed]:
@@ -731,9 +732,10 @@ def _draw_keyed(
         for k, part in enumerate(texts[p.index]):
             at = (x + round(key.space * scale), y + round(k * key.line * scale))
             line = part.removesuffix(NEW)
-            draw.text(at, line, font=font, fill=255, anchor="ls")
+            face = fonts.face(line, font)
+            draw.text(at, line, font=face, fill=255, anchor="ls")
             if line != part:
-                draw_mark(mask, at[0] + font.getlength(line), at[1], font)
+                draw_mark(mask, at[0] + face.getlength(line), at[1], face)
     mask = mask if textured else flatten(mask)
     # Anchored by its ink to the page edge: the metrics miss the italic's overhang.
     ink = mask.crop(mask.getbbox())

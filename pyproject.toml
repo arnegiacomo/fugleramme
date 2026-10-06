@@ -9,6 +9,8 @@ license-files = ["LICENSE"]
 dependencies = [
     # Month names in the reader's language. Pure python - nothing to generate on the Pi.
     "babel>=2.17",
+    # Which characters a typeface has, to pick a label line's fallback face.
+    "fonttools>=4.60",
     "numpy>=2.4.6",
     "pillow>=10.0",
 ]
@@ -77,6 +79,10 @@ exclude = "tools/platereview/review"
 
 [[tool.mypy.overrides]]
 module = ["inky.*", "gpiod.*", "gpiodevice.*"]  # Pi-only, no stubs
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["fontTools.*"]  # no stubs
 ignore_missing_imports = true
 
 # tools/bird_boxes.py declares these inline and `uv run` builds them per invocation,

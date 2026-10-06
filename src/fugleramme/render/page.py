@@ -119,10 +119,22 @@ def text_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Imag
     baselines - separately trimmed masks would sit unevenly. Flat drops the
     antialiasing, which would otherwise dither into colour speckle. A first
     line ending in NEW gets its mark; whatever it reaches past the text on the
-    right is matched on the left, so the name stays centred."""
+    right is matched on the left, so the name stays centred. A label with a line in a fallback face (`fonts.face`) is stacked by hand."""
     first, *rest = text.split("\n")
     marked = first.endswith(NEW)
-    text = "\n".join([first.removesuffix(NEW), *rest])
+    lines = [first.removesuffix(NEW), *rest]
+    faces = [fonts.face(line, font) for line in lines]
+    if all(face is font for face in faces):
+        mask, origin = _multiline("\n".join(lines), font)
+    else:
+        mask, origin = _stacked(lines, faces, font)
+    if marked:
+        mask = _with_mark(mask, lines, faces, origin)
+    return flatten(mask) if flat else mask
+
+
+def _multiline(text: str, font: ImageFont.FreeTypeFont) -> tuple[Image.Image, tuple[float, float]]:
+    """Lines in one face, and where the first line's ascender starts."""
     spacing = round(font.size * _LINE_SPACING)
     measure = ImageDraw.Draw(Image.new("L", (1, 1)))
     x0, y0, x1, y1 = measure.multiline_textbbox(
@@ -134,20 +146,46 @@ def text_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Imag
     ImageDraw.Draw(mask).multiline_text(
         origin, text, font=font, fill=255, spacing=spacing, align="center"
     )
-    if marked:
-        mask = _with_mark(mask, text, font, origin)
-    return flatten(mask) if flat else mask
+    return mask, origin
+
+
+def _stacked(
+    lines: list[str], faces: list[ImageFont.FreeTypeFont], font: ImageFont.FreeTypeFont
+) -> tuple[Image.Image, tuple[float, float]]:
+    """`_multiline` for lines in faces of their own: centred on the widest, and
+    a line apart by Pillow's own multiline rule (the foot of an "A" plus the
+    spacing) in the tallest of the faces, so a fallback keeps the Latin rhythm."""
+    widths = [face.getlength(line) for face, line in zip(faces, lines, strict=True)]
+    pitch = max(face.getbbox("A")[3] for face in faces) + round(font.size * _LINE_SPACING)
+    spots = [((max(widths) - width) / 2, k * pitch) for k, width in enumerate(widths)]
+    inks = [face.getbbox(line, anchor="la") for face, line in zip(faces, lines, strict=True)]
+    boxes = [
+        (x + left, y + top, x + right, y + bottom)
+        for (x, y), (left, top, right, bottom) in zip(spots, inks, strict=True)
+    ]
+    x0, y0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
+    x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
+    mask = Image.new("L", (math.ceil(x1 - x0) + 2, math.ceil(y1 - y0) + 2), 0)
+    origin = (1 - x0, 1 - y0)
+    draw = ImageDraw.Draw(mask)
+    for (x, y), face, line in zip(spots, faces, lines, strict=True):
+        draw.text((origin[0] + x, origin[1] + y), line, font=face, fill=255, anchor="la")
+    return mask, origin
 
 
 def _with_mark(
-    mask: Image.Image, text: str, font: ImageFont.FreeTypeFont, origin: tuple[float, float]
+    mask: Image.Image,
+    lines: list[str],
+    faces: list[ImageFont.FreeTypeFont],
+    origin: tuple[float, float],
 ) -> Image.Image:
     """`mask` grown to hold the mark after its first line, as much on each side."""
-    mark, offset = _mark(font)
+    mark, offset = _mark(faces[0])
     # Lines are centred on the widest, so a short first line ends short of it.
-    widths = [font.getlength(line) for line in text.split("\n")]
+    widths = [face.getlength(line) for face, line in zip(faces, lines, strict=True)]
     end = origin[0] + (max(widths) + widths[0]) / 2
-    sx, sy = _mark_corner(mark, offset, end, origin[1] + font.getmetrics()[0], _cap(font))
+    baseline = origin[1] + faces[0].getmetrics()[0]
+    sx, sy = _mark_corner(mark, offset, end, baseline, _cap(faces[0]))
     side = max(0, sx + mark.width - mask.width)
     top, bottom = min(0, sy), max(mask.height, sy + mark.height)
     grown = Image.new("L", (mask.width + 2 * side, bottom - top), 0)

@@ -150,3 +150,19 @@ def test_a_down_detector_answers_503_not_an_empty_page(api):
     base = api(down=True)
     for route in ("/ping", "/detections/recent", "/analytics/species/summary"):
         assert _fetch(base + route)[0] == 503
+
+
+def test_every_language_adds_a_dictionary_per_script_and_upstream_s_shape_does_not(api):
+    plain, every = api(), api(every_language=True)
+    _status, listed = _json(f"{every}/settings/locales")
+    assert listed["zh"] == "Chinese" and listed["ar"] == "Arabic"
+    assert "zh" not in _json(f"{plain}/settings/locales")[1]
+    for code in fake.LABELS:
+        assert _fetch(f"{every}/species/dictionary/{code}", method="HEAD")[0] == 200
+        assert _fetch(f"{plain}/species/dictionary/{code}", method="HEAD")[0] == 404
+    _status, headers, body = _fetch(f"{every}/species/dictionary/he")
+    assert json.loads(body) == fake.LABELS["he"]
+    assert (
+        _fetch(f"{every}/species/dictionary/he", headers={"If-None-Match": headers["Etag"]})[0]
+        == 304
+    )
