@@ -46,6 +46,14 @@ def download(url: str, to: Path) -> None:
     part = to.with_name(to.name + ".part")  # a broken download must not pass for the scan
     with urllib.request.urlopen(request, timeout=120) as response, part.open("wb") as out:
         shutil.copyfileobj(response, out)
+    # a url to the file's page rather than the file gives HTML, and once it sits at the scan
+    # path no later run downloads again
+    try:
+        with Image.open(part) as image:
+            image.verify()
+    except Exception as error:
+        part.unlink()
+        raise SystemExit(f"{url} is not an image ({error}) - give the scan file itself") from None
     part.replace(to)
     print(f"downloaded {to}  {to.stat().st_size // 1024} KB")
 
