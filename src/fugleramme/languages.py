@@ -345,9 +345,12 @@ def dictionary(code: str, cache_dir: Path) -> tuple[dict[str, str], str]:
                 answer = _station_names()
                 ttl = _STATION_TTL if answer is not None else _RETRY_TTL
                 if answer is not None:
-                    names, locale, etag = answer
+                    names, locale, fresh = answer
                     _station_locale = (station, locale)
-                    _write(path, {"etag": etag, "names": names, "locale": locale})
+                    # A few hundred KB that rarely changes: spare the Pi's SD card.
+                    if fresh != etag:
+                        _write(path, {"etag": fresh, "names": names, "locale": locale})
+                    etag = fresh
             else:
                 payload, fresh = _fetch(f"/species/dictionary/{code}", etag)
                 if isinstance(payload, dict):

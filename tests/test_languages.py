@@ -510,6 +510,24 @@ def test_changing_birdnet_go_s_language_reaches_the_page(monkeypatch, tmp_path):
     assert languages._dicts[STATION][0] - time.monotonic() <= languages._STATION_TTL
 
 
+def test_an_unchanged_station_language_is_not_rewritten(monkeypatch, tmp_path):
+    """A real station lists ~6,500 species: rewriting them every _STATION_TTL
+    would wear the SD card for nothing."""
+    written = []
+    monkeypatch.setattr(languages, "_write", lambda path, payload: written.append(path.name))
+    _station_api(monkeypatch)
+    dictionary(STATION, tmp_path)
+
+    _expire_station()
+    dictionary(STATION, tmp_path)
+    assert written == ["station.json"]
+
+    _station_api(monkeypatch, locale="no")
+    _expire_station()
+    dictionary(STATION, tmp_path)
+    assert written == ["station.json", "station.json"]
+
+
 def test_the_fake_serves_its_own_species_language(detector, tmp_path):
     url, _httpd = detector()
     languages.use(ApiSource(url))
