@@ -20,6 +20,15 @@ paper code.
    the Audubon scans) and `seed` (a point inside the bird, crop px). `plate.py crop spec.json`
    writes `crop.png` and a gridded overview. `plate.py zoom spec.json x0,y0,x1,y1 crop.png name [step]`
    gives gridded close-ups for reading coordinates.
+   When the user wants to see the crop first, list the birds in `<review>/crops.json` (`id`,
+   `name`, `spec`, and `url` - the full-resolution scan file - when `scan` is not on disk yet)
+   and run `crops.py <review> [ids]`. It downloads a missing scan to the spec's `scan` path
+   and writes `crops.js`; the page is `crop.html`. The user drags the box where it belongs
+   and pastes "Copy crop notes" back, one line a crop: `ACCEPT`, `NEEDS WORK` or `SKIP`, the
+   `box` to use, the `seed` re-expressed for a moved box, and their note. Specs on the same
+   `scan` are candidates on one page: `SKIP` drops a candidate, and a `NEW` line is a crop
+   the user drew that needs a spec. Put the boxes and seeds in the specs and rebuild until
+   every crop is accepted or skipped, then crop.
 2. **Decide what is bird and what is scenery, before cutting anything.** Read the *scan*,
    zoomed. A feature's identity is not readable from the cut-out or a thumbnail, and getting
    this wrong in either direction wastes a whole round. Plumes have barbs along their length

@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crop preview</title>
+<style>
+  /* The look is index.html's, copied rather than shared: each page is one file, so that a
+     review folder holds a copy of it and a double-click off file:// keeps working. */
+  :root { --bg:#2b2d30; --panel:#35383c; --line:#4a4e53; --ink:#e8e6e1; --dim:#a3a7ad; --accent:#e9b44c; --ok:#6fbf73; --bad:#e2675f; --was:#9fd0ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  header { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:5; }
+  header h1 { font-size:15px; margin:0; font-weight:600; letter-spacing:.02em; }
+  header .count { color:var(--dim); }
+  button { font:inherit; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 11px; cursor:pointer; }
+  button:hover { border-color:var(--dim); }
+  button.ok.on { background:var(--ok); border-color:var(--ok); color:#1d1d1d; }
+  button.bad.on { background:var(--bad); border-color:var(--bad); color:#1d1d1d; }
+  button.skip.on { background:var(--dim); border-color:var(--dim); color:#1d1d1d; }
+  button[data-key] { display:inline-flex; align-items:center; gap:7px; }
+  .key { font-size:11px; line-height:1; color:var(--dim); opacity:.75; }
+  button:hover .key { color:var(--ink); }
+  button.on .key { color:#1d1d1d; opacity:.6; }
+  .spacer { flex:1; }
+  main { display:grid; grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr); gap:16px; padding:16px; }
+  @media (max-width: 1100px) { main { grid-template-columns:1fr; } }
+  /* a landscape plate beside its panels is a stamp: give it the width and put them under it */
+  main.wide { grid-template-columns:1fr; }
+  main.wide .zooms { grid-template-columns:1fr 1fr; }
+  .title { display:flex; flex-wrap:wrap; align-items:baseline; gap:10px; margin-bottom:8px; }
+  .title h2 { margin:0; font-size:20px; font-weight:600; }
+  .title code, .title a { color:var(--dim); font-size:12px; }
+  .title a { text-decoration:underline; }
+  .stage { position:relative; background:#1f2022; border:1px solid var(--line); border-radius:8px; overflow:hidden; cursor:crosshair; touch-action:none; user-select:none; }
+  .stage img { position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; }
+  .stage b { position:absolute; top:-17px; left:0; font-size:10px; font-weight:700; letter-spacing:.06em; text-shadow:0 0 3px #000; white-space:nowrap; pointer-events:none; }
+  /* the shade is the box's own shadow, so it follows a drag with nothing to keep in step */
+  #box { position:absolute; border:1.5px solid var(--accent); box-shadow:0 0 0 9999px #0005; cursor:move; }
+  #box i { position:absolute; width:11px; height:11px; margin:-6px; background:var(--accent); border:1px solid #1d1d1d; }
+  #proposed { position:absolute; border:1.5px dashed var(--was); pointer-events:none; }
+  #proposed b { color:var(--was); }
+  .other { position:absolute; border:1.5px solid #fff; cursor:pointer; }
+  .other b { color:#fff; top:1px; left:5px; font-size:13px; }
+  #fresh { position:absolute; border:1.5px dashed var(--ok); pointer-events:none; display:none; }
+  .seed { position:absolute; width:10px; height:10px; margin:-5px; border-radius:50%; background:var(--bad); border:1.5px solid #fff; pointer-events:none; z-index:1; }
+  .verdict { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; margin-top:10px; }
+  textarea { flex:1; min-width:220px; min-height:54px; font:inherit; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px 8px; }
+  .facts { color:var(--dim); font-size:12px; margin-top:8px; }
+  .facts b { color:var(--ink); font-weight:600; }
+  .facts .warn { color:var(--bad); }
+  .zooms { display:grid; gap:10px; align-content:start; }
+  .zoom { position:relative; aspect-ratio:4 / 3; background:#1f2022; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .zoom .layer { position:absolute; background-repeat:no-repeat; }
+  .zoom .edge { position:absolute; border:1.5px solid var(--accent); pointer-events:none; }
+  .zoom .tag { position:absolute; left:8px; bottom:6px; z-index:2; font-size:11px; font-weight:700; color:var(--accent); background:#000a; padding:1px 7px; border-radius:4px; }
+  .strip { display:flex; gap:8px; overflow-x:auto; padding:10px 16px 16px; border-top:1px solid var(--line); }
+  .strip button { padding:3px; border-width:2px; flex:none; position:relative; background:#1f2022; width:82px; height:82px; display:flex; align-items:center; justify-content:center; }
+  .strip span { display:block; background-repeat:no-repeat; border-radius:3px; }
+  .strip button.cur { border-color:var(--accent); }
+  .strip button.pass::after, .strip button.fail::after, .strip button.skip::after { content:""; position:absolute; right:4px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--ok); }
+  .strip button.fail::after { background:var(--bad); }
+  .strip button.skip::after { background:var(--dim); }
+  kbd { background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:0 5px; font:12px ui-monospace, Menlo, monospace; }
+  .help { color:var(--dim); font-size:12px; padding:0 16px 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Crop preview</h1>
+  <span class="count" id="count"></span>
+  <button data-key="k" id="prev"><span class="lab">&larr; Prev</span></button>
+  <button data-key="j" id="next"><span class="lab">Next &rarr;</span></button>
+  <span class="spacer"></span>
+  <span class="count" id="tally"></span>
+  <button data-key="c" id="copy"><span class="lab">Copy crop notes</span></button>
+</header>
+<main>
+  <section>
+    <div class="title"><h2 id="name"></h2><code id="file"></code><a id="src" target="_blank" rel="noopener"></a></div>
+    <div class="stage" id="stage">
+      <img id="scan" alt="the whole scan" draggable="false">
+      <div id="others"></div>
+      <div id="box"><i data-x="0" data-y="1" style="left:0;top:0;cursor:nwse-resize"></i><i data-y="1" style="left:50%;top:0;cursor:ns-resize"></i><i data-x="2" data-y="1" style="left:100%;top:0;cursor:nesw-resize"></i><i data-x="0" style="left:0;top:50%;cursor:ew-resize"></i><i data-x="2" style="left:100%;top:50%;cursor:ew-resize"></i><i data-x="0" data-y="3" style="left:0;top:100%;cursor:nesw-resize"></i><i data-y="3" style="left:50%;top:100%;cursor:ns-resize"></i><i data-x="2" data-y="3" style="left:100%;top:100%;cursor:nwse-resize"></i></div>
+      <div id="proposed"><b>PROPOSED</b></div>
+      <div id="fresh"></div>
+      <div class="seed" id="seed"></div>
+    </div>
+    <div class="verdict">
+      <button data-key="p" class="ok" id="pass"><span class="lab">Accept</span></button>
+      <button data-key="f" class="bad" id="fail"><span class="lab">Needs work</span></button>
+      <button data-key="s" class="skip" id="skip"><span class="lab">Skip</span></button>
+      <button data-key="r" id="reset"><span class="lab">Back to proposed</span></button>
+      <button data-key="x" id="remove"><span class="lab">Remove</span></button>
+      <textarea id="note" placeholder="What the proposal got wrong, and what to do instead. Saved in this browser."></textarea>
+    </div>
+    <div class="facts" id="facts"></div>
+  </section>
+  <section class="zooms">
+    <div class="zoom" id="cropview"><div class="layer"></div><div class="seed"></div><span class="tag">The crop</span></div>
+    <div class="zoom" id="loupe"><div class="layer"></div><div class="edge"></div><span class="tag">Loupe - scan pixels, 1:1</span></div>
+  </section>
+</main>
+<div class="help">Drag the box or its handles. Drag on the scan outside it to add a crop of your own; click another crop's outline to work on that one. <kbd>&larr;</kbd> <kbd>&rarr;</kbd> also step crops. The red dot is the spec's seed.</div>
+<nav class="strip" id="strip"></nav>
+<script src="crops.js"></script>
+<script>
+const CROPS = window.CROPS || [];
+const $ = id => document.getElementById(id);
+const store = { all: () => { try { return JSON.parse(localStorage.getItem("plate-crop") || "{}"); } catch { return {}; } },
+  get: k => store.all()[k] || {},
+  set: (k, v) => { try { const all = store.all(); if (v) all[k] = v; else delete all[k]; localStorage.setItem("plate-crop", JSON.stringify(all)); } catch {} } };
+const SMALLEST = 20;                 // scan px: anything under this is a stray click, not a box
+const VERDICT = { pass: "ACCEPT", fail: "NEEDS WORK", skip: "SKIP" };
+// A crop drawn on this page has no spec behind it and lives only in the browser. It borrows
+// its scan from a proposed crop on the same plate, and goes when that plate does.
+function extras() {
+  return Object.entries(store.all()).filter(([, s]) => s.extra).flatMap(([id, s]) => {
+    const on = CROPS.find(c => c.full === s.full);
+    return on ? [{ ...on, id, name: "New crop", spec: "", box: null, seed: null, extra: true }] : [];
+  });
+}
+let items = CROPS.concat(extras()), at = 0, box = null, drag = null, loupe = null;
+
+const same = (a, b) => a.every((v, i) => v === b[i]);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const norm = b => [Math.min(b[0], b[2]), Math.min(b[1], b[3]), Math.max(b[0], b[2]), Math.max(b[1], b[3])].map(Math.round);
+const small = b => b[2] - b[0] < SMALLEST || b[3] - b[1] < SMALLEST;
+// A box and a verdict answer one proposal. Once the spec proposes another they say nothing
+// about it, so only the note outlives the change - that is the person's own text.
+function saved(c) { const s = store.get(c.id); return c.extra || (s.from && same(s.from, c.box)) ? s : { note: s.note }; }
+function save(patch) { const c = items[at]; store.set(c.id, { ...saved(c), ...patch, from: c.box }); }
+const boxOf = c => saved(c).box || c.box;
+// plate.py shrinks a crop longer than `work` px, and the spec's seed is in those crop pixels
+const scale = (c, b) => Math.min(1, c.work / Math.max(b[2] - b[0], b[3] - b[1]));
+function seedIn(c, b) {              // the seed in the crop px of box b, or null once it is outside
+  if (!c.seed || c.seed[0] < b[0] || c.seed[0] >= b[2] || c.seed[1] < b[1] || c.seed[1] >= b[3]) return null;
+  return [Math.round((c.seed[0] - b[0]) * scale(c, b)), Math.round((c.seed[1] - b[1]) * scale(c, b))];
+}
+
+function span(el, b, c) {
+  el.style.left = `${b[0] / c.w * 100}%`; el.style.top = `${b[1] / c.h * 100}%`;
+  el.style.width = `${(b[2] - b[0]) / c.w * 100}%`; el.style.height = `${(b[3] - b[1]) / c.h * 100}%`;
+}
+function draw() {
+  const c = items[at], b = norm(box), w = b[2] - b[0], h = b[3] - b[1];
+  span($("box"), b, c);
+  // the crop, fitted into its panel
+  const view = $("cropview"), k = Math.min(view.clientWidth / w, view.clientHeight / h);
+  const left = (view.clientWidth - w * k) / 2, top = (view.clientHeight - h * k) / 2;
+  const layer = view.querySelector(".layer"), dot = view.querySelector(".seed"), seed = seedIn(c, b);
+  layer.style.cssText = `left:${left}px;top:${top}px;width:${w * k}px;height:${h * k}px;` +
+    `background-image:url(${c.full});background-size:${c.w * k}px ${c.h * k}px;background-position:${-b[0] * k}px ${-b[1] * k}px`;
+  dot.style.display = seed ? "" : "none";
+  if (seed) { dot.style.left = `${left + (c.seed[0] - b[0]) * k}px`; dot.style.top = `${top + (c.seed[1] - b[1]) * k}px`; }
+  drawLoupe();
+  const moved = !c.extra && !same(b, c.box), s = scale(c, b);
+  $("facts").innerHTML = `Scan <b>${c.w} x ${c.h}</b>. ` +
+    (c.extra ? `Added here: <b>[${b.join(", ")}]</b>. ` : `Proposed <b>[${c.box.join(", ")}]</b>. ` + (moved ? `Yours <b>[${b.join(", ")}]</b>. ` : `Not moved. `)) +
+    `The crop is <b>${w} x ${h}</b> px` + (s < 1 ? `, cut at ${Math.round(s * 100)}% of that (${c.work} px on its long side).` : `, cut at full size.`) +
+    (!c.seed ? "" : seed ? (moved ? ` The seed is now at <b>[${seed.join(", ")}]</b> in the crop.` : "")
+                         : ` <span class="warn">The seed is outside this box: the spec needs a new one.</span>`);
+}
+function drawLoupe() {               // scan px at 1:1 round the pointer, with the box edge through it
+  const c = items[at], b = norm(box), view = $("loupe");
+  const x = loupe.x - view.clientWidth / 2, y = loupe.y - view.clientHeight / 2;
+  view.querySelector(".layer").style.cssText = `inset:0;background-image:url(${c.full});background-size:${c.w}px ${c.h}px;background-position:${-x}px ${-y}px`;
+  view.querySelector(".edge").style.cssText = `left:${b[0] - x}px;top:${b[1] - y}px;width:${b[2] - b[0]}px;height:${b[3] - b[1]}px`;
+}
+function show(i) {
+  at = (i + items.length) % items.length;
+  const c = items[at], s = saved(c);
+  box = boxOf(c);
+  loupe = { x: (box[0] + box[2]) / 2, y: (box[1] + box[3]) / 2 };
+  $("count").textContent = `${at + 1} of ${items.length}`;
+  $("name").textContent = c.name; $("file").textContent = c.spec || "drawn here, no spec yet";
+  $("src").textContent = c.url ? "scan" : ""; $("src").href = c.url || "#";
+  document.querySelector("main").classList.toggle("wide", c.w > c.h);
+  $("stage").style.aspectRatio = `${c.w} / ${c.h}`;
+  $("stage").style.maxWidth = `calc(74vh * ${c.w / c.h})`;
+  if (!$("scan").src.endsWith(c.full)) $("scan").src = c.full;
+  // the other crops on this plate, so that two of them are never judged apart
+  $("others").innerHTML = "";
+  items.forEach((o, n) => {
+    if (o === c || o.full !== c.full) return;
+    const d = document.createElement("div"), label = document.createElement("b");
+    d.className = "other"; d.dataset.go = n; d.title = o.name; label.textContent = n + 1; d.append(label);
+    span(d, boxOf(o), c); $("others").append(d);
+  });
+  $("proposed").style.display = c.extra ? "none" : "";
+  if (!c.extra) span($("proposed"), c.box, c);
+  $("seed").style.display = c.seed ? "" : "none";
+  if (c.seed) { $("seed").style.left = `${c.seed[0] / c.w * 100}%`; $("seed").style.top = `${c.seed[1] / c.h * 100}%`; }
+  $("note").value = s.note || "";
+  for (const v of Object.keys(VERDICT)) { $(v).classList.toggle("on", s.verdict === v); $(v).style.display = c.extra ? "none" : ""; }
+  $("reset").style.display = c.extra ? "none" : ""; $("remove").style.display = c.extra ? "" : "none";
+  draw(); strip();
+}
+function strip() {
+  $("strip").innerHTML = "";
+  const count = { pass: 0, fail: 0, skip: 0 };
+  items.forEach((c, i) => {
+    const v = saved(c).verdict, btn = document.createElement("button"), b = boxOf(c), k = 72 / Math.max(b[2] - b[0], b[3] - b[1]);
+    if (v) count[v]++;
+    btn.className = (i === at ? "cur " : "") + (v || ""); btn.title = c.name;
+    btn.innerHTML = `<span style="width:${(b[2] - b[0]) * k}px;height:${(b[3] - b[1]) * k}px;background-image:url(${c.full});background-size:${c.w * k}px ${c.h * k}px;background-position:${-b[0] * k}px ${-b[1] * k}px"></span>`;
+    btn.onclick = () => show(i); $("strip").append(btn);
+  });
+  const added = items.length - CROPS.length;
+  $("tally").textContent = `${count.pass} accepted, ${count.fail} need work, ${count.skip} skipped, ${CROPS.length - count.pass - count.fail - count.skip} to go` + (added ? `, ${added} added` : "");
+  const cur = $("strip").querySelector(".cur");
+  if (cur) $("strip").scrollLeft = cur.offsetLeft - ($("strip").clientWidth - cur.offsetWidth) / 2;
+}
+function verdict(v) { const c = items[at]; if (c.extra) return; save({ verdict: saved(c).verdict === v ? "" : v }); show(at); }
+function reset() { const c = items[at]; if (c.extra) return; box = c.box; save({ box: null }); draw(); strip(); }
+function remove() {
+  const c = items[at];
+  if (!c.extra) return;
+  store.set(c.id, null);
+  items = items.filter(o => o !== c);
+  show(Math.min(at, items.length - 1));
+}
+
+function scanXY(e) {
+  const c = items[at], r = $("stage").getBoundingClientRect();
+  return [clamp((e.clientX - r.left) / r.width * c.w, 0, c.w), clamp((e.clientY - r.top) / r.height * c.h, 0, c.h)];
+}
+$("stage").addEventListener("pointerdown", e => {
+  const [x, y] = scanXY(e), t = e.target;
+  if (t.dataset.go) return show(+t.dataset.go);
+  if (t.tagName === "I") drag = { ix: t.dataset.x, iy: t.dataset.y };
+  else if (t.id === "box") drag = { grip: [x - box[0], y - box[1]] };
+  else drag = { fresh: [x, y, x, y] };
+  $("stage").setPointerCapture(e.pointerId);
+});
+$("stage").addEventListener("pointermove", e => {
+  const c = items[at], [x, y] = scanXY(e);
+  loupe = { x, y };
+  if (!drag) return drawLoupe();
+  if (drag.fresh) {
+    drag.fresh = [drag.fresh[0], drag.fresh[1], x, y];
+    $("fresh").style.display = "block"; span($("fresh"), norm(drag.fresh), c);
+    return drawLoupe();
+  }
+  if (drag.grip) {
+    const w = box[2] - box[0], h = box[3] - box[1];
+    const left = clamp(x - drag.grip[0], 0, c.w - w), top = clamp(y - drag.grip[1], 0, c.h - h);
+    box = [left, top, left + w, top + h];
+  } else {
+    box = box.map((v, i) => i == drag.ix ? x : i == drag.iy ? y : v);
+  }
+  draw();
+});
+$("stage").addEventListener("pointerup", () => {
+  if (!drag) return;
+  const c = items[at], fresh = drag.fresh && norm(drag.fresh), before = boxOf(c);
+  drag = null; $("fresh").style.display = "none";
+  if (fresh) {
+    if (small(fresh)) return;
+    const id = `new-${Date.now()}`;
+    store.set(id, { extra: true, full: c.full, box: fresh });
+    items = CROPS.concat(extras());
+    return show(items.findIndex(o => o.id === id));
+  }
+  box = small(norm(box)) ? before : norm(box);
+  save({ box: c.extra || !same(box, c.box) ? box : null });
+  draw(); strip();
+});
+function copyNotes() {
+  const lines = items.map(c => {
+    const s = saved(c), b = boxOf(c), seed = seedIn(c, b), note = s.note ? " | " + s.note.replace(/\s+/g, " ") : "";
+    if (c.extra) return `NEW | on ${c.scan} | box [${b.join(", ")}]${note}`;
+    return `${VERDICT[s.verdict] || "not reviewed"} | ${c.id} | ${c.spec} | box [${b.join(", ")}]` +
+      (s.box ? ` moved from [${c.box.join(", ")}]` + (!c.seed ? "" : seed ? ` | seed [${seed.join(", ")}]` : ` | seed is outside the box`) : ` as proposed`) + note;
+  });
+  const lab = $("copy").querySelector(".lab");
+  navigator.clipboard.writeText(lines.join("\n")).then(() => lab.textContent = "Copied", () => prompt("Copy these notes:", lines.join("\n")));
+  setTimeout(() => lab.textContent = "Copy crop notes", 1500);
+}
+// One table for the chip on a button and the shortcut behind it, as on the review page
+const keys = {
+  j: () => show(at + 1), ArrowRight: () => show(at + 1),
+  k: () => show(at - 1), ArrowLeft: () => show(at - 1),
+  r: reset, x: remove, c: copyNotes, p: () => verdict("pass"), f: () => verdict("fail"), s: () => verdict("skip"),
+};
+for (const button of document.querySelectorAll("[data-key]")) {
+  const key = button.dataset.key;
+  button.insertAdjacentHTML("beforeend", `<span class="key">${key}</span>`);
+  button.onclick = () => { keys[key](); button.blur(); };
+}
+$("note").oninput = e => save({ note: e.target.value });
+addEventListener("keydown", e => {
+  if (e.target.tagName === "TEXTAREA" || e.metaKey || e.ctrlKey || !keys[e.key]) return;
+  e.preventDefault();
+  keys[e.key]();
+});
+addEventListener("resize", () => { if (items.length) draw(); });
+if (items.length) show(0);
+else $("name").textContent = "No crops.js beside this page - run crops.py on the review folder first.";
+</script>
+</body>
+</html>

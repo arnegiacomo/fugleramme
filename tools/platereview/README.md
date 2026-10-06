@@ -63,6 +63,42 @@ here is reading JPEG artifacts.
 Verdicts and notes live in the browser and survive a rebuild. "Copy review notes" gives you
 the lot as text.
 
+## The crop preview
+
+`crop.html` is the same idea one step earlier: look at where a crop is going to land before
+anything is cut from it. It shows the whole scan at full resolution with the spec's `box`
+drawn on it, the crop that box gives, and a loupe at scan pixels.
+
+Drag the box or its handles to where the crop belongs. The proposal stays on the page as a
+dashed outline. Mark each crop Accept, Needs work or Skip and say why, and "Copy crop notes"
+gives the lot as text, one line a crop, with the box to put in the spec. The page never
+edits a spec itself.
+
+A scan can hold more than one crop: separate vignettes on one page, or rival boxes for the
+same one. Every crop proposed on the same scan is outlined and numbered on it, and clicking
+an outline switches to that crop. Skip is for a candidate you do not want. Drag on the scan
+outside the box to add a crop nobody proposed: it has no spec yet, lives in the browser, and
+comes back in the notes as a `NEW` line.
+
+The red dot is the spec's `seed`. The seed is in crop pixels, so moving the box moves it:
+the notes carry where it lands in the new crop, or say that it fell outside.
+
+A corrected box and a verdict answer one proposal. When the spec proposes a different box
+they are dropped and only the note is kept.
+
+```bash
+uv run python crops.py <review>         # crops.json in, crops.js and img/ out
+uv run python crops.py <review> heron   # rebuild one bird
+```
+
+`crops.json` lists `id`, `name`, the path to the bird's `spec`, and optionally `url` - the
+full-resolution scan file itself. A spec whose `scan` is not on disk is downloaded from
+`url` to that path, which is where `plate.py crop` then reads it. Entries whose specs name
+the same `scan` are crops of one page.
+
+It is a page of its own rather than a mode of the review: a review bird has a shipped plate
+and a cut, and a bird at this stage has neither.
+
 ## Running a review
 
 ```bash
@@ -71,6 +107,7 @@ the lot as text.
 ```
 
 Or just open `index.html` in the folder. The script is for when a browser refuses `file://`.
+A folder with `crops.js` and no `birds.js` yet opens on `crop.html`.
 
 ## Cutting a bird
 
