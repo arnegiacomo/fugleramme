@@ -148,7 +148,7 @@ from a Fugleramme running elsewhere. Enable **External e-ink panel** on the
 admin page, under **Frame**. Fugleramme then serves the panel's page, already
 dithered and packed for the panel, at `http://<host>.local:8080/frame.e6`, so
 the microcontroller does not have to decode an image. Without an Inky
-connected, the page is laid out for the 13.3" panel, so **Rotation**,
+connected, the page is laid out for the external 13.3" panel, so **Rotation**,
 **Margin** and **Panel refresh** all apply to it. With an Inky connected, the
 external panel gets the Inky's page.
 
@@ -164,18 +164,20 @@ minute floor, even when **Panel refresh** is off. It downloads the page only
 if it has changed, and redraws the panel only once the download checks out. If
 something goes wrong, it writes an error message on the panel instead.
 
-Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on the 13.3" panel with a XIAO EE02.
-
-The program drives the 13.3" panel only, and the page is packed for that
-panel's two controllers. Running a smaller panel or another board? A program
-for it, and the packing it needs, would make a welcome contribution - see
-[Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
-
 1. Install MicroPython on the board (e.g.
    [for the XIAO EE02](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
 2. Set your Wi-Fi credentials and Fugleramme host at the top of `main.py`
 3. Upload `main.py` to the board (e.g. with
    [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html))
+
+Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on
+a 13.3" panel with a XIAO EE02.
+
+Much of the program is generic and reusable, but the connection to the 13.3"
+panel and the controller board is specific. Running a smaller panel or another
+board? A program for it, and the packing it needs, would make a welcome
+contribution - see
+[Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
 
 ### E6 file format
 
