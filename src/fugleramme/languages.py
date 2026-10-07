@@ -23,7 +23,8 @@ exists so the admin can say that instead of silently offering one language.
 
 STATION, BirdNET-Go's own species language (birdnet.locale), is the one outside
 the dictionaries. `/species/all` names it with no password; only which language
-it is, for the label and the dates, needs one.
+it is, for the label and the dates, needs one. So it is offered once the
+locale list gets any answer, 401 included, and stays offered from then on.
 """
 
 from __future__ import annotations
@@ -49,7 +50,6 @@ NONE = ""  # secondary language unset
 STATION = "station"
 # As in "Estonian (BirdNET-Go locale)", or alone while the language is unknown.
 STATION_NAME = "BirdNET-Go locale"
-_STATION_PATH = "/species/all"
 
 # Locale codes the dictionary spells differently; the rest just drop the region.
 _ALIASES = {"no": "nb"}
@@ -70,8 +70,8 @@ _lock = threading.Lock()
 # Both caches carry the station they came from: a dictionary and its ETag are
 # one detector's answer, so pointing the frame at another expires them rather
 # than serving the old station's names under the new one's.
-# (deadline, station, languages, offers STATION, why there are none)
-_Catalog = tuple[float, str, dict[str, str], bool, str]
+# (deadline, station, languages, birdnet.locale, offers STATION, why there are none)
+_Catalog = tuple[float, str, dict[str, str], str, bool, str]
 _Dictionary = tuple[float, str, str, dict[str, str]]
 _catalog: _Catalog | None = None
 _dicts: dict[str, _Dictionary] = {}
@@ -133,11 +133,11 @@ def _display(locales: dict[str, str], code: str, fallback: str) -> str:
     return locales.get(code) or fallback.split(" (")[0]
 
 
-def _probe() -> tuple[dict[str, str], str]:
-    """The locales that have a dictionary, as {dictionary code: display name},
-    and why there are none when there are none. The reason is a fragment, not a
-    sentence - the admin and `fugleramme-check` each frame it their own way."""
-    answer = _request("/settings/locales")
+def _probe(answer: tuple[int, dict[str, str], bytes] | None) -> tuple[dict[str, str], str]:
+    """The locales that have a dictionary, given the locale list's answer, as
+    {dictionary code: display name}, and why there are none when there are none.
+    The reason is a fragment, not a sentence - the admin and `fugleramme-check`
+    each frame it their own way."""
     if answer is None:
         return {}, "detector unreachable"
     status, _headers, body = answer
@@ -198,47 +198,43 @@ def catalog(cache_dir: Path) -> dict[str, str]:
                 0.0,
                 station,
                 cached.get("languages") or {},
+                str(cached.get("locale") or ""),
                 cached.get("station") is True,
                 "",
             )
-        deadline, _held, found, offers_station, _why = _catalog
+        deadline, _held, found, locale, offers_station, _why = _catalog
         if time.monotonic() >= deadline:
             # An empty probe is a failure, not an answer: caching it for a day
             # and writing it over a good list on disk would turn one bad moment
             # into a frame with no languages until someone restarted it. So is
+            # an empty locale, which is a refusal rather than no language, and
             # STATION's: an answer adds it, nothing removes it.
-            probed, why = _probe()
-            answered = _station_answers()
-            if probed:
-                found = probed
-            offers_station = offers_station or answered
-            if probed or answered:
-                _write(path, {"languages": found, "station": offers_station})
+            listed = _request("/settings/locales")
+            probed, why = _probe(listed)
+            answered = _birdnet_locale()
+            # A 401 counts: /species/all needs no password.
+            newly_offered = listed is not None and not offers_station
+            found = probed or found
+            locale = answered or locale
+            offers_station = offers_station or newly_offered
+            if probed or answered or newly_offered:
+                _write(path, {"languages": found, "locale": locale, "station": offers_station})
             ttl = _CATALOG_TTL if probed else _RETRY_TTL
             _catalog = (
                 time.monotonic() + ttl,
                 station,
                 found,
+                locale,
                 offers_station,
                 why if not found else "",
             )
         offered = {SCIENTIFIC: "Scientific", **found}
-        if offers_station:
-            offered[STATION] = _station_label(_held_locale(cache_dir, station))
-        return offered
-
-
-def _station_answers() -> bool:
-    # No cheaper than a GET: BirdNET-Go answers HEAD with its full GET handler.
-    answer = _request(_STATION_PATH, "HEAD")
-    return answer is not None and answer[0] == 200
-
-
-def _held_locale(cache_dir: Path, station: str) -> str:
-    """birdnet.locale as the STATION names last found it. Called under _lock."""
-    if _station_locale is not None and _station_locale[0] == station:
-        return _station_locale[1]
-    return str(_read(cache_path(cache_dir, STATION)).get("locale") or "")
+        if not offers_station:
+            return offered
+        # The STATION names refresh every _STATION_TTL, so theirs is the newer locale.
+        if _station_locale is not None and _station_locale[0] == station:
+            locale = _station_locale[1] or locale
+        return {**offered, STATION: _station_label(locale)}
 
 
 def _station_label(locale: str) -> str:
@@ -267,7 +263,7 @@ def _station_names() -> tuple[dict[str, str], str, str] | None:
     falls back as usual. The version hashes the locale too, so changing it
     re-renders the page.
     """
-    answer = _request(_STATION_PATH)
+    answer = _request("/species/all")
     if answer is None or answer[0] != 200:
         return None
     try:
@@ -301,7 +297,7 @@ def catalog_failure() -> str:
     with the catalog rather than returned beside it: a list served off the disk
     cache is a working menu whatever the probe behind it just did."""
     with _lock:
-        return _catalog[4] if _catalog else ""
+        return _catalog[5] if _catalog else ""
 
 
 def ordered(languages: dict[str, str]) -> list[tuple[str, str]]:

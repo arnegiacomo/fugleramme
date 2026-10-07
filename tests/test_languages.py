@@ -28,6 +28,10 @@ from fugleramme.settings import Settings, SettingsStore
 from fugleramme.web.admin import _language_select
 
 NB = "nb"  # the fake's own dictionary code
+# Before any detector answers, and after one that only answered, with STATION
+# unnamed while birdnet.locale is unknown.
+UNHEARD = {SCIENTIFIC: "Scientific"}
+BARE = {**UNHEARD, STATION: STATION_NAME}
 
 # A slice of the real /api/v2/settings/locales: region variants, and "no" for
 # the dictionary's "nb".
@@ -74,7 +78,7 @@ def test_only_locales_with_a_dictionary_are_offered(monkeypatch, tmp_path):
     _api(monkeypatch, names={"nb": {}, "sv": {}})
 
     # Greek and Portuguese are listed by BirdNET-Go but have no dictionary.
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific", "nb": "Norwegian", "sv": "Swedish"}
+    assert catalog(tmp_path) == {**BARE, "nb": "Norwegian", "sv": "Swedish"}
 
 
 def test_dictionary_codes_are_resolved_from_the_locale_list(monkeypatch, tmp_path):
@@ -82,7 +86,7 @@ def test_dictionary_codes_are_resolved_from_the_locale_list(monkeypatch, tmp_pat
 
     # "en-uk"/"en-us" both answer as "en", once, and unqualified; "pt-br" is
     # already covered by "pt".
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific", "en": "English", "pt": "Portuguese"}
+    assert catalog(tmp_path) == {**BARE, "en": "English", "pt": "Portuguese"}
 
 
 def test_the_frames_own_languages_are_offered_first(monkeypatch, tmp_path):
@@ -90,6 +94,7 @@ def test_the_frames_own_languages_are_offered_first(monkeypatch, tmp_path):
 
     assert [code for code, _name in ordered(catalog(tmp_path))] == [
         SCIENTIFIC,
+        STATION,
         "en",
         "nb",
         "pt",
@@ -100,7 +105,7 @@ def test_the_frames_own_languages_are_offered_first(monkeypatch, tmp_path):
 def test_unreachable_birdnet_go_leaves_only_the_scientific_name(monkeypatch, tmp_path):
     _api(monkeypatch, locales=None, names={})
 
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+    assert catalog(tmp_path) == UNHEARD
     assert namer("nb", SCIENTIFIC, tmp_path).label("Turdus merula") == "Turdus merula"
 
 
@@ -205,7 +210,7 @@ def test_names_come_through_the_detectors_own_session(detector, tmp_path):
     url, _httpd = detector(password="hunter2")
 
     languages.use(ApiSource(url))
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+    assert catalog(tmp_path) == BARE  # a 401 is an answer: /species/all may still serve
 
     languages._catalog = None
     languages.use(ApiSource(url, "birdnet", "hunter2"))
@@ -213,7 +218,7 @@ def test_names_come_through_the_detectors_own_session(detector, tmp_path):
         SCIENTIFIC: "Scientific",
         "nb": "Norwegian",
         "en": "English",
-        STATION: STATION_NAME,
+        STATION: "Estonian (BirdNET-Go locale)",  # the password names it too
     }
     assert namer("nb", SCIENTIFIC, tmp_path).label("Turdus merula") == "Svarttrost\n(Turdus merula)"
 
@@ -318,7 +323,7 @@ def test_a_swap_noticed_from_inside_a_name_lookup_does_not_wedge_the_frame(detec
     source = Configured(store)
     languages.use(source)
 
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}  # nothing answers there
+    assert catalog(tmp_path) == UNHEARD  # nothing answers there
     store.update(detector_url=url)
 
     done = threading.Event()
@@ -346,15 +351,16 @@ def test_an_empty_probe_is_a_failure_not_a_language_list(monkeypatch, tmp_path):
 def test_nothing_to_offer_and_nothing_cached_says_why(monkeypatch, tmp_path):
     _api(monkeypatch, names={})
 
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+    assert catalog(tmp_path) == BARE
     assert languages.catalog_failure() == "detector serves none"
-    assert not languages.cache_path(tmp_path, "languages").exists()
+    cached = json.loads(languages.cache_path(tmp_path, "languages").read_text())
+    assert cached == {"languages": {}, "locale": "", "station": True}  # only that it answered
 
 
 def test_a_gated_locale_list_says_so_rather_than_offering_one_language(monkeypatch, tmp_path):
     _api(monkeypatch, status=401)
 
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific"}
+    assert catalog(tmp_path) == BARE
     assert languages.catalog_failure() == "needs a password"
 
 
@@ -378,8 +384,7 @@ def test_credentials_the_locale_list_was_waiting_for_expire_the_empty_catalog(de
     store = SettingsStore(tmp_path / "s.json", Settings(detector_url=url))
     languages.use(Configured(store))
 
-    # /species/all needs no password.
-    assert catalog(tmp_path) == {SCIENTIFIC: "Scientific", STATION: STATION_NAME}
+    assert catalog(tmp_path) == BARE
     assert languages.catalog_failure() == "needs a password"
 
     store.update(detector_password="hunter2")
@@ -398,15 +403,13 @@ STATION_ROWS = {
 
 def _station_api(monkeypatch, locale="et", rows=STATION_ROWS, answers=True, gated=False):
     """BirdNET-Go in `locale` with no dictionaries. `answers=False` is unreachable;
-    `gated` refuses /settings/birdnet. Returns the (method, path) pairs asked for."""
-    asked = []
+    `gated` refuses /settings/birdnet."""
 
     def request(path, method="GET", headers=None):
-        asked.append((method, path))
         if not answers:
             return None
         if path == "/species/all":
-            return 200, {}, b"" if method == "HEAD" else json.dumps(rows).encode()
+            return 200, {}, json.dumps(rows).encode()
         if path == "/settings/birdnet":
             return (401, {}, b"") if gated else (200, {}, json.dumps({"locale": locale}).encode())
         if path == "/settings/locales":
@@ -416,7 +419,6 @@ def _station_api(monkeypatch, locale="et", rows=STATION_ROWS, answers=True, gate
         return 404, {}, b""
 
     monkeypatch.setattr(languages, "_request", request)
-    return asked
 
 
 def _expire_station():
@@ -445,13 +447,46 @@ def test_station_language_reads_species_all(monkeypatch, tmp_path):
     assert _language("station", SCIENTIFIC) == "station"  # survives a save
 
 
-def test_the_catalog_asks_for_the_station_language_once_per_ttl(monkeypatch, tmp_path):
-    """BirdNET-Go answers HEAD by building the whole list, so an admin page
-    load must not cost one."""
-    asked = _station_api(monkeypatch)
-    for _ in range(3):
-        assert STATION in catalog(tmp_path)
-    assert asked.count(("HEAD", "/species/all")) == 1
+def test_the_station_language_is_named_before_its_names_are_loaded(monkeypatch, tmp_path):
+    _station_api(monkeypatch)
+    assert catalog(tmp_path)[STATION] == "Estonian (BirdNET-Go locale)"
+
+    # The STATION names refresh far sooner than the catalog, so theirs wins.
+    _station_api(monkeypatch, locale="no")
+    dictionary(STATION, tmp_path)
+    assert catalog(tmp_path)[STATION] == "Norwegian (BirdNET-Go locale)"
+
+
+def test_a_refused_locale_keeps_the_one_held(monkeypatch, tmp_path):
+    _station_api(monkeypatch)
+    catalog(tmp_path)
+    cached = languages.cache_path(tmp_path, "languages").read_text()
+
+    _station_api(monkeypatch, answers=False)
+    languages._catalog = (0.0, *languages._catalog[1:])
+    assert catalog(tmp_path)[STATION] == "Estonian (BirdNET-Go locale)"
+    assert languages.cache_path(tmp_path, "languages").read_text() == cached
+
+
+def test_a_station_that_answered_once_stays_offered(monkeypatch, tmp_path):
+    _api(monkeypatch, status=401)
+    assert STATION in catalog(tmp_path)
+
+    _api(monkeypatch, locales=None)
+    languages._catalog = (0.0, *languages._catalog[1:])
+    assert STATION in catalog(tmp_path)
+
+    monkeypatch.setattr(languages, "_catalog", None)  # a restart, off the disk
+    assert STATION in catalog(tmp_path)
+
+
+def test_a_language_list_cached_before_the_locale_still_loads(monkeypatch, tmp_path):
+    path = languages.cache_path(tmp_path, "languages")
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps({"languages": {NB: "Norwegian"}, "station": True}))
+    _api(monkeypatch, locales=None, names={})
+
+    assert catalog(tmp_path) == {**BARE, NB: "Norwegian"}
 
 
 def test_a_station_that_stops_answering_keeps_its_language(monkeypatch, tmp_path):
