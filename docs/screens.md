@@ -175,7 +175,7 @@ for it, and the packing it needs, would make a welcome contribution - see
 3. Upload `main.py` to the board (e.g. with
    [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html))
 
-### E6 File Format
+### E6 file format
 
 The E6 file format is not an official standard. It simply consists of a stream
 of ink values, one pixel at a time. Upon request, a microcontroller downloads

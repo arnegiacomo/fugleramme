@@ -69,7 +69,7 @@ you already run elsewhere on the network, so the frame can hang anywhere.
   (see [Where BirdNET-Go "lives"](install.md#where-birdnet-go-lives)), or set it
   later on the admin page.
 
-## Battery-powered frame (external BirdNET-Go)
+## Battery-powered frame (external Fugleramme)
 
 This setup swaps the Raspberry Pi for a small, power-efficient microcontroller that drives the E Ink panel. Your existing Raspberry Pi with BirdNET-Go and Fugleramme does the heavy lifting, and the microcontroller simply downloads the raw image data from it to its own screen. That lets it run from a battery, so the frame has no wires.
 
