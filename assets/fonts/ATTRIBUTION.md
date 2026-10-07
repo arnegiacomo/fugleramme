@@ -15,6 +15,7 @@ unaffected.
 | --- | --- | --- |
 | `gentiumbookplus/` | Gentium Book Plus | [SIL International](https://software.sil.org/gentium/) |
 | `ebgaramond/` | EB Garamond | [Octavio Pardo / Georg Duffner](https://github.com/octaviopardo/EBGaramond12) |
+| `cormorantgaramond/` | Cormorant Garamond | [Catharsis Fonts](https://github.com/CatharsisFonts/Cormorant) |
 | `librebaskerville/` | Libre Baskerville | [Impallari Type](https://github.com/impallari/Libre-Baskerville) |
 | `playfairdisplay/` | Playfair Display | [Claus Eggers Sørensen](https://github.com/clauseggers/Playfair) |
 | `alegreya/` | Alegreya | [Huerta Tipográfica](https://github.com/huertatipografica/Alegreya) |
@@ -22,7 +23,7 @@ unaffected.
 
 All were taken from the [Google Fonts](https://github.com/google/fonts)
 distribution. Only the italic is vendored - a scientific name is set in italic -
-and five of the six are variable fonts, instantiated at weight 400 by
+and six of the seven are variable fonts, instantiated at weight 400 by
 `fonts.py`.
 
 ## Fallbacks
