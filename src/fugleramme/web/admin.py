@@ -18,14 +18,7 @@ from PIL.ImageFont import FreeTypeFont
 
 from .. import __version__, modes, updates
 from ..api import probe
-from ..config import (
-    BIRDNET_PORT,
-    DOCS_URL,
-    EXTERNAL_PANELS,
-    NEW_ISSUE_URL,
-    WEB_ASPECTS,
-    WEB_HEIGHTS,
-)
+from ..config import BIRDNET_PORT, DOCS_URL, NEW_ISSUE_URL, WEB_ASPECTS, WEB_HEIGHTS
 from ..languages import (
     NONE,
     SCIENTIFIC,
@@ -641,25 +634,6 @@ def _output_field(settings: Settings, detected: bool) -> str:
     )
 
 
-SIZE = "The size of the external e-ink panel the page is laid out for."
-SIZE_INKY = "Set by the connected Inky Impression panel, which every output follows."
-
-
-def _size_field(settings: Settings, panel_size: tuple[int, int], detected: bool) -> str:
-    """The external panel's size, or the connected Inky's, fixed."""
-    labels = {key: f'{key}" ({w}×{h})' for key, (w, h) in EXTERNAL_PANELS.items()}
-    selected = settings.external_panel_size
-    if detected:
-        landscape = (max(panel_size), min(panel_size))
-        selected = next((k for k, size in EXTERNAL_PANELS.items() if size == landscape), "")
-        labels.setdefault(selected, "{}×{}".format(*landscape))  # an Inky the list lacks
-    return (
-        f'<label id="panel-size"><span>Size {_hint(SIZE_INKY if detected else SIZE)}</span>'
-        f'<select name="external_panel_size"{" disabled" if detected else ""}>'
-        f"{_options(labels, selected, labels.get)}</select></label>"
-    )
-
-
 def _slider(field: str, caption: str, value: int) -> str:
     return (
         f'<label><span><span class="caption">{caption}</span> <small>{value}%</small></span>'
@@ -822,9 +796,8 @@ def page(
                 "keyLimit": KEY_LIMIT,
                 "webHeights": WEB_HEIGHTS,  # so the Resolution labels follow the form
                 # Landscape, as oriented() reads it: the Inky's while one is detected,
-                # else one of the external panel's sizes as the form picks it.
+                # else the external panel's.
                 "panel": [max(panel_size), min(panel_size)],
-                "externalPanels": EXTERNAL_PANELS,
                 "detected": detected,
                 "faceNotes": face_notes,  # so the Typeface warning follows the form
             }
@@ -835,7 +808,6 @@ def page(
         web_field=_web_field(settings, attached),
         rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
         output_field=_output_field(settings, detected),
-        size_field=_size_field(settings, panel_size, detected),
         margin_field=_margin_field(settings, paneled),
         refreshes=_refreshes(settings),
         lookback_off="" if windowed else ' class="off"',

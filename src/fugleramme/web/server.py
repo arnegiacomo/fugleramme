@@ -130,7 +130,7 @@ def make_handler(
     def glass(settings: Settings) -> tuple[int, int] | None:
         """The panel the page is laid out for, or None: nothing for the kiosk to lock to."""
         if panel or settings.external_panel:
-            return resolution_of(panel, settings.external_panel_size)
+            return resolution_of(panel)
         return None
 
     # Held across requests: an outage must not blank every viewer at once. Tied
@@ -387,7 +387,7 @@ def make_handler(
                 self._context(settings),
                 settings,
                 status,
-                resolution_of(panel, settings.external_panel_size),
+                resolution_of(panel),
                 panel is not None,
                 store.path.parent,
             )

@@ -235,11 +235,7 @@ const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
 // The panel the page is laid out for: an Inky, else the external one while it is ticked.
 const external = form.querySelector("input[name=external_panel]");
-const externalSize = form.querySelector("select[name=external_panel_size]");
-const glass = () => {
-  if (cfg.detected) return cfg.panel;
-  return external.checked ? cfg.externalPanels[externalSize.value] : null;
-};
+const glass = () => (cfg.detected || external.checked ? cfg.panel : null);
 // What the preview shows: the panel's page while there is a panel, else the
 // web view alone in the browser.
 const title = document.getElementById("preview-title");
@@ -398,9 +394,8 @@ const sizeOf = (height) => {
 const syncSizes = () => {
   for (const o of form.web_resolution.options) o.textContent = `${o.value} (${sizeOf(cfg.webHeights[o.value]).join("×")})`;
 };
-// Without a panel there is nothing to turn or lock to; an Inky fixes the size.
+// Without a panel there is nothing to turn or lock to.
 function syncPanel() {
-  dim(document.getElementById("panel-size"), !cfg.detected && external.checked);
   dim(form.rotation.closest("label"), Boolean(glass()));
   dim(document.getElementById("web-lock"), Boolean(glass()));
   const hint = document.getElementById("lock-hint");

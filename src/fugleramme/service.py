@@ -162,7 +162,7 @@ def run(config: Config) -> None:
         settings = store.get()
         if _update(status, settings.auto_update):
             return  # new code is checked out; systemd restarts us into it
-        size = settings.oriented(resolution_of(panel, settings.external_panel_size))
+        size = settings.oriented(resolution_of(panel))
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )

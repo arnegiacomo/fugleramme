@@ -326,35 +326,6 @@ def test_the_panel_has_a_title_over_its_outputs(tmp_path, source):
     assert 'name="external_panel"' in outputs.group(0)
 
 
-def test_the_external_panel_size_is_offered_without_an_inky(tmp_path, source):
-    page = _page(tmp_path, source(), detected=False, external_panel_size="7.3")
-    assert '<select name="external_panel_size">' in page
-    assert '<option value="7.3" selected>7.3" (800×480)</option>' in page
-    assert _config(page)["externalPanels"]["4.0"] == [600, 400]
-
-
-def test_an_inky_fixes_the_size_to_its_own(tmp_path, source):
-    page = _page(tmp_path, source(), external_panel_size="4.0")
-    assert '<select name="external_panel_size" disabled>' in page
-    assert '<option value="13.3" selected>13.3" (1600×1200)</option>' in page
-    # Disabled, it posts nothing, so the saved size stands.
-    assert "external_panel_size" not in admin.form_changes({"rotation": ["0"]})
-
-
-def test_an_inky_the_list_lacks_is_shown_by_its_resolution(tmp_path, source):
-    settings = Settings()
-    ctx = modes.context(
-        source(),
-        tmp_path,
-        Picks(tmp_path / "artwork.json"),
-        settings,
-        namer("sci", "", tmp_path),
-        settings.web_size((600, 448)),
-    )
-    page = admin.page(ctx, settings, Status(), (600, 448), True, tmp_path)
-    assert '<option value="" selected>600×448</option>' in page
-
-
 def test_every_tab_has_the_pane_admin_js_shows(tmp_path, source):
     page = _page(tmp_path, source())
     for tab in re.findall(r'data-tab="([^"]+)"', page):

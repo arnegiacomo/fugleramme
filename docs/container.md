@@ -65,7 +65,6 @@ Every setting on the admin page can be seeded with `FUGLERAMME_<NAME>`:
       FUGLERAMME_WEB_PORTRAIT: "false"
       FUGLERAMME_ROTATION: 0                         # 0 | 90 | 180 | 270
       FUGLERAMME_EXTERNAL_PANEL: "false"             # serve /frame.e6 for an external e-ink panel
-      FUGLERAMME_EXTERNAL_PANEL_SIZE: "13.3"         # 4.0 (600x400) | 7.3 (800x480) | 13.3 (1600x1200), without an Inky Impression
       FUGLERAMME_LOOKBACK_HOURS: 24                  # 0.25 … 720, or 0 for all time
       FUGLERAMME_REFRESH_MINUTES: 0                  # 0 | 5 | 10 | 15 | 30 | 60
       FUGLERAMME_SPECIES_LIMIT: 40                   # 0 for no limit

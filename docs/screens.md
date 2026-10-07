@@ -148,9 +148,9 @@ from a Fugleramme running elsewhere. Enable **External e-ink panel** on the
 admin page, under **Frame**. Fugleramme then serves the panel's page, already
 dithered and packed for the panel, at `http://<host>.local:8080/frame.e6`, so
 the microcontroller does not have to decode an image. Without an Inky
-connected, the page is laid out for the external panel, so **Size**,
-**Rotation**, **Margin** and **Panel refresh** all apply to it. With an Inky
-connected, the external panel gets the Inky's page.
+connected, the page is laid out for the 13.3" panel, so **Rotation**,
+**Margin** and **Panel refresh** all apply to it. With an Inky connected, the
+external panel gets the Inky's page.
 
 > [!IMPORTANT]
 > Like the kiosk, `/frame.e6` needs no sign-in: anyone who can reach the
@@ -165,8 +165,9 @@ if it has changed, and redraws the panel only once the download checks out. If
 something goes wrong, it writes an error message on the panel instead.
 
 The program drives the 13.3" panel only, and the page is packed for that
-panel's two controllers. The 4.0" and 7.3" sizes lay the page out at their
-resolution, but a board for them needs a program of its own.
+panel's two controllers. Running a smaller panel or another board? A program
+for it, and the packing it needs, would make a welcome contribution - see
+[Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
 
 1. Install MicroPython on the board (e.g.
    [for the XIAO EE02](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
@@ -205,9 +206,8 @@ a client only needs to stream them. Two pixels to a byte, the left one in the
 high half; black `0`, white `1`, yellow `2`, red `3`, blue `5`, green `6`. The
 panel has two controllers, one per half: the first 480000 bytes are the left
 half of every row, top to bottom, for the first controller, and the rest are
-the right halves for the second. With a different Inky connected, or another
-**Size** picked, the file carries that panel's page, which its width and
-height reveal, so check them.
+the right halves for the second. With a different Inky connected, the file
+carries that panel's page, which its width and height reveal, so check them.
 
 The response carries an `ETag`; send it back as `If-None-Match` and an
 unchanged page responds with `304` and nothing to download. `404` means the

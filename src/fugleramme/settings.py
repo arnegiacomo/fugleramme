@@ -20,10 +20,8 @@ from pathlib import Path
 
 from .config import (
     DEFAULT_DETECTOR_URL,
-    DEFAULT_EXTERNAL_PANEL,
     DEFAULT_WEB_ASPECT,
     DEFAULT_WEB_RESOLUTION,
-    EXTERNAL_PANELS,
     WEB_ASPECTS,
     WEB_HEIGHTS,
 )
@@ -97,10 +95,8 @@ class Settings:
     web_portrait: bool = False
     # Shapes the panel, and the kiosk while it is locked; only the panel turns the pixels.
     rotation: int = 0
-    # Serves the panel page at /frame.e6 for an external e-ink panel
+    # Serves the panel page at /frame.e6 for an external e-ink panel.
     external_panel: bool = False
-    # The page's size without an Inky Impression, whose own size always wins.
-    external_panel_size: str = DEFAULT_EXTERNAL_PANEL
     lookback_hours: float = 24
     refresh_minutes: int = 0
     # The collage's own default, as a percent.
@@ -296,11 +292,6 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         ),
         rotation=rotation,
         external_panel=_as_bool(raw.get("external_panel"), d.external_panel),
-        external_panel_size=_one_of(
-            str(raw.get("external_panel_size", d.external_panel_size)),
-            EXTERNAL_PANELS,
-            d.external_panel_size,
-        ),
         lookback_hours=_as_hours(raw.get("lookback_hours"), d.lookback_hours),
         refresh_minutes=_as_int(raw.get("refresh_minutes"), d.refresh_minutes, 0, 24 * 60),
         margin=_as_int(raw.get("margin"), d.margin, 0, MARGIN_CEILING),

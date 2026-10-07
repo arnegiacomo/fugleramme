@@ -16,7 +16,7 @@ import logging
 
 from PIL import Image
 
-from .config import EXTERNAL_PANELS
+from .config import FALLBACK_PANEL_RESOLUTION
 
 log = logging.getLogger(__name__)
 
@@ -48,9 +48,9 @@ class Panel:
         self._device.show()  # blocks ~35s on the 13.3" while the panel refreshes
 
 
-def resolution_of(panel: Panel | None, external: str) -> tuple[int, int]:
-    """The shape the panel's page is laid out for: the Inky's, else the external panel's."""
-    return panel.resolution if panel else EXTERNAL_PANELS[external]
+def resolution_of(panel: Panel | None) -> tuple[int, int]:
+    """The shape the panel's page is laid out for."""
+    return panel.resolution if panel else FALLBACK_PANEL_RESOLUTION
 
 
 def init_panel() -> Panel | None:

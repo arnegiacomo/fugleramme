@@ -9,10 +9,6 @@ How the frame shows the page, and how to change it. Open the admin page at
 
 Enable or disable the different outputs that are generated. The Inky Impression is automatically detected as soon as it is connected, and its image data is generated internally. The raw image data for an external e-ink panel is served via the web interface and can be enabled or disabled. The web view is always enabled.
 
-### Panel size
-
-The size of the external e-ink panel: **4.0" (600×400)**, **7.3" (800×480)** or **13.3" (1600×1200)**. Default is **13.3"**. With an Inky Impression connected, its own size is shown and used for every output, the external panel's included, and the option is disabled.
-
 ### Rotation
 
 How the frame hangs: 0° or 180° for landscape, 90° or 270° for portrait. Default is **0°**. Applies to the Inky Impression, the external e-ink panel and a web view locked to the panel. Without a panel there is nothing to turn, and therefore the option is disabled.
@@ -23,7 +19,7 @@ The shortest time the panel holds a render before newly heard birds may change i
 
 ### Resolution (web only)
 
-The resolution of the web renders. Default is **1080p**. Independent from the e-ink panel's own size (the connected Inky's, else **Panel size**).
+The resolution of the web renders. Default is **1080p**. Independent from the e-ink panel's own size (automatically identified).
 
 ### Lock to panel (web only)
 

@@ -304,15 +304,6 @@ def test_with_the_e6_page_on_the_frame_is_laid_out_for_a_13_inch_panel(ext_eink_
     assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1440, 1080)
 
 
-def test_the_preview_takes_the_external_panel_s_size_edited_or_saved(ext_eink_panel):
-    assert _size(_fetch(ext_eink_panel.base + "/preview.png?external_panel_size=7.3")[2]) == (
-        1800,
-        1080,
-    )
-    ext_eink_panel.store.update(external_panel_size="4.0")
-    assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1620, 1080)
-
-
 def test_the_admin_form_switches_the_e6_page(frame, tmp_path):
     fields = {"checkboxes": "external_panel", "external_panel": "on"}
     _post(frame + "/admin", fields)
