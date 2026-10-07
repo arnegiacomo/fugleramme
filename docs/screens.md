@@ -164,6 +164,8 @@ minute floor, even when **Panel refresh** is off. It downloads the page only
 if it has changed, and redraws the panel only once the download checks out. If
 something goes wrong, it writes an error message on the panel instead.
 
+Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on the 13.3" panel with a XIAO EE02.
+
 The program drives the 13.3" panel only, and the page is packed for that
 panel's two controllers. Running a smaller panel or another board? A program
 for it, and the packing it needs, would make a welcome contribution - see
