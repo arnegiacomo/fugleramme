@@ -1339,6 +1339,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLand_Rail.jpg"
   },
+  "birds/crinifer-concolor.webp": {
+    "source": "smith",
+    "url": "https://commons.wikimedia.org/wiki/File:Corythaixoides_concolor_1838.jpg"
+  },
   "birds/cuculus-canorus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00001.jpg"
@@ -3231,6 +3235,10 @@
     "source": "smith",
     "url": "https://commons.wikimedia.org/wiki/File:Ploceus_cucullatus_spilonotus_male_1838.jpg"
   },
+  "birds/ploceus-velatus.webp": {
+    "source": "smith",
+    "url": "https://commons.wikimedia.org/wiki/File:Ploceus_velatus_1838.jpg"
+  },
   "birds/pluvialis-apricaria-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00337.jpg"
@@ -4131,6 +4139,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIINaumannsThrush.jpg"
   },
+  "birds/turdus-olivaceus-2.webp": {
+    "source": "levaillant",
+    "url": "https://commons.wikimedia.org/wiki/File:Turdus_olivaceus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300265.tif"
+  },
   "birds/turdus-olivaceus.webp": {
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Turdus_olivaceus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300261.tif"
@@ -4150,6 +4162,10 @@
   "birds/turdus-pilaris.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00008.jpg"
+  },
+  "birds/turdus-smithi.webp": {
+    "source": "smith",
+    "url": "https://commons.wikimedia.org/wiki/File:Turdus_obscurus_1838.jpg"
   },
   "birds/turdus-torquatus.webp": {
     "source": "gould",
