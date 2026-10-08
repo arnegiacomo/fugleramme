@@ -4,10 +4,12 @@ asset links and the values admin.js reads still line up."""
 
 from __future__ import annotations
 
+import html
 import json
 import re
 
 import pytest
+from PIL import features
 
 from fugleramme import languages, modes
 from fugleramme.config import BIRDNET_PORT
@@ -58,6 +60,13 @@ def test_the_page_still_fills_every_slot_with_the_detector_gone(tmp_path, source
     assert "detector unreachable" in page
 
 
+def test_the_detector_tab_counts_every_bird_heard_without_art(tmp_path, source):
+    heard = source(count=40, seed=0).species_since(0)
+    page = _page(tmp_path, source(count=40, seed=0))  # no style folder: nothing has art
+    assert f'<dd class="missing">{len(heard)} birds <button' in page
+    assert page.count(" detection", page.index('data-copy="')) >= len(heard)
+
+
 def test_every_asset_the_page_links_is_one_the_server_serves(tmp_path, source):
     linked = set(re.findall(r'(?:href|src)="(/[^"?]*)', _page(tmp_path, source())))
     assert linked == {"/", "/admin.css", "/admin.js"}
@@ -77,6 +86,28 @@ def test_a_species_with_no_artwork_is_marked_rather_than_dropped(tmp_path):
     assert html.count("<li") == 2
     assert 'class="noart"' in html and "Corvus cornix" in html
     assert admin.species_html([], name_of) == '<li class="empty">none yet</li>'
+
+
+def test_a_bird_without_art_is_a_line_the_issue_form_takes():
+    text = admin.missing_text([("Sturnus unicolor", 1204), ("Pica pica", 1)])
+    assert text.splitlines() == [
+        "Sturnus unicolor (Spotless Starling) - 1204 detections",
+        "Pica pica (Eurasian Magpie) - 1 detection",
+    ]
+    assert admin.missing_text([("Nonexistus birdus", 3)]) == "Nonexistus birdus - 3 detections"
+
+
+def test_the_issue_carries_the_list_while_github_takes_it():
+    short = admin.missing_row([("Sturnus unicolor", 1204)])
+    assert short.startswith("1 bird <button") and "species=Sturnus+unicolor" in short
+
+    long = admin.missing_row([(f"Sturnus unicolor{i}", 1204) for i in range(300)])
+    assert "species=" not in long
+    assert long.count(" detections") == 300  # Copy always has the whole list
+
+
+def test_a_station_with_art_for_every_bird_says_so():
+    assert admin.missing_row([]) == "none"
 
 
 def test_a_plate_with_a_citation_links_to_it(tmp_path):
@@ -232,8 +263,18 @@ def test_the_collage_fields_render_and_a_plate_mode_save_leaves_the_layout_alone
     # admin.js disables the collage-only fields outside the collage mode, so a
     # plate-mode post carries no layout - and a field that is absent keeps its value.
     store = SettingsStore(tmp_path / "s.json")
-    store.update(layout="voids")
-    assert store.update(**admin.form_changes({"mode": ["latest"]})).layout == "voids"
+    store.update(layout="voids", spotlight=True)
+    saved = store.update(**admin.form_changes({"mode": ["latest"]}))
+    assert saved.layout == "voids" and saved.spotlight
+
+
+def test_the_spotlight_box_saves_both_ways(tmp_path, source):
+    page = _page(tmp_path, source())
+    assert 'name="spotlight"' in page and "spotlight" in _declared(page)
+    store = SettingsStore(tmp_path / "s.json")
+    on = {admin.CHECKBOXES: ["spotlight"], "spotlight": ["on"]}
+    assert store.update(**admin.form_changes(on)).spotlight
+    assert not store.update(**admin.form_changes({admin.CHECKBOXES: ["spotlight"]})).spotlight
 
 
 def _declared(html: str) -> list[str]:
@@ -267,13 +308,22 @@ def test_a_dimmed_portrait_box_keeps_its_saved_value(tmp_path):
     assert saved.web_lock is False and saved.web_portrait is True
 
 
-def test_with_no_panel_the_lock_is_off_and_undeclared(tmp_path, source):
+def test_with_no_panel_the_lock_is_disabled_declaration_and_all(tmp_path, source):
+    """admin.js enables it once the external panel is ticked; until then a save
+    leaves the stored lock alone."""
     page = _page(tmp_path, source(), detected=False, web_lock=True)
-    assert '<input type="checkbox" name="web_lock" disabled>' in page
-    assert "no panel detected" in page
-    assert not any("web_lock" in value.split() for value in _declared(page))
-    assert _config(page)["panel"] is None  # the preview box takes the web view's shape
+    assert '<input type="checkbox" name="web_lock" checked disabled>' in page
+    assert f'name="{admin.CHECKBOXES}" value="web_lock" disabled>' in page
+    assert f'aria-label="{html.escape(admin.LOCK_OFF, quote=True)}"' in page
+    assert "no panel detected" not in page
+    assert _config(page)["detected"] is False  # the preview box takes the web view's shape
     assert _config(page)["webHeights"]["4K"] == 2160  # the Resolution labels follow the form
+
+
+def test_the_panel_has_a_title_over_its_outputs(tmp_path, source):
+    outputs = re.search(r'<div class="field" id="outputs">.*?</div>', _page(tmp_path, source()))
+    assert outputs.group(0).startswith('<div class="field" id="outputs"><span>Outputs</span>')
+    assert 'name="external_panel"' in outputs.group(0)
 
 
 def test_every_tab_has_the_pane_admin_js_shows(tmp_path, source):
@@ -282,14 +332,19 @@ def test_every_tab_has_the_pane_admin_js_shows(tmp_path, source):
         assert f'id="tab-{tab}"' in page
 
 
-def test_the_margin_offers_each_edge_only_with_a_panel(tmp_path, source):
+def test_the_margin_offers_each_edge_while_there_is_a_panel(tmp_path, source):
     unlocked = {"margin": 6, "margin_lock": False, "margin_top": 12}
     page = _page(tmp_path, source(), **unlocked)
     assert "margin_lock" in _declared(page) and 'name="margin_lock">' in page
     assert 'name="margin_top" min="0" max="25" step="1" value="12"' in page
     assert 'name="margin_left" min="0" max="25" step="1" value="6"' in page
+    assert '<div id="margin-edges">' in page
+    # Rendered all the same, for admin.js to offer once the external panel is ticked.
     bare = _page(tmp_path, source(), detected=False, **unlocked)
-    assert "margin_lock" not in bare and "margin_top" not in bare
+    assert (
+        '<div id="margin-uniform" class="off">' in bare and '<div id="margin-edges" hidden>' in bare
+    )
+    assert 'name="margin_lock" disabled>' in bare
     assert 'name="margin" min="0"' in bare
 
 
@@ -410,3 +465,69 @@ def test_the_display_tab_names_the_password_rather_than_calling_it_unreachable(t
     assert "detector unreachable" not in page
     assert f'<li class="problem">detector {NEEDS_PASSWORD}. See <a href="#detector"' in page
     assert f"<dd>detector {NEEDS_PASSWORD}</dd>" in page  # beside the row that says it too
+
+
+@pytest.mark.parametrize(
+    ("chosen", "raqm", "noted"),
+    [
+        ({"primary_language": "station"}, False, True),
+        ({"primary_language": "station"}, True, False),
+        ({"primary_language": "ja"}, False, False),
+        # Not English, which Naskh has too.
+        ({"primary_language": "en", "secondary_language": "ar"}, False, True),
+        ({}, False, False),  # not while the station's names are unused
+    ],
+)
+def test_the_names_field_says_when_this_pi_cannot_draw_a_chosen_language(
+    tmp_path, source, monkeypatch, chosen, raqm, noted
+):
+    """libfribidi0 is an apt package, which an update never installs."""
+    check = features.check
+    monkeypatch.setattr(features, "check", lambda name: raqm if name == "raqm" else check(name))
+    monkeypatch.setattr(admin, "station_locale", lambda: "ar")
+    note = (
+        "This Pi can't draw Arabic yet. "
+        'Run <code class="cmd">sudo apt install libfribidi0</code> and reboot.'
+    )
+    assert (note in _page(tmp_path, source(), **chosen)) is noted
+
+
+@pytest.mark.parametrize(
+    ("overrides", "note"),
+    [
+        (
+            {"primary_language": "station"},
+            "Gentium Book Plus doesn't support Chinese - using Noto Sans CJK SC instead.",
+        ),
+        (
+            {"primary_language": "sci", "secondary_language": "station"},
+            "Gentium Book Plus doesn't support Chinese - using Noto Sans CJK SC instead.",
+        ),
+        (
+            {"primary_language": "el", "label_font": "baskerville"},
+            "Libre Baskerville doesn't support Greek - using Gentium Book Plus instead.",
+        ),
+        (
+            {"primary_language": "el", "label_font": "bitter"},
+            "Bitter doesn't support Greek - using Gentium Book Plus instead.",
+        ),
+        ({"primary_language": "el", "label_font": "gentium"}, ""),  # Gentium has Greek
+        ({"primary_language": "nb", "label_font": "baskerville"}, ""),
+        ({"primary_language": "en", "secondary_language": "sci"}, ""),
+    ],
+)
+def test_the_typeface_warns_of_a_language_it_leaves_to_a_fallback(
+    tmp_path, source, monkeypatch, overrides, note
+):
+    monkeypatch.setattr(admin, "station_locale", lambda: "zh")
+    page = _page(tmp_path, source(), **overrides)
+    warning = re.search(r'<span class="hint caution" id="face-note"[^>]*>', page).group()
+    assert (" hidden" in warning) is not bool(note)
+    assert f'aria-label="{html.escape(note)}"' in warning
+
+
+def test_the_typeface_warning_is_a_triangle_not_the_info_badge(tmp_path, source):
+    page = _page(tmp_path, source(), primary_language="zh")
+    warning = re.search(r'<span class="hint caution" id="face-note".*?</span>', page).group()
+    assert "<svg" in warning  # the info badge is an empty hint
+    assert "⚠" not in page  # a colour emoji on some systems

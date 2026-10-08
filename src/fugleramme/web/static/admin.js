@@ -36,6 +36,20 @@ const state = document.getElementById("state");
 sessionStorage.setItem("version", cfg.version);
 if (state && was && was !== cfg.version) state.textContent = "updated to v" + cfg.version;
 
+// Plain http has no clipboard API, so copy through a selected scratch textarea.
+for (const button of document.querySelectorAll("button.copy")) {
+  button.addEventListener("click", () => {
+    const scratch = document.createElement("textarea");
+    scratch.value = button.dataset.copy;
+    document.body.append(scratch);
+    scratch.select();
+    document.execCommand("copy");
+    scratch.remove();
+    button.textContent = "Copied";
+    setTimeout(() => { button.textContent = "Copy"; }, 1500);
+  });
+}
+
 const tabs = document.querySelectorAll("nav.tabs button");
 // Display and Frame share one form and one preview.
 const settings = document.getElementById("settings");
@@ -81,6 +95,15 @@ for (const hint of document.querySelectorAll(".hint")) {
 }
 document.addEventListener("click", closeHint);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeHint(); });
+
+const menu = document.getElementById("menu");
+const closeMenu = () => menu.setAttribute("aria-expanded", "false");
+menu.addEventListener("click", (e) => {
+  e.stopPropagation();
+  menu.setAttribute("aria-expanded", String(menu.getAttribute("aria-expanded") !== "true"));
+});
+document.addEventListener("click", closeMenu);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
 
 // The check runs inside its own POST, so the spinner only has to outlive the navigation.
 const check = document.querySelector("dd.update form.check");
@@ -210,7 +233,15 @@ const mat = document.getElementById("mat");
 const caption = document.querySelector(".rendering");
 const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
+// The panel the page is laid out for: an Inky, else the external one while it is ticked.
+const external = form.querySelector("input[name=external_panel]");
+const glass = () => (cfg.detected || external.checked ? cfg.panel : null);
+// What the preview shows: the panel's page while there is a panel, else the
+// web view alone in the browser.
+const title = document.getElementById("preview-title");
+const syncTitle = () => { title.textContent = glass() ? "Preview Panel" : "Preview Browser"; };
 let shown = null, seq = 0, timer = null;
+let page = null;  // the kiosk's token: new birds move the preview too
 const queueRender = () => {
   clearTimeout(timer);  // debounced: a render is expensive on the Pi
   timer = setTimeout(loadPreview, 500);
@@ -222,8 +253,8 @@ function loadPreview() {
   if (query === shown) return;
   const id = ++seq;
   // The panel's page where there is one, else the web view's own shape.
-  const [w, h] = cfg.panel || form.web_aspect.value.split(":");
-  const turned = cfg.panel ? form.rotation.value % 180 : form.web_portrait.checked;
+  const [w, h] = glass() || form.web_aspect.value.split(":");
+  const turned = glass() ? form.rotation.value % 180 : form.web_portrait.checked;
   // Turned now rather than when the render lands, so the box does not jump.
   preview.style.setProperty("--aspect", turned ? `${h} / ${w}` : `${w} / ${h}`);
   preview.classList.add("loading");
@@ -239,7 +270,8 @@ function loadPreview() {
     if (id !== seq) return;
     caption.textContent = "Preview unavailable";
   };
-  next.src = "/preview.png?" + query;
+  // The token busts the browser's in-page image cache, which ignores no-cache.
+  next.src = "/preview.png?" + query + (page ? "&page=" + page : "");
   loadSpecies(query, id);
 }
 
@@ -258,11 +290,13 @@ async function loadSpecies(query, id) {
 
 const margin = form.querySelector("input[name=margin]");
 const one = document.getElementById("margin-one");
+const uniform = document.getElementById("margin-uniform");
 const edgeLock = form.querySelector("input[name=margin_lock]");
 const edgeBox = document.getElementById("margin-edges");
-const edges = edgeBox ? [...edgeBox.querySelectorAll("input")] : [];  // the glass's top, right, bottom, left
+const edges = [...edgeBox.querySelectorAll("input")];  // the glass's top, right, bottom, left
 const SIDES = ["Top", "Right", "Bottom", "Left"];
-const unlocked = () => Boolean(edgeLock && !edgeLock.checked);
+// Only the panel's page has edges of its own.
+const unlocked = () => Boolean(glass()) && !edgeLock.checked;
 const turns = () => form.rotation.value / 90;  // counter-clockwise: the glass's left comes to the top
 
 function hungMargins() {
@@ -275,8 +309,8 @@ function reveal(el, on) {
   el.querySelectorAll("input").forEach((c) => { c.disabled = !on; });
 }
 function syncMargin() {
-  if (!edgeLock) return;  // no panel, no edges
   const open = unlocked();
+  dim(uniform, Boolean(glass()));
   reveal(edgeBox, open);
   // Unlocked, only a web view off the panel uses the one margin.
   reveal(one, !open || !lock.checked);
@@ -294,7 +328,7 @@ form.addEventListener("input", (e) => {
   if (e.target.type !== "range") return;
   e.target.closest("label").querySelector("small").textContent = e.target.value + "%";
   // Locked, the edges follow, so unlocking starts them at the one margin.
-  if (e.target === margin && !unlocked()) edges.forEach((edge) => { edge.value = margin.value; });
+  if (e.target === margin && edgeLock.checked) edges.forEach((edge) => { edge.value = margin.value; });
   const box = preview.getBoundingClientRect();
   const short = Math.min(box.width, box.height);
   mat.style.borderWidth = hungMargins().map((m) => short * m / 100 + "px").join(" ");
@@ -332,22 +366,27 @@ function syncMode() {
 // Locked to the panel, the web view has no shape of its own to pick.
 const lock = form.querySelector("input[name=web_lock]");
 const shape = document.getElementById("web-shape");
-const syncShape = () => dim(shape, !lock.checked);
+const syncShape = () => dim(shape, !(glass() && lock.checked));
 // With names off there is no label to set a language, typeface or size for.
 const showNames = form.querySelector("input[name=show_names]");
 const nameKey = form.querySelector("input[name=name_key]");
 const keyCap = document.getElementById("key-cap");
+const faceNote = document.getElementById("face-note");
 const syncNames = () => {
   document.querySelectorAll("#names .sub").forEach((l) => dim(l, showNames.checked));
   dim(document.getElementById("name-key"), showNames.checked && windowed());  // collage only
   const all = form.querySelector("input[name=limit_mode]:checked")?.value === "all";
   const over = all || Number(form.species_limit.value) > cfg.keyLimit;
   keyCap.hidden = !(nameKey.checked && !nameKey.disabled && over);
+  const said = cfg.faceNotes[form.label_font.value];
+  const note = said[form.primary_language.value] || said[form.secondary_language.value] || "";
+  faceNote.hidden = !note;
+  faceNote.setAttribute("aria-label", note);
 };
 // The size each Resolution renders at, as settings.web_size works it out from the form.
 const sizeOf = (height) => {
-  const locked = cfg.panel && lock.checked;
-  const [a, b] = locked ? cfg.panel : form.web_aspect.value.split(":").map(Number);
+  const locked = glass() && lock.checked;
+  const [a, b] = locked ? glass() : form.web_aspect.value.split(":").map(Number);
   const turned = locked ? form.rotation.value % 180 : form.web_portrait.checked;
   const wide = Math.round(height * a / b);
   return turned ? [height, wide] : [wide, height];
@@ -355,25 +394,38 @@ const sizeOf = (height) => {
 const syncSizes = () => {
   for (const o of form.web_resolution.options) o.textContent = `${o.value} (${sizeOf(cfg.webHeights[o.value]).join("×")})`;
 };
-if (!cfg.panel) dim(form.rotation.closest("label"), false);  // nothing to turn
+// Without a panel there is nothing to turn or lock to.
+function syncPanel() {
+  dim(form.rotation.closest("label"), Boolean(glass()));
+  dim(document.getElementById("web-lock"), Boolean(glass()));
+  const hint = document.getElementById("lock-hint");
+  hint.setAttribute("aria-label", glass() ? hint.dataset.on : hint.dataset.off);
+}
 
 // Capture, so a mode change settles which fields still submit before the shared
 // dirty check reads them - a round trip back to the saved mode is not a change.
 form.addEventListener("input", (e) => {
   syncMode();
+  syncPanel();
   syncShape();
   syncNames();
   syncSizes();
   syncMargin();
+  syncTitle();
   if (e.target.type === "range") return clearTimeout(timer);  // a drag renders on release only
+  // A panel's page does not change with the web view's own settings, so with a
+  // panel those need no render.
+  if (glass() && e.target.closest("#web-view")) return;
   queueRender();
 }, true);
 
 syncMode();
+syncPanel();
 syncShape();
 syncNames();
 syncSizes();
 syncMargin();
+syncTitle();
 
 // Save stays disabled until a form differs from what the server served. An
 // untouched password placeholder serializes the same both times, so it needs no
@@ -398,5 +450,22 @@ window.addEventListener("beforeunload", (e) => {
   e.returnValue = "";
 });
 
+document.querySelector("form.reboot")?.addEventListener("submit", (e) => {
+  if (!confirm("Are you sure you want to reboot?")) e.preventDefault();
+});
+
 loadPreview();
+(async function follow() {
+  try {
+    const state = await (await fetch("/state", {cache: "no-store"})).json();
+    const moved = page !== null && state.token !== page;
+    page = state.token;
+    if (!moved) return;
+    shown = null;  // the same form, a different page
+    loadPreview();
+  } catch (e) {  // a missed poll is caught by the next
+  } finally {
+    setTimeout(follow, 5000);
+  }
+})();
 if (scrolled !== null) window.scrollTo(0, Number(scrolled));

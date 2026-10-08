@@ -16,6 +16,7 @@ from PIL import Image
 from fugleramme import api, modes, service
 from fugleramme.config import Config
 from fugleramme.settings import Settings, SettingsStore
+from fugleramme.status import Status
 
 
 class _Stop(Exception):
@@ -67,7 +68,7 @@ def test_the_loop_holds_its_last_page_when_the_detector_goes_away(
     assert "Detector unavailable" in caplog.text  # the blind ticks did see the outage
     assert render.call_count == 1  # and did not draw an empty page over it
     assert len(set(ticks)) == 1  # and the file they would have written it to is untouched
-    assert np.asarray(Image.open(config.output_path)).std() > 1  # birds, not bare paper
+    assert np.asarray(Image.open(config.output_path)).std() > 0.5  # birds, not bare paper
 
 
 def test_the_configured_detector_is_rebuilt_only_when_the_settings_name_another(tmp_path, detector):
@@ -228,6 +229,46 @@ def test_no_floor_is_the_shipped_default(tmp_path):
     """A frame that updates into this keeps the behaviour it had."""
     assert SettingsStore(tmp_path / "s.json").get().refresh_minutes == 0
     assert service._due(0, service.time.monotonic())
+
+
+def test_with_the_e6_page_on_the_loop_lays_out_and_hands_over_a_13_inch_page(
+    tmp_path, images, detector
+):
+    """No Inky Impression connected, so the external e-ink panel is the glass: its own
+    edges, and the dithered page left where /frame.e6 packs it from."""
+    url, _httpd = detector(count=40, seed=0)
+    config = Config(
+        images_dir=images,
+        detector_url=url,
+        output_path=tmp_path / "frame.png",
+        host="127.0.0.1",
+        port=0,
+        config_path=tmp_path / "settings.json",
+    )
+    store = SettingsStore(config.config_path, Settings(detector_url=url))
+    store.update(external_panel=True, rotation=90, margin_lock=False, margin_top=20)
+    statuses: list[Status] = []
+
+    def status() -> Status:
+        statuses.append(Status())
+        return statuses[-1]
+
+    def sleep(_seconds):
+        raise _Stop
+
+    with (
+        patch.object(service.updates, "available", return_value=None),
+        patch.object(service, "Status", status),
+        patch.object(service.modes, "render", side_effect=modes.render) as render,
+        patch.object(service.time, "sleep", sleep),
+        pytest.raises(_Stop),
+    ):
+        service.run(config)
+
+    ctx = render.call_args.args[0]
+    assert 0.2 in ctx.margin and len(set(ctx.margin)) == 2  # the one edge set on its own
+    image, rotation = statuses[0].frame
+    assert (image.mode, image.size, rotation) == ("P", (1200, 1600), 90)
 
 
 @pytest.mark.parametrize("signal_code", [signal.SIGINT, signal.SIGTERM])

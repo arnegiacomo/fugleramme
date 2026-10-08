@@ -32,7 +32,7 @@ WEB_ASPECTS: dict[str, tuple[int, int]] = {
 # The fallback panel's shape: what a panel-less kiosk packs unless told otherwise.
 DEFAULT_WEB_ASPECT = "4:3"
 
-# Panel render size when no Inky is attached (dev loop): Impression 13.3".
+# Panel render size when no Inky is attached (dev loop, external panel): Impression 13.3".
 FALLBACK_PANEL_RESOLUTION = (1600, 1200)
 
 # Network defaults, single source for the app. The kiosk + admin bind here; the
@@ -51,6 +51,9 @@ DOCS_URL = "https://arnegiacomo.dev/fugleramme/"
 # Self-update source. HTTPS, not the ssh origin: a service fetch has no agent.
 REPO_HTTPS_URL = "https://github.com/arnegiacomo/fugleramme.git"
 RELEASES_API = "https://api.github.com/repos/arnegiacomo/fugleramme/releases/latest"
+
+# Where the admin sends a list of birds without art.
+NEW_ISSUE_URL = "https://github.com/arnegiacomo/fugleramme/issues/new"
 
 # Repo root: src/fugleramme/config.py -> repo root is three parents up.
 REPO_ROOT = Path(__file__).resolve().parents[2]

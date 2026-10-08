@@ -68,6 +68,7 @@ def _clean_language_caches(monkeypatch):
     monkeypatch.setattr(languages, "_source", None)
     monkeypatch.setattr(languages, "_catalog", None)
     monkeypatch.setattr(languages, "_dicts", {})
+    monkeypatch.setattr(languages, "_station_locale", None)
 
 
 @pytest.fixture(autouse=True)

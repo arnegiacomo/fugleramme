@@ -64,10 +64,12 @@ Every setting on the admin page can be seeded with `FUGLERAMME_<NAME>`:
       FUGLERAMME_WEB_ASPECT: "4:3"                   # 16:9 | 16:10 | 4:3 | 3:2
       FUGLERAMME_WEB_PORTRAIT: "false"
       FUGLERAMME_ROTATION: 0                         # 0 | 90 | 180 | 270
+      FUGLERAMME_EXTERNAL_PANEL: "false"             # serve /frame.e6 for an external e-ink panel
       FUGLERAMME_LOOKBACK_HOURS: 24                  # 0.25 … 720, or 0 for all time
       FUGLERAMME_REFRESH_MINUTES: 0                  # 0 | 5 | 10 | 15 | 30 | 60
       FUGLERAMME_SPECIES_LIMIT: 40                   # 0 for no limit
       FUGLERAMME_RANKING: heard                      # heard | rarest | rarest_ever
+      FUGLERAMME_SPOTLIGHT: "false"                  # spotlight the latest heard bird
       FUGLERAMME_STYLE: classic
       FUGLERAMME_SHOW_NAMES: "true"
       FUGLERAMME_NAME_KEY: "false"                   # numbered key instead of names beside the birds

@@ -12,16 +12,29 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from string import Template
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
+
+from PIL.ImageFont import FreeTypeFont
 
 from .. import __version__, modes, updates
 from ..api import probe
-from ..config import BIRDNET_PORT, DOCS_URL, WEB_ASPECTS, WEB_HEIGHTS
-from ..languages import NONE, Namer, catalog, catalog_failure, ordered
+from ..config import BIRDNET_PORT, DOCS_URL, NEW_ISSUE_URL, WEB_ASPECTS, WEB_HEIGHTS
+from ..languages import (
+    NONE,
+    SCIENTIFIC,
+    STATION,
+    STATION_NAME,
+    Namer,
+    catalog,
+    catalog_failure,
+    english_name,
+    ordered,
+    station_locale,
+)
 from ..modes import MODES
-from ..names import available_styles, image_for, origin_of, source_of
+from ..names import available_styles, image_for, normalize, origin_of, source_of
 from ..render.collage import KEY_LIMIT, NO_LIMIT, RANKINGS
-from ..render.fonts import FONTS, LABEL_SIZES
+from ..render.fonts import FONTS, LABEL_SIZES, face, load, needs_shaping
 from ..render.packing import LAYOUTS
 from ..settings import (
     DEFAULT_LIMIT,
@@ -36,6 +49,7 @@ from ..settings import (
 )
 from ..source import NEEDS_PASSWORD, Unavailable
 from ..status import Status
+from ..taxa import common_of
 from . import LOGIN, LOGOUT, STATIC_DIR, hostinfo
 
 CHECKBOXES = "checkboxes"  # hidden field naming the checkboxes a form carries
@@ -46,6 +60,9 @@ PASSWORD_SET = "\u2022" * 8
 _LOOPBACK = ("127.0.0.1", "localhost", "::1", "0.0.0.0")
 
 _ASPECT = {0: "(landscape)", 90: "(portrait)"}
+
+ISSUE_TEMPLATE = "artwork_request.yml"
+MAX_URL = 8000  # GitHub refuses longer; past it the form opens empty
 
 # Style and plate names that don't title-case into something readable.
 _NAMES = {
@@ -85,6 +102,51 @@ def subjects(ctx: modes.Context) -> list[tuple[str, str | None, str]]:
         # Unlisted (a hand-filled style keeps no manifest): name the style itself.
         rows.append((name, source_of(pick) or ctx.style, origin_of(pick)))
     return rows
+
+
+def missing(ctx: modes.Context) -> list[tuple[str, int]]:
+    """Every species the station has ever heard that this style cannot draw,
+    with its detection count, most heard first."""
+    keys = ctx.drawable()
+    return [(name, n) for name, n in ctx.source.species_since(0) if normalize(name) not in keys]
+
+
+def missing_text(rows: list[tuple[str, int]]) -> str:
+    """One line per species, as the Missing bird issue's Species field takes them."""
+    lines = []
+    for name, count in rows:
+        common = common_of(name)
+        named = f"{name} ({common})" if common else name
+        lines.append(f"{named} - {count} detection{'' if count == 1 else 's'}")
+    return "\n".join(lines)
+
+
+def request_url(species: str = "") -> str:
+    """A new Missing bird issue, its Species field holding `species`."""
+    query = {"template": ISSUE_TEMPLATE} | ({"species": species} if species else {})
+    return f"{NEW_ISSUE_URL}?{urlencode(query)}"
+
+
+def bug_url() -> str:
+    query = {"template": "bug_report.yml", "version": f"v{__version__}"}
+    return f"{NEW_ISSUE_URL}?{urlencode(query)}"
+
+
+MISSING = "Birds your station has heard (all time) that have no artwork yet"
+
+
+def missing_row(rows: list[tuple[str, int]]) -> str:
+    """The Without art row: a count, a copy of the list, and the issue with it filled in."""
+    if not rows:
+        return "none"
+    text = missing_text(rows)
+    filled = request_url(text)
+    url = filled if len(filled) <= MAX_URL else request_url()
+    return (
+        f"{len(rows)} bird{'' if len(rows) == 1 else 's'} "
+        f'<button type="button" class="copy" data-copy="{html.escape(text)}">Copy</button> · '
+        f'<a href="{html.escape(url)}" target="_blank" rel="noopener">Create GitHub issue</a>'
+    )
 
 
 def _display_name(name: str) -> str:
@@ -219,7 +281,8 @@ def _language_select(
     items = [(NONE, "None")] if optional else []
     items += [(code, name) for code, name in languages if code != NONE]
     if selected not in dict(items):
-        items.append((selected, f"{selected} (unavailable)"))
+        shown = STATION_NAME if selected == STATION else selected
+        items.append((selected, f"{shown} (unavailable)"))
     labels = dict(items)
     codes = [code for code, _ in items]
     return f'<select name="{field}">{_options(codes, selected, labels.get)}</select>'
@@ -246,6 +309,19 @@ def _update(status: Status) -> str:
     return f'<span id="state">up to date</span>{_action("check", "Check")}'
 
 
+def _reboot(status: Status) -> str:
+    """The Reboot button beside when the frame started, on the Pi alone
+    (`updates.can_reboot`)."""
+    if not updates.can_reboot():
+        return ""
+    failed = (
+        f'<span class="bad">{html.escape(status.reboot_error)}</span>'
+        if status.reboot_error
+        else ""
+    )
+    return f"{_action('reboot', 'Reboot')}{failed}"
+
+
 def _auto_update(settings: Settings) -> str:
     """The auto-install toggle, shown disabled in a container: nothing in here can
     pull an image, and a switch that does nothing is worse than no switch."""
@@ -266,13 +342,20 @@ NAME_KEY = (
 )
 
 
-def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: str) -> str:
+def _names_field(
+    settings: Settings,
+    languages: list[tuple[str, str]],
+    failure: str,
+    face_notes: dict[str, dict[str, str]],
+) -> str:
     """The names block. `failure` says why the menu holds nothing but the
     scientific name, so a detector that will not serve its locale list reads as
     one to fix rather than as all the frame can do."""
     note = f'<p class="note bad">{_fix(f"No languages: {failure}")}</p>' if failure else ""
+    said = face_notes.get(settings.label_font, {})
+    face_note = said.get(settings.primary_language) or said.get(settings.secondary_language, "")
     return (
-        f'<div class="field" id="names"><span>Species names</span>'
+        f'<div class="field" id="names"><span>Labels</span>'
         f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
         f"{note}"
         f'<div class="sub" id="name-key"><input type="hidden" name="{CHECKBOXES}" value="name_key">'
@@ -281,12 +364,60 @@ def _names_field(settings: Settings, languages: list[tuple[str, str]], failure: 
         f"{_language_select('primary_language', languages, settings.primary_language)}</label>"
         f'<label class="sub"><small>Second language (optional)</small>'
         f"{_language_select('secondary_language', languages, settings.secondary_language, optional=True)}</label>"
-        f'<label class="sub"><small>Typeface</small><select name="label_font">'
+        f"{_shaping_note(settings)}"
+        f'<label class="sub"><small>Typeface {_warning(face_note)}</small><select name="label_font">'
         f"{_options(FONTS, settings.label_font, lambda k: FONTS[k][0])}</select></label>"
         f'<label class="sub"><small>Text size</small><select name="label_size">'
         f"{_options(LABEL_SIZES, settings.label_size, lambda k: LABEL_SIZES[k][0])}</select></label>"
         f"</div>"
     )
+
+
+# A script is judged on a date in it: the CJK subset holds every date, but not "日本語".
+_SAMPLE_DAY = datetime(2026, 10, 6, 12, tzinfo=UTC)
+
+
+def _shaping_note(settings: Settings) -> str:
+    """Said while a chosen language waits on raqm, which an update cannot install."""
+    station = station_locale()
+    waiting = [
+        english_name(station if code == STATION else code)
+        for code in (settings.primary_language, settings.secondary_language)
+        if code not in (SCIENTIFIC, NONE)
+        and needs_shaping(Namer(code, NONE, {}, (), station).date(_SAMPLE_DAY))
+    ]
+    if not waiting:
+        return ""
+    return (
+        f'<p class="note warn">This Pi can\'t draw {html.escape(" or ".join(waiting))} yet. '
+        'Run <code class="cmd">sudo apt install libfribidi0</code> and reboot.</p>'
+    )
+
+
+def _face_notes(codes: set[str]) -> dict[str, dict[str, str]]:
+    """Per typeface, the Typeface warning for each of `codes` it leaves to a
+    fallback face."""
+    station = station_locale()
+    languages = {code: english_name(station if code == STATION else code) for code in codes}
+    samples = {code: Namer(code, NONE, {}, (), station).date(_SAMPLE_DAY) for code in codes}
+    typefaces = {key: load(key, 20) for key in FONTS}
+    set_in = {
+        key: {code: name for code, sample in samples.items() if (name := _fallback(sample, font))}
+        for key, font in typefaces.items()
+    }
+    return {
+        key: {
+            code: f"{FONTS[key][0]} doesn't support {languages[code]} - using {name} instead."
+            for code, name in fallbacks.items()
+        }
+        for key, fallbacks in set_in.items()
+    }
+
+
+def _fallback(sample: str, font: FreeTypeFont) -> str:
+    """The fallback face's name for a line `font` cannot set, or ""."""
+    used = face(sample, font)
+    return "" if used is font else str(used.getname()[0])
 
 
 def _text_field(field: str, label: str, value: str, kind: str = "text", hint: str = "") -> str:
@@ -430,10 +561,77 @@ def _hint(text: str) -> str:
     return f'<span class="hint" tabindex="0" role="img" aria-label="{note}"></span>'
 
 
-LOCK = "The web view takes the panel's shape and rotation"
+# Drawn rather than the warning sign character, which some systems set as a colour emoji.
+_TRIANGLE = (
+    '<svg viewBox="0 0 16 16" width="100%" height="100%" aria-hidden="true">'
+    '<path d="M8 1 15.5 15H.5z" fill="currentColor"/>'
+    '<path d="M8 6v4.5M8 12.6v.1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>'
+)
+
+
+def _warning(text: str) -> str:
+    """The Typeface warning, hidden while empty. admin.js updates it as the form changes."""
+    note = html.escape(text, quote=True)
+    hidden = "" if text else " hidden"
+    return (
+        f'<span class="hint caution" id="face-note" tabindex="0" role="img" aria-label="{note}"'
+        f"{hidden}>{_TRIANGLE}</span>"
+    )
+
+
+def _panel_hint(id: str, on: str, off: str, panel: bool) -> str:
+    """A hint admin.js swaps between `on` and `off` as the form gains or loses a panel."""
+    texts = {"on": on, "off": off}
+    data = "".join(f' data-{k}="{html.escape(v, quote=True)}"' for k, v in texts.items())
+    return _hint(on if panel else off).replace('class="hint"', f'class="hint" id="{id}"{data}', 1)
+
+
+LOCK = "The web view takes the panel's shape and rotation."
+LOCK_OFF = (
+    f"{LOCK} Only available with an Inky Impression panel connected "
+    "or the external e-ink panel enabled."
+)
 
 
 EDGES = "The same margin on every edge of the panel"
+
+
+EXTERNAL = (
+    "Serves the panel's page at /frame.e6, for an external e-ink panel "
+    "driven by its own board. Without an Inky Impression, the page is laid "
+    "out for that panel. Anyone who can reach the frame can access /frame.e6."
+)
+
+
+def _output_field(settings: Settings, detected: bool) -> str:
+    # Only the external panel is a setting; the disabled rows post nothing, so declare none.
+    inky = (
+        "Always enabled as an Inky Impression panel is currently connected."
+        if detected
+        else "Only enabled when an Inky Impression panel is connected and detected."
+    )
+    return (
+        '<div class="field" id="outputs"><span>Outputs</span>'
+        + _checkbox(
+            "inky_impression_enable",
+            f"<span>Inky Impression panel {_hint(inky)}</span>",
+            checked=detected,
+            disabled=True,
+        )
+        + f'<input type="hidden" name="{CHECKBOXES}" value="external_panel">'
+        + _checkbox(
+            "external_panel",
+            f"<span>External e-ink panel {_hint(EXTERNAL)}</span>",
+            checked=settings.external_panel,
+        )
+        + _checkbox(
+            "web_enable",
+            f"<span>Browser kiosk {_hint('Web access is always enabled.')}</span>",
+            checked=True,
+            disabled=True,
+        )
+        + "</div>"
+    )
 
 
 def _slider(field: str, caption: str, value: int) -> str:
@@ -445,43 +643,44 @@ def _slider(field: str, caption: str, value: int) -> str:
 
 
 def _margin_field(settings: Settings, panel: bool) -> str:
-    """One margin, or with a panel one per edge of the glass (#184)."""
+    """One margin, and one per edge of the glass (#184). The edges are always
+    rendered: admin.js offers them while the form has a panel."""
     one = f'<div id="margin-one">{_slider("margin", "All edges", settings.margin)}</div>'
-    if not panel:
-        return one
     edges = "".join(
         _slider(f"margin_{edge}", edge.title(), value)
         for edge, value in zip(
             ("top", "right", "bottom", "left"), settings.glass_margins(), strict=True
         )
     )
-    lock = _checkbox("margin_lock", f"<span>Uniform {_hint(EDGES)}</span>", settings.margin_lock)
+    lock = _checkbox(
+        "margin_lock", f"<span>Uniform {_hint(EDGES)}</span>", settings.margin_lock, not panel
+    )
+    off = "" if panel else " disabled"
+    dimmed = "" if panel else ' class="off"'
     return (
-        f'<input type="hidden" name="{CHECKBOXES}" value="margin_lock">{lock}'
-        f'<div id="margin-edges">{edges}</div>{one}'
+        f'<div id="margin-uniform"{dimmed}>'
+        f'<input type="hidden" name="{CHECKBOXES}" value="margin_lock"{off}>{lock}</div>'
+        f'<div id="margin-edges"{"" if panel else " hidden"}>{edges}</div>{one}'
     )
 
 
 def _web_field(settings: Settings, panel: tuple[int, int] | None) -> str:
-    """The web view's size and, once unlocked from the panel, its own shape (#147)."""
-    note = "" if panel else "<small>· no panel detected</small>"
-    # Undeclared with no panel, so a save leaves the stored lock alone.
-    declared = f'<input type="hidden" name="{CHECKBOXES}" value="web_lock">' if panel else ""
-    lock = _checkbox(
-        "web_lock",
-        f"<span>Lock to panel {_hint(LOCK)}{note}</span>",
-        settings.web_lock and bool(panel),
-        not panel,
-    )
+    """The web view's size and, once unlocked from the panel, its own shape (#147).
+    The lock is always declared: admin.js enables it, declaration and all, while
+    the form has a panel, so ticking the external panel offers it before a save."""
+    off = "" if panel else " disabled"
+    hint = _panel_hint("lock-hint", LOCK, LOCK_OFF, bool(panel))
+    lock = _checkbox("web_lock", f"<span>Lock to panel {hint}</span>", settings.web_lock, not panel)
     resolutions = _options(
         WEB_HEIGHTS,
         settings.web_resolution,
         lambda r: "{} ({}×{})".format(r, *replace(settings, web_resolution=r).web_size(panel)),
     )
     return (
-        f'<div class="field"><span>Resolution</span>'
+        f'<div class="field" id="web-view"><span>Resolution</span>'
         f'<select name="web_resolution" aria-label="Resolution">{resolutions}</select>'
-        f'<div class="sub{"" if panel else " off"}">{declared}{lock}</div>'
+        f'<div class="sub{"" if panel else " off"}" id="web-lock">'
+        f'<input type="hidden" name="{CHECKBOXES}" value="web_lock"{off}>{lock}</div>'
         f'<div class="sub" id="web-shape">'
         f'<input type="hidden" name="{CHECKBOXES}" value="web_portrait">'
         f'<label><small>Aspect</small><select name="web_aspect">'
@@ -526,12 +725,24 @@ def _radio_field(
     return f'<div class="field"{tag}><span>{label}</span>{_radios(name, options, active)}</div>'
 
 
+SPOTLIGHT = "Showcase the latest heard bird in the middle."
+
+
 def _layout_field(settings: Settings) -> str:
-    """How the collage packs its birds (#47). Dimmed with the lookback for the
-    modes that draw one bird."""
+    """How the collage packs its birds (#47), and whether one takes the middle
+    (#185). Dimmed with the lookback for the modes that draw one bird."""
     hint = "\n\n".join(f"{layout.label}: {layout.blurb}" for layout in LAYOUTS.values())
     options = [(k, layout.label) for k, layout in LAYOUTS.items()]
-    return _radio_field(f"Layout {_hint(hint)}", "layout", options, settings.layout, id="layout")
+    spotlight = _checkbox(
+        "spotlight",
+        f"<span>Spotlight mode {_hint(SPOTLIGHT)}</span>",
+        settings.spotlight,
+    )
+    return (
+        f'<div class="field" id="layout"><span>Layout {_hint(hint)}</span>'
+        f"{_radios('layout', options, settings.layout)}"
+        f'<input type="hidden" name="{CHECKBOXES}" value="spotlight">{spotlight}</div>'
+    )
 
 
 def page(
@@ -549,24 +760,31 @@ def page(
     when it is, so the rows that need it say so rather than vanish.
     """
     languages = ordered(catalog(names_dir))
+    face_notes = _face_notes(
+        {code for code, _ in languages} | {settings.primary_language, settings.secondary_language}
+    )
     names_failure = catalog_failure()
     detector_state, detector_version = hostinfo.detector(settings.detector_url)
     try:
-        latest, rows = ctx.source.latest(), subjects(ctx)
+        latest, rows, without = ctx.source.latest(), subjects(ctx), missing(ctx)
     except Unavailable:
-        latest, rows = None, None
+        latest, rows, without = None, None, None
     windowed = modes.mode_of(settings.mode).windowed
     online, iface = hostinfo.online()
     rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
     if status.push_error:
         rendered += f" · panel push failing ({status.push_error})"
-    attached = panel_size if detected else None
+    # Without an Inky Impression connected, the external e-ink panel is the
+    # one the page is laid out for.
+    paneled = detected or settings.external_panel
+    attached = panel_size if paneled else None
     w, h = settings.web_size(attached)
     glass = f"{panel_size[0]}×{panel_size[1]}"
     birdnet_url, birdnet_port = birdnet_link(settings.detector_url)
     return Template((STATIC_DIR / "admin.html").read_text()).substitute(
         version=__version__,
         docs_url=DOCS_URL,
+        bug_url=html.escape(bug_url()),
         checkboxes=CHECKBOXES,
         config=json.dumps(
             {
@@ -577,8 +795,11 @@ def page(
                 "windowedModes": [k for k, m in MODES.items() if m.windowed],
                 "keyLimit": KEY_LIMIT,
                 "webHeights": WEB_HEIGHTS,  # so the Resolution labels follow the form
-                # Landscape, as oriented() reads it; null leaves the preview the web view's shape.
-                "panel": [max(panel_size), min(panel_size)] if detected else None,
+                # Landscape, as oriented() reads it: the Inky's while one is detected,
+                # else the external panel's.
+                "panel": [max(panel_size), min(panel_size)],
+                "detected": detected,
+                "faceNotes": face_notes,  # so the Typeface warning follows the form
             }
         ),
         mode_field=_radio_field(
@@ -586,14 +807,15 @@ def page(
         ),
         web_field=_web_field(settings, attached),
         rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
-        margin_field=_margin_field(settings, detected),
+        output_field=_output_field(settings, detected),
+        margin_field=_margin_field(settings, paneled),
         refreshes=_refreshes(settings),
         lookback_off="" if windowed else ' class="off"',
         lookback_disabled="" if windowed else " disabled",
         lookbacks=_lookbacks(settings),
         limit_field=_species_field(settings),
         layout_field=_layout_field(settings),
-        names_field=_names_field(settings, languages, names_failure),
+        names_field=_names_field(settings, languages, names_failure, face_notes),
         style_field=_radio_field(
             "Artwork style",
             "style",
@@ -617,6 +839,7 @@ def page(
         online=_state(online, "online", "offline") + (f" · {iface}" if iface else ""),
         disk=hostinfo.disk_free(names_dir),
         started=_stamp(status.started_at),
+        reboot=_reboot(status),
         kiosk_size=f"{w}×{h}",
         rendered=rendered,
         latest=(
@@ -624,4 +847,6 @@ def page(
             if latest
             else ("none yet" if rows is not None else _outage(detector_state))
         ),
+        missing_hint=_hint(MISSING),
+        missing=missing_row(without) if without is not None else _outage(detector_state),
     )

@@ -10,7 +10,8 @@ export PATH="$HOME/.local/bin:$PATH"
 
 REPO_URL="https://github.com/arnegiacomo/fugleramme.git"
 REPO_DIR="${FUGLERAMME_DIR:-$HOME/fugleramme}"
-REPO_REF="${FUGLERAMME_REF:-main}"
+# Empty means the latest release: main can carry work that has not shipped.
+REPO_REF="${FUGLERAMME_REF:-}"
 ASSUME_YES=0
 DROP_BUNDLED=0
 NEEDS_REBOOT=0
@@ -244,13 +245,20 @@ ensure_docker() {
   curl -fsSL https://get.docker.com | sudo sh
 }
 
+latest_release() {
+  git ls-remote --tags --refs "$REPO_URL" 'v*' | sed 's|.*refs/tags/||' | sort -V | tail -n 1
+}
+
 ensure_repo() {
+  [[ -n $REPO_REF ]] || REPO_REF=$(latest_release)
+  [[ -n $REPO_REF ]] || need "a release to install"
+  echo "   installing $REPO_REF"
   if [[ -d "$REPO_DIR/.git" ]]; then
     git -C "$REPO_DIR" fetch --depth 1 origin "$REPO_REF"
-    # --force -B: a self-update leaves HEAD detached at a tag and uv sync rewrites
-    # uv.lock, either of which a plain checkout refuses to cross. Only tracked
-    # files are discarded, and everything the Pi owns is gitignored.
-    git -C "$REPO_DIR" checkout --force -B "$REPO_REF" "origin/$REPO_REF"
+    # Detached, like the self-update leaves it. --force: uv sync rewrites uv.lock,
+    # which a plain checkout refuses to cross. Only tracked files are discarded,
+    # and everything the Pi owns is gitignored.
+    git -C "$REPO_DIR" checkout --force --detach FETCH_HEAD
     return 0
   fi
   if [[ -e "$REPO_DIR" ]]; then
@@ -258,7 +266,7 @@ ensure_repo() {
     exit 1
   fi
   # Shallow: the Pi only needs the current tree, not every past version of the artwork.
-  git clone --depth 1 --branch "$REPO_REF" "$REPO_URL" "$REPO_DIR"
+  git -c advice.detachedHead=false clone --depth 1 --branch "$REPO_REF" "$REPO_URL" "$REPO_DIR"
 }
 
 ensure_mic() {

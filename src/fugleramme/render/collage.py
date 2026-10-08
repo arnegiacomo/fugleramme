@@ -28,9 +28,10 @@ import logging
 import math
 import threading
 from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cache
 from pathlib import Path
+from typing import NamedTuple
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -41,20 +42,23 @@ from ..source import Source
 from . import fonts, packing
 from .page import (
     MIN_LABEL_PX,
+    NEW,
     NO_MARGIN,
     Edges,
     blank,
     day_ordinal,
+    draw_mark,
     draw_perch,
     figures_mask,
     flatten,
     label_px,
+    mark_room,
     stamp,
     text_mask,
     trim,
 )
 from .paper import PAD, process_sprite
-from .sizes import SIZE_EXPONENT, mass_of, span_ratio
+from .sizes import SIZE_EXPONENT, bird_centre, mass_of, span_ratio
 
 log = logging.getLogger(__name__)
 
@@ -83,6 +87,12 @@ _OVERLAP_PX = 2  # erode the collision mask slightly so birds nestle into
 # each other's (invisible on paper) halos. No rotation:
 # it tilts the ground/water on birds drawn with terrain.
 _ATTEMPTS = 20
+_MAX_SHARE = 0.7  # the most of the short side one plate may take
+# The spotlit bird's own span, of the short side of the paper it packs into:
+# not sized by mass, so a wren in the middle is not tiny.
+SPOTLIGHT_SHARE = 0.6
+SPOTLIGHT_GAP = 0.05  # bare paper kept round it, of its own size
+SPOTLIGHT_LABEL = 1.5  # its name, against the other birds' names
 _KEY_SHARE = 0.4  # the most of the page the key may take, across its depth
 _KEY_LEADING = 1.2  # the key's line height, em
 
@@ -110,6 +120,47 @@ def _footprint(alpha: Image.Image) -> np.ndarray:
     eroded = np.asarray(mask.filter(ImageFilter.MinFilter(_OVERLAP_PX * 2 + 1)), dtype=bool)
     # A bird thinner than the erosion would reserve nothing and be packed over.
     return eroded if eroded.any() else np.asarray(mask, dtype=bool)
+
+
+def _grow(mask: np.ndarray, px: int) -> np.ndarray:
+    """`mask` dilated by a `px` square, padded to hold it. The shifts double up,
+    so a wide gap costs a handful of passes rather than one per pixel."""
+    out = np.pad(mask, px)
+    for axis in (0, 1):
+        reach = 0
+        while reach < px:
+            # The padding is clear, so what a roll wraps round is clear too.
+            step = min(max(reach, 1), px - reach)
+            out = out | np.roll(out, step, axis) | np.roll(out, -step, axis)
+            reach += step
+    return out
+
+
+def _spaced(sprite: _Sprite, gap: int) -> _Sprite:
+    """The sprite with `gap` of bare paper kept clear all round it, name included."""
+
+    def moved(at: tuple[int, int]) -> tuple[int, int]:
+        return at[0] + gap, at[1] + gap
+
+    label_at = None if sprite.label_at is None else moved(sprite.label_at)
+    return replace(
+        sprite, mask=_grow(sprite.mask, gap), art_at=moved(sprite.art_at), label_at=label_at
+    )
+
+
+def _held(pin: _Pin, alpha: Image.Image, flip: bool) -> tuple[np.ndarray, tuple[int, int]]:
+    """A pinned bird's footprint, and where the bird's own middle is on its art."""
+    art = _footprint(_scaled(alpha, pin.dim, flip))
+    fx, fy = pin.centre
+    return art, (round((1 - fx if flip else fx) * art.shape[1]), round(fy * art.shape[0]))
+
+
+class _Pin(NamedTuple):
+    """The bird held in the middle at a fixed size, while the rest shrink round it."""
+
+    entry: int
+    dim: int
+    centre: tuple[float, float]  # the bird on its plate, as `sizes.bird_centre` has it
 
 
 @dataclass(frozen=True, eq=False)  # eq: a generated __eq__ would raise on the ndarray
@@ -197,13 +248,15 @@ def _layout(
     label_text: Callable[[str], str],
     layout: str,
     mask_of: _Mask = text_mask,
+    pin: _Pin | None = None,
 ):
     """Shrink the set until every bird, name included, fits, then bisect back
     toward the size that failed, for as many steps as the layout affords.
     Returns the placements with the name size they were reserved at. Names have
     to shrink too: a fixed-size name never yields, so a full page of them cannot
-    converge at all."""
+    converge at all. A `pin` comes first in `order`."""
     chosen = packing.layout_of(layout)
+    art, centre_at = _held(pin, alphas[pin.entry], flips[pin.entry]) if pin else (None, (0, 0))
 
     @cache  # a midpoint often lands back on a size already rasterized
     def rasterize(px: int) -> tuple[list[Image.Image], int]:
@@ -212,18 +265,35 @@ def _layout(
         font = fonts.load(font_key, px)  # only the size is packed; the draw pass re-rasterizes
         return [mask_of(label_text(names[i]), font, False) for i in order], round(px * 0.35)
 
+    @cache  # the pinned bird only changes with its name's size
+    def held(px: int) -> _Sprite:
+        assert pin is not None and art is not None
+        named = None
+        if font_key:
+            big = round(px * SPOTLIGHT_LABEL)
+            label = mask_of(label_text(names[pin.entry]), fonts.load(font_key, big), False)
+            named = _with_label(pin.entry, pin.dim, art, label, round(big * 0.35))
+        # Its name keeps its usual place; the gap holds the neighbours off both.
+        return _spaced(named or _Sprite(pin.entry, pin.dim, art), round(pin.dim * SPOTLIGHT_GAP))
+
     def attempt(shrink: float):
         px = max(MIN_LABEL_PX, round(name_px * shrink)) if font_key else 0
-        labels, gap = rasterize(px)
+        labels, spacing = rasterize(px)
         sprites = []
         for n, i in enumerate(order):
+            if pin and i == pin.entry:
+                sprites.append(held(px))
+                continue
             dim = max(24, int(base * shrink * weights[i]))
             mask = _footprint(_scaled(alphas[i], dim, flips[i]))
             sprites.append(
-                _with_label(i, dim, mask, labels[n], gap) if font_key else _Sprite(i, dim, mask)
+                _with_label(i, dim, mask, labels[n], spacing) if font_key else _Sprite(i, dim, mask)
             )
-        placed = chosen.pack(sprites, width, height)
-        return None if placed is None else (_center(placed, width, height), px)
+        anchor = _at(sprites[0].art_at, 1, centre_at) if pin else None
+        placed = chosen.pack(sprites, width, height, anchor)
+        if placed is None:
+            return None
+        return (placed if pin else _center(placed, width, height)), px
 
     fit = None
     failed = None  # the smallest size that did not fit, if any did
@@ -282,6 +352,7 @@ def _placements(
     layout: str,
     margin: Edges,
     mask_of: _Mask,
+    spotlit: tuple[int, tuple[float, float]] | None = None,
 ) -> tuple[tuple[_Placed, ...], int]:
     """Pack the page, or return the cached packing. A kiosk locked to the panel
     packs identically to it - only `scale` and the paper differ - so whichever
@@ -292,26 +363,39 @@ def _placements(
         if hit is not None:
             return hit
 
-        # Each bird's target size scales with its real mass (compressed); the whole
-        # set then overshoots and shrinks until it fits the canvas, biggest first.
-        # The ratio rides in the weight, so `base` below still measures what is drawn.
-        weights = [w * r for w, r in zip(_size_weights(names), ratios, strict=True)]
-        order = sorted(range(len(names)), key=lambda i: -weights[i])
-        base = min(
-            math.sqrt(width * height * 1.5 / sum(w * w for w in weights)),
-            min(width, height) * 0.7 / max(weights),
-        )
         # Pack inside the margin but size off the whole page, so only a set that
         # doesn't fit has to shrink.
         x0, y0, x1, y1 = margin.window((width, height))
         box = (x1 - x0, y1 - y0)
+
+        # Each bird's target size scales with its real mass (compressed); the whole
+        # set then overshoots and shrinks until it fits the canvas, biggest first.
+        # The ratio rides in the weight, so `base` below still measures what is drawn.
+        rest = [i for i in range(len(names)) if not spotlit or i != spotlit[0]]
+        mass = dict(zip(rest, _size_weights([names[i] for i in rest]), strict=True)) if rest else {}
+        weights = [mass.get(i, 0.0) * r for i, r in enumerate(ratios)]
+        order = sorted(rest, key=lambda i: -weights[i])
+        base = (
+            min(
+                math.sqrt(width * height * 1.5 / sum(weights[i] ** 2 for i in rest)),
+                min(width, height) * _MAX_SHARE / max(weights[i] for i in rest),
+            )
+            if rest
+            else 0.0
+        )
+        pin = None
+        if spotlit:
+            index, centre = spotlit
+            share = min(SPOTLIGHT_SHARE * ratios[index], _MAX_SHARE)
+            pin = _Pin(index, round(share * min(box)), centre)
+            order = [index, *order]
         alphas = [img.getchannel("A") for img in arts]
         args = (names, alphas, order, weights, flips, base, *box)
 
-        placed, used_px = _layout(*args, font_key, name_px, label_text, layout, mask_of)
+        placed, used_px = _layout(*args, font_key, name_px, label_text, layout, mask_of, pin)
         if placed is None and font_key:  # birds beat blank paper
             log.warning("No layout fits %d species with names at %dx%d", len(names), *box)
-            placed, used_px = _layout(*args, None, name_px, label_text, layout, mask_of)
+            placed, used_px = _layout(*args, None, name_px, label_text, layout, mask_of, pin)
 
         result = (
             tuple(
@@ -346,6 +430,7 @@ def render_collage(
     layout: str = packing.DEFAULT_LAYOUT,
     margin: Edges = _DEFAULT_EDGES,
     name_key: bool = False,
+    spotlight: str | None = None,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
@@ -356,6 +441,7 @@ def render_collage(
     layout: how the birds are packed (packing.LAYOUTS).
     margin: bare paper along each edge, as fractions of the short side.
     name_key: with names on, number the birds and list the names in a key.
+    spotlight: the entry drawn large in the middle, the rest packed round it.
     """
     canvas = blank(resolution, textured)
 
@@ -364,7 +450,9 @@ def render_collage(
         draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
     if show_names and name_key:
-        _draw_keyed(canvas, kept, textured, font_key, label_size, label_text, layout, margin)
+        _draw_keyed(
+            canvas, kept, textured, font_key, label_size, label_text, layout, margin, spotlight
+        )
         return canvas
 
     # Pack pixels from here down; `scale` takes them to the output.
@@ -383,13 +471,15 @@ def render_collage(
         label_text,
         layout,
         margin,
+        spotlight=spotlight,
     )
     # Names last: halos feather past the collision mask, so a name drawn inline
     # with the birds would be washed over by the next neighbour.
     if used_px:
         font = fonts.load(font_key, max(1, round(used_px * scale)))
         texts = {p.index: label_text(names[p.index]) for p in placed}
-        _stamp_labels(canvas, placed, texts, font, scale, (0, 0), textured)
+        held = names.index(spotlight) if spotlight in names else None
+        _stamp_labels(canvas, placed, texts, font, scale, (0, 0), textured, held=held)
     return canvas
 
 
@@ -406,6 +496,7 @@ def _draw_birds(
     layout: str,
     margin: Edges,
     mask_of: _Mask = text_mask,
+    spotlight: str | None = None,
 ) -> tuple[tuple[_Placed, ...], int]:
     """Pack the birds into a `pack` box and draw them at `origin`, `scale`
     times larger, labels reserved but not drawn. Returns the placements and
@@ -427,6 +518,7 @@ def _draw_birds(
         labels,
         layout,
         margin,
+        spotlight,
     )
     placed, used_px = _placements(
         key,
@@ -442,6 +534,7 @@ def _draw_birds(
         layout,
         margin,
         mask_of,
+        _spotlit(kept, arts, spotlight),
     )
 
     for p in placed:
@@ -453,6 +546,17 @@ def _draw_birds(
     return placed, used_px
 
 
+def _spotlit(
+    kept: list[tuple[str, Path]], arts: list[Image.Image], spotlight: str | None
+) -> tuple[int, tuple[float, float]] | None:
+    """The spotlit entry's index and where its bird is on the plate, if it is on the page."""
+    names = [name for name, _ in kept]
+    if spotlight not in names:
+        return None
+    index = names.index(spotlight)
+    return index, bird_centre(kept[index][1], arts[index].size)
+
+
 def _stamp_labels(
     canvas: Image.Image,
     placed: Iterable[_Placed],
@@ -462,12 +566,15 @@ def _stamp_labels(
     origin: tuple[int, int],
     textured: bool,
     mask_of: _Mask = text_mask,
+    held: int | None = None,
 ) -> None:
-    """Each text centred in the box its bird reserved for it."""
+    """Each text centred in the box its bird reserved for it, the `held` bird's
+    set larger as it was packed."""
+    larger = fonts.resized(font, round(font.size * SPOTLIGHT_LABEL))
     for p in placed:
         if p.label_at is None:
             continue
-        mask = mask_of(texts[p.index], font, not textured)
+        mask = mask_of(texts[p.index], larger if p.index == held else font, not textured)
         at = _at(p.label_at, scale, origin)
         centred = at[0] + round((p.label_w * scale - mask.width) / 2)
         stamp(canvas, mask, (centred, at[1]), textured)
@@ -507,7 +614,7 @@ def _fit_key(
         num_w = math.ceil(font.getlength(f"{len(texts)}."))
         space = round(px * 0.4)
         gutter = round(px * 1.2)
-        widest = max(font.getlength(part) for t in texts for part in t)
+        widest = max(_line_width(part, font) for t in texts for part in t)
         col_w = num_w + space + math.ceil(widest) + gutter
         # The last entry ends at its descenders, not its leading.
         last = (depth - 1) * line + sum(font.getmetrics())
@@ -528,6 +635,13 @@ def _fit_key(
     return _Key(px, rows, line, entry, num_w, space, col_w, below, area), birds
 
 
+def _line_width(line: str, font: ImageFont.FreeTypeFont) -> float:
+    """A key line's width in the face it is set in, its mark included."""
+    text = line.removesuffix(NEW)
+    face = fonts.face(text, font)
+    return face.getlength(text) + (mark_room(face) if text != line else 0)
+
+
 def _reading_order(placed: Sequence[_Placed], width: int, height: int) -> list[_Placed]:
     """Left to right in bands down the page, the way a plate's key is numbered."""
     rows = max(1, round(math.sqrt(len(placed) * height / width)))
@@ -538,6 +652,13 @@ def _reading_order(placed: Sequence[_Placed], width: int, height: int) -> list[_
         return int(y // band), x + p.label_w / 2
 
     return sorted(placed, key=spot)
+
+
+def _numbered(
+    placed: Sequence[_Placed], width: int, height: int, held: int | None
+) -> list[_Placed]:
+    """The key's order: a spotlit bird is number 1, the rest follow in reading order."""
+    return sorted(_reading_order(placed, width, height), key=lambda p: p.index != held)
 
 
 def _figures_box(count: int) -> _Mask:
@@ -560,6 +681,7 @@ def _draw_keyed(
     label_text: Callable[[str], str],
     layout: str,
     margin: Edges,
+    spotlight: str | None = None,
 ) -> None:
     """The birds with a number each, and their names in a key. The key is fitted
     in pack pixels like the birds, so every output of one page gets one layout."""
@@ -587,12 +709,14 @@ def _draw_keyed(
         layout,
         NO_MARGIN,
         _figures_box(count),
+        spotlight,
     )
-    order = _reading_order(placed, bx1 - bx0, by1 - by0)
+    held = next((i for i, (name, _) in enumerate(kept) if name == spotlight), None)
+    order = _numbered(placed, bx1 - bx0, by1 - by0, held)
     if used_px:
         font = fonts.load(font_key, max(1, round(used_px * scale)))
         numbers = {p.index: str(n) for n, p in enumerate(order, 1)}
-        _stamp_labels(canvas, order, numbers, font, scale, origin, textured, figures_mask)
+        _stamp_labels(canvas, order, numbers, font, scale, origin, textured, figures_mask, held)
 
     pad = max(1, round(key.px * scale))  # also room for the italic's overhang, cropped off below
     font = fonts.load(font_key, pad)
@@ -607,7 +731,11 @@ def _draw_keyed(
         draw.text((x, y), f"{n + 1}.", font=font, fill=255, anchor="rs")
         for k, part in enumerate(texts[p.index]):
             at = (x + round(key.space * scale), y + round(k * key.line * scale))
-            draw.text(at, part, font=font, fill=255, anchor="ls")
+            line = part.removesuffix(NEW)
+            face = fonts.face(line, font)
+            draw.text(at, line, font=face, fill=255, anchor="ls")
+            if line != part:
+                draw_mark(mask, at[0] + face.getlength(line), at[1], face)
     mask = mask if textured else flatten(mask)
     # Anchored by its ink to the page edge: the metrics miss the italic's overhang.
     ink = mask.crop(mask.getbbox())
@@ -650,8 +778,11 @@ def selected_species(
     limit: int = NO_LIMIT,
     ranking: str = DEFAULT_RANKING,
     keys: set[str] | None = None,
+    spotlight: str | None = None,
 ) -> list[str]:
     """The species that make the page, in name order.
+
+    `spotlight` takes a place ahead of the ranking if the window heard it.
 
     Name order because the packing must not depend on the counts - a bird merely
     heard again would reshuffle the page. Which birds are on it does depend on
@@ -670,7 +801,11 @@ def selected_species(
         # A resident heard twice today is not a rarity; a first-timer is.
         ever = _by_species(source.species_since(0))  # 0 hours: the whole record
         counted = [(name, ever.get(name, n)) for name, n in counted]
-    return sorted(name for name, _n in sorted(counted, key=_rank(ranking))[:limit])
+    lead = canonical(spotlight) if spotlight else None
+    first = [name for name, _n in counted if name == lead]
+    rest = [pair for pair in counted if pair[0] != lead]
+    ranked = sorted(rest, key=_rank(ranking))[: limit - len(first)]
+    return sorted(first + [name for name, _n in ranked])
 
 
 def gather_entries(
@@ -681,10 +816,13 @@ def gather_entries(
     hours: float = 24,
     limit: int = NO_LIMIT,
     ranking: str = DEFAULT_RANKING,
+    spotlight: str | None = None,
 ) -> list[tuple[str, Path | None]]:
     """The page's species paired with the artwork each is wearing. The None only
     stands for a file that vanished between `selected_species` and here."""
     return [
         (name, image_for(name, images_dir, style, picks))
-        for name in selected_species(source, images_dir, style, hours, limit, ranking)
+        for name in selected_species(
+            source, images_dir, style, hours, limit, ranking, spotlight=spotlight
+        )
     ]

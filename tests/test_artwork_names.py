@@ -39,6 +39,7 @@ EXCEPTIONS = {
     "curruca-ruppeli",  # Rüppell's Warbler
     "falco-biarmicus",  # Lanner Falcon
     "falco-concolor",  # Sooty Falcon
+    "gymnogyps-californianus",  # California Condor
     "gypaetus-barbatus",  # Bearded Vulture
     "neophron-percnopterus",  # Egyptian Vulture
     "numenius-tenuirostris",  # Slender-billed Curlew
@@ -251,3 +252,27 @@ def test_every_manifest_source_is_named_in_attribution():
     assert not orphans, "manifest sources with no ATTRIBUTION.md entry naming them:\n" + "\n".join(
         sorted(set(orphans))
     )
+
+
+# Long side of a shipped bird, in px. Plates are cut to at most 1200.
+MIN_SIDE = 600
+
+# Current exceptions (plates didn't have higher scans) - consider finding alternatives
+SMALL = {
+    "classic/birds/periparus-ater-2.webp",
+    "classic/birds/poecile-atricapillus.webp",
+    "classic/birds/poecile-atricapillus-2.webp",
+}
+
+
+def test_every_bird_is_cut_large_enough(library):
+    """The plate modes draw one bird large, so a small cut shows there as a soft,
+    upscaled bird. The fix is a larger scan of the same plate, not a resize."""
+    small = [
+        f"{key}: {max(plate.size)} px"
+        for path, plate in library.items()
+        if path.parent.name == BIRDS
+        and max(plate.size) < MIN_SIDE
+        and (key := path.relative_to(IMAGES).as_posix()) not in SMALL
+    ]
+    assert not small, f"birds under {MIN_SIDE} px on their long side:\n" + "\n".join(small)

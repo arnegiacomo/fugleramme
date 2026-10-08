@@ -61,18 +61,18 @@ feat: #23 add a mic-less display mode
 docs: fix the passepartout measurements
 ```
 
-Releases are cut straight from these:
+The type decides what the next release bumps:
 
-| Type | Release kind |
+| Type | Bump |
 | --- | --- |
 | `feat` | minor |
 | `fix`, `perf` | patch |
-| anything else (e.g. `docs`) | no release |
+| anything else (e.g. `docs`) | none |
 
 PRs are squashed, so the title is the message that counts.
 
 **Artwork is `chore`, not `fix`** - `chore(assets): add Sturnus unicolor`. A new
-bird isn't a new version of the software, so it is added to the next release rather than cutting one of its own.
+bird isn't a change to the software, so it rides along in the next release without bumping the version.
 
 ## Artwork
 

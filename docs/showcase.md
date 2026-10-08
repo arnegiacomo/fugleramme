@@ -78,6 +78,24 @@ Frames people have running around the world. Click one to open it.
       <figcaption>Mississippi, USA <small>fugleramme.flerp.xyz</small></figcaption>
     </a>
   </figure>
+  <figure>
+    <a href="https://fugleramme.jstaff.trade/">
+      <img src="https://fugleramme.jstaff.trade/collage.png" alt="The frame in Vienna, Virginia, USA" loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>Vienna, Virginia, USA <small>fugleramme.jstaff.trade</small></figcaption>
+    </a>
+  </figure>
+  <figure>
+    <a href="https://fugleramme.tawnyswallow.com/">
+      <img src="https://fugleramme.tawnyswallow.com/collage.png" alt="The frame in Portland, Oregon, USA" loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>Portland, Oregon, USA <small>fugleramme.tawnyswallow.com</small></figcaption>
+    </a>
+  </figure>
+  <figure>
+    <a href="https://fugleramme.seanjones.dev/">
+      <img src="https://fugleramme.seanjones.dev/collage.png" alt="The frame in Victoria, British Columbia, Canada" loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>Victoria, British Columbia, Canada <small>fugleramme.seanjones.dev</small></figcaption>
+    </a>
+  </figure>
 </div>
 
 Running one yourself and want to share with others? Post the link in

@@ -28,6 +28,11 @@ _TRANSPOSE = {
 }
 
 
+def to_glass(image: Image.Image, rotation: int) -> Image.Image:
+    """A page as the viewer sees it, turned back to the glass's own landscape."""
+    return image.transpose(_TRANSPOSE[rotation]) if rotation else image
+
+
 class Panel:
     def __init__(self, device):
         self._device = device
@@ -36,8 +41,7 @@ class Panel:
         self.driver: str = type(device).__module__
 
     def push(self, image: Image.Image, rotation: int = 0) -> None:
-        if rotation:
-            image = image.transpose(_TRANSPOSE[rotation])
+        image = to_glass(image, rotation)
         if image.size != self.resolution:
             raise ValueError(f"image is {image.size}, panel is {self.resolution}")
         self._device.set_image(image)

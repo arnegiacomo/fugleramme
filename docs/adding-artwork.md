@@ -2,12 +2,8 @@
 
 ## Find what is missing
 
-See [Species coverage](species.md). The admin page marks a bird the current style cannot draw with "no art". The
-frame logs the same list whenever it re-renders:
-
-```bash
-journalctl -u fugleramme-frame | grep "No artwork"
-```
+The admin page's Detector tab counts every bird your station has heard without art, and opens a Missing bird issue
+with the list pre-filled or copies it. If you like logs: `journalctl -u fugleramme-frame | grep "No artwork"` lists the ones it skipped recently.
 
 ## Source an image
 
@@ -17,6 +13,8 @@ name followed by "illustrations", for example [Streptopelia decaocto illustratio
 Choose public-domain or openly licensed artwork whose terms are compatible with
 the style. Keep the artist or work name, licence, and link to the original image
 for its manifest and `ATTRIBUTION.md` entries.
+
+Grab the highest resolution version of the scan you can find. Once cut out, the bird should be at least 600 px tall or wide, otherwise it'll look ugly when the frame shows it in a single-bird mode.
 
 ## Prepare the image
 

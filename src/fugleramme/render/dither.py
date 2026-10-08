@@ -15,7 +15,10 @@ dithering against the blend measures color distance in roughly panel space.
 
 from __future__ import annotations
 
+import numpy as np
 from PIL import Image
+
+from .paper import PANEL_PAPER, _reach
 
 # Driver index order: black, white, yellow, red, blue, green.
 _DESATURATED = [(0, 0, 0), (255, 255, 255), (255, 255, 0), (255, 0, 0), (0, 0, 255), (0, 255, 0)]
@@ -25,6 +28,13 @@ _SATURATED = [(0, 0, 0), (161, 164, 165), (208, 190, 71), (156, 72, 75), (61, 59
 # spreads more ink; the blend must stay nearest-neighbour to _DESATURATED or the
 # driver's remap will land on the wrong color.
 SATURATION = 0.5
+
+_LIFT = np.array([0.887, 0.906, 0.950])
+_PIVOT = 182
+_CONTRAST = 1.15
+_FADE = 4
+_HALO = 12
+_HALO_REACH = 32
 
 PALETTE_6 = [
     tuple(int(s * SATURATION + d * (1.0 - SATURATION)) for s, d in zip(sat, desat, strict=True))
@@ -43,8 +53,22 @@ def _palette_image() -> Image.Image:
     return pal
 
 
+def _boost(rgb: np.ndarray) -> np.ndarray:
+    return _PIVOT + (rgb * _LIFT - _PIVOT) * _CONTRAST
+
+
+def _pop(image: Image.Image) -> Image.Image:
+    """Darken the birds so pale plumage takes ink. The paper and the halos keep
+    their tone, or the halos would ring the birds."""
+    rgb = np.asarray(image.convert("RGB"), np.float64)
+    paper = np.array(PANEL_PAPER, np.float64)
+    dist = np.linalg.norm(rgb - paper, axis=2)
+    halo = _reach(dist <= 1, dist <= _HALO, _HALO_REACH) > 0
+    keep = np.maximum(np.exp(-dist / _FADE), halo)[..., None]
+    out = _boost(rgb) + keep * (paper - _boost(paper))
+    return Image.fromarray(np.clip(np.rint(out), 0, 255).astype(np.uint8))
+
+
 def dither(image: Image.Image) -> Image.Image:
     """Quantize an RGB image to the 6-color panel palette (returns mode "P")."""
-    return image.convert("RGB").quantize(
-        palette=_palette_image(), dither=Image.Dither.FLOYDSTEINBERG
-    )
+    return _pop(image).quantize(palette=_palette_image(), dither=Image.Dither.FLOYDSTEINBERG)

@@ -4,16 +4,31 @@ name loses the names rather than the birds."""
 
 from __future__ import annotations
 
+import math
+import string
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import numpy as np
 import pytest
-from PIL import Image, ImageFont
+from PIL import Image, ImageDraw, ImageFont, features
 
-from fugleramme.render import collage, fonts
+from fugleramme import fake
+from fugleramme.languages import NONE, Namer
+from fugleramme.render import collage, fonts, page
 from fugleramme.render.collage import _Sprite, _with_label, render_collage
 from fugleramme.render.packing import _probes, spiral
-from fugleramme.render.page import INK, PANEL_INK, Edges, figures_mask, label_px, stamp, text_mask
+from fugleramme.render.page import (
+    _LINE_SPACING,
+    INK,
+    NEW,
+    PANEL_INK,
+    Edges,
+    figures_mask,
+    label_px,
+    stamp,
+    text_mask,
+)
 from fugleramme.render.paper import PANEL_PAPER
 
 
@@ -24,7 +39,9 @@ def _ink(font, text="Turdus merula") -> float:
 @pytest.mark.parametrize("key", sorted(fonts.FONTS))
 def test_every_font_is_pinned_to_book_weight(key):
     _name, filename = fonts.FONTS[key]
-    raw = ImageFont.truetype(str(fonts.FONTS_DIR / filename), 26)
+    raw = ImageFont.truetype(
+        str(fonts.FONTS_DIR / filename), 26, layout_engine=ImageFont.Layout.BASIC
+    )  # as `load` lays out, so only the weight differs
     variable = True
     try:
         raw.get_variation_axes()
@@ -328,6 +345,9 @@ def test_the_birds_are_numbered_in_reading_order():
     at = [(500, 20), (20, 30), (300, 520), (40, 500)]  # two rows, each out of order
     placed = [collage._Placed(i, 10, xy, xy, 10) for i, xy in enumerate(at)]
     assert [p.index for p in collage._reading_order(placed, 600, 600)] == [1, 0, 3, 2]
+    assert [p.index for p in collage._numbered(placed, 600, 600, None)] == [1, 0, 3, 2]
+    # A spotlit bird is number 1, wherever it sits; the rest keep reading order.
+    assert [p.index for p in collage._numbered(placed, 600, 600, 2)] == [2, 1, 0, 3]
 
 
 @pytest.mark.parametrize("key", sorted(fonts.FONTS))
@@ -339,3 +359,119 @@ def test_a_bird_reserves_room_for_any_number(key):
         for n in range(1, collage.KEY_LIMIT + 1):
             drawn = figures_mask(str(n), font, True)
             assert drawn.width <= room.width and drawn.height == room.height
+
+
+def test_a_mark_hangs_off_the_name_without_moving_it():
+    """As much room on the left as the mark takes on the right, so the name
+    stays centred under its bird."""
+    font = fonts.load(fonts.DEFAULT_FONT, 40)
+    plain = np.asarray(text_mask("Erithacus rubecula", font, False)) > 0
+    marked = np.asarray(text_mask("Erithacus rubecula" + NEW, font, False)) > 0
+    side = (marked.shape[1] - plain.shape[1]) // 2
+    assert side > 0 and marked.shape[1] == plain.shape[1] + 2 * side
+    assert not marked[:, :side].any() and marked[:, -side:].any()
+    tops = range(marked.shape[0] - plain.shape[0] + 1)
+    assert any(
+        (marked[t : t + plain.shape[0], side : side + plain.shape[1]] >= plain).all() for t in tops
+    )
+
+
+def test_a_short_first_line_keeps_its_mark_inside_the_label():
+    """Centred on the longer second line, the first has paper after it."""
+    font = fonts.load(fonts.DEFAULT_FONT, 40)
+    text = "Rødstrupe\n(Erithacus rubecula)"
+    plain, marked = (
+        text_mask(text, font, False),
+        text_mask(text.replace("\n", NEW + "\n"), font, False),
+    )
+    assert marked.width == plain.width
+    assert (np.asarray(marked) > 0).sum() > (np.asarray(plain) > 0).sum()
+
+
+@pytest.mark.parametrize("key", sorted(fonts.FONTS))
+@pytest.mark.parametrize("text", ["Turdus", "anser", "Rødstrupe\n(Erithacus rubecula)"])
+def test_a_mark_never_runs_off_its_label(key, text):
+    """Set larger than the text, it can reach past the lettering: the label holds it."""
+    font = fonts.load(key, 24)
+    first, *rest = text.split("\n")
+    ink = np.asarray(text_mask("\n".join([first + NEW, *rest]), font, False)) > 0
+    assert not (ink[0].any() or ink[-1].any() or ink[:, 0].any() or ink[:, -1].any())
+
+
+# One name per label locale, from BirdNET v2.4's labels by way of the fake.
+SCRIPTS = {code: fake.LABELS[code]["Passer domesticus"] for code in sorted(fake.LABELS)}
+SHAPED = {"ar", "he", "ml"}  # unreadable unshaped, so set only where raqm is
+
+
+def _tofu(text: str) -> str:
+    """`text` as characters no face has, so it draws as the face's notdef boxes."""
+    return "".join(c if c == " " else "\U0010fffd" for c in text)
+
+
+@pytest.mark.parametrize("code", sorted(SCRIPTS))
+@pytest.mark.parametrize("key", sorted(fonts.FONTS))
+def test_every_face_sets_every_script(key, code):
+    if code in SHAPED and not features.check("raqm"):
+        pytest.skip("no raqm here: libfribidi is not installed")
+    font = fonts.load(key, 26)
+    name = SCRIPTS[code]
+    assert fonts._covers(str(fonts.face(name, font).path), name)
+    drawn = np.asarray(text_mask(name, font, False))
+    boxes = np.asarray(text_mask(_tofu(name), font, False))
+    assert drawn.shape != boxes.shape or (drawn != boxes).any()
+
+
+@pytest.mark.parametrize("key", sorted(fonts.FONTS))
+def test_a_latin_label_is_drawn_as_it_always_was(key):
+    font = fonts.load(key, 26)
+    text = "Rødstrupe\n(Erithacus rubecula)"
+    spacing = round(font.size * _LINE_SPACING)
+    x0, y0, x1, y1 = ImageDraw.Draw(Image.new("L", (1, 1))).multiline_textbbox(
+        (0, 0), text, font=font, spacing=spacing, align="center"
+    )
+    expected = Image.new("L", (math.ceil(x1 - x0) + 2, math.ceil(y1 - y0) + 2), 0)
+    ImageDraw.Draw(expected).multiline_text(
+        (1 - x0, 1 - y0), text, font=font, fill=255, spacing=spacing, align="center"
+    )
+    assert text_mask(text, font, False).tobytes() == expected.tobytes()
+
+
+def test_a_label_in_two_scripts_stacks_centred():
+    font = fonts.load(fonts.DEFAULT_FONT, 40)
+    ink = np.asarray(text_mask("カラス\n(Corvus corone)", font, True)) > 0
+    rows = ink.any(axis=1)
+    inked = rows.nonzero()[0]
+    gap = inked.min() + int(np.argmin(rows[inked.min() :]))  # the first blank row
+    assert rows[gap:].any()  # a second line below the blank band
+    for line in (ink[:gap], ink[gap:]):
+        columns = line.any(axis=0).nonzero()[0]
+        assert (columns.min() + columns.max()) / 2 == pytest.approx(ink.shape[1] / 2, abs=3)
+
+
+@pytest.mark.parametrize("fallback", fonts.FALLBACKS, ids=lambda f: f.file)
+def test_every_fallback_sets_figures_and_punctuation(fallback):
+    """Dates and a second language's parentheses run into the script's line."""
+    assert fonts._covers(
+        str(fonts.FONTS_DIR / fallback.file), string.digits + string.punctuation + " "
+    )
+
+
+@pytest.mark.parametrize("code", ["ja", "zh", "ko"])
+def test_the_cjk_subset_sets_every_date(code):
+    cjk = next(str(fonts.FONTS_DIR / f.file) for f in fonts.FALLBACKS if "CJK" in f.file)
+    namer = Namer(code, NONE, {}, ())
+    for month in range(1, 13):
+        for hour in (0, 11, 12, 23):
+            when = datetime(2026, month, 28, hour, tzinfo=UTC)
+            assert fonts._covers(cjk, namer.date(when) + namer.moment(when))
+
+
+@pytest.mark.parametrize("name", ["Erithacus rubecula", SCRIPTS["zh"]])
+def test_a_mark_is_drawn_in_the_face_its_line_is_set_in(name):
+    font = fonts.load(fonts.DEFAULT_FONT, 30)
+    face = fonts.face(name, font)
+    with patch.object(page, "_mark", wraps=page._mark) as mark:
+        text_mask(name + NEW, font, False)
+    drawn_in = mark.call_args.args[0]
+    assert (drawn_in.path, drawn_in.size) == (face.path, face.size)
+    assert collage._line_width(name + NEW, font) == face.getlength(name) + page.mark_room(face)

@@ -39,14 +39,14 @@ from pathlib import Path
 from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 
-from .. import __version__, modes, updates
+from .. import __version__, e6, modes, updates
 from ..languages import namer
 from ..panel import Panel, resolution_of
 from ..picks import Picks
 from ..render.paper import paper_tile
 from ..settings import Settings, SettingsStore, merged
 from ..source import Source, Unavailable
-from ..status import Status
+from ..status import Frame, Status
 from . import LOGIN, LOGOUT, STATIC_DIR, admin
 
 log = logging.getLogger(__name__)
@@ -127,11 +127,19 @@ def make_handler(
     panel: Panel | None,
     status: Status,
 ):
-    attached = panel.resolution if panel else None  # None: nothing for the kiosk to lock to
+    def glass(settings: Settings) -> tuple[int, int] | None:
+        """The panel the page is laid out for, or None: nothing for the kiosk to lock to."""
+        if panel or settings.external_panel:
+            return resolution_of(panel)
+        return None
+
     # Held across requests: an outage must not blank every viewer at once. Tied
     # to the detector that drew it, since another station's birds are not ours.
     last_page: bytes | None = None
     last_from = ""
+    # The panel page last packed for /frame.e6, the poll it carried, and the frame
+    # it was packed from.
+    packed: tuple[Frame, int, bytes] | None = None
     # The kiosk polls every few seconds, so one warning per failed request would
     # never stop. Say it once, and again on recovery.
     unreachable = False
@@ -306,6 +314,7 @@ def make_handler(
             return parse_qs(urlparse(self.path).query, keep_blank_values=True)
 
         def _context(self, settings: Settings) -> modes.Context:
+            attached = glass(settings)
             return modes.context(
                 source,
                 images_dir,
@@ -338,6 +347,23 @@ def make_handler(
             # The panel's page where there is one, else the kiosk's.
             settings = replace(self._edited(), web_lock=True)
             self._send_cached(modes.png_bytes(self._context(settings)), "image/png")
+
+        def _e6(self):
+            # The loop's page, not a render of its own: it is already dithered, paced
+            # and held through an outage.
+            nonlocal packed
+            settings = store.get()
+            if not settings.external_panel:
+                self._send(404, b"not found", "text/plain")
+                return
+            frame = status.frame
+            if frame is None:
+                self._send(503, b"no page rendered yet", "text/plain")
+                return
+            poll = settings.refresh_minutes
+            if packed is None or packed[0] is not frame or packed[1] != poll:
+                packed = (frame, poll, e6.encode(*frame, poll))
+            self._send_cached(packed[2], "application/octet-stream")
 
         def _state(self):
             # Cheap enough to poll: one grouped query, no render.
@@ -389,6 +415,7 @@ def make_handler(
 
         ROUTES: ClassVar[dict] = {
             "/collage.png": _page_png,
+            "/frame.e6": _e6,
             "/preview.png": _preview_png,
             "/state": _state,
             "/paper.png": _paper,
@@ -484,6 +511,11 @@ def make_handler(
             elif action == "update" and status.update_available and not updates.in_container():
                 # The loop installs it: exiting mid-render or mid-push is not safe here.
                 status.update_requested = status.update_available
+            elif action == "reboot" and updates.can_reboot():
+                try:
+                    updates.reboot()
+                except RuntimeError as error:
+                    status.reboot_error = str(error)
             else:
                 changes = admin.form_changes(form)
                 password = changes.get("admin_password")

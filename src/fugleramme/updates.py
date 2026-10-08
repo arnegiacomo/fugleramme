@@ -80,6 +80,30 @@ def in_container() -> bool:
     )
 
 
+def can_reboot() -> bool:
+    """Whether the admin may reboot the machine: only the Pi's systemd service,
+    which sets INVOCATION_ID. An image's host and a dev run's workstation are not
+    the frame's to restart."""
+    return bool(os.environ.get("INVOCATION_ID")) and not in_container()
+
+
+def reboot() -> None:
+    """Reboot the Pi. Raises if its user may not without a password - the first
+    user on Raspberry Pi OS may."""
+    try:
+        done = subprocess.run(
+            ["sudo", "-n", "systemctl", "reboot"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError(str(error)) from error
+    if done.returncode != 0:
+        raise RuntimeError(done.stderr.strip() or "the reboot was refused")
+
+
 def apply(tag: str, progress: Progress | None = None) -> None:
     """Move the checkout onto `tag`. Raises on failure; the caller exits on success."""
     if in_container():

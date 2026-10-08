@@ -9,7 +9,10 @@
 <body>
 <header>
   <h1>Fugleramme</h1>
-  <nav><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a><a href="$docs_url" target="_blank" rel="noopener">Docs</a>$signout</nav>
+  <button type="button" id="menu" aria-label="Menu" aria-expanded="false" aria-controls="links">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <nav id="links"><a href="/">Kiosk</a><a id="birdnet" href="#" title="detection &amp; stats">BirdNET-Go</a><a href="$docs_url" target="_blank" rel="noopener">Docs</a>$signout</nav>
 </header>
 <nav class="tabs" role="tablist">
   <button type="button" role="tab" data-tab="display">Display</button>
@@ -35,6 +38,7 @@
       <h2>Margin <span class="hint" tabindex="0" role="img" aria-label="Space kept clear at the edges, for a mat that overlaps the panel"></span></h2>
       $margin_field
       <h2>Panel</h2>
+      $output_field
       <label><span>Rotation <span class="hint" tabindex="0" role="img" aria-label="How the frame hangs"></span></span>
         <select name="rotation">$rotations</select></label>
       <label><span>Refresh <span class="hint" tabindex="0" role="img" aria-label="How long the panel holds a page before new birds may change it"></span></span>
@@ -45,7 +49,7 @@
     <button type="submit">Save</button>
   </form>
   <aside class="side">
-    <h2>Preview</h2>
+    <h2 id="preview-title">Preview</h2>
     <div class="preview loading" id="preview">
       <p class="rendering"><span class="spinner"></span> Rendering…</p>
       <img id="shot" alt="Current page">
@@ -60,6 +64,7 @@
   <dl class="status">
     <dt>Detector</dt><dd id="detector-state">$birdnet</dd>
     <dt>Last detection</dt><dd>$latest</dd>
+    <dt class="missing">Without art $missing_hint</dt><dd class="missing">$missing</dd>
   </dl>
   <form class="block detector" id="detector" method="post" action="/admin">
     $detector_field
@@ -79,7 +84,7 @@
 <section id="tab-system" hidden>
   <h2>Updates</h2>
   <dl class="status">
-    <dt>Version</dt><dd>v$version</dd>
+    <dt>Version</dt><dd><a href="https://github.com/arnegiacomo/fugleramme/releases/tag/v$version" target="_blank" rel="noopener">v$version</a></dd>
     <dt>Update</dt><dd class="update">$update</dd>
   </dl>
   $auto_update
@@ -89,7 +94,7 @@
     <dt>Host</dt><dd>$host</dd>
     <dt>Internet</dt><dd>$online</dd>
     <dt>Disk</dt><dd>$disk</dd>
-    <dt>Started</dt><dd>$started</dd>
+    <dt>Started</dt><dd class="action">$started$reboot</dd>
     <dt>Kiosk render</dt><dd>$kiosk_size</dd>
   </dl>
   <h2>Activity</h2>
@@ -97,6 +102,12 @@
     <dt>Last render</dt><dd>$rendered</dd>
   </dl>
 </section>
+<footer>
+  <a href="https://github.com/arnegiacomo/fugleramme/releases/tag/v$version" target="_blank" rel="noopener">v$version</a>
+  <a href="https://github.com/arnegiacomo/fugleramme" target="_blank" rel="noopener">Source</a>
+  <a href="$bug_url" target="_blank" rel="noopener">Report a bug</a>
+  <a href="https://github.com/sponsors/arnegiacomo" target="_blank" rel="noopener">Sponsor</a>
+</footer>
 <script id="config" type="application/json">$config</script>
 <script src="/admin.js?v=$version"></script>
 </body>

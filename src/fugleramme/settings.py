@@ -25,7 +25,7 @@ from .config import (
     WEB_ASPECTS,
     WEB_HEIGHTS,
 )
-from .languages import NONE, SCIENTIFIC
+from .languages import NONE, SCIENTIFIC, STATION
 from .modes import DEFAULT_MODE, MODES
 from .render.collage import DEFAULT_MARGIN, DEFAULT_RANKING, NO_LIMIT, RANKINGS
 from .render.fonts import DEFAULT_FONT, DEFAULT_LABEL_SIZE, FONTS, LABEL_SIZES
@@ -95,6 +95,8 @@ class Settings:
     web_portrait: bool = False
     # Shapes the panel, and the kiosk while it is locked; only the panel turns the pixels.
     rotation: int = 0
+    # Serves the panel page at /frame.e6 for an external e-ink panel.
+    external_panel: bool = False
     lookback_hours: float = 24
     refresh_minutes: int = 0
     # The collage's own default, as a percent.
@@ -113,6 +115,8 @@ class Settings:
     style: str = ""
     # How the collage packs its birds; a plate has one bird and ignores it.
     layout: str = DEFAULT_LAYOUT
+    # The collage with the latest bird drawn large in the middle (#185).
+    spotlight: bool = False
     auto_update: bool = False
     show_names: bool = True
     # Numbers on the birds and the names in a key beside them, poster style.
@@ -240,7 +244,7 @@ def _language(value, default: str) -> str:
     if not isinstance(value, str):
         return default
     value = value.strip().lower()
-    return value if value in (NONE, SCIENTIFIC) or _LOCALE_RE.fullmatch(value) else default
+    return value if value in (NONE, SCIENTIFIC, STATION) or _LOCALE_RE.fullmatch(value) else default
 
 
 def _url(value, default: str) -> str:
@@ -287,6 +291,7 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
             raw.get("web_portrait"), rotation % 180 != 0 if "rotation" in raw else d.web_portrait
         ),
         rotation=rotation,
+        external_panel=_as_bool(raw.get("external_panel"), d.external_panel),
         lookback_hours=_as_hours(raw.get("lookback_hours"), d.lookback_hours),
         refresh_minutes=_as_int(raw.get("refresh_minutes"), d.refresh_minutes, 0, 24 * 60),
         margin=_as_int(raw.get("margin"), d.margin, 0, MARGIN_CEILING),
@@ -299,6 +304,7 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         ranking=_one_of(str(raw.get("ranking", d.ranking)), RANKINGS, d.ranking),
         style=_style(raw, d.style),
         layout=_one_of(str(raw.get("layout", d.layout)), LAYOUTS, d.layout),
+        spotlight=_as_bool(raw.get("spotlight"), d.spotlight),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
         show_names=_as_bool(raw.get("show_names"), d.show_names),
         name_key=_as_bool(raw.get("name_key"), d.name_key),

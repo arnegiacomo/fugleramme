@@ -122,6 +122,15 @@ def geometry_of(path: Path) -> Geometry | None:
     return None
 
 
+def _box(path: Path, size: tuple[int, int]) -> tuple[float, float, float, float] | None:
+    found = geometry_of(path)
+    # A box drawn on a different crop measures a part of the picture that has
+    # moved, and every number in it still looks valid. Nothing else catches this.
+    if found is None or found.cut != size:
+        return None
+    return found.box
+
+
 def span_ratio(path: Path, size: tuple[int, int]) -> float:
     """How much bigger a cut-out is than the bird in it, along the axis the
     collage measures.
@@ -130,11 +139,18 @@ def span_ratio(path: Path, size: tuple[int, int]) -> float:
     length only when the file is one bird cut tight. 1.0 without a usable box,
     which is what every plate drew at before boxes existed.
     """
-    found = geometry_of(path)
-    # A box drawn on a different crop measures a part of the picture that has
-    # moved, and every number in it still looks valid. Nothing else catches this.
-    if found is None or found.cut != size:
+    box = _box(path, size)
+    if box is None:
         return 1.0
-    box, (width, height) = found.box, size
+    width, height = size
     span = max((box[2] - box[0]) * width, (box[3] - box[1]) * height)
     return max(width, height) / span if span > 0 else 1.0
+
+
+def bird_centre(path: Path, size: tuple[int, int]) -> tuple[float, float]:
+    """Where the bird is on its plate, as fractions of it: the plate's own middle
+    without a usable box."""
+    box = _box(path, size)
+    if box is None:
+        return 0.5, 0.5
+    return (box[0] + box[2]) / 2, (box[1] + box[3]) / 2

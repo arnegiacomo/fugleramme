@@ -2,6 +2,284 @@
 
 <!-- version list -->
 
+## v0.27.1 (2026-10-04)
+
+### Bug Fixes
+
+- **admin**: Add a footer with version, source, bug report and sponsor links
+  ([`5f0bb89`](https://github.com/arnegiacomo/fugleramme/commit/5f0bb89af94176a5632764e2acf1353fb2557c1f))
+
+- **admin**: Fold the header links behind a menu button on phones
+  ([`908acca`](https://github.com/arnegiacomo/fugleramme/commit/908acca2b03856d56c51eb0d44d0345d7b7e8dda))
+
+- **admin**: Stretch the tabs to the screen width on phones
+  ([`a0ecbed`](https://github.com/arnegiacomo/fugleramme/commit/a0ecbede6747c4f20d438cb48015f7594ae558df))
+
+### Chores
+
+- **assets**: #159 #33 add Steller's jay by Bob Hines
+  ([#161](https://github.com/arnegiacomo/fugleramme/pull/161),
+  [`31f5481`](https://github.com/arnegiacomo/fugleramme/commit/31f5481fb3134685fff42e57176e83fb3d41b4af))
+
+- **assets**: #33 add branta-hutchinsii ([#229](https://github.com/arnegiacomo/fugleramme/pull/229),
+  [`16f9b5e`](https://github.com/arnegiacomo/fugleramme/commit/16f9b5e6ee80950c1a470dca76eac765cfe0f0ce))
+
+- **assets**: #33 Add Passerina cyanea ([#228](https://github.com/arnegiacomo/fugleramme/pull/228),
+  [`4cf046a`](https://github.com/arnegiacomo/fugleramme/commit/4cf046ad10cfe8d9f4a76d8538a43e9f26749b7b))
+
+- **ci**: Credit commit authors in the release notes
+  ([`21ef8b0`](https://github.com/arnegiacomo/fugleramme/commit/21ef8b08e5245b230224c28b397917e28cd04146))
+
+### Documentation
+
+- **showcase**: Add a frame in Victoria, shared by @SeanAJ in #224
+  ([`19d53b2`](https://github.com/arnegiacomo/fugleramme/commit/19d53b2a8f384eedc0eed588bef59ed578a2032a))
+
+
+## v0.27.0 (2026-10-04)
+
+### Chores
+
+- #184 add the frame tab and a margin per edge for the panel
+  ([`bf15cdc`](https://github.com/arnegiacomo/fugleramme/commit/bf15cdc90b328d28fc086805bd7161e810b649e9))
+
+- #54 link species names in the admin to BirdNET-Go
+  ([`6ea962b`](https://github.com/arnegiacomo/fugleramme/commit/6ea962bd9253e6c88f04477a494ea12f25a8bcf3))
+
+- Skip the preview commit when the render is unchanged
+  ([`7d106ab`](https://github.com/arnegiacomo/fugleramme/commit/7d106abdf02593f2cc4bfb7e9afbf8be87758f7e))
+
+- **admin**: Add birds without art to the detector tab
+  ([`d6e7194`](https://github.com/arnegiacomo/fugleramme/commit/d6e71946a34cd64bfe6b8d033f586dddd5819410))
+
+- **admin**: Refresh the preview when new birds arrive
+  ([`f0899fe`](https://github.com/arnegiacomo/fugleramme/commit/f0899feb3072b6fcd6fe21cd316081b09a83a486))
+
+- **admin**: Rename the names block to Labels
+  ([`8d3c224`](https://github.com/arnegiacomo/fugleramme/commit/8d3c224653bf3e61de5b5baffc76b5f7adaefcab))
+
+- **assets**: #194 add two Cracticus torquatus
+  ([#217](https://github.com/arnegiacomo/fugleramme/pull/217),
+  [`06246d3`](https://github.com/arnegiacomo/fugleramme/commit/06246d3f9bd3bae5b2c81dc86594d29e484a64e7))
+
+- **assets**: #33 #202 add three Psaltriparus minimus
+  ([#213](https://github.com/arnegiacomo/fugleramme/pull/213),
+  [`8102177`](https://github.com/arnegiacomo/fugleramme/commit/8102177033c4101612723780fcf0665990ee24b9))
+
+- **assets**: #33 add 2 North American birds
+  ([#201](https://github.com/arnegiacomo/fugleramme/pull/201),
+  [`95abd76`](https://github.com/arnegiacomo/fugleramme/commit/95abd7611347b4e33ac18461a83c2f3c68bf5ab1))
+
+- **assets**: #33 add 3 North American warblers
+  ([#199](https://github.com/arnegiacomo/fugleramme/pull/199),
+  [`789254e`](https://github.com/arnegiacomo/fugleramme/commit/789254eeb8a3faf5818e0903fa8dd6f1fe8e6ac2))
+
+- **assets**: #33 add 4 North American birds
+  ([#151](https://github.com/arnegiacomo/fugleramme/pull/151),
+  [`cd39fe2`](https://github.com/arnegiacomo/fugleramme/commit/cd39fe288d858ae37a28aad975f1c583f74f1505))
+
+- **assets**: #33 add a second Aphelocoma californica
+  ([#207](https://github.com/arnegiacomo/fugleramme/pull/207),
+  [`fd3fd8f`](https://github.com/arnegiacomo/fugleramme/commit/fd3fd8f1133af91a8d9be55c4490ea68a998669e))
+
+- **assets**: #33 add Aphelocoma californica
+  ([#204](https://github.com/arnegiacomo/fugleramme/pull/204),
+  [`0bdf28a`](https://github.com/arnegiacomo/fugleramme/commit/0bdf28a88b706053cc6cf56562e94e59a19ea957))
+
+- **assets**: #33 add Carolina wren alternative
+  ([#206](https://github.com/arnegiacomo/fugleramme/pull/206),
+  [`18f5fa3`](https://github.com/arnegiacomo/fugleramme/commit/18f5fa3541bb045d85a20138d6615b6b80cb8d1d))
+
+- **assets**: #33 add Colinus virginianus
+  ([#203](https://github.com/arnegiacomo/fugleramme/pull/203),
+  [`8e8b003`](https://github.com/arnegiacomo/fugleramme/commit/8e8b0034f069b4d3b021bc7195482c1fe7caf880))
+
+- **assets**: #33 add Cyanocitta stelleri by Swainson
+  ([#215](https://github.com/arnegiacomo/fugleramme/pull/215),
+  [`c1888cf`](https://github.com/arnegiacomo/fugleramme/commit/c1888cf0b90a95d9a1608925eaa8808e8eb4c365))
+
+- **assets**: #33 add Poecile carolinensis
+  ([#205](https://github.com/arnegiacomo/fugleramme/pull/205),
+  [`bca2908`](https://github.com/arnegiacomo/fugleramme/commit/bca2908bcbce5eb75fddc5e5f758ec254ec643d1))
+
+- **assets**: #33 add Regulus Satrapa ([#187](https://github.com/arnegiacomo/fugleramme/pull/187),
+  [`5662a84`](https://github.com/arnegiacomo/fugleramme/commit/5662a84de84876c60cc1677bf48c4f8ef6674ab2))
+
+- **assets**: #33 add Selasphorus rufus ([#209](https://github.com/arnegiacomo/fugleramme/pull/209),
+  [`ccc42c6`](https://github.com/arnegiacomo/fugleramme/commit/ccc42c669d0662d77c5d433108b2c9e43b0ffb58))
+
+- **assets**: #33 add three western North American birds
+  ([#219](https://github.com/arnegiacomo/fugleramme/pull/219),
+  [`f4f6bf0`](https://github.com/arnegiacomo/fugleramme/commit/f4f6bf0badcb9448770d64c898e0cadc17cf933c))
+
+- **assets**: #33 add two Spizella passerina variants
+  ([#210](https://github.com/arnegiacomo/fugleramme/pull/210),
+  [`8ca0cb4`](https://github.com/arnegiacomo/fugleramme/commit/8ca0cb4636d325ad6c59b40c62ebd4ea7d28c2b5))
+
+- **assets**: #44 add 12 birds, building on @Mechazawa's #133
+  ([`93b1276`](https://github.com/arnegiacomo/fugleramme/commit/93b127641bfbd80827f63dfe80d14e4bee676c37))
+
+- **assets**: #44 add 6 birds
+  ([`8887e04`](https://github.com/arnegiacomo/fugleramme/commit/8887e04680f733e3f5147eed214b0fea5b36c5d4))
+
+- **assets**: #44 add 7 birds, building on @Mechazawa's #133
+  ([`f64860c`](https://github.com/arnegiacomo/fugleramme/commit/f64860c24600e4d9cf3e22a38e19324d60e21acd))
+
+- **assets**: Add 5 southern African species
+  ([#186](https://github.com/arnegiacomo/fugleramme/pull/186),
+  [`949f10e`](https://github.com/arnegiacomo/fugleramme/commit/949f10efefc44766e54da718c8cebb21f3217e85))
+
+- **assets**: Add 6 Shenzhen birds
+  ([`7ae292c`](https://github.com/arnegiacomo/fugleramme/commit/7ae292c731e8779169b717c7e73ac96a195786a7))
+
+- **assets**: Add artwork for Molothrus ater
+  ([#211](https://github.com/arnegiacomo/fugleramme/pull/211),
+  [`4c73205`](https://github.com/arnegiacomo/fugleramme/commit/4c73205dc82f4bc58288d675437015aa7e1c3a52))
+
+- **assets**: Add Australian black-faced cuckooshrike
+  ([#179](https://github.com/arnegiacomo/fugleramme/pull/179),
+  [`c306346`](https://github.com/arnegiacomo/fugleramme/commit/c3063469133336a195b41146db237939930b5e4a))
+
+- **assets**: Add Australian boobook ([#216](https://github.com/arnegiacomo/fugleramme/pull/216),
+  [`c0e3723`](https://github.com/arnegiacomo/fugleramme/commit/c0e3723e9fcf37389bc91cc81e2dc010f55a6245))
+
+- **assets**: Add Australian brown goshawk
+  ([#223](https://github.com/arnegiacomo/fugleramme/pull/223),
+  [`10f7a1f`](https://github.com/arnegiacomo/fugleramme/commit/10f7a1fdef5eb833e76987b1e27bfc11c251d578))
+
+- **assets**: Add Australian bush thick-knee
+  ([#171](https://github.com/arnegiacomo/fugleramme/pull/171),
+  [`f578627`](https://github.com/arnegiacomo/fugleramme/commit/f57862784eda5147568be470bb1d6df727919913))
+
+- **assets**: Add Australian channel-billed cuckoo
+  ([#208](https://github.com/arnegiacomo/fugleramme/pull/208),
+  [`3b8fe5e`](https://github.com/arnegiacomo/fugleramme/commit/3b8fe5eb12d57fc9d8f9fee98654887f27010217))
+
+- **assets**: Add Australian garden sunbird
+  ([#182](https://github.com/arnegiacomo/fugleramme/pull/182),
+  [`a68a62b`](https://github.com/arnegiacomo/fugleramme/commit/a68a62b4a6344a732dcd805832128e5216a851ea))
+
+- **assets**: Add Australian king-parrot
+  ([#175](https://github.com/arnegiacomo/fugleramme/pull/175),
+  [`61a0ef0`](https://github.com/arnegiacomo/fugleramme/commit/61a0ef01f890c968afcd23224209c7bc2fe37ede))
+
+- **assets**: Add Australian musk lorikeet
+  ([#189](https://github.com/arnegiacomo/fugleramme/pull/189),
+  [`331e004`](https://github.com/arnegiacomo/fugleramme/commit/331e00472dd378e5a8bad7a3fdfc80d2e68323dc))
+
+- **assets**: Add Australian noisy pitta
+  ([#181](https://github.com/arnegiacomo/fugleramme/pull/181),
+  [`ec6746b`](https://github.com/arnegiacomo/fugleramme/commit/ec6746b82d234b775eb32ce2d6f936a49bbc0a80))
+
+- **assets**: Add Australian pied butcherbird
+  ([#178](https://github.com/arnegiacomo/fugleramme/pull/178),
+  [`25c8b88`](https://github.com/arnegiacomo/fugleramme/commit/25c8b88fca706a4a16648fc03cf30765ab906299))
+
+- **assets**: Add Australian scaly-breasted lorikeet
+  ([#190](https://github.com/arnegiacomo/fugleramme/pull/190),
+  [`1ce823c`](https://github.com/arnegiacomo/fugleramme/commit/1ce823cd43820c2ae71d1b648ac8a22f6721da67))
+
+- **assets**: Add Australian willie-wagtail
+  ([#183](https://github.com/arnegiacomo/fugleramme/pull/183),
+  [`22570f8`](https://github.com/arnegiacomo/fugleramme/commit/22570f8169ec9a9f54be472166c719b9d2acf2d4))
+
+- **assets**: Add Nymphicus hollandicus ([#191](https://github.com/arnegiacomo/fugleramme/pull/191),
+  [`8b7ebf0`](https://github.com/arnegiacomo/fugleramme/commit/8b7ebf0add9825003823d3ec128865e521d3cfae))
+
+- **assets**: Add scaly-breasted munia ([#180](https://github.com/arnegiacomo/fugleramme/pull/180),
+  [`9e9d5ed`](https://github.com/arnegiacomo/fugleramme/commit/9e9d5ed117bf4aa2ffd8f7acece7f4e67e4a41ee))
+
+- **assets**: Add Sialia currucoides ([#176](https://github.com/arnegiacomo/fugleramme/pull/176),
+  [`b182acc`](https://github.com/arnegiacomo/fugleramme/commit/b182acced80ab4ccc86f953ba71dd2b43bb7a75a))
+
+- **assets**: Add six south African birds
+  ([#200](https://github.com/arnegiacomo/fugleramme/pull/200),
+  [`448f1d4`](https://github.com/arnegiacomo/fugleramme/commit/448f1d40071e6e9534d77c969a2a495abb200f4d))
+
+- **assets**: Add Tachycineta thalassina asset
+  ([#224](https://github.com/arnegiacomo/fugleramme/pull/224),
+  [`9c3c5b5`](https://github.com/arnegiacomo/fugleramme/commit/9c3c5b503bf410b8d1eeb16c61fe544fdaf1bfa7))
+
+- **assets**: Add Torresian crow ([#222](https://github.com/arnegiacomo/fugleramme/pull/222),
+  [`c590922`](https://github.com/arnegiacomo/fugleramme/commit/c590922b8a3126ccbb52d3c4f4f7fab6029ed956))
+
+- **assets**: Deepen 51 washed-out classic plates
+  ([`6f8549a`](https://github.com/arnegiacomo/fugleramme/commit/6f8549aa18a3b3a5f75d9d76eda4230e624cfc59))
+
+- **assets**: Recut the Gould mallard
+  ([`923dc87`](https://github.com/arnegiacomo/fugleramme/commit/923dc87d5fd3cee2778d751e9bb401f828f63fd9))
+
+- **assets**: Recut Troglodytes troglodytes and Regulus satrapa at higher resolution
+  ([`6332561`](https://github.com/arnegiacomo/fugleramme/commit/63325612a4b96b2b98d15f3c5d7a4e97d468fbc1))
+
+- **assets**: Retone the Gould mallard to match the style
+  ([`a5526c4`](https://github.com/arnegiacomo/fugleramme/commit/a5526c40c9c5296e81553ac8e33a7d95eb11982c))
+
+- **ci**: #141 don't fail the image build on a failed cache write
+  ([`9904332`](https://github.com/arnegiacomo/fugleramme/commit/9904332eef73156fc958af9227f49954b6ca8358))
+
+- **ci**: Comment "released in" on shipped PRs and closed issues
+  ([`a6d1a43`](https://github.com/arnegiacomo/fugleramme/commit/a6d1a43bfeee78739ce402c8084ed37affe60df0))
+
+- **platereview**: Drag to mark a spot and comment on it
+  ([`9712c3d`](https://github.com/arnegiacomo/fugleramme/commit/9712c3d43eb8c2234d5d479a95e8b4f1bdee104d))
+
+- **platereview**: Tone down the deepen grade's saturation
+  ([`83dbbca`](https://github.com/arnegiacomo/fugleramme/commit/83dbbcafab411686699fd8f66194f61cbbbcb9b3))
+
+- **release**: Cut releases by hand and install the latest release
+  ([`9d78b9a`](https://github.com/arnegiacomo/fugleramme/commit/9d78b9a8641ba34fbe801d544e142da26f6a24fe))
+
+- **tools**: Add fade to the plate cutter
+  ([#214](https://github.com/arnegiacomo/fugleramme/pull/214),
+  [`7b30fc2`](https://github.com/arnegiacomo/fugleramme/commit/7b30fc27f024ceee998b67517ca86d9da66ad24f))
+
+### Documentation
+
+- #146 add eryon to showcase ([#218](https://github.com/arnegiacomo/fugleramme/pull/218),
+  [`579f198`](https://github.com/arnegiacomo/fugleramme/commit/579f198e00db4ddf49fa80a634b499424a575b8e))
+
+- Cover whole plates, colour and paper inside the outline
+  ([`df6bb2a`](https://github.com/arnegiacomo/fugleramme/commit/df6bb2a21cd6906ec2011826498296ef688d10b5))
+
+- Link AvianVisitors kits
+  ([`922b43c`](https://github.com/arnegiacomo/fugleramme/commit/922b43c5560ecdc067f94adbb6edbe6f764d8279))
+
+- Link projects built on fugleramme
+  ([`f60f42a`](https://github.com/arnegiacomo/fugleramme/commit/f60f42a71b5aa4fce5686c6f5479686bfa626d02))
+
+- Point first-time contributors at a PR walkthrough
+  ([`bfdf0e7`](https://github.com/arnegiacomo/fugleramme/commit/bfdf0e7c2d983d8cf40f28b1533bd5f6e68e3076))
+
+- Point first-time contributors to good first issues
+  ([`c97f2cc`](https://github.com/arnegiacomo/fugleramme/commit/c97f2ccdb0a93c122042b50fb7601545aeccd830))
+
+- Prune agent docs
+  ([`c871537`](https://github.com/arnegiacomo/fugleramme/commit/c871537d9c38e32c19d0eed848323885c72a7fb6))
+
+- **showcase**: Add a frame in Mississippi, shared by Orin
+  ([`9724145`](https://github.com/arnegiacomo/fugleramme/commit/97241454d73f19c325189d634d72aaa599dc37a6))
+
+- **showcase**: Add a frame in Vienna, shared by @jds3d in #151
+  ([`1b5d002`](https://github.com/arnegiacomo/fugleramme/commit/1b5d0021c67b57d7ce7361f265d57abec10b2065))
+
+### Features
+
+- #185 add spotlight mode to the collage
+  ([`a8fe3df`](https://github.com/arnegiacomo/fugleramme/commit/a8fe3df14b6c03bed584742a21a3a3be828b0e41))
+
+- Mark birds new to the station with an asterisk
+  ([`9923749`](https://github.com/arnegiacomo/fugleramme/commit/9923749f21bdf3fc7b3e370355efdb64e9fe7263))
+
+- **admin**: Add a reboot button
+  ([`fdb5f74`](https://github.com/arnegiacomo/fugleramme/commit/fdb5f74493622965a44c661768db1ee8001a49a6))
+
+### Testing
+
+- Require shipped birds to be at least 600 px on their long side
+  ([`bf8010a`](https://github.com/arnegiacomo/fugleramme/commit/bf8010a038fa49825bc1d87a086073b7134cc83f))
+
+
 ## v0.26.0 (2026-09-28)
 
 ### Chores

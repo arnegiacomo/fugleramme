@@ -46,7 +46,7 @@ If your local regulars never show up, open a [Missing bird](https://github.com/a
 
 Three possibilities, in the order worth checking:
 
-- **There is no artwork for it.** The admin page greys the species out with "no art", and the log names them. See [Adding artwork](adding-artwork.md).
+- **There is no artwork for it.** The admin page greys the species out with "no art", and the Detector tab counts all birds your station has heard without art. See [Adding artwork](adding-artwork.md).
 
   ```bash
   journalctl -u fugleramme-frame | grep "No artwork"

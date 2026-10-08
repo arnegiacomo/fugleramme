@@ -27,8 +27,9 @@ RUN uv sync --locked --no-dev  # no panel extra: inky and gpiod are Pi hardware
 FROM python:3.12-slim-bookworm
 
 # python:slim carries no zone data, and the frame's day is the local one.
+# libfribidi0 lets Pillow shape Arabic, Hebrew and Malayalam names.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends tzdata \
+    && apt-get install -y --no-install-recommends tzdata libfribidi0 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid 1000 fugleramme \

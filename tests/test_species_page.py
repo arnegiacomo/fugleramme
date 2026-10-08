@@ -1,6 +1,7 @@
 """The docs' species list covers every bird label and every shipped plate."""
 
 import importlib.util
+import json
 import re
 from pathlib import Path
 
@@ -61,3 +62,19 @@ def test_badge_species_count_matches_the_page():
     spec.loader.exec_module(badges)
     with_art = sum(1 for row in species.rows() if row["plates"])
     assert badges.counts()["species"] == str(with_art)
+
+
+def test_every_country_on_the_map_is_one_gbif_files_records_under():
+    svg = (REPO / "docs" / "assets" / "world.svg").read_text()
+    drawn = set(re.findall(r'data-iso="([^"]+)"', svg))
+    assert drawn <= set(json.loads(species.SNAPSHOT.read_text())["countries"])
+
+
+def test_coverage_counts_art_from_the_tree_against_the_snapshot():
+    listed = species.rows()
+    norway = species.coverage(listed)["countries"]["NO"]
+    records = json.loads(species.SNAPSHOT.read_text())["countries"]["NO"]["records"]
+    rows = {str(row["name"]): row for row in listed}
+    assert records["Turdus merula"] and rows["Turdus merula"]["plates"]
+    assert 0 < norway["art"] <= norway["species"]
+    assert 0 < norway["drawn"] <= norway["records"]

@@ -1,7 +1,28 @@
 # Screens
 
 Fugleramme serves the collage over HTTP, so it can show on more than the e-ink
-panel. Five ways, easiest first.
+panel.
+
+## Two pictures
+
+The frame draws two pictures of the same birds, with the same mode, style and
+names:
+
+- **The panel's page** is what the e-ink panel shows. It is dithered to the
+  panel's six inks, on plain paper, at the panel's own size and **Rotation**.
+  New birds change it at most as often as **Panel refresh** allows, and it
+  stays up while BirdNET-Go is unreachable.
+- **The web page**, at `/collage.png`, is in full colour on textured paper, at
+  the size you pick under **Resolution**. With **Lock to panel** on it has the
+  panel's shape, otherwise its own **Aspect**. It is drawn whenever something
+  asks for it, so new birds show up straight away.
+
+The preview on the admin page is the panel's page in full colour, with any
+changes you have not saved yet. Without a panel it shows the web page.
+
+![Overview of different rendering endpoints](assets/screens.svg)
+
+Six ways to show them, easiest first.
 
 ## From another device
 
@@ -115,6 +136,86 @@ adds its own mat - with an e-ink panel beside it, turn off **Uniform** first, so
 
 Photos by Conrad Jackson, from
 [Fugleramme for Samsung Frame TV](https://github.com/arnegiacomo/fugleramme/discussions/145).
+
+## On an external e-ink panel
+
+An e-ink panel driven by a microcontroller instead of a Pi (e.g.
+[Seeed Studio's 13.3" Spectra 6 panel](https://www.seeedstudio.com/13-3inch-Six-Color-eInk-ePaper-Display-with-1200x1600-Pixels-p-6569.html)
+on a
+[XIAO EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html))
+runs from a battery and can hang anywhere in Wi-Fi range, fetching the page
+from a Fugleramme running elsewhere. Enable **External e-ink panel** on the
+admin page, under **Frame**. Fugleramme then serves the panel's page, already
+dithered and packed for the panel, at `http://<host>.local:8080/frame.e6`, so
+the microcontroller does not have to decode an image. Without an Inky
+connected, the page is laid out for the external 13.3" panel, so **Rotation**,
+**Margin** and **Panel refresh** all apply to it. With an Inky connected, the
+external panel gets the Inky's page.
+
+> [!IMPORTANT]
+> Like the kiosk, `/frame.e6` needs no sign-in: anyone who can reach the
+> frame can read it.
+
+[`examples/ee02/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee02/main.py)
+is a MicroPython program for the XIAO EE02. It wakes for the interval the
+page's header carries in its **Panel refresh** setting. So a 10 minute setting
+has it fetch every 10 minutes, and it never fetches more often than its own 5
+minute floor, even when **Panel refresh** is off. It downloads the page only
+if it has changed, and redraws the panel only once the download checks out. If
+something goes wrong, it writes an error message on the panel instead.
+
+1. Install MicroPython on the board (e.g.
+   [for the XIAO EE02](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
+2. Set your Wi-Fi credentials and Fugleramme host at the top of `main.py`
+3. Upload `main.py` to the board (e.g. with
+   [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html))
+
+Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on
+a 13.3" panel with a XIAO EE02.
+
+Much of the program is generic and reusable, but the connection to the 13.3"
+panel and the controller board is specific. Running a smaller panel or another
+board? A program for it, and the packing it needs, would make a welcome
+contribution - see
+[Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
+
+### E6 file format
+
+The E6 file format is not an official standard. It simply consists of a stream
+of ink values, one pixel at a time. Upon request, a microcontroller downloads
+the stream and uses it directly to program its connected e-ink panel.
+
+To avoid programming corrupted data or pixels laid out for a different screen
+size (i.e., when the configuration does not match the e-ink panel), a header
+with all relevant configuration details is sent ahead of the payload. If the
+header's configuration does not match the microcontroller's, the payload is
+discarded.
+
+The header is 20 bytes long, little-endian, and is followed directly by the
+pixel data.
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 4 | `E6F1` |
+| 4 | 2 | Version, `1` |
+| 6 | 1 | Encoding, `1` (the colour codes below) |
+| 7 | 1 | Poll minutes, from **Panel refresh** |
+| 8 | 2 | Width, `1200` |
+| 10 | 2 | Height, `1600` |
+| 12 | 4 | Length of the pixels, `960000` |
+| 16 | 4 | CRC-32 of the pixels |
+
+The pixels are already oriented the way the panel's controllers read them, so
+a client only needs to stream them. Two pixels to a byte, the left one in the
+high half; black `0`, white `1`, yellow `2`, red `3`, blue `5`, green `6`. The
+panel has two controllers, one per half: the first 480000 bytes are the left
+half of every row, top to bottom, for the first controller, and the rest are
+the right halves for the second. With a different Inky connected, the file
+carries that panel's page, which its width and height reveal, so check them.
+
+The response carries an `ETag`; send it back as `If-None-Match` and an
+unchanged page responds with `304` and nothing to download. `404` means the
+setting is off, and `503` that the frame has not drawn a page yet.
 
 ## As a desktop wallpaper and/or screensaver (MacOs)
 

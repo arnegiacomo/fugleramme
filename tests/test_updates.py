@@ -391,3 +391,49 @@ def test_a_containers_host_row_is_not_dressed_up_as_an_address(monkeypatch):
     monkeypatch.setattr(hostinfo.socket, "gethostname", lambda: "0470e75b0cb3")
     assert hostinfo.lan_address(container=True).startswith("container 0470e75b0cb3")
     assert hostinfo.lan_address().startswith("0470e75b0cb3.local")
+
+
+@pytest.mark.parametrize(
+    "service,container,expected", [(True, False, True), (False, False, False), (True, True, False)]
+)
+def test_only_the_pis_service_may_reboot(monkeypatch, service, container, expected):
+    """A dev run would reboot the workstation, and an image's host is its own."""
+    if service:
+        monkeypatch.setenv("INVOCATION_ID", "abc")
+    else:
+        monkeypatch.delenv("INVOCATION_ID", raising=False)
+    monkeypatch.setattr(updates, "in_container", lambda: container)
+    assert updates.can_reboot() is expected
+
+
+def test_the_reboot_button_reboots_only_where_it_may(tmp_path, monkeypatch):
+    status = Status()
+    handler = server.make_handler(
+        ApiSource("http://127.0.0.1:1"),
+        tmp_path,
+        SettingsStore(tmp_path / "s.json"),
+        Picks(tmp_path / "artwork.json"),
+        None,
+        status,
+    )
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
+    url = f"http://127.0.0.1:{httpd.server_address[1]}/admin"
+    try:
+        with patch.object(server.updates, "reboot") as reboot:
+            monkeypatch.setattr(updates, "can_reboot", lambda: False)
+            _post(url, "action=reboot")
+            assert not reboot.called
+            monkeypatch.setattr(updates, "can_reboot", lambda: True)
+            _post(url, "action=reboot")
+            assert reboot.called
+
+        refused = RuntimeError("sudo: a password is required")
+        with patch.object(server.updates, "reboot", side_effect=refused):
+            _post(url, "action=reboot")
+        assert status.reboot_error == "sudo: a password is required"
+        assert "a password is required" in admin._reboot(status)
+        monkeypatch.setattr(updates, "can_reboot", lambda: False)
+        assert admin._reboot(status) == ""
+    finally:
+        httpd.shutdown()

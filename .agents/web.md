@@ -2,13 +2,13 @@
 
 Covers the `web/` package.
 
-- `web/` is the kiosk and the admin: `server.py` is routing and transport only, `admin.py` builds the page from a `modes.Context`, `hostinfo.py` probes the machine. Nothing outside it imports anything but `web.server.serve`.
+- Nothing outside `web/` imports anything but `web.server.serve`. `server.py` is routing and transport only, `admin.py` builds the page from a `modes.Context`, `hostinfo.py` probes the machine.
 
 ## The admin is gated, the kiosk is not (`server.GATED`)
 
 - A login page and a session cookie, never `WWW-Authenticate`. This is BirdNET-Go's shape: its "basic auth" is a password typed into a form in its own UI, and the browser's credential dialog appears nowhere in that product. A frame that popped one would not read as the same appliance.
 - Everything that must 401 for a signed-out admin is in `GATED`; add to it when the page learns to fetch something new. The static files are not in it on purpose - `admin.css` is what the login page is styled with. A browser (`Accept: text/html`) is redirected to the login page; anything else gets the 401, so a fetch does not land a login page in a JSON parser.
-- The kiosk side stays open whatever is set: the public demo reads `/collage.png` and `/state`, and the container's healthcheck reads `/health`.
+- The kiosk side stays open whatever is set: the public demo reads `/collage.png` and `/state`, the container's healthcheck reads `/health`, and an external panel's board reads `/frame.e6`.
 - `Settings.admin_locked` is the whole gate: the switch on *and* a password saved. Either half alone is an open frame, so a switch flipped on before a password is typed cannot lock anyone out.
 - The cookie is signed with `session_secret` mixed with the password, so changing the password ends every session, and the secret is rotated on sign-out and on a password change - which is real revocation, unlike BirdNET-Go, whose access token outlives its own logout. No `Secure` flag: the frame is plain HTTP on a LAN and the cookie would never be sent.
 - `admin.form_changes` drops `session_secret` from every post and treats a password field that still starts with `PASSWORD_SET` as untouched; `admin.js` empties such a field on focus. Typing on the end of the bullets would otherwise save them as the password, a lockout.
@@ -17,11 +17,11 @@ Covers the `web/` package.
 
 ## The web pages are files (`web/static/`)
 
-- `admin.html` is a `string.Template`; the kiosk page needs no substitution at all.
 - `admin.js` is static and cached: it reads its server values from a JSON blob in the page rather than being built per request.
 - The Margin field is a range slider. `admin.js` renders its preview on `change` (release, or a keyboard step), never on `input`, so a drag costs one render.
-- The preview box takes the page's shape before a render starts: `cfg.panel` turned by the rotation in the *form*, not the one last rendered (with no panel, the form's aspect and portrait), so the species list under it holds still and moves only when the page would.
+- The preview box takes the page's shape before a render starts: `cfg.panel` while an Inky is detected or the form's external panel box is ticked, turned by the rotation in the *form*, not the one last rendered (with no panel, the form's aspect and portrait), so the species list under it holds still and moves only when the page would.
+- `syncPanel` and `syncMargin` follow the same answer: Rotation, Lock to panel, Uniform and the edges are offered while the form has a panel. All are always rendered with their declarations, and disabled - declaration included - without a panel, so a save then leaves the stored values alone.
 - Display and Frame are two tabs over one form, so one Save and one preview serve both; `#settings` is shown for either.
-- The margin's edge sliders are named for the glass (`margin_top` is the top at rotation 0), and `admin.js` relabels and reorders them by the rotation in the form, so they always read as the frame hangs. With no panel the lock and the edges are not rendered at all.
+- The margin's edge sliders are named for the glass (`margin_top` is the top at rotation 0), and `admin.js` relabels and reorders them by the rotation in the form, so they always read as the frame hangs.
 - While the margin is dragged, the `.mat` band over the preview stands in for the render and goes when one starts. It is not shown while the preview is loading: there is no page to shade.
 - The admin is used from a remote browser against a headless Pi. Do not design flows around `file://` URLs, opening a browser on the server, or other local-GUI assumptions.

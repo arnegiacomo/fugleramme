@@ -6,8 +6,9 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from PIL import Image
 
-from fugleramme.render import packing
+from fugleramme.render import collage, packing
 from fugleramme.render.collage import _Sprite, render_collage
 from fugleramme.render.packing import LAYOUTS
 
@@ -66,3 +67,48 @@ def test_the_grid_collision_test_agrees_with_the_pixels():
     for y, x in zip(*legal.nonzero(), strict=True):
         py, px = int(y) * packing.K, int(x) * packing.K
         assert not fine[py : py + 37, px : px + 53].any()
+
+
+@pytest.mark.parametrize("layout", sorted(LAYOUTS))
+def test_an_anchor_pins_that_point_of_the_first_sprite_to_the_middle(layout):
+    """The bird, not its plate: the anchor is where the bird is on the sprite."""
+    width, height = 500, 400
+    placed = LAYOUTS[layout].pack(_sprites(), width, height, (20, 30))
+    assert placed is not None
+    _first, x, y = placed[0]
+    assert abs(x + 20 - width // 2) < packing.K and abs(y + 30 - height // 2) < packing.K
+
+
+@pytest.mark.parametrize("layout", sorted(LAYOUTS))
+def test_the_spotlit_bird_is_one_size_however_full_the_page(crowded, layout):
+    """Not sized by the size search, so a crowd round it does not shrink it."""
+
+    def pack(count: int) -> dict[int, int]:
+        collage._layouts.clear()
+        render_collage(crowded(count), (800, 600), layout=layout, spotlight="Genus species0")
+        (placed, _px), *_ = collage._layouts.values()
+        return {p.index: p.dim for p in placed}
+
+    alone, crowd = pack(1), pack(20)
+    assert alone[0] == crowd[0] > max(dim for i, dim in crowd.items() if i)
+
+
+def test_the_spotlit_birds_name_keeps_its_place_inside_the_gap():
+    """The gap holds the neighbours off; the name stays as close as any other."""
+    bird = np.zeros((60, 80), dtype=bool)
+    bird[10:50, 10:70] = True
+    named = collage._with_label(0, 80, bird, Image.new("L", (50, 12), 255), 4)
+    spaced = collage._spaced(named, 9)
+    assert named.label_at is not None and spaced.label_at is not None
+    assert (
+        np.subtract(spaced.label_at, spaced.art_at).tolist()
+        == np.subtract(named.label_at, named.art_at).tolist()
+    )
+    assert spaced.mask.shape == (named.mask.shape[0] + 18, named.mask.shape[1] + 18)
+
+
+def test_the_spotlit_birds_name_is_set_larger(crowded):
+    render_collage(crowded(6), (800, 600), spotlight="Genus species0")
+    (placed, _px), *_ = collage._layouts.values()
+    widths = {p.index: p.label_w for p in placed}
+    assert widths[0] > 1.3 * max(w for i, w in widths.items() if i)

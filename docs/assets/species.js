@@ -118,6 +118,99 @@
       .catch(() => {});
   };
 
+  // Fetched on the first reach for a filter, so merely reading asks GBIF nothing.
+  let countries;
+  const listCountries = () => {
+    countries ||= json("enumeration/country")
+      .then((rows) => {
+        rows.forEach((row) => iso3.set(row.iso2, row.iso3));
+        country.append(...rows.map((row) => new Option(row.title, row.iso2)).sort((a, b) => a.text.localeCompare(b.text)));
+      })
+      .catch(() => {});
+    return countries;
+  };
+
+  // The build joins coverage.json, so the map asks GBIF nothing either.
+  // A tiny country is a path plus a dot to hover.
+  const shapes = document.getElementById("species-map-shapes");
+  const tip = document.getElementById("species-map-tip");
+  const marked = (iso) => shapes.querySelectorAll(`[data-iso="${iso}"]`);
+  const mark = (iso, name) => {
+    shapes.querySelectorAll(`.${name}`).forEach((shape) => shape.classList.remove(name));
+    if (!iso) return;
+    marked(iso).forEach((shape) => {
+      shape.classList.add(name);
+      shape.parentNode.append(shape); // last drawn, so no neighbour covers its outline
+    });
+  };
+  Promise.all([
+    fetch("../assets/world.svg").then((response) => response.text()),
+    fetch("../coverage.json").then((response) => response.json()),
+  ])
+    .then(([svg, coverage]) => {
+      shapes.innerHTML = svg;
+      const known = coverage.countries;
+      // By records is near the share of what a frame there hears that has art;
+      // by species weighs the rarest bird like the commonest.
+      const by = document.querySelector("#species-map-by select");
+      const shade = () => {
+        const records = by.value === "records";
+        shapes.querySelectorAll("[data-iso]").forEach((shape) => {
+          const here = known[shape.dataset.iso];
+          if (!here?.species) return;
+          const share = records ? here.drawn / here.records : here.art / here.species;
+          shape.dataset.bin = Math.min(4, Math.floor(5 * share));
+        });
+      };
+      shade();
+      by.addEventListener("change", shade);
+      const [from, to] = coverage.years.split(",");
+      document.getElementById("species-map-date").textContent = `GBIF records ${from} to ${to}, fetched ${coverage.fetched}`;
+      document.getElementById("species-map").hidden = false;
+      mark(country.value, "picked");
+
+      const percent = (part, whole) => `${Math.round((100 * part) / whole)}%`;
+      const line = (text) => Object.assign(document.createElement("span"), { textContent: text });
+      let hovered = "";
+      const leave = () => {
+        hovered = "";
+        mark("", "hover");
+        tip.hidden = true;
+      };
+      shapes.addEventListener("pointermove", (event) => {
+        const iso = event.target.dataset?.bin && event.target.dataset.iso;
+        if (!iso) return leave();
+        if (iso !== hovered) {
+          const here = known[iso];
+          hovered = iso;
+          mark(iso, "hover");
+          tip.replaceChildren(
+            Object.assign(document.createElement("strong"), { textContent: here.name }),
+            line(`${here.art} of ${here.species} birds have art`),
+            document.createElement("br"),
+            line(`${percent(here.drawn, here.records)} of records`),
+          );
+          tip.hidden = false;
+        }
+        // Flipped left of the pointer past the middle, so it never runs off the page.
+        const box = shapes.getBoundingClientRect();
+        const x = event.clientX - box.left;
+        tip.style.left = x < box.width / 2 ? `${x + 14}px` : "";
+        tip.style.right = x < box.width / 2 ? "" : `${box.width - x + 14}px`;
+        tip.style.top = `${event.clientY - box.top + 14}px`;
+      });
+      shapes.addEventListener("pointerleave", leave);
+      shapes.addEventListener("click", (event) => {
+        const iso = event.target.dataset?.bin && event.target.dataset.iso;
+        if (!iso) return;
+        listCountries().then(() => {
+          country.value = iso;
+          country.dispatchEvent(new Event("change"));
+        });
+      });
+    })
+    .catch(() => {}); // no map, and the list below still works
+
   fetch("../species.json")
     .then((response) => response.json())
     .then((all) => {
@@ -150,6 +243,7 @@
       };
 
       const locate = () => {
+        mark(country.value, "picked");
         seen = null;
         order.disabled = true;
         const question = ++asked; // bumped before the early return, so Clear strands a reply too
@@ -206,16 +300,6 @@
       [sub, vagrants].forEach((control) => control.addEventListener("change", settle));
       update();
 
-      // Fetched on the first reach for a filter, so merely reading asks GBIF nothing.
-      let countries;
-      const listCountries = () => {
-        countries ||= json("enumeration/country")
-          .then((rows) => {
-            rows.forEach((row) => iso3.set(row.iso2, row.iso3));
-            country.append(...rows.map((row) => new Option(row.title, row.iso2)).sort((a, b) => a.text.localeCompare(b.text)));
-          })
-          .catch(() => {});
-      };
       const filters = document.getElementById("species-filters");
       ["pointerenter", "focusin"].forEach((event) => filters.addEventListener(event, listCountries, { once: true }));
     })

@@ -25,9 +25,12 @@ if [ -z "$folder" ]; then
 fi
 
 [ -d "$folder" ] || folder=$here/$folder
-[ -f "$folder/birds.js" ] || { echo "no birds.js in $folder - run build.py on it first" >&2; exit 1; }
-[ -f "$folder/index.html" ] || cp "$here/index.html" "$folder/index.html"
+# a folder still at the crop stage has crops.js and no birds.js yet: open its page instead
+page=index.html
+[ -f "$folder/birds.js" ] || page=crop.html
+[ -f "$folder/birds.js" ] || [ -f "$folder/crops.js" ] || { echo "no birds.js or crops.js in $folder - run build.py or crops.py on it first" >&2; exit 1; }
+[ -f "$folder/$page" ] || cp "$here/$page" "$folder/$page"
 
-echo "serving $folder on http://localhost:$port"
-command -v open >/dev/null && (sleep 1 && open "http://localhost:$port") &
+echo "serving $folder on http://localhost:$port/$page"
+command -v open >/dev/null && (sleep 1 && open "http://localhost:$port/$page") &
 exec python3 -m http.server "$port" --bind 127.0.0.1 --directory "$folder"

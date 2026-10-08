@@ -1,19 +1,14 @@
 name: release
 
 on:
-  # Gate on ci, not the push: a red commit releases nothing.
-  workflow_run:
-    workflows: [ci]
-    types: [completed]
-    branches: [main]
-  # Artwork lands as `chore`, which releases nothing. `force` ships that queue.
+  # By hand: a release reaches every auto-updating Pi, so cutting one is its own decision.
   workflow_dispatch:
     inputs:
       force:
-        description: Bump with no releasable commit
+        description: Bump regardless of the commits (auto reads them)
         type: choice
-        default: none
-        options: [none, patch, minor]
+        default: auto
+        options: [auto, patch, minor]
 
 permissions:
   contents: write
@@ -26,18 +21,23 @@ concurrency:
 
 jobs:
   release:
-    # The actor check is belt and braces against a bump loop.
-    if: >-
-      github.actor != 'github-actions[bot]'
-      && (github.event_name == 'workflow_dispatch'
-      || (github.event.workflow_run.event == 'push'
-      && github.event.workflow_run.conclusion == 'success'))
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # history back to the last tag
           token: ${{ secrets.GITHUB_TOKEN }}
+      # A red commit releases nothing.
+      - name: Require a green ci run on this commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          green=$(gh run list --workflow ci.yml --commit "$GITHUB_SHA" --status success --json databaseId --jq length)
+          if [ "$green" = 0 ]; then
+            echo "ci has not passed on $GITHUB_SHA yet." >&2
+            exit 1
+          fi
       - id: before
         run: echo "tag=$(git describe --tags --abbrev=0 || true)" >> "$GITHUB_OUTPUT"
       - uses: astral-sh/setup-uv@v6
@@ -48,8 +48,8 @@ jobs:
       - run: uv run --with "python-semantic-release>=10,<11" semantic-release version $FORCE
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Unquoted above so `none` expands to no argument at all.
-          FORCE: ${{ inputs.force != '' && inputs.force != 'none' && format('--{0}', inputs.force) || '' }}
+          # Unquoted above so `auto` expands to no argument at all.
+          FORCE: ${{ inputs.force != 'auto' && format('--{0}', inputs.force) || '' }}
       # Dispatch, not `image.yml`'s tag trigger: a tag pushed with GITHUB_TOKEN
       # starts no workflow run. Never fails a release that is already tagged.
       - name: Build the image for the tag just cut
@@ -64,6 +64,24 @@ jobs:
             exit 0
           fi
           gh workflow run image.yml --ref "$tag"
+      # GitHub shows a Contributors avatar list for every @mention in the notes.
+      # Authors whose commit email is not on a GitHub account have no login and are left out.
+      - name: Credit the commit authors in the release notes
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ steps.before.outputs.tag }}
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+          if [ -z "$BEFORE" ] || [ "$tag" = "$BEFORE" ]; then
+            exit 0
+          fi
+          authors=$(gh api --paginate "repos/$GITHUB_REPOSITORY/compare/$BEFORE...$tag" \
+            --jq '.commits[].author.login // empty | select(endswith("[bot]") | not)' \
+            | sort -uf | sed 's/^/@/' | paste -sd ' ' -)
+          [ -n "$authors" ] || exit 0
+          notes=$(gh release view "$tag" --json body --jq .body)
+          printf '%s\n\n### Contributors\n\n%s\n' "$notes" "$authors" | gh release edit "$tag" --notes-file -
       # Open issues are skipped
       - name: Say where each merged PR and closed issue shipped
         continue-on-error: true

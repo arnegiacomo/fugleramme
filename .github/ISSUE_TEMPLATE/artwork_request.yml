@@ -1,46 +1,28 @@
 name: Missing bird
-description: A species your station hears that the artwork can't draw
+description: Species your station hears that the artwork can't draw
 labels: ["artwork"]
 body:
   - type: markdown
     attributes:
       value: |
-        For a plate you'd like to get added but aren't cutting yourself.
-        See [Species coverage](https://arnegiacomo.dev/fugleramme/species/).
-
-        **If you have already cut a bird, open a PR instead** - that's the
-        preferred door for artwork.
-        [Adding artwork](https://github.com/arnegiacomo/fugleramme/blob/main/docs/adding-artwork.md)
-  - type: input
+        Already cut the bird yourself? [Open a PR instead](https://github.com/arnegiacomo/fugleramme/blob/main/docs/adding-artwork.md).
+  - type: textarea
     id: species
     attributes:
       label: Species
-      description: The scientific name as BirdNET-Go emits it (`assets/birdnet_labels_v2.4.txt`).
-      placeholder: Sturnus unicolor
+      description: One per line. The admin page's Detector tab can copy this list for you.
+      placeholder: Sturnus unicolor (Spotless Starling) - 1204 detections
     validations:
       required: true
+
+  - type: input
+    id: region
+    attributes:
+      label: Region
+      placeholder: Southern Spain
 
   - type: textarea
     id: plate
     attributes:
       label: Plates you have in mind
-      description: |
-        Links to the artwork - Wikimedia Commons, Biodiversity Heritage Library
-        or similar. Hand-drawn birds on paper work best. Painted scenery does
-        not cut out well. Say what the licensing is if it isn't obvious.
-    validations:
-      required: true
-
-  - type: input
-    id: name
-    attributes:
-      label: Name on Commons
-      description: Only if it differs from the BirdNET one - genus moves and splits are common, and it costs time to go looking.
-      placeholder: Commons has Thinornis dubius as Charadrius dubius
-
-  - type: input
-    id: detections
-    attributes:
-      label: How often you hear it
-      description: Roughly, and where you are. Helps sort what to cut first.
-      placeholder: ~1200 detections since April, southern Spain
+      description: Links to Wikimedia Commons, BHL or similar, and the licensing if it isn't obvious. Hand-drawn birds on plain paper work best.

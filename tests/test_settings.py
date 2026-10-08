@@ -422,6 +422,19 @@ def test_the_environment_is_a_seed_and_the_saved_file_still_wins(tmp_path, monke
     assert SettingsStore(path, from_env()).get().style == "custom"
 
 
+def test_the_external_panel_is_off_until_seeded_or_saved(tmp_path, monkeypatch):
+    """Off by default, so a frame that updates into it serves nothing new."""
+    assert Settings().external_panel is False
+    monkeypatch.setenv("FUGLERAMME_EXTERNAL_PANEL", "true")
+    path = tmp_path / "s.json"
+    assert SettingsStore(path, from_env()).get().external_panel is True
+
+    path.write_text(json.dumps({"external_panel": False}))
+    assert SettingsStore(path, from_env()).get().external_panel is False
+    path.write_text(json.dumps({"external_panel": "nonsense"}))
+    assert SettingsStore(path, Settings()).get().external_panel is False
+
+
 def test_a_seeded_rotation_never_turns_a_page_the_file_holds_flat(tmp_path, monkeypatch):
     """A container seeded with FUGLERAMME_ROTATION=90 whose admin later saved 0:
     the file's rotation decides the portrait default, not the seed's."""
