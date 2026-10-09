@@ -755,6 +755,18 @@
    729
   ]
  },
+ "birds/anas-zonorhyncha.webp": {
+  "box": [
+   0.015,
+   0.035,
+   0.98,
+   0.94
+  ],
+  "cut": [
+   1200,
+   786
+  ]
+ },
  "birds/andropadus-importunus.webp": {
   "box": [
    0.09695012126019874,
@@ -3047,6 +3059,18 @@
    836
   ]
  },
+ "birds/centropus-sinensis.webp": {
+  "box": [
+   0.02,
+   0.02,
+   0.98,
+   0.98
+  ],
+  "cut": [
+   982,
+   1200
+  ]
+ },
  "birds/cepphus-grylle-2.webp": {
   "box": [
    0.03477158228556315,
@@ -3309,6 +3333,30 @@
   "cut": [
    896,
    782
+  ]
+ },
+ "birds/chloris-sinica-2.webp": {
+  "box": [
+   0.295,
+   0.015,
+   0.905,
+   0.41
+  ],
+  "cut": [
+   979,
+   1200
+  ]
+ },
+ "birds/chloris-sinica.webp": {
+  "box": [
+   0.35,
+   0.48,
+   0.99,
+   0.9
+  ],
+  "cut": [
+   1200,
+   870
   ]
  },
  "birds/chordeiles-minor-2.webp": {
@@ -12956,6 +13004,30 @@
   ],
   "cut": [
    912,
+   1200
+  ]
+ },
+ "birds/suthora-webbiana-2.webp": {
+  "box": [
+   0.23,
+   0.24,
+   0.975,
+   0.85
+  ],
+  "cut": [
+   812,
+   1200
+  ]
+ },
+ "birds/suthora-webbiana.webp": {
+  "box": [
+   0.37,
+   0.29,
+   0.84,
+   0.565
+  ],
+  "cut": [
+   926,
    1200
   ]
  },

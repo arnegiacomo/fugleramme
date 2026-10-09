@@ -28,7 +28,8 @@ Volumes 1-5, from the Commons category
 [The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould))
 and the [Internet Archive](https://archive.org/details/birdsEuropeIVGoul), public domain (PD-old-70-expired); *The Birds of Asia*, with **Richard Bowdler
 Sharpe** (1850-1883), from the Commons category
-[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)),
+[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould))
+and the [University of Kansas](https://digital.lib.ku.edu/ku-gould),
 public domain (PD-Art, PD-old-100); and *The Birds of Australia* (1840-1848),
 illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**,
 scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524),
@@ -192,10 +193,12 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Reed** - *The Bird Book* by **Chester A. Reed** (Worcester, Mass.: C. K. Reed, 1914). Prelinger Library scan via the [Internet Archive](https://archive.org/details/birdbookillustra00reedrich). Public domain (published in the US before 1929; Reed died 1912). Manifest key: `reed`.
 
-**Wolf** - a plate drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851), printed by **M. & N. Hanhart**, Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool), and Wikimedia Commons. Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
+**Wolf** - plates drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851, printed by **M. & N. Hanhart**; 1852, printed by **Ford & West**), Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool), and Wikimedia Commons, and Ernst Mayr Library, Museum of Comparative Zoology, Harvard University scan via the [Internet Archive](https://archive.org/details/proceedingsofzoo002zool). Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
 
 **Descourtilz** - *Ornithologie Brésilienne, ou, Histoire des oiseaux du Brésil* by **Jean Théodore Descourtilz** (Rio de Janeiro: Thomas Reeves, 1854), lithographed by **Waterlow and Sons**, Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/OrnithologieBre00Desc) and Wikimedia Commons. Public domain (Descourtilz died 1855). Manifest key: `descourtilz`.
 
 **Jerdon** - *Illustrations of Indian Ornithology* by **T. C. Jerdon** (Madras, 1843-1847), hand-coloured lithographs. Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/illustrationsofi00jerd). Public domain. Manifest key: `jerdon`.
 
 **National Palace Museum** - *Niaopu* (Manual of Birds), the Qing court bird album painted by **Yu Sheng** and **Zhang Weibang** (1750-1761), ink and colour on silk. National Palace Museum, Taipei, open data image via its [digital archive](https://digitalarchive.npm.gov.tw/), [www.npm.gov.tw](https://www.npm.gov.tw). CC BY 4.0. Manifest key: `npm`.
+
+**Horsfield** - *Zoological Researches in Java, and the Neighbouring Islands* by **Thomas Horsfield** (1821-1824), plates drawn by **A. Pelletier** and printed by **C. Hullmandel**. Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/zoologicalresear00hors). Public domain. Manifest key: `horsfield`.

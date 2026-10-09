@@ -251,6 +251,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVCommon_Wild_Duck.jpg"
   },
+  "birds/anas-zonorhyncha.webp": {
+    "source": "siebold",
+    "url": "https://archive.org/details/faunajaponicasi4sieb/page/n362/mode/1up"
+  },
   "birds/andropadus-importunus.webp": {
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Andropadus_importunus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16400045.tif"
@@ -1015,6 +1019,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRufous_Swallow.jpg"
   },
+  "birds/centropus-sinensis.webp": {
+    "source": "horsfield",
+    "url": "https://archive.org/details/zoologicalresear00hors/page/n509/mode/1up"
+  },
   "birds/cepphus-grylle-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00309.jpg"
@@ -1102,6 +1110,14 @@
   "birds/chloris-chloris.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00226.jpg"
+  },
+  "birds/chloris-sinica-2.webp": {
+    "source": "siebold",
+    "url": "https://archive.org/details/faunajaponicasi4sieb/page/n284"
+  },
+  "birds/chloris-sinica.webp": {
+    "source": "siebold",
+    "url": "https://archive.org/details/faunajaponicasi4sieb/page/n282"
   },
   "birds/chordeiles-minor-2.webp": {
     "source": "audubon",
@@ -4318,6 +4334,14 @@
   "birds/surnia-ulula.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIHawk_Owl.jpg"
+  },
+  "birds/suthora-webbiana-2.webp": {
+    "source": "wolf",
+    "url": "https://archive.org/details/proceedingsofzoo002zool/page/n107/mode/1up"
+  },
+  "birds/suthora-webbiana.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/16781"
   },
   "birds/sylvia-atricapilla.webp": {
     "source": "gould",
