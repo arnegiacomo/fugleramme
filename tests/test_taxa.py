@@ -143,6 +143,7 @@ def test_the_source_names_a_non_bird_once_rather_than_every_poll(source, caplog,
     unaccountable: it is simply not on the page and nothing says why."""
     caplog.set_level(logging.INFO, logger="fugleramme.api")
     monkeypatch.setattr(api, "_TTL", 0)  # every call refetches, as a long run would
+    monkeypatch.setattr(api, "_HOLD", 0)
     detector = source(rows=_rows(BAT, BLACKBIRD, VOICES))
 
     for _ in range(3):

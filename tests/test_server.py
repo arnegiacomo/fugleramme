@@ -330,6 +330,7 @@ def test_the_kiosk_holds_its_last_page_when_the_detector_goes_away(tmp_path, det
     """The kiosk mirrors the glass, so a blip must not blank every viewer with a
     broken image."""
     monkeypatch.setattr(api, "_TTL", 0)  # or the cached answer, not the hold, is what passes
+    monkeypatch.setattr(api, "_HOLD", 0)
     url, fake = detector(count=40, seed=0)
     for base in _serve(tmp_path, ApiSource(url)):
         status, _headers, page = _fetch(base + "/collage.png")
@@ -377,6 +378,7 @@ def test_pointing_at_another_detector_drops_the_held_page(tmp_path, detector, mo
     """Holding a page through a blip is the point of it, but after a deliberate
     switch that page is another station's birds, not a stale copy of ours."""
     monkeypatch.setattr(api, "_TTL", 0)
+    monkeypatch.setattr(api, "_HOLD", 0)
     url, fake = detector(count=40, seed=0)
     store = SettingsStore(tmp_path / SETTINGS, Settings(detector_url=url))
 
