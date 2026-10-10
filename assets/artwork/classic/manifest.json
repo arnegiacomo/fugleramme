@@ -3243,6 +3243,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00070.jpg"
   },
+  "birds/passerella-iliaca.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_America_(Pl._188)_(8571225681).jpg"
+  },
   "birds/passerina-caerulea.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Blue_Song_Grosbeak._1._Male._2._Female._3._Young_(NYPL_b13559627-108463).tiff"
@@ -4574,6 +4578,10 @@
   "birds/tringa-totanus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVRedshank.jpg"
+  },
+  "birds/troglodytes-pacificus.webp": {
+    "source": "keulemans",
+    "url": "https://commons.wikimedia.org/wiki/File:Catalogue_of_the_Birds_in_the_British_Museum_(1881_-_1881)_(19955731534).jpg"
   },
   "birds/troglodytes-troglodytes-2.webp": {
     "source": "vonwright",
