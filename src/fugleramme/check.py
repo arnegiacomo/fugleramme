@@ -1,12 +1,9 @@
-"""Ask a BirdNET-Go whether it answers everything the frame needs.
+"""Test that a BirdNET-Go returns everything the frame needs.
 
-    fugleramme-check                                  # the saved connection
-    fugleramme-check --detector http://pi.local:8090  # someone else's
+    fugleramme-check                                  # the saved detector
+    fugleramme-check --detector http://pi.local:8090  # another one, not saved
 
-`FUGLERAMME_LOG_LEVEL=DEBUG` also logs every request it makes.
-
-Points at the fake or at a real station, which is what catches `fake.py`
-drifting from upstream.
+Set FUGLERAMME_LOG_LEVEL=DEBUG to also log every request it makes.
 """
 
 from __future__ import annotations
@@ -98,11 +95,15 @@ def run(url: str, username: str, password: str, cache_dir: Path) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--detector", help=f"base URL (default: saved, or {DEFAULT_DETECTOR_URL})")
-    parser.add_argument("--username", default="")
-    parser.add_argument("--password", default="")
-    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
+    parser.add_argument("--username", default="", help="only if BirdNET-Go's client id was changed")
+    parser.add_argument("--password", default="", help="BirdNET-Go's password (default: saved)")
+    parser.add_argument(
+        "--config", type=Path, default=DEFAULT_CONFIG_PATH, help="settings file to read"
+    )
     args = parser.parse_args()
     logging.basicConfig(format="%(levelname)s %(message)s")
     logging.getLogger("fugleramme").setLevel(os.environ.get("FUGLERAMME_LOG_LEVEL", "WARNING"))
