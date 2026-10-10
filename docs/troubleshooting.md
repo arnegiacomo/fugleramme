@@ -78,7 +78,9 @@ sudo networksetup -ordernetworkservices "Wi-Fi" ... "Raspberry Pi USB Gadget"
 
 SSH keeps working - `10.12.194.1` is a directly connected route.
 
-## Page is empty, or the detector is unreachable
+## Checking the connection to BirdNET-Go
+
+`fugleramme-check` tests that BirdNET-Go returns everything the frame needs:
 
 ```bash
 ssh <user>@<host>.local
@@ -86,10 +88,21 @@ cd ~/fugleramme
 uv run fugleramme-check
 ```
 
-A line per question the frame asks BirdNET-Go, and the address it asked. Add
-`--detector http://<host>:<port>` to try another without saving it.
+Each line says `ok` or `FAIL`, what came back, and how long it took. It uses the
+address and password saved on the admin page. Add `--detector http://<host>:<port>`
+(and `--password`) to try another without saving it. Put
+`FUGLERAMME_LOG_LEVEL=DEBUG` in front to also see every request it makes.
 
-If nothing answers, check that address on the admin page's Detector tab -
+In the container:
+
+```bash
+docker compose exec fugleramme fugleramme-check --config /data/settings.json
+```
+
+## Page is empty, or the detector is unreachable
+
+Run the [check](#checking-the-connection-to-birdnet-go) first. If nothing
+answers, check the address on the admin page's Detector tab -
 **Test connection** says whether it is reachable, needs credentials, or is fine.
 The password field is right below the address. If Fugleramme runs
 BirdNET-Go for you, `docker ps` should show it. If it answers but finds no
@@ -97,6 +110,43 @@ birds, that's BirdNET-Go's side - open its own page and check the mic.
 
 The frame holds its last page while the detector is away rather than wiping the
 glass, so a short outage looks like nothing happening at all.
+
+## Slow detector
+
+If [`fugleramme-check`](#checking-the-connection-to-birdnet-go) says `did not answer within 30s`, BirdNET-Go is running, but slow to answer. This might mean a large database or a slow network. Try waiting longer:
+
+```bash
+FUGLERAMME_DETECTOR_TIMEOUT=60 uv run fugleramme-check
+```
+
+If that passes, try it on the frame:
+
+```bash
+sudo systemctl edit fugleramme-frame
+```
+
+```ini
+[Service]
+Environment=FUGLERAMME_DETECTOR_TIMEOUT=60
+```
+
+In the container:
+
+```bash
+docker compose exec -e FUGLERAMME_DETECTOR_TIMEOUT=60 fugleramme fugleramme-check --config /data/settings.json
+```
+
+If that passes, add it to the compose file and run `docker compose up -d`:
+
+```yaml
+    environment:
+      FUGLERAMME_DETECTOR_TIMEOUT: 60
+```
+
+The setting is kept across updates.
+
+For more detailed logs, set `FUGLERAMME_LOG_LEVEL=DEBUG` the same way. The frame
+then logs each request to BirdNET-Go and how long it took.
 
 ## Only scientific/latin bird names are available
 

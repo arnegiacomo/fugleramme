@@ -93,6 +93,10 @@ hand-edited settings file).
 Use the seed values to bring a fresh frame up the way you want it, and the admin page for
 everything afterwards. To start over, delete the volume (no detections will be lost - only your settings).
 
+Two more variables are not settings, so they apply on every start:
+`FUGLERAMME_DETECTOR_TIMEOUT` (seconds to wait for BirdNET-Go, default 30) and
+`FUGLERAMME_LOG_LEVEL` (`DEBUG` logs every request to it).
+
 ## The volume
 
 `/data` holds the settings, the current artwork picks, the cached species names dictionaries and

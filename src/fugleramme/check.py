@@ -3,6 +3,8 @@
     fugleramme-check                                  # the saved connection
     fugleramme-check --detector http://pi.local:8090  # someone else's
 
+`FUGLERAMME_LOG_LEVEL=DEBUG` also logs every request it makes.
+
 Points at the fake or at a real station, which is what catches `fake.py`
 drifting from upstream.
 """
@@ -10,7 +12,10 @@ drifting from upstream.
 from __future__ import annotations
 
 import argparse
+import logging
+import os
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -31,14 +36,20 @@ def _describe(value: Any) -> str:
     return str(value)
 
 
+def _line(ok: bool, label: str, detail: str, started: float) -> None:
+    took = time.monotonic() - started
+    print(f"{_OK if ok else _FAIL} {label:<22} {detail} ({took:.1f}s)")
+
+
 def _check(label: str, run) -> bool:
+    started = time.monotonic()
     try:
-        print(f"{_OK} {label:<22} {_describe(run())}")
+        _line(True, label, _describe(run()), started)
         return True
     except Unavailable as error:
-        print(f"{_FAIL} {label:<22} {error}")
+        _line(False, label, str(error), started)
     except Exception as error:  # a shape the frame cannot read is a failure too
-        print(f"{_FAIL} {label:<22} {type(error).__name__}: {error}")
+        _line(False, label, f"{type(error).__name__}: {error}", started)
     return False
 
 
@@ -65,12 +76,13 @@ def _languages(cache_dir: Path) -> list[str]:
 def run(url: str, username: str, password: str, cache_dir: Path) -> int:
     source = ApiSource(url, username, password)
     languages.use(source)
+    print(f"{url}\n")
+    started = time.monotonic()
     # The admin's own test, not a bare /health: it reads what the frame reads.
     # "names" is reachable - the locale list it holds back is the check below.
     state, detail = probe(url, username, password)
     reachable = state in ("ok", "names")
-    print(f"{url}\n")
-    print(f"{_OK if reachable else _FAIL} {'reachable':<22} {detail or 'answered'}")
+    _line(reachable, "reachable", detail or "answered", started)
     checks = [
         ("species, 6 hours", lambda: source.species_since(6)),
         ("species, 24 hours", lambda: source.species_since(24)),
@@ -92,6 +104,8 @@ def main() -> None:
     parser.add_argument("--password", default="")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     args = parser.parse_args()
+    logging.basicConfig(format="%(levelname)s %(message)s")
+    logging.getLogger("fugleramme").setLevel(os.environ.get("FUGLERAMME_LOG_LEVEL", "WARNING"))
 
     # Same seeds as the service, so the check reports the detector it would use.
     saved = SettingsStore(args.config, from_env()).get()
