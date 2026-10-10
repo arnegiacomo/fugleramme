@@ -1,7 +1,10 @@
 """Test that a BirdNET-Go returns everything the frame needs.
 
-    fugleramme-check                                  # the saved detector
-    fugleramme-check --detector http://pi.local:8090  # another one, not saved
+examples:
+  fugleramme-check
+      test the detector saved on the admin page
+  fugleramme-check --detector http://pi.local:8090 --password secret
+      test another detector, without saving it
 
 Set FUGLERAMME_LOG_LEVEL=DEBUG to also log every request it makes.
 """
