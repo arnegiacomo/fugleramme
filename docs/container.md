@@ -119,8 +119,8 @@ docker compose pull && docker compose up -d
 The volume is untouched. The artwork is split across many layers, so an update
 only pulls the part that changed.
 
-If you want that automated, [Watchtower](https://containrrr.dev/watchtower/) can
-do it on a schedule. Set it up yourself if you want it as the compose above
+If you want that automated, [Watchtower](https://github.com/nicholas-fedor/watchtower)
+can do it on a schedule. Set it up yourself if you want it as the compose above
 doesn't update on its own.
 
 ## Tags
