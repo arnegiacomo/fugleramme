@@ -5,8 +5,9 @@ copied to the board as main.py. Enable "External e-ink panel" on the frame's adm
 first. Every wake it asks the frame for /frame.e6 with the ETag of the last
 frame page on the glass (or none if a notice replaced it); an unchanged page
 costs a 304 and nothing else. A new one is downloaded whole, checked, and only
-then sent to the panel. Then it sleeps for the poll the page's header carries,
-which is the admin's "Panel refresh", never below MIN_SLEEP_MINUTES.
+then sent to the panel. The frame may be served over HTTPS, which the port
+picks. Then it sleeps for the poll the page's header carries, which is the
+admin's "Panel refresh", never below MIN_SLEEP_MINUTES.
 
 When something goes wrong the panel says so in black on white, once: a page
 that does not fit this panel or a frame that is not serving one at once, a
@@ -22,6 +23,7 @@ GPIO 43 and 44 double as UART0, so use the USB REPL.
 import binascii
 import json
 import socket
+import ssl
 import struct
 import time
 
@@ -36,6 +38,9 @@ WIFI_PASSWORD = "your-password"
 # Change to your Fugleramme setup
 FRAME_HOST = "fugleramme.local"
 FRAME_PORT = 8080
+# The frame is served over TLS on 443; set True for HTTPS on another port.
+# Note: we don't enable host validation, just encryption to avoid having to store a certificate store
+FRAME_TLS = FRAME_PORT == 443
 
 # The minimum sleep duration between two polls
 MIN_SLEEP_MINUTES = 5
@@ -120,6 +125,9 @@ def fetch(etag: str):
     sock.settimeout(30)
     try:
         sock.connect(address)
+        if FRAME_TLS:
+            # server_hostname carries the SNI the frame's certificate needs.
+            sock = ssl.wrap_socket(sock, server_hostname=FRAME_HOST)
         request = f"GET /frame.e6 HTTP/1.0\r\nHost: {FRAME_HOST}\r\n"
         if etag:
             request += f"If-None-Match: {etag}\r\n"
