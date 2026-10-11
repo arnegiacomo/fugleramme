@@ -1011,6 +1011,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/turkey-buzzard"
   },
+  "birds/catharus-ustulatus.webp": {
+    "source": "dresser",
+    "url": "https://commons.wikimedia.org/wiki/File:A_history_of_the_birds_of_Europe_(Pl._634)_(7135304473).jpg"
+  },
   "birds/catherpes-mexicanus.webp": {
     "source": "swainson",
     "url": "https://commons.wikimedia.org/wiki/File:Zoological_Illustrations_Volume_I_Series_2_011.jpg"
