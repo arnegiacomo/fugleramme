@@ -1787,6 +1787,18 @@
    681
   ]
  },
+ "birds/baeolophus-bicolor-2.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   0.92
+  ],
+  "cut": [
+   1184,
+   1200
+  ]
+ },
  "birds/baeolophus-bicolor.webp": {
   "box": [
    0.26489152885935313,
@@ -10607,6 +10619,18 @@
    1200
   ]
  },
+ "birds/pipilo-erythrophthalmus-2.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   0.76
+  ],
+  "cut": [
+   888,
+   1024
+  ]
+ },
  "birds/pipilo-erythrophthalmus.webp": {
   "box": [
    0.0,
@@ -11997,6 +12021,18 @@
   "cut": [
    1188,
    1200
+  ]
+ },
+ "birds/sayornis-phoebe.webp": {
+  "box": [
+   0.011,
+   0.242,
+   0.988,
+   0.755
+  ],
+  "cut": [
+   881,
+   1159
   ]
  },
  "birds/scolopax-rusticola-2.webp": {
