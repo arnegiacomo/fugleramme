@@ -370,9 +370,13 @@ def state_key(ctx: Context) -> tuple:
 
 
 def _marked(ctx: Context) -> tuple[str, ...]:
-    """The page's newcomers: a mark dropping off after a day repaints it."""
+    """The page's newcomers: a mark dropping off after a day repaints it. The
+    collage's subjects include its artless species, which are never drawn."""
     new = _newcomers(ctx)
-    return tuple(sorted(new & set(subjects(ctx)))) if new else ()
+    if not new:
+        return ()
+    keys = ctx.drawable()
+    return tuple(sorted(n for n in subjects(ctx) if n in new and normalize(n) in keys))
 
 
 def token(key: tuple) -> str:

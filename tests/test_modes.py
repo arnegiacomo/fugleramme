@@ -296,6 +296,18 @@ def test_a_bird_first_heard_today_is_marked_on_every_page(tmp_path, images, sour
         )
 
 
+def test_a_new_bird_with_no_artwork_leaves_the_page_alone(tmp_path, images, detector):
+    rows = [_row(1, BLACKBIRD, 30)]
+    url, _httpd = detector(rows=rows)
+    detections = ApiSource(url)
+    before = {m: modes.state_key(_ctx(detections, images, tmp_path, m)) for m in modes.MODES}
+
+    _heard(detections, rows, _row(2, ROBIN, 0))
+
+    for mode in modes.MODES:
+        assert modes.state_key(_ctx(detections, images, tmp_path, mode)) == before[mode]
+
+
 def test_no_mark_without_names(tmp_path, images, source):
     detections = source(rows=[_row(1, TIT, 1)])
     ctx = _ctx(detections, images, tmp_path, "collage", show_names=False)
