@@ -166,7 +166,8 @@ something goes wrong, it writes an error message on the panel instead.
 
 1. Install MicroPython on the board (e.g.
    [for the XIAO EE02](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
-2. Set your Wi-Fi credentials and Fugleramme host at the top of `main.py`
+2. Set your Wi-Fi credentials and Fugleramme host at the top of `main.py`. A
+   frame served over HTTPS on port 443 is fetched over TLS.
 3. Upload `main.py` to the board (e.g. with
    [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html))
 

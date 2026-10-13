@@ -18,6 +18,7 @@ from __future__ import annotations
 import gzip
 import json
 import logging
+import os
 import threading
 import time
 from collections import Counter
@@ -49,8 +50,13 @@ CLIENT_ID = "birdnet-client"
 # cache keyed on it expires for either - and the password stays out of the key.
 _stations = count(1)
 
-_TIMEOUT = 5
+# Seconds per socket operation. A station migrated from BirdNET-Pi can take many
+# seconds over its all-time summary.
+_TIMEOUT = float(os.environ.get("FUGLERAMME_DETECTOR_TIMEOUT", "30"))
 _TTL = 3  # seconds: the loop and the server share one page's worth of answers
+# A slow answer is held this many times as long as it took, so it is not asked
+# for again on every tick of the render loop.
+_HOLD = 10
 _DAY = "%Y-%m-%d"
 
 # /detections/recent carries false positives, so the newest row is not always
@@ -198,7 +204,7 @@ class ApiSource:
         base_url: str,
         username: str = "",
         password: str = "",
-        timeout: int = _TIMEOUT,
+        timeout: float = _TIMEOUT,
     ):
         self.base_url = base_url.rstrip("/")
         self.station = f"{self.base_url}#{next(_stations)}"
@@ -241,16 +247,25 @@ class ApiSource:
         request.add_header("Accept-Encoding", "gzip")
         if data is not None:
             request.add_header("Content-Type", "application/json")
+        started = time.monotonic()
         try:
             with self._opener.open(request, timeout=self._timeout) as response:
                 body = response.read()
                 if response.headers.get("Content-Encoding") == "gzip":
                     body = gzip.decompress(body)
-                return response.status, _headers(response), body
+                answer = response.status, _headers(response), body
         except HTTPError as error:
-            return error.code, _headers(error), error.read()
+            answer = error.code, _headers(error), error.read()
         except (URLError, OSError) as error:
+            log.debug(
+                "%s %s failed after %.1fs: %s", method, url, time.monotonic() - started, error
+            )
+            # Slow is not unreachable: that would send the reader to check a fine address.
+            if isinstance(error.reason if isinstance(error, URLError) else error, TimeoutError):
+                raise Unavailable(f"{url} did not answer within {self._timeout:g}s") from error
             raise Unavailable(f"{self.base_url} unreachable: {error}") from error
+        log.debug("%s %s answered %s in %.1fs", method, url, answer[0], time.monotonic() - started)
+        return answer
 
     def _login(self) -> bool:
         """Whether a session was established. Two steps: the login hands out a
@@ -308,12 +323,14 @@ class ApiSource:
                 if isinstance(entry[1], Unavailable):
                     raise entry[1]
                 return entry[1]
+            started = time.monotonic()
             try:
                 value: Any = fetch()
             except Unavailable as error:
                 self._cache[key] = (time.monotonic() + _TTL, error)
                 raise
-            self._cache[key] = (time.monotonic() + _TTL, value)
+            took = time.monotonic() - started
+            self._cache[key] = (time.monotonic() + max(_TTL, _HOLD * took), value)
             return value
 
     def _summary(self, start: str = "", end: str = "") -> list[dict]:
@@ -434,7 +451,7 @@ class Configured:
     held: `languages` expires its own caches by station rather than being told.
     """
 
-    def __init__(self, store: SettingsStore, timeout: int = _TIMEOUT):
+    def __init__(self, store: SettingsStore, timeout: float = _TIMEOUT):
         self._store = store
         self._timeout = timeout
         self._lock = threading.Lock()
@@ -489,14 +506,16 @@ class Configured:
         self.source.close()
 
 
-_DETECTIONS = "/analytics/species/summary"
+# Not the summary: that is the slowest question a large station is asked, and
+# the probe only needs any answer.
+_DETECTIONS = "/detections/recent"
 _NAMES = "/settings/locales"
 
 
-def _reach(source: ApiSource, path: str) -> tuple[int, str]:
+def _reach(source: ApiSource, path: str, **params: Any) -> tuple[int, str]:
     """(status, failure) for a gated endpoint; status 0 when it was not reached."""
     try:
-        return source.request(path)[0], ""
+        return source.request(path, params=params)[0], ""
     except Unavailable as error:
         return 0, str(error)
 
@@ -516,7 +535,7 @@ def probe(url: str, username: str = "", password: str = "") -> tuple[str, str]:
     """
     refused = "credentials rejected" if password else NEEDS_PASSWORD
     source = ApiSource(url, username, password)
-    status, failure = _reach(source, _DETECTIONS)
+    status, failure = _reach(source, _DETECTIONS, limit=1)
     if status == 0:
         return "unreachable", failure
     if status == 401:

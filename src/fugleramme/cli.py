@@ -29,8 +29,12 @@ from .service import detector, run
 from .source import Unavailable
 
 
-def _parse_args(argv: list[str] | None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog="fugleramme-frame", description=__doc__)
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="fugleramme-frame",
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "--images",
         type=Path,
@@ -42,9 +46,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         help="BirdNET-Go base URL; only used when the settings file names none. "
         "Wins over FUGLERAMME_DETECTOR_URL, which wins over the built-in default",
     )
-    parser.add_argument(
-        "--config", type=Path, default=DEFAULT_CONFIG_PATH, help="settings file (#2)"
-    )
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="settings file")
     parser.add_argument(
         "--output", type=Path, default=Path("frame.png"), help="rendered frame path"
     )
@@ -57,7 +59,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
-    args = _parse_args(argv)
+    args = parse_args(argv)
     config = Config(
         images_dir=args.images,
         detector_url=args.detector,

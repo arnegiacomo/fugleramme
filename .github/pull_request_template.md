@@ -25,7 +25,7 @@ ran it on - I can only test the hardware I have. -->
 ## Artwork
 
 - [ ] Many birds? - split a bigger batch into several PRs
-- [ ] Cut from a real plate, nothing AI-generated (retouching a scan is fine)
+- [ ] Cut from a real plate and retouched with conventional tools ([Artwork](../CONTRIBUTING.md#artwork)); any generative fill is described below
 - [ ] Licensing is public domain or compatible with the style folder's own terms
 - [ ] Added with `tools/add_bird.py`, halo per [Adding artwork](../docs/adding-artwork.md)
 - [ ] Shipped as WebP - `add_bird.py` writes it, whatever you hand it

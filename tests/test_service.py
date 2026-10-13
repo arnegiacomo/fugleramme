@@ -39,6 +39,7 @@ def test_the_loop_holds_its_last_page_when_the_detector_goes_away(
 ):
     url, httpd = detector(count=40, seed=0)
     monkeypatch.setattr(api, "_TTL", 0)  # no cached answers to hide the outage behind
+    monkeypatch.setattr(api, "_HOLD", 0)
     config = Config(
         images_dir=images,
         detector_url=url,
@@ -114,6 +115,7 @@ def test_the_loop_names_the_species_it_has_no_artwork_for(
     caplog.set_level(logging.INFO, logger="fugleramme.service")
     url, _httpd = detector(count=40, seed=0)
     monkeypatch.setattr(api, "_TTL", 0)
+    monkeypatch.setattr(api, "_HOLD", 0)
     config = Config(
         images_dir=images,
         detector_url=url,

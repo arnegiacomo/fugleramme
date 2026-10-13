@@ -84,9 +84,7 @@ Public-domain natural-history plates, mostly from Wikimedia Commons and rawpixel
 
 ## Is any of the included art AI-generated?
 
-No. Every bird is cut from a plate drawn by a real person.
-
-AI tools for cleaning up or editing a scan are fine. The art underneath has to be human-made and properly attributed.
+No. Every bird is cut from a plate drawn by a real person, and retouched with conventional tools. A generative model may at most patch a small spot of damage - see [Artwork](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md#artwork).
 
 ## Can I use my own images?
 

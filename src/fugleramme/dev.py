@@ -16,11 +16,13 @@ import sys
 
 from watchfiles import run_process
 
-from .cli import main as service_main
+from .cli import main as service_main, parse_args
 from .config import REPO_ROOT
 
 
 def main() -> None:
+    # Here first, so --help and a bad flag exit instead of waiting on a file change.
+    parse_args(sys.argv[1:])
     watch_dir = REPO_ROOT / "src" / "fugleramme"
     run_process(watch_dir, target=service_main, args=(sys.argv[1:],))
 

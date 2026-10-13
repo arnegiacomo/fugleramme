@@ -93,6 +93,10 @@ hand-edited settings file).
 Use the seed values to bring a fresh frame up the way you want it, and the admin page for
 everything afterwards. To start over, delete the volume (no detections will be lost - only your settings).
 
+Two more variables are not settings, so they apply on every start:
+`FUGLERAMME_DETECTOR_TIMEOUT` (seconds to wait for BirdNET-Go, default 30) and
+`FUGLERAMME_LOG_LEVEL` (`DEBUG` logs every request to it).
+
 ## The volume
 
 `/data` holds the settings, the current artwork picks, the cached species names dictionaries and
@@ -115,8 +119,8 @@ docker compose pull && docker compose up -d
 The volume is untouched. The artwork is split across many layers, so an update
 only pulls the part that changed.
 
-If you want that automated, [Watchtower](https://containrrr.dev/watchtower/) can
-do it on a schedule. Set it up yourself if you want it as the compose above
+If you want that automated, [Watchtower](https://github.com/nicholas-fedor/watchtower)
+can do it on a schedule. Set it up yourself if you want it as the compose above
 doesn't update on its own.
 
 ## Tags

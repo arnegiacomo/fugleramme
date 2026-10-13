@@ -76,8 +76,16 @@ bird isn't a change to the software, so it rides along in the next release witho
 
 ## Artwork
 
-Half the point of this project is showing off amazing public-domain natural-history illustration, so every bird has to be cut from a real plate. Nothing AI-generated.
-Retouching a scan with AI is fair game - e.g. the `classic` perches were tidied up that way.
+Half the point of this project is showing off amazing public-domain natural-history illustration, so every bird has to be cut from a real plate. Nothing AI-generated, and no scan its source says was restored or upscaled with AI.
+
+Retouching uses conventional tools - masking, levels, cloning the plate's own strokes - whether you or an agent runs them. A generative image model may only fill a small, masked spot of actual damage, like a hole or a stain, and the PR must disclose it. If the damage is too big for that, choose another plate.
+
+| Fine | Not fine |
+|---|---|
+| Cloning or healing a spot from the plate's own strokes | Handing a whole scan to Gemini or gpt-image to "fix" |
+| Rebuilding a twig hidden behind a foot from the plate's own strokes | Filling in behind a removed bird |
+| A mask from SAM or rembg | Upscaling with Topaz or Real-ESRGAN |
+| A masked generative fill over a small hole, disclosed | Redrawing texture or feathers |
 
 **A bird missing from `classic`** is the usual one - [Species coverage](https://arnegiacomo.dev/fugleramme/species/) shows the current coverage. Cut it and open a PR. If
 you'd rather point at a plate than cut it yourself, open a

@@ -9,8 +9,10 @@ from __future__ import annotations
 
 import json
 import logging
+import socket
 from collections import Counter
 from datetime import UTC, datetime, time, timedelta, timezone
+from types import SimpleNamespace
 from urllib.request import urlopen
 
 import pytest
@@ -117,6 +119,44 @@ def test_a_repeated_question_is_answered_without_asking_again(detector):
     httpd.shutdown()
     httpd.server_close()
     assert detections.species_since(0) == first  # the TTL cache, not a second round trip
+
+
+def test_a_slow_answer_is_held_for_longer(detector, monkeypatch):
+    """A station that takes seconds over its all-time summary would otherwise be
+    asked for it again on every tick of the render loop."""
+    url, _httpd = detector()
+    now = [0.0]
+    monkeypatch.setattr(api, "time", SimpleNamespace(monotonic=lambda: now[0]))
+    detections = ApiSource(url)
+    get = detections._get
+
+    def slow(*args, **kwargs):
+        now[0] += 6
+        return get(*args, **kwargs)
+
+    def refuse(*args, **kwargs):
+        raise AssertionError("asked the detector again while the slow answer was held")
+
+    monkeypatch.setattr(detections, "_get", slow)
+    first = detections.species_since(0)
+
+    now[0] += 50
+    monkeypatch.setattr(detections, "_get", refuse)
+    assert detections.species_since(0) == first
+
+    now[0] += 20
+    monkeypatch.setattr(detections, "_get", get)
+    assert detections.species_since(0) == first
+
+
+def test_a_station_slow_to_answer_is_not_called_unreachable():
+    """It is answering, slowly: "unreachable" would send the reader to check an
+    address that is fine."""
+    with socket.create_server(("127.0.0.1", 0)) as silent:
+        url = f"http://127.0.0.1:{silent.getsockname()[1]}"
+        with pytest.raises(Unavailable, match="did not answer within 0.2s") as raised:
+            ApiSource(url, timeout=0.2).species_since(0)
+    assert "unreachable" not in str(raised.value)
 
 
 def test_a_private_detector_needs_credentials(source):

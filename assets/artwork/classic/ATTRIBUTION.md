@@ -15,8 +15,7 @@ describes a work and its terms, never a single plate.
 **von Wright** - *Svenska Fåglar* by the **von Wright brothers** (Magnus
 1805-1868, Wilhelm 1810-1887, Ferdinand 1822-1906), from the Commons category
 [Svenska fåglar (von Wright)](https://commons.wikimedia.org/wiki/Category:Svenska_f%C3%A5glar_(von_Wright)):
-rawpixel plates (CC BY-SA 4.0) and public-domain files. The `perches/`
-branches are cut from these and retouched with generative AI. Also the
+rawpixel plates (CC BY-SA 4.0) and public-domain files. Also the
 brothers' studies held by the **Finnish National Gallery**, and rawpixel's own
 scans of the folio (the ones Commons didn't have), both from
 [rawpixel](https://www.rawpixel.com/art-studio/von%20wright?path=1525%7C%24publicdomain&sort=curated),
@@ -28,7 +27,8 @@ Volumes 1-5, from the Commons category
 [The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould))
 and the [Internet Archive](https://archive.org/details/birdsEuropeIVGoul), public domain (PD-old-70-expired); *The Birds of Asia*, with **Richard Bowdler
 Sharpe** (1850-1883), from the Commons category
-[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)),
+[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould))
+and the [University of Kansas](https://digital.lib.ku.edu/ku-gould),
 public domain (PD-Art, PD-old-100); and *The Birds of Australia* (1840-1848),
 illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**,
 scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524),
@@ -98,7 +98,7 @@ and [Metropolitan Museum of Art](https://www.metmuseum.org/art/collection) scans
 
 **Naumann** - *Naturgeschichte der Vögel Mitteleuropas* by **Johann Friedrich Naumann**, revised and edited by **Carl R. Hennicke** (1897-1905), chromolithographs by **J. G. Keulemans** and others, lithographed and printed by **Fr. Eugen Köhler** in Gera-Untermhaus, Internet Archive scans from the Commons category [Naturgeschichte der Vögel Mitteleuropas](https://commons.wikimedia.org/wiki/Category:Naturgeschichte_der_V%C3%B6gel_Mitteleuropas); and the plates of *Johann Andreas Naumann's Naturgeschichte der Vögel Deutschlands* (1820-1844), hand-coloured engravings, Biodiversity Heritage Library scans via the [Internet Archive](https://archive.org/details/johannandreasnau13naum), with an original watercolour for them from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections, via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-scan / PD-old-70-expired). Manifest key: `naumann`.
 
-**Fuertes** - works with plates by **Louis Agassiz Fuertes**: *Birds of New York, Parts 1 & 2* by **Elon Howard Eaton** (New York State Museum, Memoir 12; Albany: University of the State of New York, 1910-1914), Internet Archive scans from the Commons category [Birds of New York (Eaton)](https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)), public domain (PD-scan / PD-old-70-expired); and *Bird-Lore* (1915), American Museum of Natural History Library scan via the [Internet Archive](https://archive.org/details/birdlore17nati) and Wikimedia Commons, public domain (1915 U.S. publication; Fuertes died 1927; Commons marks the scan as having no known copyright restrictions). Manifest key: `fuertes`.
+**Fuertes** - works with plates by **Louis Agassiz Fuertes**: *Birds of New York, Parts 1 & 2* by **Elon Howard Eaton** (New York State Museum, Memoir 12; Albany: University of the State of New York, 1910-1914), Internet Archive scans from the Commons category [Birds of New York (Eaton)](https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)), public domain (PD-scan / PD-old-70-expired). Manifest key: `fuertes`.
 Also chromolithographs after his watercolours in the *Harriman Alaska series*
 (1904), from [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Harriman_Alaska_Expedition).
 Public domain (PD-US / PD-Art).
@@ -192,10 +192,18 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Reed** - *The Bird Book* by **Chester A. Reed** (Worcester, Mass.: C. K. Reed, 1914). Prelinger Library scan via the [Internet Archive](https://archive.org/details/birdbookillustra00reedrich). Public domain (published in the US before 1929; Reed died 1912). Manifest key: `reed`.
 
-**Wolf** - a plate drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851), printed by **M. & N. Hanhart**, Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool), and Wikimedia Commons. Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
+**Wolf** - plates drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851, printed by **M. & N. Hanhart**; 1852, printed by **Ford & West**), Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool), and Wikimedia Commons, and Ernst Mayr Library, Museum of Comparative Zoology, Harvard University scan via the [Internet Archive](https://archive.org/details/proceedingsofzoo002zool). Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
 
 **Descourtilz** - *Ornithologie Brésilienne, ou, Histoire des oiseaux du Brésil* by **Jean Théodore Descourtilz** (Rio de Janeiro: Thomas Reeves, 1854), lithographed by **Waterlow and Sons**, Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/OrnithologieBre00Desc) and Wikimedia Commons. Public domain (Descourtilz died 1855). Manifest key: `descourtilz`.
 
 **Jerdon** - *Illustrations of Indian Ornithology* by **T. C. Jerdon** (Madras, 1843-1847), hand-coloured lithographs. Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/illustrationsofi00jerd). Public domain. Manifest key: `jerdon`.
 
 **National Palace Museum** - *Niaopu* (Manual of Birds), the Qing court bird album painted by **Yu Sheng** and **Zhang Weibang** (1750-1761), ink and colour on silk. National Palace Museum, Taipei, open data image via its [digital archive](https://digitalarchive.npm.gov.tw/), [www.npm.gov.tw](https://www.npm.gov.tw). CC BY 4.0. Manifest key: `npm`.
+
+**Horsfield** - *Zoological Researches in Java, and the Neighbouring Islands* by **Thomas Horsfield** (1821-1824), plates drawn by **A. Pelletier** and printed by **C. Hullmandel**. Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/zoologicalresear00hors). Public domain. Manifest key: `horsfield`.
+
+**Köhler** - *Köhler's Medizinal-Pflanzen in naturgetreuen Abbildungen mit kurz erläuterndem Texte*, edited by **Franz Eugen Köhler** and **Gustav Pabst**, Volume 1 (1887), chromolithographs drawn by **Walther Müller**. Biodiversity Heritage Library scans via the Commons category [Köhler's Medizinal-Pflanzen in naturgetreuen Abbildungen mit kurz erläuterndem Texte (1898)](https://commons.wikimedia.org/wiki/Category:K%C3%B6hler%27s_Medizinal-Pflanzen_in_naturgetreuen_Abbildungen_mit_kurz_erl%C3%A4uterndem_Texte_(1898)). Public domain (PD-old-100). Manifest key: `koehler`.
+
+**Palmstruch** - *Svensk botanik* by **Johan Wilhelm Palmstruch** (1802-1843), hand-coloured engravings by **Carl Wilhelm Venus**. New York Botanical Garden scans via the [Internet Archive](https://archive.org/details/svenskbotanik03palm). Public domain. Manifest key: `palmstruch`.
+
+**Michaux** - *The North American Sylva* by **François André Michaux** (1819 English edition), plates after **Pancrace Bessa**. Biodiversity Heritage Library scans via Wikimedia Commons. Public domain (PD-old-100). Manifest key: `michaux`.

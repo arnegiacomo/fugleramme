@@ -66,8 +66,7 @@ I'm affiliated with Pimoroni - buying through the Pimoroni links or using the co
 
 Half the point of this project is showing off some amazing public-domain natural-history
 illustrations. Nearly 1200 cut-outs covering over 650 species, every one taken from a
-real plate and hand-curated for this project (no art is AI-generated, though some has been
-retouched with AI).
+real plate and hand-curated for this project (no art is AI-generated).
 
 Each bird is sized by real body mass, the larger ones toward the centre, on a textured paper page.
 

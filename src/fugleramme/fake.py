@@ -450,7 +450,9 @@ def serve(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=BIRDNET_PORT)
     parser.add_argument("--count", type=int, default=40, help="detections to generate")
