@@ -12587,6 +12587,18 @@
    1200
   ]
  },
+ "birds/sphyrapicus-varius-2.webp": {
+  "box": [
+   0.0193,
+   0.0125,
+   0.9843,
+   0.9867
+  ],
+  "cut": [
+   827,
+   1200
+  ]
+ },
  "birds/spilopelia-chinensis.webp": {
   "box": [
    0.1,
