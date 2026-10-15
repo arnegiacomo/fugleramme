@@ -3363,6 +3363,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIHoney_Buzzard.jpg"
   },
+  "birds/petrochelidon-pyrrhonota.webp": {
+    "source": "sharpe",
+    "url": "https://commons.wikimedia.org/wiki/File:Petrochelidon_pyrrhonota_1894.jpg"
+  },
   "birds/petroica-rosea.webp": {
     "source": "gould",
     "url": "https://www.biodiversitylibrary.org/page/48285795"
@@ -4051,6 +4055,10 @@
     "source": "fuertes",
     "url": "https://www.fws.gov/media/eastern-phoebe"
   },
+  "birds/sayornis-saya.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Arkansaw_Flycatcher,_Swallow-tailed_Flycatcher_and_Says_Flycatcher,_1837,_NGA_32500.jpg"
+  },
   "birds/scolopax-rusticola-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00126.jpg"
@@ -4066,6 +4074,14 @@
   "birds/scythrops-novaehollandiae.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg"
+  },
+  "birds/selasphorus-platycercus-2.webp": {
+    "source": "swainson",
+    "url": "https://commons.wikimedia.org/wiki/File:Selasphorus_platycercus_1841.jpg"
+  },
+  "birds/selasphorus-platycercus.webp": {
+    "source": "swainson",
+    "url": "https://commons.wikimedia.org/wiki/File:Selasphorus_platycercus_1841.jpg"
   },
   "birds/selasphorus-rufus.webp": {
     "source": "audubon",
@@ -4219,13 +4235,13 @@
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14270"
   },
-  "birds/sphyrapicus-varius.webp": {
-    "source": "fuertes",
-    "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18429319635).jpg"
-  },
   "birds/sphyrapicus-varius-2.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-190-yellow-bellied-woodpecker.jpg"
+  },
+  "birds/sphyrapicus-varius.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18429319635).jpg"
   },
   "birds/spilopelia-chinensis.webp": {
     "source": "knip",
@@ -4658,6 +4674,10 @@
   "birds/tringa-totanus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVRedshank.jpg"
+  },
+  "birds/troglodytes-aedon.webp": {
+    "source": "swainson",
+    "url": "https://commons.wikimedia.org/wiki/File:Troglodytes_aedon_musculus_1841.jpg"
   },
   "birds/troglodytes-pacificus.webp": {
     "source": "keulemans",
