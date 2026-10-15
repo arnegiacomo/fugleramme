@@ -112,6 +112,8 @@ Also his plates for **F. E. L. Beal**'s *Birds of California in Relation to the 
 Parts I and II (U.S. Biological Survey Bulletins 30 and 34, 1907-1910), via the Internet Archive
 ([Part I](https://archive.org/details/birdsofcaliforni30beal), [Part II](https://archive.org/details/bulletinbiologic3238unit)).
 Public domain (US Federal Government work).
+And paintings of his in the U.S. Fish and Wildlife Service's [FWS Library](https://www.fws.gov/library),
+public domain.
 
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 

@@ -161,6 +161,7 @@ See **[Contributing](CONTRIBUTING.md)** for more info. For anything else, you ca
 - [featherframe](https://github.com/wr/featherframe) - BirdNET-Pi, Audubon plates on an ESP32 e-ink panel
 - [birdframe](https://github.com/simenf/birdframe) - BirdNET-Go, several art styles on a Samsung Frame TV
 - [Plate197](https://github.com/kevinl95/Plate197) - BirdNET, Audubon plates on a Raspberry Pi touchscreen
+- [Backyard Birds](https://github.com/dmellok/tesserae-widget-backyard-birds) - BirdNET-Go, natural-history plates as a [Tesserae](https://github.com/dmellok/tesserae) widget for several e-ink panels
 
 Fugleramme shares no code or art with them.
 

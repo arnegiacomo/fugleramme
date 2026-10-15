@@ -43,7 +43,7 @@ COPY --from=build /app/.venv ./.venv
 COPY assets/ATTRIBUTION.md assets/bird_sizes.csv assets/birdnet_aliases.json assets/birdnet_labels_v2.4.txt ./assets/
 COPY assets/fonts ./assets/fonts
 COPY assets/artwork/custom ./assets/artwork/custom
-COPY assets/artwork/classic/ATTRIBUTION.md assets/artwork/classic/manifest.json ./assets/artwork/classic/
+COPY assets/artwork/classic/ATTRIBUTION.md assets/artwork/classic/manifest.json assets/artwork/classic/geometry.json ./assets/artwork/classic/
 COPY assets/artwork/classic/perches ./assets/artwork/classic/perches
 
 # The plates are 165 MB, so they ship as a layer per letter: the registry serves

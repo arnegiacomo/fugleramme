@@ -1787,6 +1787,18 @@
    681
   ]
  },
+ "birds/baeolophus-bicolor-2.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   0.92
+  ],
+  "cut": [
+   1184,
+   1200
+  ]
+ },
  "birds/baeolophus-bicolor.webp": {
   "box": [
    0.26489152885935313,
@@ -2337,6 +2349,18 @@
   "cut": [
    1200,
    1024
+  ]
+ },
+ "birds/buteo-platypterus.webp": {
+  "box": [
+   0.609,
+   0.275,
+   0.924,
+   0.628
+  ],
+  "cut": [
+   818,
+   1200
   ]
  },
  "birds/buteo-regalis.webp": {
@@ -3273,6 +3297,18 @@
   "cut": [
    908,
    632
+  ]
+ },
+ "birds/chenonetta-jubata.webp": {
+  "box": [
+   0.233,
+   0.096,
+   0.868,
+   0.823
+  ],
+  "cut": [
+   1200,
+   750
   ]
  },
  "birds/chlidonias-hybrida.webp": {
@@ -4845,6 +4881,18 @@
   "cut": [
    1200,
    797
+  ]
+ },
+ "birds/cygnus-atratus.webp": {
+  "box": [
+   0.092,
+   0.17,
+   0.893,
+   0.813
+  ],
+  "cut": [
+   1200,
+   806
   ]
  },
  "birds/cygnus-columbianus.webp": {
@@ -6827,6 +6875,18 @@
    598
   ]
  },
+ "birds/haemorhous-purpureus.webp": {
+  "box": [
+   0.019057478710239707,
+   0.4557310104370117,
+   0.4918174071799183,
+   0.6357895278930664
+  ],
+  "cut": [
+   907,
+   1200
+  ]
+ },
  "birds/haliaeetus-albicilla-2.webp": {
   "box": [
    0.11021265029907226,
@@ -6861,6 +6921,18 @@
   "cut": [
    903,
    1200
+  ]
+ },
+ "birds/helmitheros-vermivorum.webp": {
+  "box": [
+   0.01,
+   0.3,
+   0.4,
+   0.73
+  ],
+  "cut": [
+   1200,
+   1107
   ]
  },
  "birds/helopsaltes-certhiola.webp": {
@@ -6981,6 +7053,18 @@
   "cut": [
    1200,
    954
+  ]
+ },
+ "birds/hirundo-neoxena.webp": {
+  "box": [
+   0.046,
+   0.461,
+   0.496,
+   0.708
+  ],
+  "cut": [
+   804,
+   1200
   ]
  },
  "birds/hirundo-rustica-2.webp": {
@@ -8411,6 +8495,18 @@
    930
   ]
  },
+ "birds/melanerpes-erythrocephalus.webp": {
+  "box": [
+   0.09,
+   0.55,
+   0.391,
+   0.91
+  ],
+  "cut": [
+   1027,
+   1200
+  ]
+ },
  "birds/melanitta-fusca-2.webp": {
   "box": [
    0.038813695907592774,
@@ -9599,6 +9695,18 @@
    1077
   ]
  },
+ "birds/pardalotus-punctatus.webp": {
+  "box": [
+   0.405,
+   0.514,
+   0.809,
+   0.652
+  ],
+  "cut": [
+   681,
+   1200
+  ]
+ },
  "birds/parus-cinereus.webp": {
   "box": [
    0.29107858626568905,
@@ -9981,18 +10089,6 @@
   "cut": [
    920,
    1200
-  ]
- },
- "birds/petrochelidon-pyrrhonota.webp": {
-  "box": [
-   0.013333333333333334,
-   0.011764705882352941,
-   0.9866666666666667,
-   0.9852941176470589
-  ],
-  "cut": [
-   1200,
-   1088
   ]
  },
  "birds/petroica-rosea.webp": {
@@ -10809,6 +10905,18 @@
   "cut": [
    1200,
    1123
+  ]
+ },
+ "birds/platycercus-eximius.webp": {
+  "box": [
+   0.261,
+   0.408,
+   0.802,
+   0.992
+  ],
+  "cut": [
+   695,
+   1200
   ]
  },
  "birds/plectrophenax-nivalis-2.webp": {
@@ -12035,16 +12143,16 @@
    1200
   ]
  },
- "birds/sayornis-saya.webp": {
+ "birds/sayornis-phoebe.webp": {
   "box": [
-   0.01804123711340206,
-   0.013669955144416747,
-   0.4226804123711341,
-   0.9589901345667498
+   0.037016927291380335,
+   0.09215017064846416,
+   0.9985193229083448,
+   0.7417519908987487
   ],
   "cut": [
-   1200,
-   905
+   922,
+   1200
   ]
  },
  "birds/scolopax-rusticola-2.webp": {
@@ -12095,18 +12203,6 @@
    1200
   ]
  },
- "birds/selasphorus-platycercus.webp": {
-  "box": [
-   0.06591186774126778,
-   0.005882461180253148,
-   0.7299739611889997,
-   0.3970477290240524
-  ],
-  "cut": [
-   830,
-   1200
-  ]
- },
  "birds/selasphorus-rufus.webp": {
   "box": [
    0.011335094047315192,
@@ -12128,6 +12224,42 @@
   ],
   "cut": [
    727,
+   1200
+  ]
+ },
+ "birds/setophaga-citrina-2.webp": {
+  "box": [
+   0.3,
+   0.53,
+   0.7,
+   0.79
+  ],
+  "cut": [
+   704,
+   1200
+  ]
+ },
+ "birds/setophaga-citrina-3.webp": {
+  "box": [
+   0.0,
+   0.28,
+   1.0,
+   0.74
+  ],
+  "cut": [
+   1200,
+   1075
+  ]
+ },
+ "birds/setophaga-citrina.webp": {
+  "box": [
+   0.0,
+   0.3,
+   0.93,
+   0.75
+  ],
+  "cut": [
+   951,
    1200
   ]
  },
@@ -12536,6 +12668,18 @@
   ],
   "cut": [
    842,
+   1200
+  ]
+ },
+ "birds/sphyrapicus-varius-2.webp": {
+  "box": [
+   0.18130432492933027,
+   0.34808662414550784,
+   0.9630077809510127,
+   0.9283826446533203
+  ],
+  "cut": [
+   754,
    1200
   ]
  },
@@ -13835,18 +13979,6 @@
    664
   ]
  },
- "birds/troglodytes-aedon.webp": {
-  "box": [
-   0.01424791316733751,
-   0.07058823529411765,
-   0.9898229191661875,
-   0.5308823529411765
-  ],
-  "cut": [
-   867,
-   1200
-  ]
- },
  "birds/troglodytes-pacificus.webp": {
   "box": [
    0.17127386728922525,
@@ -14337,6 +14469,18 @@
   "cut": [
    1200,
    549
+  ]
+ },
+ "birds/vireo-solitarius.webp": {
+  "box": [
+   0.2,
+   0.395,
+   0.655,
+   0.578
+  ],
+  "cut": [
+   870,
+   1200
   ]
  },
  "birds/xema-sabini.webp": {
