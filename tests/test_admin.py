@@ -277,6 +277,15 @@ def test_the_spotlight_box_saves_both_ways(tmp_path, source):
     assert not store.update(**admin.form_changes({admin.CHECKBOXES: ["spotlight"]})).spotlight
 
 
+def test_the_last_update_box_saves_both_ways(tmp_path, source):
+    page = _page(tmp_path, source())
+    assert 'name="show_updated"' in page
+    store = SettingsStore(tmp_path / "s.json")
+    on = {admin.CHECKBOXES: ["show_updated"], "show_updated": ["on"]}
+    assert store.update(**admin.form_changes(on)).show_updated
+    assert not store.update(**admin.form_changes({admin.CHECKBOXES: ["show_updated"]})).show_updated
+
+
 def _declared(html: str) -> list[str]:
     return re.findall(rf'name="{admin.CHECKBOXES}" value="([^"]*)"', html)
 

@@ -342,6 +342,9 @@ NAME_KEY = (
 )
 
 
+UPDATED = "When the page last changed, small in its bottom-right corner."
+
+
 def _names_field(
     settings: Settings,
     languages: list[tuple[str, str]],
@@ -369,6 +372,7 @@ def _names_field(
         f"{_options(FONTS, settings.label_font, lambda k: FONTS[k][0])}</select></label>"
         f'<label class="sub"><small>Text size</small><select name="label_size">'
         f"{_options(LABEL_SIZES, settings.label_size, lambda k: LABEL_SIZES[k][0])}</select></label>"
+        f"{_checkbox('show_updated', f'<span>Show last update {_hint(UPDATED)}</span>', settings.show_updated)}"
         f"</div>"
     )
 

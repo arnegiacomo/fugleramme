@@ -31,7 +31,7 @@ from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .picks import Picks
 from .render import fonts
 from .render.collage import KEY_LIMIT, NO_LIMIT, gather_entries, render_collage, selected_species
-from .render.page import NEW, Edges, day_ordinal
+from .render.page import MIN_LABEL_PX, NEW, Edges, day_ordinal, stamp, text_mask
 from .render.plate import effective_margin, render_plate
 from .source import Source, Species
 
@@ -45,6 +45,8 @@ log = logging.getLogger(__name__)
 # latest one that can does instead.
 _RECENT_SCAN = 500
 NEW_HOURS = 24  # how long a bird first heard counts as new, for its mark
+_STAMP_PX = 0.02  # the last-update stamp's type, of the page's short side
+_STAMP_ROOM = 1.6  # the strip kept clear for it, of its type: the line and air above
 
 
 @dataclass(frozen=True)
@@ -69,6 +71,7 @@ class Context:
     spotlight: bool
     margin: Edges  # of the short side; the settings are percents
     textured: bool = True
+    updated: bool = False  # stamp the time it was drawn in the bottom-right corner
 
     def perches(self):
         return perches_for(self.images_dir, self.style)
@@ -91,6 +94,11 @@ def context(
 ) -> Context:
     """`panel`: the page is the panel's or follows it, and takes its edges."""
     keyed = settings.show_names and settings.name_key
+    margin = Edges(*(m / 100 for m in settings.margins(panel)))
+    if settings.show_updated:
+        # The page keeps clear of the stamp: its strip comes off the bottom edge.
+        room = _stamp_px(resolution) * _STAMP_ROOM / min(resolution)
+        margin = margin._replace(bottom=margin.bottom + room)
     return Context(
         mode=settings.mode,
         source=source,
@@ -108,8 +116,9 @@ def context(
         ranking=settings.ranking,
         layout=settings.layout,
         spotlight=settings.spotlight,
-        margin=Edges(*(m / 100 for m in settings.margins(panel))),
+        margin=margin,
         textured=textured,
+        updated=settings.show_updated,
     )
 
 
@@ -365,6 +374,7 @@ def state_key(ctx: Context) -> tuple:
         ctx.margin if mode.windowed else effective_margin(ctx.margin),
         ctx.namer.key,
         _marked(ctx),
+        ctx.updated,
         mode.key(ctx),
     )
 
@@ -386,7 +396,26 @@ def token(key: tuple) -> str:
 
 
 def render(ctx: Context) -> Image.Image:
-    return mode_of(ctx.mode).render(ctx)
+    page = mode_of(ctx.mode).render(ctx)
+    if ctx.updated:
+        _stamp_updated(page, ctx)
+    return page
+
+
+def _stamp_updated(page: Image.Image, ctx: Context) -> None:
+    """The time of this render, right-aligned in the strip `context` kept clear
+    inside the bottom margin. Both outputs render only when the key moves, so
+    it reads as when the page last changed and never repaints a page itself."""
+    px = _stamp_px(page.size)
+    text = ctx.namer.moment(datetime.now(UTC), _drawable(ctx))
+    mask = text_mask(text, fonts.load(ctx.font_key, px), not ctx.textured)
+    _, _, right, bottom = ctx.margin.window(page.size)
+    bottom += round(px * _STAMP_ROOM)
+    stamp(page, mask, (right - mask.width, bottom - mask.height), ctx.textured)
+
+
+def _stamp_px(resolution: tuple[int, int]) -> int:
+    return max(MIN_LABEL_PX, round(min(resolution) * _STAMP_PX))
 
 
 def subjects(ctx: Context) -> list[str]:

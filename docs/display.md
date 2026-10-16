@@ -88,6 +88,8 @@ are drawn, is in [Languages](languages.md).
 
 A bird the station has never heard before gets a star (★) after its name for its first 24 hours.
 
+**Show last update** prints the day and time the page last changed, small in its bottom-right corner, in the primary language. The page keeps a thin strip clear along the bottom for it. Default is **off**.
+
 | No names | Names next to the birds | Two languages |
 | :---: | :---: | :---: |
 | ![Garden birds with no names](assets/names-off.jpg) | ![The same birds with their scientific names underneath](assets/names-beside.jpg) | ![The same birds with English and scientific names underneath](assets/names-beside-two.jpg) |
