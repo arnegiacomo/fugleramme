@@ -1871,6 +1871,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIReed_Bunting.jpg"
   },
+  "birds/empidonax-virescens.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/small-green-crested-flycatcher"
+  },
   "birds/entomyzon-cyanotis.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14054"
@@ -2390,6 +2394,10 @@
   "birds/hydroprogne-caspia.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVCaspian_Tern.jpg"
+  },
+  "birds/hylocichla-mustelina.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/wood-thrush"
   },
   "birds/ichthyaetus-audouinii.webp": {
     "source": "gould",
@@ -4083,6 +4091,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg"
   },
+  "birds/seiurus-aurocapilla.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/golden-crowned-thrush"
+  },
   "birds/selasphorus-platycercus-2.webp": {
     "source": "swainson",
     "url": "https://commons.wikimedia.org/wiki/File:Selasphorus_platycercus_1841.jpg"
@@ -4854,6 +4866,10 @@
   "birds/vidua-macroura.webp": {
     "source": "gordon",
     "url": "https://commons.wikimedia.org/wiki/File:Vidua_macroura_(Dominikanerwida)_en_sprinkhaan,_RP-T-1914-17-282.jpg"
+  },
+  "birds/vireo-flavifrons.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/yellow-throated-vireo"
   },
   "birds/vireo-solitarius.webp": {
     "source": "audubon",

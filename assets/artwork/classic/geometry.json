@@ -5615,6 +5615,18 @@
    1200
   ]
  },
+ "birds/empidonax-virescens.webp": {
+  "box": [
+   0.21,
+   0.043,
+   0.705,
+   0.301
+  ],
+  "cut": [
+   729,
+   1200
+  ]
+ },
  "birds/entomyzon-cyanotis.webp": {
   "box": [
    0.04672897196261682,
@@ -7173,6 +7185,18 @@
   "cut": [
    1200,
    631
+  ]
+ },
+ "birds/hylocichla-mustelina.webp": {
+  "box": [
+   0.208,
+   0.658,
+   0.818,
+   0.932
+  ],
+  "cut": [
+   808,
+   1200
   ]
  },
  "birds/ichthyaetus-audouinii.webp": {
@@ -12251,6 +12275,18 @@
    1200
   ]
  },
+ "birds/seiurus-aurocapilla.webp": {
+  "box": [
+   0.08,
+   0.19,
+   0.999,
+   0.78
+  ],
+  "cut": [
+   1072,
+   1200
+  ]
+ },
  "birds/selasphorus-platycercus-2.webp": {
   "box": [
    0.008286660313606262,
@@ -14565,6 +14601,18 @@
   "cut": [
    1200,
    549
+  ]
+ },
+ "birds/vireo-flavifrons.webp": {
+  "box": [
+   0.371,
+   0.563,
+   0.803,
+   0.796
+  ],
+  "cut": [
+   650,
+   1200
   ]
  },
  "birds/vireo-solitarius.webp": {
