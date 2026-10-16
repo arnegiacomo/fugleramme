@@ -72,7 +72,7 @@ Every setting on the admin page can be seeded with `FUGLERAMME_<NAME>`:
       FUGLERAMME_SPOTLIGHT: "false"                  # spotlight the latest heard bird
       FUGLERAMME_STYLE: classic
       FUGLERAMME_SHOW_NAMES: "true"
-      FUGLERAMME_SHOW_UPDATED: "false"               # when the page last changed, bottom right
+      FUGLERAMME_SHOW_UPDATED: "false"               # when the collage last changed, bottom right
       FUGLERAMME_NAME_KEY: "false"                   # numbered key instead of names beside the birds
       FUGLERAMME_PRIMARY_LANGUAGE: nb                # a BirdNET-Go locale, or sci
       FUGLERAMME_SECONDARY_LANGUAGE: ""              # empty for none

@@ -263,9 +263,9 @@ def test_the_collage_fields_render_and_a_plate_mode_save_leaves_the_layout_alone
     # admin.js disables the collage-only fields outside the collage mode, so a
     # plate-mode post carries no layout - and a field that is absent keeps its value.
     store = SettingsStore(tmp_path / "s.json")
-    store.update(layout="voids", spotlight=True)
+    store.update(layout="voids", spotlight=True, show_updated=True)
     saved = store.update(**admin.form_changes({"mode": ["latest"]}))
-    assert saved.layout == "voids" and saved.spotlight
+    assert saved.layout == "voids" and saved.spotlight and saved.show_updated
 
 
 def test_the_spotlight_box_saves_both_ways(tmp_path, source):
@@ -279,7 +279,7 @@ def test_the_spotlight_box_saves_both_ways(tmp_path, source):
 
 def test_the_last_update_box_saves_both_ways(tmp_path, source):
     page = _page(tmp_path, source())
-    assert 'name="show_updated"' in page
+    assert 'name="show_updated"' in page and "show_updated" in _declared(page)
     store = SettingsStore(tmp_path / "s.json")
     on = {admin.CHECKBOXES: ["show_updated"], "show_updated": ["on"]}
     assert store.update(**admin.form_changes(on)).show_updated

@@ -94,8 +94,10 @@ def context(
 ) -> Context:
     """`panel`: the page is the panel's or follows it, and takes its edges."""
     keyed = settings.show_names and settings.name_key
+    # The collage only: a plate's caption already carries its own date.
+    updated = settings.show_updated and mode_of(settings.mode).windowed
     margin = Edges(*(m / 100 for m in settings.margins(panel)))
-    if settings.show_updated:
+    if updated:
         # The page keeps clear of the stamp: its strip comes off the bottom edge.
         room = _stamp_px(resolution) * _STAMP_ROOM / min(resolution)
         margin = margin._replace(bottom=margin.bottom + room)
@@ -118,7 +120,7 @@ def context(
         spotlight=settings.spotlight,
         margin=margin,
         textured=textured,
-        updated=settings.show_updated,
+        updated=updated,
     )
 
 

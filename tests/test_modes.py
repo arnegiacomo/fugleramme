@@ -226,26 +226,30 @@ def test_a_plate_keeps_to_its_window_and_its_own_floor_on_each_edge(tmp_path, im
 def test_the_key_carries_what_the_page_is_drawn_from(tmp_path, images, source):
     detections = source(rows=[_row(1, BLACKBIRD, 1)])
     base = _ctx(detections, images, tmp_path, "latest")
-    for change in (
-        {"show_names": False},
-        {"label_font": "bitter"},
-        {"label_size": "large"},
-        {"show_updated": True},
-    ):
+    for change in ({"show_names": False}, {"label_font": "bitter"}, {"label_size": "large"}):
         assert modes.state_key(
             _ctx(detections, images, tmp_path, "latest", **change)
         ) != modes.state_key(base)
 
 
-@pytest.mark.parametrize("mode", list(modes.MODES))
-def test_the_last_update_sits_bottom_right_in_a_strip_of_its_own(tmp_path, images, source, mode):
+def test_the_last_update_sits_bottom_right_in_a_strip_of_its_own(tmp_path, images, source):
     detections = source(rows=[_row(2, TIT, 2), _row(1, BLACKBIRD, 1)])
-    ctx = _ctx(detections, images, tmp_path, mode, margin=0, show_updated=True)
-    page = np.asarray(modes.render(ctx))
-    inked = (page != PANEL_PAPER).any(axis=2)
+    plain = _ctx(detections, images, tmp_path, "collage", margin=0)
+    ctx = _ctx(detections, images, tmp_path, "collage", margin=0, show_updated=True)
+    assert modes.state_key(ctx) != modes.state_key(plain)
+    inked = (np.asarray(modes.render(ctx)) != PANEL_PAPER).any(axis=2)
     strip = inked[ctx.margin.window((400, 300))[3] :]
     assert strip[:, 200:].any()  # the stamp, right-aligned
     assert not strip[:, :200].any()  # and nothing else: the page kept clear of it
+
+
+@pytest.mark.parametrize("mode", ["latest", "arrival"])
+def test_a_plate_has_its_own_date_and_takes_no_last_update(tmp_path, images, source, mode):
+    detections = source(rows=[_row(2, TIT, 2), _row(1, BLACKBIRD, 1)])
+    plain = _ctx(detections, images, tmp_path, mode)
+    ctx = _ctx(detections, images, tmp_path, mode, show_updated=True)
+    assert not ctx.updated and ctx.margin == plain.margin
+    assert modes.state_key(ctx) == modes.state_key(plain)
 
 
 def test_switching_mode_changes_the_page(tmp_path, images, source):
