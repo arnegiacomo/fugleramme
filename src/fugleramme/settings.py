@@ -119,6 +119,8 @@ class Settings:
     spotlight: bool = False
     auto_update: bool = False
     show_names: bool = True
+    # When the page was last drawn, small in its bottom-right corner.
+    show_updated: bool = False
     # Numbers on the birds and the names in a key beside them, poster style.
     name_key: bool = False
     # Species-name languages: BirdNET-Go dictionary locales, resolved
@@ -307,6 +309,7 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         spotlight=_as_bool(raw.get("spotlight"), d.spotlight),
         auto_update=_as_bool(raw.get("auto_update"), d.auto_update),
         show_names=_as_bool(raw.get("show_names"), d.show_names),
+        show_updated=_as_bool(raw.get("show_updated"), d.show_updated),
         name_key=_as_bool(raw.get("name_key"), d.name_key),
         # A primary language is required: an empty pick means the scientific name.
         primary_language=_language(raw.get("primary_language"), d.primary_language) or SCIENTIFIC,

@@ -726,11 +726,13 @@ def _radio_field(
 
 
 SPOTLIGHT = "Showcase the latest heard bird in the middle."
+UPDATED = "When the page last changed, small in its bottom-right corner."
 
 
 def _layout_field(settings: Settings) -> str:
-    """How the collage packs its birds (#47), and whether one takes the middle
-    (#185). Dimmed with the lookback for the modes that draw one bird."""
+    """How the collage packs its birds (#47), whether one takes the middle
+    (#185), and whether it says when it last changed - the plates carry their
+    own date. Dimmed with the lookback for the modes that draw one bird."""
     hint = "\n\n".join(f"{layout.label}: {layout.blurb}" for layout in LAYOUTS.values())
     options = [(k, layout.label) for k, layout in LAYOUTS.items()]
     spotlight = _checkbox(
@@ -738,10 +740,16 @@ def _layout_field(settings: Settings) -> str:
         f"<span>Spotlight mode {_hint(SPOTLIGHT)}</span>",
         settings.spotlight,
     )
+    updated = _checkbox(
+        "show_updated",
+        f"<span>Show last update {_hint(UPDATED)}</span>",
+        settings.show_updated,
+    )
     return (
         f'<div class="field" id="layout"><span>Layout {_hint(hint)}</span>'
         f"{_radios('layout', options, settings.layout)}"
-        f'<input type="hidden" name="{CHECKBOXES}" value="spotlight">{spotlight}</div>'
+        f'<input type="hidden" name="{CHECKBOXES}" value="spotlight">{spotlight}'
+        f'<input type="hidden" name="{CHECKBOXES}" value="show_updated">{updated}</div>'
     )
 
 

@@ -74,6 +74,8 @@ packed around it. Default is **off**.
 
 ![A large Common Kingfisher in the middle of the collage](assets/spotlight.jpg)
 
+**Show last update** prints the day and time the collage last changed, small in its bottom-right corner, in the primary language. The birds keep a thin strip clear along the bottom for it. Default is **off**.
+
 ### Labels
 
 **Show species names** turns the labels on and off, same as **B** on the panel.
