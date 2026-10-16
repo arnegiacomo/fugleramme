@@ -395,6 +395,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIITree_Pipit.jpg"
   },
+  "birds/antigone-canadensis.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/hooping-crane-0"
+  },
   "birds/aphelocoma-californica-2.webp": {
     "source": "fuertes",
     "url": "https://archive.org/download/bulletinbiologic3238unit/page/n238.jpg"
@@ -1023,6 +1027,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/turkey-buzzard"
   },
+  "birds/catharus-guttatus.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/hermit-thrush"
+  },
   "birds/catharus-ustulatus.webp": {
     "source": "dresser",
     "url": "https://commons.wikimedia.org/wiki/File:A_history_of_the_birds_of_Europe_(Pl._634)_(7135304473).jpg"
@@ -1086,6 +1094,14 @@
   "birds/cettia-cetti.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISilky_Warbler.jpg"
+  },
+  "birds/chaetura-pelagica-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/american-swift"
+  },
+  "birds/chaetura-pelagica.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/american-swift"
   },
   "birds/charadrius-hiaticula.webp": {
     "source": "gould",
@@ -1474,6 +1490,14 @@
   "birds/corvus-orru.webp": {
     "source": "gronvold",
     "url": "https://archive.org/details/birdsaustraliaxiimath/page/n531/mode/1up"
+  },
+  "birds/corvus-ossifragus-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/fish-crow"
+  },
+  "birds/corvus-ossifragus.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/fish-crow"
   },
   "birds/coturnix-coturnix-2.webp": {
     "source": "vonwright",
@@ -1926,6 +1950,18 @@
   "birds/eudynamys-scolopaceus.webp": {
     "source": "martinet",
     "url": "https://commons.wikimedia.org/wiki/File:Eudynamys_horonata_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18800311.tif"
+  },
+  "birds/euphagus-carolinus-2.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/rusty-grakle"
+  },
+  "birds/euphagus-carolinus-3.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/rusty-grakle"
+  },
+  "birds/euphagus-carolinus.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/rusty-grakle"
   },
   "birds/euplectes-orix.webp": {
     "source": "hahn",
@@ -2630,6 +2666,10 @@
   "birds/leuconotopicus-villosus.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(18241494868).jpg"
+  },
+  "birds/limnothlypis-swainsonii.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/brown-headed-worm-eating-warbler"
   },
   "birds/limosa-lapponica-2.webp": {
     "source": "vonwright",
@@ -4079,6 +4119,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Arkansaw_Flycatcher,_Swallow-tailed_Flycatcher_and_Says_Flycatcher,_1837,_NGA_32500.jpg"
   },
+  "birds/scolopax-minor.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/american-woodcock"
+  },
   "birds/scolopax-rusticola-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00126.jpg"
@@ -4306,6 +4350,10 @@
   "birds/spizella-passerina.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18241716050).jpg"
+  },
+  "birds/spizella-pusilla.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/field-sparrow"
   },
   "birds/spodiopsar-cineraceus.webp": {
     "source": "siebold",
@@ -4663,6 +4711,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00086.jpg"
   },
+  "birds/tringa-melanoleuca.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/tell-tale-godwit-or-snipe"
+  },
   "birds/tringa-nebularia-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00085.jpg"
@@ -4702,6 +4754,10 @@
   "birds/troglodytes-aedon.webp": {
     "source": "swainson",
     "url": "https://commons.wikimedia.org/wiki/File:Troglodytes_aedon_musculus_1841.jpg"
+  },
+  "birds/troglodytes-hiemalis.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/winter-wren-and-rock-wren"
   },
   "birds/troglodytes-pacificus.webp": {
     "source": "keulemans",

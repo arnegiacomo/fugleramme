@@ -1187,6 +1187,18 @@
    925
   ]
  },
+ "birds/antigone-canadensis.webp": {
+  "box": [
+   0.008,
+   0.008,
+   0.992,
+   0.992
+  ],
+  "cut": [
+   734,
+   1200
+  ]
+ },
  "birds/aphelocoma-californica-2.webp": {
   "box": [
    0.00974254433321489,
@@ -3071,6 +3083,18 @@
    882
   ]
  },
+ "birds/catharus-guttatus.webp": {
+  "box": [
+   0.008,
+   0.015,
+   0.99,
+   0.99
+  ],
+  "cut": [
+   1200,
+   803
+  ]
+ },
  "birds/catharus-ustulatus.webp": {
   "box": [
    0.09418357753660983,
@@ -3261,6 +3285,30 @@
   "cut": [
    1187,
    1199
+  ]
+ },
+ "birds/chaetura-pelagica-2.webp": {
+  "box": [
+   0,
+   0,
+   1,
+   1
+  ],
+  "cut": [
+   981,
+   1200
+  ]
+ },
+ "birds/chaetura-pelagica.webp": {
+  "box": [
+   0,
+   0,
+   1,
+   1
+  ],
+  "cut": [
+   1200,
+   1123
   ]
  },
  "birds/charadrius-hiaticula.webp": {
@@ -4425,6 +4473,30 @@
   "cut": [
    1200,
    775
+  ]
+ },
+ "birds/corvus-ossifragus-2.webp": {
+  "box": [
+   0.008,
+   0.015,
+   0.99,
+   0.99
+  ],
+  "cut": [
+   1200,
+   996
+  ]
+ },
+ "birds/corvus-ossifragus.webp": {
+  "box": [
+   0.008,
+   0.01,
+   0.992,
+   0.99
+  ],
+  "cut": [
+   1200,
+   1128
   ]
  },
  "birds/coturnix-coturnix-2.webp": {
@@ -5781,6 +5853,42 @@
   "cut": [
    941,
    1200
+  ]
+ },
+ "birds/euphagus-carolinus-2.webp": {
+  "box": [
+   0.07,
+   0.43,
+   0.985,
+   0.93
+  ],
+  "cut": [
+   881,
+   1200
+  ]
+ },
+ "birds/euphagus-carolinus-3.webp": {
+  "box": [
+   0.008,
+   0.008,
+   0.996,
+   0.988
+  ],
+  "cut": [
+   1129,
+   1200
+  ]
+ },
+ "birds/euphagus-carolinus.webp": {
+  "box": [
+   0.005,
+   0.13,
+   0.995,
+   0.83
+  ],
+  "cut": [
+   1200,
+   885
   ]
  },
  "birds/euplectes-orix.webp": {
@@ -7892,6 +8000,18 @@
   ],
   "cut": [
    669,
+   1200
+  ]
+ },
+ "birds/limnothlypis-swainsonii.webp": {
+  "box": [
+   0.005,
+   0.005,
+   0.995,
+   0.93
+  ],
+  "cut": [
+   975,
    1200
   ]
  },
@@ -12239,6 +12359,18 @@
    1051
   ]
  },
+ "birds/scolopax-minor.webp": {
+  "box": [
+   0.006,
+   0.003,
+   0.997,
+   0.996
+  ],
+  "cut": [
+   1200,
+   825
+  ]
+ },
  "birds/scolopax-rusticola-2.webp": {
   "box": [
    0.0271181058883667,
@@ -12921,6 +13053,18 @@
   "cut": [
    1091,
    936
+  ]
+ },
+ "birds/spizella-pusilla.webp": {
+  "box": [
+   0.37,
+   0.667,
+   0.724,
+   0.852
+  ],
+  "cut": [
+   822,
+   1200
   ]
  },
  "birds/spodiopsar-cineraceus.webp": {
@@ -13991,6 +14135,18 @@
    1025
   ]
  },
+ "birds/tringa-melanoleuca.webp": {
+  "box": [
+   0.005,
+   0.008,
+   0.997,
+   0.997
+  ],
+  "cut": [
+   1200,
+   589
+  ]
+ },
  "birds/tringa-nebularia-2.webp": {
   "box": [
    0.014685820752569306,
@@ -14109,6 +14265,18 @@
   "cut": [
    871,
    1200
+  ]
+ },
+ "birds/troglodytes-hiemalis.webp": {
+  "box": [
+   0,
+   0,
+   1,
+   1
+  ],
+  "cut": [
+   783,
+   758
   ]
  },
  "birds/troglodytes-pacificus.webp": {
