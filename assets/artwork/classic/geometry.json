@@ -407,6 +407,18 @@
    872
   ]
  },
+ "birds/aix-sponsa.webp": {
+  "box": [
+   0.075,
+   0.1,
+   0.575,
+   0.43
+  ],
+  "cut": [
+   826,
+   1200
+  ]
+ },
  "birds/alauda-arvensis.webp": {
   "box": [
    0.0,
@@ -1185,6 +1197,18 @@
   "cut": [
    769,
    925
+  ]
+ },
+ "birds/antrostomus-carolinensis.webp": {
+  "box": [
+   0.29,
+   0.035,
+   0.79,
+   0.53
+  ],
+  "cut": [
+   941,
+   1200
   ]
  },
  "birds/aphelocoma-californica-2.webp": {
@@ -8735,6 +8759,18 @@
    1200
   ]
  },
+ "birds/melospiza-georgiana.webp": {
+  "box": [
+   0.191,
+   0.373,
+   0.648,
+   0.583
+  ],
+  "cut": [
+   836,
+   1200
+  ]
+ },
  "birds/melospiza-melodia.webp": {
   "box": [
    0.1725552749633789,
@@ -11541,6 +11577,30 @@
   "cut": [
    1200,
    850
+  ]
+ },
+ "birds/progne-subis.webp": {
+  "box": [
+   0.0,
+   0.0,
+   0.42,
+   0.14
+  ],
+  "cut": [
+   930,
+   1200
+  ]
+ },
+ "birds/protonotaria-citrea.webp": {
+  "box": [
+   0.31,
+   0.3,
+   0.74,
+   0.51
+  ],
+  "cut": [
+   908,
+   1200
   ]
  },
  "birds/prunella-collaris.webp": {
