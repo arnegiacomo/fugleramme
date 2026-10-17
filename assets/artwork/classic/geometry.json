@@ -5159,6 +5159,30 @@
    1200
   ]
  },
+ "birds/diopsittaca-nobilis-2.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   1.0
+  ],
+  "cut": [
+   979,
+   1200
+  ]
+ },
+ "birds/diopsittaca-nobilis.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   1.0
+  ],
+  "cut": [
+   967,
+   1200
+  ]
+ },
  "birds/dryobates-minor-2.webp": {
   "box": [
    0.18996738917391065,
