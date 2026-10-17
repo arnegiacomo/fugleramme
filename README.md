@@ -119,6 +119,10 @@ docker compose up -d
 
 See **[Container](docs/container.md)** for more info.
 
+## One-click deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Fugleramme/)
+
 ## Run locally (for development)
 
 ```bash
