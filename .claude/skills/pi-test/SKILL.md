@@ -21,18 +21,26 @@ git remote add pi ssh://<user>@<host>.local/home/<user>/fugleramme
 ```
 
 Remotes live in the repository's shared config, so one `pi` serves every worktree and every
-agent. Everything below reads the host back out of that URL, so never hardcode one. A
-`Host pi` entry in the user's `~/.ssh/config` is a fine alternative to a literal user and
-hostname; the URL is then `ssh://pi/home/<user>/fugleramme`.
+agent. A `Host pi` entry in the user's `~/.ssh/config` is a fine alternative to a literal
+user and hostname; the URL is then `ssh://pi/home/<user>/fugleramme`.
+
+Everything below says `<pi>` for the SSH target: the part of that URL between `ssh://` and
+the next `/`, so `user@host.local` or `pi`. Read it off `git remote get-url pi`, run on a
+line of its own, and write it out literally in the commands that follow. Never hardcode a
+host in this file, and never put `git` and an SSH host in one command line: in a
+worktree-isolated session the shell guard refuses the mix.
 
 ## Deploy the working tree
 
+Each line is its own command:
+
 ```bash
-PI=$(git remote get-url pi | sed -E 's#ssh://([^/]+)/.*#\1#')
-REF=$(git stash create)
-git push -f pi "${REF:-HEAD}:refs/heads/test"
-ssh "$PI" 'export PATH="$HOME/.local/bin:$PATH" && cd ~/fugleramme && git checkout -f --detach test && uv sync --extra panel && sudo -n systemctl restart fugleramme-frame'
+git stash create
+git push -f pi <ref>:refs/heads/test
+ssh <pi> 'export PATH="$HOME/.local/bin:$PATH" && cd ~/fugleramme && git checkout -f --detach test && uv sync --extra panel && sudo -n systemctl restart fugleramme-frame'
 ```
+
+`<ref>` is what `git stash create` printed, or `HEAD` when it printed nothing.
 
 - The `PATH` export is what `run.sh` does: `uv` lives in `~/.local/bin`, which a
   non-interactive SSH session does not have.
@@ -62,18 +70,18 @@ A restart that returns cleanly says nothing about the next few seconds, so check
 before reporting it done:
 
 ```bash
-HOST=${PI#*@}
+HOST=$(ssh <pi> hostname -I | cut -d' ' -f1)
 sleep 10
-ssh "$PI" 'git -C ~/fugleramme rev-parse HEAD && systemctl is-active fugleramme-frame'
+ssh <pi> 'cat ~/fugleramme/.git/HEAD && systemctl is-active fugleramme-frame'
 curl -fs "http://$HOST:8080/health"
-ssh "$PI" journalctl -u fugleramme-frame -n 30 --no-pager
+ssh <pi> journalctl -u fugleramme-frame -n 30 --no-pager
 ```
 
-All four must hold: the printed commit is the one pushed (`git rev-parse "${REF:-HEAD}"`),
-the unit is `active`, the kiosk answers `ok`, and the log shows no traceback and, on a Pi
-with a panel, no `running web-only` warning (the inky driver was dropped or found no panel).
-A `.local` host that `curl` cannot resolve is a workstation mDNS problem, not a deploy
-failure; use the Pi's IP from `hostname -I` instead.
+All four must hold: the commit in `.git/HEAD` is the one pushed, the unit is `active`, the
+kiosk answers `ok`, and the log shows no traceback and, on a Pi with a panel, no
+`running web-only` warning (the inky driver was dropped or found no panel). The IP comes
+from the Pi itself because an SSH alias such as `pi` is not a hostname `curl` can resolve,
+and a `.local` name may not resolve from the workstation either.
 
 Then open `http://$HOST:8080`. The panel redraws on its own schedule, so give it a minute
 before judging a render that only differs on the e-ink.
@@ -84,7 +92,7 @@ For a run of small edits, stop the unit and run the reloading entrypoint on the 
 in a second terminal the user keeps open:
 
 ```bash
-ssh "$PI" 'export PATH="$HOME/.local/bin:$PATH" && sudo -n systemctl stop fugleramme-frame && cd ~/fugleramme && uv run fugleramme-dev --port 8080 --detector http://127.0.0.1:8090'
+ssh <pi> 'export PATH="$HOME/.local/bin:$PATH" && sudo -n systemctl stop fugleramme-frame && cd ~/fugleramme && uv run fugleramme-dev --port 8080 --detector http://127.0.0.1:8090'
 ```
 
 It restarts the whole process, panel push included, whenever a source file changes, so each
@@ -99,24 +107,35 @@ through the frame's driver wrapper. The frame has to be stopped while it shows: 
 repaints on start, and the e-ink holds the image without power, so the user can look as
 long as they like.
 
-1. Render the page on the Pi, in the checkout, so its own FreeType and Pillow draw it. It
-   must be the panel's resolution and in the frame's palette: build it on `PANEL_PAPER`,
-   stamp exact black, and finish with `render.dither.dither`, which returns the mode "P"
-   image the driver takes pixel for pixel. `scripts/label_variants.py` is a worked example:
-   one row per vendored font and rasterisation variant, the label from discussion #76 at
-   two panel sizes.
-2. Copy `scripts/push_page.py` and the page over, stop the frame, push. The 13.3" blocks
-   about 35 s while it refreshes:
+1. Render the page with the frame's own code: the panel's resolution (`Inky panel
+   initialised: ... WxH` in the log), built on `PANEL_PAPER`, exact black stamped through
+   an alpha mask, finished with `render.dither.dither`, which returns the mode "P" image the
+   driver takes pixel for pixel. A script that imports `fugleramme` runs under
+   `uv run python` in the checkout on either machine. The Pi and the workstation draw the
+   same bytes when their Pillow and FreeType match (both 12.3.0 and 2.14.3 at the time of
+   writing; compare `python -c "from PIL import Image, features; print(Image.__version__,
+   features.version('freetype2'))"` on each after an update), so look at the page locally
+   before stopping the frame. A font that is not in the checkout goes over with `scp` to
+   `/tmp` beside the script, and the script takes its path.
+2. Copy `scripts/push_page.py` (under `.claude/skills/pi-test/` when `${CLAUDE_SKILL_DIR}`
+   is unset) and the page over, stop the frame, push. The 13.3" blocks about 35 s while it
+   refreshes. The push is at rotation 0 whatever the admin's rotation setting, which is
+   right for a test page and a surprise on a portrait frame:
 
    ```bash
-   scp "${CLAUDE_SKILL_DIR}/scripts/push_page.py" "$PI:/tmp/"
-   ssh "$PI" 'export PATH="$HOME/.local/bin:$PATH" && cd ~/fugleramme && sudo -n systemctl stop fugleramme-frame && uv run python /tmp/push_page.py /tmp/page.png'
+   scp .claude/skills/pi-test/scripts/push_page.py page.png <pi>:/tmp/
+   ssh <pi> 'export PATH="$HOME/.local/bin:$PATH" && cd ~/fugleramme && sudo -n systemctl stop fugleramme-frame && uv run python /tmp/push_page.py /tmp/page.png'
    ```
 
-3. Send the user the same PNG so they can match rows against the glass, and ask for a
+3. Send the user the same PNG so they can match it against the glass, and ask for a
    close-up photo: a phone shot of the whole panel cannot show one-pixel stems.
-4. `sudo -n systemctl start fugleramme-frame` when they are done. It renders the collage
-   again within half a minute.
+4. The frame stays stopped while they look, and the agent is usually gone by the time they
+   are done. The final message must say so and give the command that brings the collage
+   back, which renders again within half a minute:
+
+   ```bash
+   ssh <pi> 'sudo -n systemctl start fugleramme-frame'
+   ```
 
 ## Cautions
 
@@ -125,8 +144,9 @@ long as they like.
   many minutes, and one such run ended in a reboot. With the frame running the suite is
   safe but the service tests fail on the GPIO lines being held; ci on Linux is the real
   check. The Pi is for looking at the glass.
-- The admin's auto-update toggle, if on, will check a release out over `test`. It is off by
-  default; tell the user to leave it off while testing.
+- The admin page's Install button, and the auto-update toggle if it is on, check a release
+  out over `test`. A person pressing Install mid-test is what the Verify step once caught.
+  Tell the user to leave both alone while testing; the toggle is off by default.
 - `run.sh` is not part of this loop. It only matters when the change is to the unit, the
   compose file or a per-Pi default, and then the breadcrumb in `.agents/install.md` applies.
 - A change to artwork or `manifest.json` deploys the same way, but a later self-update
@@ -138,7 +158,7 @@ When testing is done, return the Pi to a release, or the admin's Install button 
 System tab does it from the next release on:
 
 ```bash
-ssh "$PI" 'export PATH="$HOME/.local/bin:$PATH" && cd ~/fugleramme && git fetch --tags && git checkout -f --detach <version> && uv sync --extra panel && sudo -n systemctl restart fugleramme-frame'
+ssh <pi> 'export PATH="$HOME/.local/bin:$PATH" && cd ~/fugleramme && git fetch --tags && git checkout -f --detach <version> && uv sync --extra panel && sudo -n systemctl restart fugleramme-frame'
 ```
 
 If the dev watcher was used, `sudo -n systemctl start fugleramme-frame` brings the unit back.
