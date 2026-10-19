@@ -407,6 +407,18 @@
    872
   ]
  },
+ "birds/aix-sponsa.webp": {
+  "box": [
+   0.08,
+   0.13,
+   0.66,
+   0.45
+  ],
+  "cut": [
+   861,
+   1200
+  ]
+ },
  "birds/alauda-arvensis.webp": {
   "box": [
    0.0,
@@ -7235,6 +7247,18 @@
    974
   ]
  },
+ "birds/icterus-spurius.webp": {
+  "box": [
+   0.17,
+   0.27,
+   0.52,
+   0.46
+  ],
+  "cut": [
+   979,
+   1200
+  ]
+ },
  "birds/icthyophaga-vocifer.webp": {
   "box": [
    0.035110533159947985,
@@ -7857,6 +7881,18 @@
   "cut": [
    1200,
    1098
+  ]
+ },
+ "birds/leiothlypis-ruficapilla.webp": {
+  "box": [
+   0.43,
+   0.6,
+   0.81,
+   0.72
+  ],
+  "cut": [
+   735,
+   1200
   ]
  },
  "birds/leucogeranus-leucogeranus.webp": {
@@ -9935,6 +9971,18 @@
    667
   ]
  },
+ "birds/passerculus-sandwichensis.webp": {
+  "box": [
+   0.22,
+   0.48,
+   0.66,
+   0.62
+  ],
+  "cut": [
+   792,
+   1200
+  ]
+ },
  "birds/passerella-iliaca.webp": {
   "box": [
    0.017524175722727783,
@@ -11277,6 +11325,18 @@
   "cut": [
    1200,
    822
+  ]
+ },
+ "birds/podilymbus-podiceps.webp": {
+  "box": [
+   0.03,
+   0.44,
+   0.7,
+   0.83
+  ],
+  "cut": [
+   1200,
+   648
   ]
  },
  "birds/poecile-atricapillus-2.webp": {

@@ -135,6 +135,10 @@
     "source": "dorbigny",
     "url": "https://commons.wikimedia.org/wiki/File%3AAix_galericulata%28Mandarin_duck%29%2C_Pelecanus_%28Pelican%29.jpg"
   },
+  "birds/aix-sponsa.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:206_Summer_or_Wood_Duck.jpg"
+  },
   "birds/alauda-arvensis.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00248.jpg"
@@ -2411,6 +2415,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack-headed_Gull.jpg"
   },
+  "birds/icterus-spurius.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:42_Orchard_Oriole.jpg"
+  },
   "birds/icthyophaga-vocifer.webp": {
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Haliae%C3%ABtus_vocifer_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18100337.tif"
@@ -2618,6 +2626,10 @@
   "birds/larus-michahellis.webp": {
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof18dres/page/n531/mode/1up"
+  },
+  "birds/leiothlypis-ruficapilla.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:89_Nashville_Warbler.jpg"
   },
   "birds/leucogeranus-leucogeranus.webp": {
     "source": "gould",
@@ -3311,6 +3323,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00070.jpg"
   },
+  "birds/passerculus-sandwichensis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:109_Savannah_Finch.jpg"
+  },
   "birds/passerella-iliaca.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_America_(Pl._188)_(8571225681).jpg"
@@ -3758,6 +3774,10 @@
   "birds/podiceps-nigricollis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVEared_Grebe.jpg"
+  },
+  "birds/podilymbus-podiceps.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:248_American_Pied-bill_Dobchick.jpg"
   },
   "birds/poecile-atricapillus-2.webp": {
     "source": "hines",
