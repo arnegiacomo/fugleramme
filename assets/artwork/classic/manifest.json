@@ -2411,6 +2411,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack-headed_Gull.jpg"
   },
+  "birds/icterus-galbula.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:12_Baltimore_Oriole.jpg"
+  },
   "birds/icthyophaga-vocifer.webp": {
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Haliae%C3%ABtus_vocifer_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18100337.tif"
@@ -2570,6 +2574,10 @@
   "birds/larus-canus.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/9624"
+  },
+  "birds/larus-delawarensis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:212_Common_Gull.jpg"
   },
   "birds/larus-fuscus-2.webp": {
     "source": "vonwright",
@@ -4487,6 +4495,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVLittle_Grebe.jpg"
   },
+  "birds/tachycineta-bicolor.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:98_White-bellied_Swallow.jpg"
+  },
   "birds/tachycineta-thalassina.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:385_I._Bank_Swallow_-_2._Violet-green_Swallow.jpg"
@@ -4871,9 +4883,17 @@
     "source": "gordon",
     "url": "https://commons.wikimedia.org/wiki/File:Vidua_macroura_(Dominikanerwida)_en_sprinkhaan,_RP-T-1914-17-282.jpg"
   },
+  "birds/vireo-gilvus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:118_Warbling_Flycatcher.jpg"
+  },
   "birds/vireo-griseus.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/white-eyed-flycatcher-or-vireo"
+  },
+  "birds/vireo-olivaceus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:150_Red-eyed_Vireo.jpg"
   },
   "birds/vireo-solitarius.webp": {
     "source": "audubon",
