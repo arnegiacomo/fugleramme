@@ -2387,6 +2387,18 @@
    1052
   ]
  },
+ "birds/butorides-virescens.webp": {
+  "box": [
+   0.05,
+   0.27,
+   0.62,
+   0.88
+  ],
+  "cut": [
+   1200,
+   1095
+  ]
+ },
  "birds/cacatua-galerita.webp": {
   "box": [
    0.240865,
@@ -8735,6 +8747,18 @@
    1200
   ]
  },
+ "birds/melospiza-georgiana.webp": {
+  "box": [
+   0.2,
+   0.37,
+   0.58,
+   0.55
+  ],
+  "cut": [
+   840,
+   1200
+  ]
+ },
  "birds/melospiza-melodia.webp": {
   "box": [
    0.1725552749633789,
@@ -12419,6 +12443,18 @@
    917
   ]
  },
+ "birds/setophaga-fusca.webp": {
+  "box": [
+   0.27,
+   0.38,
+   0.76,
+   0.48
+  ],
+  "cut": [
+   710,
+   1200
+  ]
+ },
  "birds/setophaga-magnolia.webp": {
   "box": [
    0.014823261117445839,
@@ -12933,6 +12969,30 @@
   "cut": [
    1091,
    936
+  ]
+ },
+ "birds/spizella-pusilla.webp": {
+  "box": [
+   0.37,
+   0.75,
+   0.67,
+   0.85
+  ],
+  "cut": [
+   839,
+   1200
+  ]
+ },
+ "birds/spizelloides-arborea.webp": {
+  "box": [
+   0.33,
+   0.18,
+   0.81,
+   0.37
+  ],
+  "cut": [
+   779,
+   1200
   ]
  },
  "birds/spodiopsar-cineraceus.webp": {

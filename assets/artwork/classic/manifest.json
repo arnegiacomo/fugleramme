@@ -795,6 +795,10 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-372-common-buzzard.jpg"
   },
+  "birds/butorides-virescens.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:333_Green_Heron.jpg"
+  },
   "birds/cacatua-galerita.webp": {
     "source": "gould",
     "url": "https://www.biodiversitylibrary.org/page/48400934"
@@ -2911,6 +2915,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/wild-turkey"
   },
+  "birds/melospiza-georgiana.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:64_Swamp_Sparrow.jpg"
+  },
   "birds/melospiza-melodia.webp": {
     "source": "hines",
     "url": "https://commons.wikimedia.org/wiki/File:Melospiza_melodiaFJ03P03CA.JPG"
@@ -4139,6 +4147,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
   },
+  "birds/setophaga-fusca.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:135_Blackburnian_Warbler.jpg"
+  },
   "birds/setophaga-magnolia.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17808820723).jpg"
@@ -4310,6 +4322,14 @@
   "birds/spizella-passerina.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18241716050).jpg"
+  },
+  "birds/spizella-pusilla.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:139_Field_Sparrow.jpg"
+  },
+  "birds/spizelloides-arborea.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:188_Tree_Sparrow.jpg"
   },
   "birds/spodiopsar-cineraceus.webp": {
     "source": "siebold",
