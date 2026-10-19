@@ -4,13 +4,18 @@ so switching layouts is not answered from the cache."""
 
 from __future__ import annotations
 
+import copy
+import pickle
+from pathlib import Path
+
 import numpy as np
 import pytest
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from fugleramme.render import collage, packing
 from fugleramme.render.collage import _Sprite, render_collage
 from fugleramme.render.packing import LAYOUTS
+from fugleramme.render.page import trim
 
 
 def _sprites(count: int = 8) -> list[_Sprite]:
@@ -112,3 +117,63 @@ def test_the_spotlit_birds_name_is_set_larger(crowded):
     (placed, _px), *_ = collage._layouts.values()
     widths = {p.index: p.label_w for p in placed}
     assert widths[0] > 1.3 * max(w for i, w in widths.items() if i)
+
+
+def test_every_unreadable_plate_is_named_not_just_the_first(tmp_path):
+    """The render still fails, but one pass shows every file to fix."""
+    good = tmp_path / "turdus-merula.png"
+    Image.new("RGBA", (60, 40), (40, 40, 40, 255)).save(good)
+    empty = tmp_path / "parus-major.png"
+    empty.write_bytes(b"")
+    junk = tmp_path / "pica-pica.png"
+    junk.write_bytes(b"not an image")
+
+    # In ranking order, which is not file order.
+    entries = [
+        ("Pica pica", junk),
+        ("Turdus merula", good),
+        ("Parus major", empty),
+    ]
+    with pytest.raises(collage.UnreadablePlates) as caught:
+        render_collage(entries, (400, 300))
+
+    message = str(caught.value)
+    assert message.startswith("unreadable plates (2): ")
+    assert f"{empty} (UnidentifiedImageError)" in message  # the whole path: styles share names
+    assert f"{junk} (UnidentifiedImageError)" in message
+    assert "turdus-merula" not in message
+
+    # The same facts as data, for anything that wants more than the sentence.
+    assert [(name, path.name) for name, path, _ in caught.value.broken] == [
+        ("Parus major", "parus-major.png"),
+        ("Pica pica", "pica-pica.png"),
+    ]
+    assert all(isinstance(exc, UnidentifiedImageError) for _, _, exc in caught.value.broken)
+
+
+def test_the_same_bad_plates_read_the_same_however_the_window_shifts():
+    """The loop logs a cause once, so its text must not follow the ranking or the
+    size of the window."""
+    one, two = (Path("a.webp"), OSError("x")), (Path("b.webp"), OSError("y"))
+    ranked = collage.UnreadablePlates([("A", *one), ("B", *two)], 5)
+    shifted = collage.UnreadablePlates([("B", *two), ("A", *one)], 9)
+    assert str(ranked) == str(shifted)
+
+
+def test_unreadable_plates_survive_a_copy():
+    """Kept to the way exceptions are rebuilt, for anything that stores or sends one."""
+    original = collage.UnreadablePlates([("Pica pica", Path("pica-pica.webp"), OSError("x"))], 3)
+    for copied in (copy.copy(original), pickle.loads(pickle.dumps(original))):
+        assert str(copied) == str(original)
+        assert [(n, p) for n, p, _ in copied.broken] == [("Pica pica", Path("pica-pica.webp"))]
+        assert copied.total == 3
+
+
+def test_a_plate_that_will_not_open_says_which_file(tmp_path):
+    """Pillow's "image file is truncated" never names the file, and a perch or a
+    single-bird page opens its plate without going through the collage."""
+    junk = tmp_path / "perch.png"
+    junk.write_bytes(b"not an image")
+    with pytest.raises(UnidentifiedImageError) as caught:
+        trim(junk)
+    assert any(str(junk) in note for note in caught.value.__notes__)

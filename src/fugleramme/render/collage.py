@@ -485,6 +485,38 @@ def render_collage(
     return canvas
 
 
+class UnreadablePlates(Exception):
+    """One or more plates on the page could not be opened. `broken` has the species,
+    the file and what went wrong for each, ordered by file; the message names them all.
+
+    The message leaves out the page's size and the plates' ranking, so the same bad
+    files read the same however the window shifts. The arguments go to `Exception`
+    as given, which is what lets it be copied and pickled."""
+
+    def __init__(self, broken: list[tuple[str, Path, Exception]], total: int):
+        super().__init__(broken, total)
+        self.broken = tuple(sorted(broken, key=lambda plate: str(plate[1])))
+        self.total = total
+
+    def __str__(self) -> str:
+        named = ", ".join(f"{path} ({type(exc).__name__})" for _, path, exc in self.broken)
+        return f"unreadable plates ({len(self.broken)}): {named}"
+
+
+def _trim_all(kept: list[tuple[str, Path]]) -> list[Image.Image]:
+    """Open every plate before failing, so one bad file does not hide the next."""
+    arts: list[Image.Image] = []
+    broken: list[tuple[str, Path, Exception]] = []
+    for name, path in kept:
+        try:
+            arts.append(trim(path))
+        except Exception as exc:
+            broken.append((name, path, exc))
+    if broken:
+        raise UnreadablePlates(broken, len(kept)) from broken[0][2]
+    return arts
+
+
 def _draw_birds(
     canvas: Image.Image,
     kept: list[tuple[str, Path]],
@@ -503,7 +535,7 @@ def _draw_birds(
     """Pack the birds into a `pack` box and draw them at `origin`, `scale`
     times larger, labels reserved but not drawn. Returns the placements and
     the label size they packed at."""
-    arts = [trim(path) for _, path in kept]
+    arts = _trim_all(kept)
     # Mass sizes the bird; this sizes the plate it is drawn on.
     ratios = [span_ratio(path, art.size) for (_, path), art in zip(kept, arts, strict=True)]
     width, height = pack

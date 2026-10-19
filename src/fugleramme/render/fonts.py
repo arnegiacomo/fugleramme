@@ -74,7 +74,12 @@ def load(key: str, size: int) -> ImageFont.FreeTypeFont:
     Basic layout, which Pillow uses without libfribidi: a Pi that gains it for the
     fallbacks must not re-kern every Latin name."""
     _name, filename = FONTS.get(key, FONTS[DEFAULT_FONT])
-    font = ImageFont.truetype(str(FONTS_DIR / filename), size, layout_engine=ImageFont.Layout.BASIC)
+    path = str(FONTS_DIR / filename)
+    try:
+        font = ImageFont.truetype(path, size, layout_engine=ImageFont.Layout.BASIC)
+    except OSError as exc:
+        # Pillow's own message is just "cannot open resource", without the file.
+        raise OSError(f"cannot open font {path}: {exc}") from exc
     _pin_weight(font)
     return font
 

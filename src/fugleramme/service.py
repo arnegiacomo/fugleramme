@@ -26,6 +26,7 @@ from .config import Config
 from .languages import namer
 from .panel import init_panel, resolution_of
 from .picks import FILENAME as PICKS_FILE, Picks
+from .render.collage import UnreadablePlates
 from .render.dither import dither
 from .settings import Settings, SettingsStore, from_env
 from .source import Unavailable
@@ -161,6 +162,7 @@ def run(config: Config) -> None:
     last_artless: list[str] | None = None
     pending = None  # rendered but not yet on the glass; survives a failed push
     unreachable = False
+    render_error: str | None = None
     while True:
         settings = store.get()
         if _update(status, settings.auto_update):
@@ -200,12 +202,30 @@ def run(config: Config) -> None:
             if unreachable:
                 log.info("Detector reachable again")
                 unreachable = False
+            if render_error:
+                log.info("Rendering recovered")
+                render_error = None
         except Unavailable as exc:
             # last_key is left alone, so the page stays on the glass: a detector
             # slow to return after its own update must never blank the frame.
             if not unreachable:
                 log.warning("Detector unavailable, holding the current page (%s)", exc)
                 unreachable = True
+        except Exception as exc:
+            # A bad plate or font would otherwise end the process, and systemd would
+            # restart it into the same error every 5s. Same hold as above, retried each
+            # tick and logged again only when the cause changes.
+            cause = f"{type(exc).__name__}: {exc}"
+            if cause != render_error:
+                log.error(
+                    "Render failed for %s at %dx%d, holding the current page (%s)",
+                    ctx.mode,
+                    *size,
+                    cause,
+                    # UnreadablePlates names every file; its traceback only repeats the first.
+                    exc_info=not isinstance(exc, UnreadablePlates),
+                )
+                render_error = cause
         if panel is not None and pending is not None:
             try:
                 panel.push(*pending)
