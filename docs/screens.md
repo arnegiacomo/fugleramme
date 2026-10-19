@@ -26,8 +26,15 @@ Six ways to show them, easiest first.
 
 ## From another device
 
-Open `http://<host>.local:8080/` on a phone, tablet or laptop on the same
-network. This will work on any Raspberry pi os and installation method.
+Open `http://<host>.local:8080/` (or whichever address you have Fugleramme running on) on a phone, tablet or laptop on the same network.
+
+On a tablet, add the page to the home screen and it opens like an app, with its own icon and no address bar:
+
+- **iPad**: in Safari, tap Share, then **Add to Home Screen**.
+- **Android**: in Chrome, open the ⋮ menu, then **Add to home screen**.
+
+> [!NOTE]
+> The icon remembers the address it was saved with, so use the hostname, or give the machine running Fugleramme a static IP lease in your router.
 
 ## On HDMI, Raspberry Pi OS Desktop
 

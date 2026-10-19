@@ -69,7 +69,7 @@ def test_the_detector_tab_counts_every_bird_heard_without_art(tmp_path, source):
 
 def test_every_asset_the_page_links_is_one_the_server_serves(tmp_path, source):
     linked = set(re.findall(r'(?:href|src)="(/[^"?]*)', _page(tmp_path, source())))
-    assert linked == {"/", "/admin.css", "/admin.js"}
+    assert linked == {"/", "/admin.css", "/admin.js", "/favicon.png"}
     assert linked <= set(server.FILES)
 
 

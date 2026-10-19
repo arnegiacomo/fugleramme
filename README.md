@@ -192,5 +192,7 @@ Fugleramme shares no code or art with them.
 - BirdNET scientific-name aliases (`assets/birdnet_aliases.json`):
   [OpenFauna](https://github.com/tphakala/openfauna)'s compiled taxonomic alias
   map, CC BY-SA 4.0 - see [`assets/ATTRIBUTION.md`](assets/ATTRIBUTION.md).
+- Kiosk icons (`src/fugleramme/web/static/`): cut from a von Wright plate,
+  CC BY-SA 4.0 - see [`assets/ATTRIBUTION.md`](assets/ATTRIBUTION.md#kiosk-icons).
 - Docs search (`docs/assets/fuse.min.js`): [Fuse.js](https://www.fusejs.io/) by
   Kiro Risk, Apache 2.0.

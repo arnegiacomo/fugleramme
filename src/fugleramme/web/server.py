@@ -83,6 +83,7 @@ FILES = {
     # at the root even on a page that does not link it.
     "/apple-touch-icon.png": ("apple-touch-icon.png", "image/png"),
     "/icon-512.png": ("icon-512.png", "image/png"),
+    "/favicon.png": ("favicon.png", "image/png"),
     "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),
 }
 

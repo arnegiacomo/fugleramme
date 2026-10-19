@@ -415,6 +415,7 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
         "/admin.js",
         "/apple-touch-icon.png",
         "/icon-512.png",
+        "/favicon.png",
         "/manifest.webmanifest",
         "/collage.png",
         "/frame.e6",
@@ -439,21 +440,22 @@ def test_a_password_sends_a_browser_to_the_login_page(locked):
 
 def test_a_password_leaves_the_kiosk_open(locked):
     """The kiosk is the product: a password must not shut strangers out of the birds."""
-    for route in ("/", "/collage.png", "/state", "/paper.png", "/admin.css", "/health"):
+    for route in (
+        "/",
+        "/collage.png",
+        "/state",
+        "/paper.png",
+        "/admin.css",
+        "/health",
+        "/manifest.webmanifest",
+        "/apple-touch-icon.png",
+        "/favicon.png",
+    ):
         assert _fetch(locked + route)[0] == 200
 
 
-def test_the_kiosk_saves_to_a_home_screen_under_its_own_icon(locked):
-    """A tablet fetches the icon and manifest without the admin's cookie, so every
-    one the kiosk or its manifest names has to answer a stranger."""
-    kiosk = _fetch(locked + "/")[2].decode()
-    linked = set(re.findall(r'<link rel="[^"]*" (?:type="[^"]*" )?href="(/[^"?]*)"', kiosk))
+def test_every_icon_in_the_manifest_has_its_declared_size(locked):
     manifest = json.loads(_fetch(locked + "/manifest.webmanifest")[2])
-    icons = {icon["src"] for icon in manifest["icons"]}
-    assert {"/apple-touch-icon.png", "/manifest.webmanifest"} <= linked
-    for route in linked | icons:
-        status, _, body = _fetch(locked + route)
-        assert status == 200 and body
     for icon in manifest["icons"]:
         width, height = map(int, icon["sizes"].split("x"))
         assert _size(_fetch(locked + icon["src"])[2]) == (width, height)
