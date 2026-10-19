@@ -79,6 +79,11 @@ FILES = {
     "/index.html": ("kiosk.html", HTML),
     "/admin.css": ("admin.css", "text/css; charset=utf-8"),
     "/admin.js": ("admin.js", "text/javascript; charset=utf-8"),
+    # What a phone or tablet saves to its home screen. iOS asks for the touch icon
+    # at the root even on a page that does not link it.
+    "/apple-touch-icon.png": ("apple-touch-icon.png", "image/png"),
+    "/icon-512.png": ("icon-512.png", "image/png"),
+    "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),
 }
 
 
