@@ -711,6 +711,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/sites/default/files/boa/illustration/plate-61-great-horned-owl.jpg"
   },
+  "birds/bucephala-albeola.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:325_Buffel-headed_Duck.jpg"
+  },
   "birds/bucephala-clangula-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00156.jpg"
@@ -1150,6 +1154,10 @@
   "birds/chroicocephalus-genei.webp": {
     "source": "bonaparte",
     "url": "https://archive.org/details/Iconografiadellt1c1Bona/page/n367"
+  },
+  "birds/chroicocephalus-philadelphia.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:324_Bonapartian_Gull.jpg"
   },
   "birds/chroicocephalus-ridibundus-2.webp": {
     "source": "vonwright",
@@ -3807,6 +3815,10 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Parus_rufescensDU1N028CA.JPG"
   },
+  "birds/polioptila-caerulea.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:84_Blue-Grey_Fly-catcher.jpg"
+  },
   "birds/polysticta-stelleri-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00174.jpg"
@@ -4115,6 +4127,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIISerin_Finch.jpg"
   },
+  "birds/setophaga-americana.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:15_Blue_Yellow-backed_Warbler.jpg"
+  },
   "birds/setophaga-citrina-2.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/hooded-warbler"
@@ -4142,6 +4158,10 @@
   "birds/setophaga-magnolia.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17808820723).jpg"
+  },
+  "birds/setophaga-pensylvanica.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:59_Chestnut-sided_Warbler.jpg"
   },
   "birds/setophaga-petechia.webp": {
     "source": "audubon",

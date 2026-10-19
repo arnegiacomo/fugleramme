@@ -2135,6 +2135,18 @@
    1200
   ]
  },
+ "birds/bucephala-albeola.webp": {
+  "box": [
+   0.35,
+   0.02,
+   0.79,
+   0.86
+  ],
+  "cut": [
+   1200,
+   773
+  ]
+ },
  "birds/bucephala-clangula-2.webp": {
   "box": [
    0.029840749096061492,
@@ -3453,6 +3465,18 @@
   "cut": [
    1200,
    726
+  ]
+ },
+ "birds/chroicocephalus-philadelphia.webp": {
+  "box": [
+   0.0,
+   0.2,
+   0.66,
+   0.99
+  ],
+  "cut": [
+   1200,
+   1002
   ]
  },
  "birds/chroicocephalus-ridibundus-2.webp": {
@@ -11423,6 +11447,18 @@
    1200
   ]
  },
+ "birds/polioptila-caerulea.webp": {
+  "box": [
+   0.38,
+   0.0,
+   0.72,
+   0.37
+  ],
+  "cut": [
+   1200,
+   934
+  ]
+ },
  "birds/polysticta-stelleri-2.webp": {
   "box": [
    0.02130347728729248,
@@ -12347,6 +12383,18 @@
    1200
   ]
  },
+ "birds/setophaga-americana.webp": {
+  "box": [
+   0.02,
+   0.27,
+   0.98,
+   0.43
+  ],
+  "cut": [
+   632,
+   1200
+  ]
+ },
  "birds/setophaga-citrina-2.webp": {
   "box": [
    0.3,
@@ -12429,6 +12477,18 @@
   "cut": [
    877,
    786
+  ]
+ },
+ "birds/setophaga-pensylvanica.webp": {
+  "box": [
+   0.36,
+   0.27,
+   0.86,
+   0.39
+  ],
+  "cut": [
+   599,
+   1200
   ]
  },
  "birds/setophaga-petechia.webp": {
