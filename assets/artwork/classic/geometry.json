@@ -4919,6 +4919,18 @@
    806
   ]
  },
+ "birds/cygnus-buccinator.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   1.0
+  ],
+  "cut": [
+   1200,
+   503
+  ]
+ },
  "birds/cygnus-columbianus.webp": {
   "box": [
    0.0128143572807312,
@@ -7859,6 +7871,18 @@
    1098
   ]
  },
+ "birds/leiothlypis-peregrina.webp": {
+  "box": [
+   0.29,
+   0.495,
+   0.76,
+   0.6
+  ],
+  "cut": [
+   661,
+   1200
+  ]
+ },
  "birds/leucogeranus-leucogeranus.webp": {
   "box": [
    0.021843947651230287,
@@ -8925,6 +8949,18 @@
   "cut": [
    1200,
    1110
+  ]
+ },
+ "birds/mniotilta-varia.webp": {
+  "box": [
+   0.47,
+   0.46,
+   0.98,
+   0.63
+  ],
+  "cut": [
+   624,
+   1200
   ]
  },
  "birds/molothrus-ater.webp": {
@@ -12431,6 +12467,18 @@
    786
   ]
  },
+ "birds/setophaga-palmarum.webp": {
+  "box": [
+   0.38,
+   0.43,
+   0.72,
+   0.63
+  ],
+  "cut": [
+   739,
+   1200
+  ]
+ },
  "birds/setophaga-petechia.webp": {
   "box": [
    0.001,
@@ -12741,6 +12789,18 @@
   "cut": [
    1200,
    1034
+  ]
+ },
+ "birds/spatula-discors.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   1.0
+  ],
+  "cut": [
+   1200,
+   494
   ]
  },
  "birds/spatula-querquedula-2.webp": {

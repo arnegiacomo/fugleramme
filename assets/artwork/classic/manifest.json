@@ -1639,6 +1639,10 @@
     "source": "gould",
     "url": "https://archive.org/details/birdsAustraliav7Goul/page/n31/mode/1up"
   },
+  "birds/cygnus-buccinator.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:406_Trumpeter_Swan.jpg"
+  },
   "birds/cygnus-columbianus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBewicks_Swan.jpg"
@@ -2619,6 +2623,10 @@
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof18dres/page/n531/mode/1up"
   },
+  "birds/leiothlypis-peregrina.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:154_Tennessee_Warbler.jpg"
+  },
   "birds/leucogeranus-leucogeranus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVWhite_Crane.jpg"
@@ -2974,6 +2982,10 @@
   "birds/mimus-polyglottos.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18425305152).jpg"
+  },
+  "birds/mniotilta-varia.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:90_Black_%26_White_Creeper.jpg"
   },
   "birds/molothrus-ater.webp": {
     "source": "fuertes",
@@ -4143,6 +4155,10 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17808820723).jpg"
   },
+  "birds/setophaga-palmarum.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:163_Palm_Warbler.jpg"
+  },
   "birds/setophaga-petechia.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/blue-eyed-yellow-warbler"
@@ -4246,6 +4262,10 @@
   "birds/spatula-cyanoptera.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00158.jpg"
+  },
+  "birds/spatula-discors.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:313_Blue-Winged_Teal.jpg"
   },
   "birds/spatula-querquedula-2.webp": {
     "source": "vonwright",
