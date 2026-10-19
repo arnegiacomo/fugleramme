@@ -3343,6 +3343,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14564052228).jpg"
   },
+  "birds/pelecanus-erythrorhynchos.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:311_American_White_Pelican.jpg"
+  },
   "birds/pellorneum-rostratum.webp": {
     "source": "keulemans",
     "url": "https://commons.wikimedia.org/wiki/File:PriniaBrachypteryxKeulemans.jpg"
@@ -4099,6 +4103,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg"
   },
+  "birds/seiurus-aurocapilla.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:143_Golden-crowned_Thrush.jpg"
+  },
   "birds/selasphorus-platycercus-2.webp": {
     "source": "swainson",
     "url": "https://commons.wikimedia.org/wiki/File:Selasphorus_platycercus_1841.jpg"
@@ -4422,6 +4430,10 @@
   "birds/strix-varia.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIBarred_Owl.jpg"
+  },
+  "birds/sturnella-magna.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:136_Meadow_Lark.jpg"
   },
   "birds/sturnella-neglecta-2.webp": {
     "source": "audubon",

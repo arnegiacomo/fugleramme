@@ -10031,6 +10031,18 @@
    764
   ]
  },
+ "birds/pelecanus-erythrorhynchos.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   1.0
+  ],
+  "cut": [
+   797,
+   1200
+  ]
+ },
  "birds/pellorneum-rostratum.webp": {
   "box": [
    0.013,
@@ -12299,6 +12311,18 @@
    1200
   ]
  },
+ "birds/seiurus-aurocapilla.webp": {
+  "box": [
+   0.24,
+   0.59,
+   0.7,
+   0.77
+  ],
+  "cut": [
+   774,
+   1200
+  ]
+ },
  "birds/selasphorus-platycercus-2.webp": {
   "box": [
    0.008286660313606262,
@@ -13268,6 +13292,18 @@
   ],
   "cut": [
    907,
+   1200
+  ]
+ },
+ "birds/sturnella-magna.webp": {
+  "box": [
+   0.0,
+   0.68,
+   0.42,
+   0.9
+  ],
+  "cut": [
+   799,
    1200
   ]
  },
