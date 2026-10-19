@@ -229,6 +229,37 @@ def _apply_calls():
     return run.call_args_list
 
 
+@pytest.mark.parametrize(
+    "failure",
+    [
+        RuntimeError("uv sync: network is unreachable"),
+        FileNotFoundError("uv is not installed"),  # what Popen raises for a missing binary
+    ],
+)
+def test_a_failed_dependency_sync_puts_the_checkout_back(failure):
+    """Left on the new tag, the next restart runs new code on the old environment."""
+
+    def run(cmd, *_):
+        if cmd[1:2] == ["sync"]:
+            raise failure
+
+    def read(cmd, **_):
+        stdout = "abc123\n" if cmd[1] == "rev-parse" else "v0.1.0\n"
+        return subprocess.CompletedProcess(cmd, 0, stdout=stdout)
+
+    with (
+        patch.object(updates, "_run", side_effect=run) as call,
+        patch.object(updates.subprocess, "run", side_effect=read),
+        patch.object(updates, "_converge_detector") as converge,
+        pytest.raises(type(failure)),
+    ):
+        updates.apply("v0.2.0")
+
+    checkouts = [c.args[0] for c in call.call_args_list if c.args[0][:2] == ["git", "checkout"]]
+    assert [c[-1] for c in checkouts] == ["v0.2.0", "abc123"]  # onto the tag, then back
+    assert not converge.called
+
+
 def test_a_failed_install_does_not_retry_every_tick():
     with (
         patch.object(service.updates, "available", return_value="v0.2.0"),
