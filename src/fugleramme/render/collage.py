@@ -50,7 +50,7 @@ from .page import (
     draw_mark,
     draw_perch,
     figures_mask,
-    flatten,
+    flat_mode,
     label_px,
     mark_room,
     stamp,
@@ -724,7 +724,7 @@ def _draw_keyed(
     font = fonts.load(font_key, pad)
     ascent = font.getmetrics()[0]
     ax0, ay0, ax1, ay1 = (round(v * scale) for v in key.area)
-    mask = Image.new("L", (ax1 - ax0 + 2 * pad, ay1 - ay0 + 2 * pad), 0)
+    mask = Image.new(flat_mode(not textured), (ax1 - ax0 + 2 * pad, ay1 - ay0 + 2 * pad), 0)
     draw = ImageDraw.Draw(mask)
     for n, p in enumerate(order):
         col, row = divmod(n, key.rows)
@@ -738,9 +738,8 @@ def _draw_keyed(
             draw.text(at, line, font=face, fill=255, anchor="ls")
             if line != part:
                 draw_mark(mask, at[0] + face.getlength(line), at[1], face)
-    mask = mask if textured else flatten(mask)
     # Anchored by its ink to the page edge: the metrics miss the italic's overhang.
-    ink = mask.crop(mask.getbbox())
+    ink = mask.convert("L").crop(mask.getbbox())
     _, _, right, bottom = margin.window((w, h))
     if key.below:
         at = ((ax0 + ax1 - ink.width) // 2, bottom - ink.height)

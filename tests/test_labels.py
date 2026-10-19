@@ -68,6 +68,39 @@ def test_flat_label_has_no_intermediate_alpha():
     assert not smooth <= {0, 255}  # the screen keeps its antialiasing
 
 
+def _trimmed(mask: Image.Image) -> np.ndarray:
+    return np.asarray(mask.crop(mask.getbbox())) > 0
+
+
+def test_a_flat_label_is_freetype_mono_not_a_cut_of_the_grey_raster():
+    """The panel's mask is what FreeType draws for a one-bit target, pixel for
+    pixel, not the screen's antialiased raster thresholded to black: the mono
+    hinter puts stems and baselines on whole pixels, which no cut of the grey
+    can (discussion #76)."""
+    font = fonts.load("garamond", 15)  # a hairline italic at the 7.3" medium size
+    flat = _trimmed(text_mask("Pica pica", font, flat=True))
+    mono = Image.new("1", (200, 40), 0)
+    ImageDraw.Draw(mono).text((10, 10), "Pica pica", font=font, fill=255)
+    assert np.array_equal(flat, _trimmed(mono.convert("L")))
+    grey = text_mask("Pica pica", font, flat=False)
+    for cutoff in (64, 110, 128, 192):
+        cut = _trimmed(grey.point(lambda v, c=cutoff: 255 if v > c else 0))
+        assert cut.shape != flat.shape or not np.array_equal(cut, flat)
+
+
+def test_every_flat_path_holds_no_grey():
+    # Not only the plain label: a newcomer's mark is pasted on afterwards, a
+    # fallback line is stacked by hand, and a key's figures are set on their own.
+    font = fonts.load(fonts.DEFAULT_FONT, 26)
+    masks = (
+        text_mask("Pica pica" + NEW, font, flat=True),
+        text_mask("Pica pica\n" + SCRIPTS["zh"], font, flat=True),
+        figures_mask("12", font, flat=True),
+    )
+    for mask in masks:
+        assert set(np.unique(np.asarray(mask))) <= {0, 255}
+
+
 def test_panel_names_are_stamped_in_exact_palette_black():
     # Anything but exact black would be re-dithered into colour speckle.
     for textured, expected in ((False, PANEL_INK), (True, INK)):
