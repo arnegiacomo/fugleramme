@@ -310,8 +310,7 @@ def _update(status: Status) -> str:
 
 
 def _set_aside(data_dir: Path) -> str:
-    """The files settings.py and picks.py moved to `<name>.bad` because they could
-    not be read, said for as long as they are there: the journal is where nobody looks."""
+    """Each file moved aside as unreadable, while it is there."""
     notes = " · ".join(
         f'<span class="bad">{bad.name.removesuffix(".bad")}</span> could not be read '
         f"and is kept as {bad.name}"

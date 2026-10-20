@@ -38,8 +38,8 @@ class Picks:
         }
 
     def _read(self) -> dict:
-        """The file's picks. A file that cannot be read is moved to `<name>.bad`,
-        so the first roll does not write over a hand edit, and the frame starts empty."""
+        """The file's picks, or none, with an unreadable file moved aside so the
+        first roll does not write over it."""
         try:
             raw = json.loads(self.path.read_text())
         except OSError:

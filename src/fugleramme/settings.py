@@ -185,13 +185,11 @@ class Settings:
         return (height, width) if self.web_portrait else (width, height)
 
 
-# What int() refuses: OverflowError for the float json reads `1e999` and `Infinity` as.
+# OverflowError: json reads `Infinity` and `1e999` as floats int() cannot take.
 _NOT_A_NUMBER = (TypeError, ValueError, OverflowError)
 
 
 def _rejected(key: str, value) -> None:
-    """Said out loud: a hand edit that falls back to the default is otherwise a
-    setting that silently stopped taking."""
     log.warning("Ignoring %s=%r, not a number the frame can use; keeping the default", key, value)
 
 
@@ -423,10 +421,7 @@ class SettingsStore:
         self._settings = _coerce(raw, self._defaults)
 
     def _set_aside(self, why: str) -> None:
-        """A file the frame cannot read is moved to `<name>.bad`. Left in place,
-        the next Save would write over it - and a hand edit that broke the file
-        is where the admin's own password now lives, on a restart in particular,
-        which comes up on the defaults with the admin open."""
+        """Left in place, the next Save would write the defaults over a hand edit."""
         bad = self.path.with_name(self.path.name + ".bad")
         os.replace(self.path, bad)
         log.error("Ignoring %s, %s; moved to %s", self.path, why, bad.name)
