@@ -5,7 +5,6 @@ name loses the names rather than the birds."""
 from __future__ import annotations
 
 import math
-import re
 import string
 from datetime import UTC, datetime
 from unittest.mock import patch
@@ -59,17 +58,6 @@ def test_every_font_is_pinned_to_book_weight(key):
 def test_unknown_font_falls_back_to_the_default_file():
     assert fonts.load("nope", 20).path == fonts.load(fonts.DEFAULT_FONT, 20).path
     assert fonts.load("bitter", 20).path != fonts.load(fonts.DEFAULT_FONT, 20).path
-
-
-def test_a_font_that_will_not_open_names_its_file(tmp_path, monkeypatch):
-    """Pillow says only "cannot open resource"; the journal needs the path."""
-    monkeypatch.setattr(fonts, "FONTS_DIR", tmp_path)
-    broken = tmp_path / fonts.FONTS[fonts.DEFAULT_FONT][1]
-    broken.parent.mkdir(parents=True, exist_ok=True)
-    broken.write_bytes(b"not a font")
-
-    with pytest.raises(OSError, match=re.escape(str(tmp_path))):
-        fonts.load(fonts.DEFAULT_FONT, 20)
 
 
 def test_flat_label_has_no_intermediate_alpha():

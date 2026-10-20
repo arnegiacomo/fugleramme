@@ -26,7 +26,6 @@ from .config import Config
 from .languages import namer
 from .panel import init_panel, resolution_of
 from .picks import FILENAME as PICKS_FILE, Picks
-from .render.collage import UnreadablePlates
 from .render.dither import dither
 from .settings import Settings, SettingsStore, from_env
 from .source import Unavailable
@@ -217,13 +216,11 @@ def run(config: Config) -> None:
             # tick and logged again only when the cause changes.
             cause = f"{type(exc).__name__}: {exc}"
             if cause != render_error:
-                log.error(
+                log.exception(
                     "Render failed for %s at %dx%d, holding the current page (%s)",
                     ctx.mode,
                     *size,
                     cause,
-                    # UnreadablePlates names every file; its traceback only repeats the first.
-                    exc_info=not isinstance(exc, UnreadablePlates),
                 )
                 render_error = cause
         if panel is not None and pending is not None:

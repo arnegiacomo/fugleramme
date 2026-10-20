@@ -120,7 +120,6 @@ def apply(tag: str, progress: Progress | None = None) -> None:
     # run against that. Only tracked files are discarded; data/ and config are ignored.
     _run(["git", "checkout", "--progress", "--force", "--detach", tag], "Checking out", progress)
     try:
-        _drop_stale_tags(tag, progress)
         try:
             _run([_uv(), "sync", "--extra", "panel"], "Installing dependencies", progress)
         except RuntimeError:
@@ -135,6 +134,8 @@ def apply(tag: str, progress: Progress | None = None) -> None:
             progress,
         )
         raise
+    # After the install has held, so a failed update leaves the tags as they were.
+    _drop_stale_tags(tag, progress)
     _converge_detector(progress)
 
 

@@ -8,7 +8,6 @@ import logging
 import re
 import signal
 from dataclasses import replace
-from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -17,7 +16,6 @@ from PIL import Image
 
 from fugleramme import api, modes, service
 from fugleramme.config import Config
-from fugleramme.render.collage import UnreadablePlates
 from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import Status
 
@@ -95,8 +93,7 @@ def test_a_render_error_holds_the_page_instead_of_ending_the_service(
     # Renders 2-4 fail, 1 and 5 are real. The rotation turns once, after the first page,
     # to give render 2 a reason; renders 3 and 4 happen only because a failed render
     # leaves last_key stale, which is the behaviour under test.
-    plates = UnreadablePlates([("Pica pica", Path("pica-pica.webp"), OSError("gone"))], 1)
-    failing = {2: OSError("truncated plate"), 3: OSError("truncated plate"), 4: plates}
+    failing = {2: OSError("truncated plate"), 3: OSError("truncated plate"), 4: OSError("no font")}
     real_render = modes.render  # patched below, so the wrapper must not look it up again
     renders = 0
     ticks = 0
@@ -138,14 +135,7 @@ def test_a_render_error_holds_the_page_instead_of_ending_the_service(
     head = r"Render failed for collage at \d+x\d+, holding the current page \("
     assert re.match(head, failed[0].getMessage())  # which mode and how big, for any error
     assert failed[0].getMessage().endswith("(OSError: truncated plate)")
-    assert (
-        failed[1]
-        .getMessage()
-        .endswith("(UnreadablePlates: unreadable plates (1): pica-pica.webp (OSError))")
-    )
-    # A traceback for the unexpected, none for the error that already names every file.
-    assert failed[0].exc_info is not None
-    assert not failed[1].exc_info
+    assert failed[1].getMessage().endswith("(OSError: no font)")
     assert "Rendering recovered" in messages
 
 
