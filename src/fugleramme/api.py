@@ -97,7 +97,7 @@ def _local() -> tzinfo:
 def _aware(stamp: datetime) -> datetime:
     """A stamp with no offset is read in the frame's own zone, as the feed's wall
     clock is. BirdNET-Go before 20260712 stamped the summary bare (upstream #3793)."""
-    return stamp if stamp.tzinfo else stamp.replace(tzinfo=_local())
+    return stamp if stamp.tzinfo else stamp.astimezone()
 
 
 def _bare(value: str) -> bool:
@@ -365,11 +365,9 @@ class ApiSource:
         """The station's own UTC offset. The feed gives a bare wall clock and
         the summary's timestamps carry an offset, so it is read off there rather
         than assuming the detector shares the frame's timezone."""
-        for row in self._summary():
-            stamp = _time(row.get("last_heard") or row.get("first_heard") or "")
-            if stamp and stamp.tzinfo:
-                return stamp.tzinfo
-        return _local()
+        newest = max(self._summary(), key=lambda row: _at(row.get("last_heard")), default=None)
+        stamp = _time(newest.get("last_heard") or "") if newest else None
+        return stamp.tzinfo if stamp and stamp.tzinfo else _local()
 
     # -- source ------------------------------------------------------------
 

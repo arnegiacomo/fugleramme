@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import socket
+import time as systime
 from collections import Counter
 from datetime import UTC, datetime, time, timedelta, timezone
 from types import SimpleNamespace
@@ -122,6 +123,18 @@ def test_the_station_clock_comes_off_the_summary_not_the_frames(detector, monkey
     heard = max(datetime.fromisoformat(row["last_heard"]) for row in _raw(url, _SUMMARY))
     newest = ApiSource(url).latest()
     assert newest is not None and newest.detected_at == heard
+
+
+def test_the_station_clock_is_the_newest_stamps_offset(monkeypatch):
+    """The summary is most detections first, so its top row can be a summer
+    migrant last heard in another daylight-saving season."""
+    detections = ApiSource("http://detector.invalid")
+    rows = [
+        {"scientific_name": BLACKBIRD, "last_heard": "2026-07-01T10:00:00+02:00"},
+        {"scientific_name": TIT, "last_heard": "2026-11-10T09:00:00+01:00"},
+    ]
+    monkeypatch.setattr(detections, "_summary", lambda *_: rows)
+    assert detections._offset() == timezone(timedelta(hours=1))
 
 
 def test_a_repeated_question_is_answered_without_asking_again(detector):
@@ -272,6 +285,20 @@ def test_a_summary_stamped_without_an_offset_is_read_in_the_frames_zone(
         assert source.life_list()[0].first_seen == heard
         assert source.stats()["last_24h"] == 1
     assert caplog.text.count("without a UTC offset") == 1
+
+
+@pytest.mark.skipif(not hasattr(systime, "tzset"), reason="needs time.tzset")
+def test_a_bare_stamp_takes_its_own_seasons_offset(monkeypatch):
+    monkeypatch.setenv("TZ", "Europe/Oslo")
+    systime.tzset()
+    try:
+        summer = api._time("2026-07-01T23:30:00")
+        winter = api._time("2026-01-01T23:30:00")
+    finally:
+        monkeypatch.undo()
+        systime.tzset()
+    assert summer is not None and summer.utcoffset() == timedelta(hours=2)
+    assert winter is not None and winter.utcoffset() == timedelta(hours=1)
 
 
 def test_a_window_the_feed_cannot_reach_falls_back_to_the_summary(detector, monkeypatch, caplog):
