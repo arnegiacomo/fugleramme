@@ -177,6 +177,28 @@ def test_checkout_is_forced_past_a_dirty_tree():
     assert "--force" in checkout and checkout[-2:] == ["--detach", "v0.2.0"]
 
 
+def test_a_lock_left_by_a_killed_checkout_does_not_block_the_next(tmp_path):
+    """Power loss, or the stall guard's SIGKILL, part way through a checkout leaves
+    `.git/index.lock`, and git refuses every checkout after it - so one bad update
+    would end the auto-update for good. The checkout itself is real here; the fetch
+    and the sync are faked away."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+    for args in (["init", "-q"], ["commit", "-q", "--allow-empty", "-m", "x"], ["tag", "v0.2.0"]):
+        subprocess.run([*git, *args], cwd=repo, check=True, capture_output=True)
+    (repo / ".git" / "index.lock").write_bytes(b"")
+    real_run = updates._run
+
+    def run(cmd, phase, progress=None):
+        if cmd[:2] == ["git", "checkout"]:
+            real_run(cmd, phase, progress)
+
+    with patch.multiple(updates, REPO_ROOT=repo, _run=run, _converge_detector=DEFAULT):
+        updates.apply("v0.2.0")
+    assert not (repo / ".git" / "index.lock").exists()
+
+
 def test_git_progress_reaches_the_admin_page():
     """git writes progress to stderr, \\r-separated and only under --progress."""
     assert all(
