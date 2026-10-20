@@ -298,6 +298,20 @@ def test_the_backup_captures_the_detections(tmp_path):
         assert backup.execute("SELECT count(*) FROM detections").fetchone()[0] == 2
 
 
+def test_a_failed_backup_leaves_no_partial_copy_behind(tmp_path):
+    """A backup that runs out of space, or hits a corrupt .bak, still raises so the
+    swap is skipped - but the half-written copy must go too, or it is what keeps
+    the card full and BirdNET-Go from writing another detection."""
+    db = tmp_path / "birdnet.db"
+    with sqlite3.connect(db) as conn:
+        conn.execute("CREATE TABLE detections (id INTEGER)")
+    backup = tmp_path / "birdnet.db.bak"
+    backup.write_bytes(b"not a database, as a copy cut short is not")
+    with patch.object(updates, "DEFAULT_DB_PATH", db), pytest.raises(sqlite3.Error):
+        updates._backup_db()
+    assert not backup.exists()
+
+
 def test_a_missing_database_is_not_a_backup_failure(tmp_path):
     """First boot: BirdNET-Go has not created it yet, and there is nothing to lose."""
     with patch.object(updates, "DEFAULT_DB_PATH", tmp_path / "absent.db"):
