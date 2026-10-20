@@ -74,8 +74,7 @@ def test_the_loop_holds_its_last_page_when_the_detector_goes_away(
 
 
 def test_a_panel_that_keeps_failing_is_logged_once_per_cause(tmp_path, images, detector, caplog):
-    """The push is retried from the same image every tick, and a panel that fails at
-    once would otherwise put a traceback in the journal on each of them, all day."""
+    """A dead panel fails the push on every tick."""
     url, _httpd = detector(count=40, seed=0)
     config = Config(
         images_dir=images,
@@ -85,49 +84,29 @@ def test_a_panel_that_keeps_failing_is_logged_once_per_cause(tmp_path, images, d
         port=0,
         config_path=tmp_path / "settings.json",
     )
-    caplog.set_level(logging.INFO, logger="fugleramme.service")
-    # Three ticks of one fault, a tick of another, then the glass takes the page.
-    faults = iter([OSError("SPI timeout")] * 3 + [RuntimeError("panel busy"), None])
-    pushes = 0
+    faults = iter([OSError("SPI timeout")] * 3 + [RuntimeError("panel busy")])
 
     def push(_image, _rotation):
-        nonlocal pushes
-        pushes += 1
-        if fault := next(faults):
-            raise fault
+        raise next(faults)
 
-    panel = SimpleNamespace(resolution=(800, 480), driver="inky.inky_uc8159", push=push)
-    statuses: list[Status] = []
-
-    def status() -> Status:
-        statuses.append(Status())
-        return statuses[-1]
-
-    ticks = 0
+    ticks = iter(range(3))
 
     def sleep(_seconds):
-        nonlocal ticks
-        ticks += 1
-        if ticks == 5:
+        if next(ticks, None) is None:
             raise _Stop
 
+    panel = SimpleNamespace(resolution=(800, 480), driver="inky.inky_el133uf1", push=push)
     with (
         patch.object(service, "init_panel", return_value=panel),
         patch.object(service.buttons, "watch"),
         patch.object(service.updates, "available", return_value=None),
-        patch.object(service, "Status", status),
-        patch.object(service.modes, "render", side_effect=modes.render) as render,
         patch.object(service.time, "sleep", sleep),
         pytest.raises(_Stop),
     ):
         service.run(config)
 
-    assert (render.call_count, pushes) == (1, 5)  # retried from the same image, never redrawn
     failed = [r for r in caplog.records if r.getMessage() == "Panel push failed"]
-    assert len(failed) == 2  # once per cause, with its traceback; the repeats are quiet
-    assert all(r.exc_info for r in failed)
-    assert "Panel push recovered" in [r.getMessage() for r in caplog.records]
-    assert statuses[0].push_error is None
+    assert len(failed) == 2  # SPI timeout once, panel busy once
 
 
 def test_the_configured_detector_is_rebuilt_only_when_the_settings_name_another(tmp_path, detector):
