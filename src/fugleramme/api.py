@@ -335,13 +335,15 @@ class ApiSource:
 
     def _summary(self, start: str = "", end: str = "") -> list[dict]:
         def fetch() -> list[dict]:
-            rows = [
-                row
-                for row in _merged(
-                    self._get("/analytics/species/summary", start_date=start, end_date=end)
-                )
-                if self._is_bird(row["scientific_name"], row.get("common_name") or "")
-            ]
+            body = self._get("/analytics/species/summary", start_date=start, end_date=end)
+            try:
+                rows = [
+                    row
+                    for row in _merged(body)
+                    if self._is_bird(row["scientific_name"], row.get("common_name") or "")
+                ]
+            except (AttributeError, KeyError, TypeError) as error:
+                raise Unavailable(f"unreadable species summary: {error}") from error
             if not self._bare_clock and any(_bare(row.get("last_heard") or "") for row in rows):
                 self._bare_clock = True
                 log.warning(
@@ -384,7 +386,7 @@ class ApiSource:
                 if row.get("verified") != "false_positive"
                 and self._is_bird(row["scientificName"], row.get("commonName") or "")
             ]
-        except (KeyError, TypeError, ValueError) as error:
+        except (AttributeError, KeyError, TypeError, ValueError) as error:
             raise Unavailable(f"unreadable detections: {error}") from error
 
     def _counted(self, hours: float) -> list[tuple[str, int]] | None:

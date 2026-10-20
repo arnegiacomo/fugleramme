@@ -59,6 +59,17 @@ def test_a_detector_that_is_not_there_raises(detector):
             call()
 
 
+@pytest.mark.parametrize("route", [_SUMMARY, "/detections/recent"])
+@pytest.mark.parametrize("body", [{"data": []}, [None], [{"scientific_name": None}]])
+def test_a_detector_answering_in_an_unknown_shape_raises(monkeypatch, route, body):
+    """An error body or a null row, read as birds, would surface as a render
+    error rather than as a detector that is not answering."""
+    detections = ApiSource("http://detector.invalid")
+    monkeypatch.setattr(detections, "_get", lambda path, **_: body if path == route else [])
+    with pytest.raises(Unavailable):
+        detections.species_since(0) if route == _SUMMARY else detections.latest()
+
+
 def test_a_detector_with_no_birds_reads_as_empty(source):
     quiet = source(count=0)
     assert quiet.species_since(24) == []
