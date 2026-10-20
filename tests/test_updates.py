@@ -182,7 +182,17 @@ def test_a_lock_left_by_a_killed_checkout_does_not_block_the_next(tmp_path):
     checkout is real here."""
     repo = tmp_path / "repo"
     repo.mkdir()
-    git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+    git = [
+        "git",
+        "-c",
+        "user.name=t",
+        "-c",
+        "user.email=t@t",
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "tag.gpgsign=false",
+    ]
     for args in (["init", "-q"], ["commit", "-q", "--allow-empty", "-m", "x"], ["tag", "v0.2.0"]):
         subprocess.run([*git, *args], cwd=repo, check=True, capture_output=True)
     (repo / ".git" / "index.lock").write_bytes(b"")
