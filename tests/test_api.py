@@ -60,7 +60,9 @@ def test_a_detector_that_is_not_there_raises(detector):
 
 
 @pytest.mark.parametrize("route", [_SUMMARY, "/detections/recent"])
-@pytest.mark.parametrize("body", [{"data": []}, [None], [{"scientific_name": None}]])
+@pytest.mark.parametrize(
+    "body", [{"data": []}, [None], [{"scientific_name": None, "scientificName": None}]]
+)
 def test_a_detector_answering_in_an_unknown_shape_raises(monkeypatch, route, body):
     """An error body or a null row, read as birds, would surface as a render
     error rather than as a detector that is not answering."""
