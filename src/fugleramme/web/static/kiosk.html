@@ -84,6 +84,7 @@
         token = state.token;
         const next = new Image();  // decode before swapping, so the frame never blanks
         next.onload = () => swap(next);
+        next.onerror = () => { token = null; };  // a page that failed to load is asked for again
         next.src = "/collage.png?v=" + encodeURIComponent(token);
       }
     } catch (e) {}  // transient: retry next tick

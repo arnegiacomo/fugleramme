@@ -24,7 +24,7 @@ from fugleramme.api import ApiSource
 from fugleramme.picks import Picks
 from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import Status
-from fugleramme.web import LOGIN, LOGOUT, admin, server
+from fugleramme.web import LOGIN, LOGOUT, STATIC_DIR, admin, server
 
 SETTINGS = "s.json"
 PASSWORD = "wren-house"
@@ -342,6 +342,17 @@ def test_the_kiosk_holds_its_last_page_when_the_detector_goes_away(tmp_path, det
 
         status, _headers, held = _fetch(base + "/collage.png")
         assert (status, held) == (200, page)
+
+
+def test_the_kiosk_asks_again_for_a_page_that_failed_to_load():
+    """`tick` takes the token before the page has loaded, so a dropped connection, a
+    render that raised or a 503 before the first page would otherwise leave the old
+    page up until the token changes."""
+    kiosk = (STATIC_DIR / "kiosk.html").read_text()
+    tick = kiosk[kiosk.index("async function tick") :]
+    forgets = re.search(r"next\.onerror = \(\) => \{ token = null; \};", tick)
+    assert forgets, "the incoming page has no error handler that forgets the token"
+    assert forgets.start() < tick.index("next.src =")  # bound before the load can fail
 
 
 def test_an_emptied_field_clears_the_setting(frame, tmp_path):
