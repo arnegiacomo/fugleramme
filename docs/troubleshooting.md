@@ -163,7 +163,9 @@ nano ~/fugleramme/detector/data/settings.json   # "admin_password": "a-new-one"
 ```
 
 The frame reads the file as you save it (no restart needed). Keep it valid
-JSON: a broken file is ignored, and after a restart the admin page is open.
+JSON: a broken file is moved aside to `settings.json.bad` (the admin page says
+so), and after a restart the admin page is open with every setting back at its
+default. Copy what you need out of the `.bad` file, then delete it.
 
 In the container the file is `/data/settings.json` in the volume, so edit it
 from inside:

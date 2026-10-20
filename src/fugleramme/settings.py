@@ -185,27 +185,49 @@ class Settings:
         return (height, width) if self.web_portrait else (width, height)
 
 
-def _as_int(value, default: int, lo: int, hi: int) -> int:
+# What int() refuses: OverflowError for the float json reads `1e999` and `Infinity` as.
+_NOT_A_NUMBER = (TypeError, ValueError, OverflowError)
+
+
+def _rejected(key: str, value) -> None:
+    """Said out loud: a hand edit that falls back to the default is otherwise a
+    setting that silently stopped taking."""
+    log.warning("Ignoring %s=%r, not a number the frame can use; keeping the default", key, value)
+
+
+def _as_int(raw: dict, key: str, default: int, lo: int, hi: int) -> int:
+    value = raw.get(key)
+    if value is None:
+        return default
     try:
         return max(lo, min(hi, int(value)))
-    except (TypeError, ValueError):
+    except _NOT_A_NUMBER:
+        _rejected(key, value)
         return default
 
 
-def _as_edge(value, default: int | None) -> int | None:
+def _as_edge(raw: dict, key: str, default: int | None) -> int | None:
     """Like `_as_int`, but the default may be None."""
+    value = raw.get(key)
+    if value is None:
+        return default
     try:
         return max(0, min(MARGIN_CEILING, int(value)))
-    except (TypeError, ValueError):
+    except _NOT_A_NUMBER:
+        _rejected(key, value)
         return default
 
 
-def _as_hours(value, default: float) -> float:
+def _as_hours(raw: dict, key: str, default: float) -> float:
     """Fractional so the admin can offer minutes; a whole number stays an int, so
     the settings file reads as plain hours."""
+    value = raw.get(key)
+    if value is None:
+        return default
     try:
         hours = max(ALL_TIME, min(24 * 30, float(value)))
     except (TypeError, ValueError):
+        _rejected(key, value)
         return default
     return int(hours) if hours == int(hours) else hours
 
@@ -274,9 +296,11 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
     clamping out-of-range values. Unknown keys are ignored. `base` supplies the
     defaults, so a launch flag can stand in for a key the file does not carry."""
     d = base or _DEFAULTS
+    rotation = raw.get("rotation")
     try:
-        rotation = int(raw.get("rotation", d.rotation))
-    except (TypeError, ValueError):
+        rotation = d.rotation if rotation is None else int(rotation)
+    except _NOT_A_NUMBER:
+        _rejected("rotation", rotation)
         rotation = d.rotation
     rotation = _one_of(rotation, ROTATIONS, d.rotation)
     return Settings(
@@ -292,15 +316,15 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         ),
         rotation=rotation,
         external_panel=_as_bool(raw.get("external_panel"), d.external_panel),
-        lookback_hours=_as_hours(raw.get("lookback_hours"), d.lookback_hours),
-        refresh_minutes=_as_int(raw.get("refresh_minutes"), d.refresh_minutes, 0, 24 * 60),
-        margin=_as_int(raw.get("margin"), d.margin, 0, MARGIN_CEILING),
+        lookback_hours=_as_hours(raw, "lookback_hours", d.lookback_hours),
+        refresh_minutes=_as_int(raw, "refresh_minutes", d.refresh_minutes, 0, 24 * 60),
+        margin=_as_int(raw, "margin", d.margin, 0, MARGIN_CEILING),
         margin_lock=_as_bool(raw.get("margin_lock"), d.margin_lock),
-        margin_top=_as_edge(raw.get("margin_top"), d.margin_top),
-        margin_right=_as_edge(raw.get("margin_right"), d.margin_right),
-        margin_bottom=_as_edge(raw.get("margin_bottom"), d.margin_bottom),
-        margin_left=_as_edge(raw.get("margin_left"), d.margin_left),
-        species_limit=_as_int(raw.get("species_limit"), d.species_limit, NO_LIMIT, LIMIT_CEILING),
+        margin_top=_as_edge(raw, "margin_top", d.margin_top),
+        margin_right=_as_edge(raw, "margin_right", d.margin_right),
+        margin_bottom=_as_edge(raw, "margin_bottom", d.margin_bottom),
+        margin_left=_as_edge(raw, "margin_left", d.margin_left),
+        species_limit=_as_int(raw, "species_limit", d.species_limit, NO_LIMIT, LIMIT_CEILING),
         ranking=_one_of(str(raw.get("ranking", d.ranking)), RANKINGS, d.ranking),
         style=_style(raw, d.style),
         layout=_one_of(str(raw.get("layout", d.layout)), LAYOUTS, d.layout),
@@ -386,21 +410,26 @@ class SettingsStore:
 
     def _load(self) -> None:
         try:
-            text = self.path.read_text()
-            self._mtime = self.path.stat().st_mtime  # recorded first, so a bad file warns once
+            self._mtime = self.path.stat().st_mtime
+            raw = json.loads(self.path.read_text())
         except OSError:
             return  # missing: a fresh frame, or one whose file went away
-        try:
-            raw = json.loads(text)
-        except json.JSONDecodeError as error:
-            # Unsaid, a hand edit that broke the file takes every setting with it on
-            # the next restart, the admin's own password included.
-            log.warning("Ignoring %s, it is not valid JSON: %s", self.path, error)
+        except ValueError as error:  # bad JSON, or bytes no text encoding reads
+            self._set_aside(f"it is not valid JSON: {error}")
             return
         if not isinstance(raw, dict):
-            log.warning("Ignoring %s, it is not a JSON object of settings", self.path)
+            self._set_aside("it is not a JSON object of settings")
             return
         self._settings = _coerce(raw, self._defaults)
+
+    def _set_aside(self, why: str) -> None:
+        """A file the frame cannot read is moved to `<name>.bad`. Left in place,
+        the next Save would write over it - and a hand edit that broke the file
+        is where the admin's own password now lives, on a restart in particular,
+        which comes up on the defaults with the admin open."""
+        bad = self.path.with_name(self.path.name + ".bad")
+        os.replace(self.path, bad)
+        log.error("Ignoring %s, %s; moved to %s", self.path, why, bad.name)
 
     def _write(self, settings: Settings) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)

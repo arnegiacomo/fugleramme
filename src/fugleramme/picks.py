@@ -15,11 +15,14 @@ in one process, so writes take the lock like SettingsStore's do.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import random
 import threading
 from collections.abc import Iterable
 from pathlib import Path
+
+log = logging.getLogger(__name__)
 
 FILENAME = "artwork.json"
 
@@ -30,11 +33,28 @@ class Picks:
     def __init__(self, path: Path):
         self.path = Path(path)
         self._lock = threading.Lock()
+        self._held = {
+            k: v for k, v in self._read().items() if isinstance(k, str) and isinstance(v, str)
+        }
+
+    def _read(self) -> dict:
+        """The file's picks. A file that cannot be read is moved to `<name>.bad`,
+        so the first roll does not write over a hand edit, and the frame starts empty."""
         try:
             raw = json.loads(self.path.read_text())
-        except (OSError, json.JSONDecodeError):
-            raw = {}
-        self._held = {k: v for k, v in raw.items() if isinstance(k, str) and isinstance(v, str)}
+        except OSError:
+            return {}
+        except ValueError as error:  # bad JSON, or bytes no text encoding reads
+            return self._set_aside(f"it is not valid JSON: {error}")
+        if not isinstance(raw, dict):
+            return self._set_aside("it is not a JSON object of picks")
+        return raw
+
+    def _set_aside(self, why: str) -> dict:
+        bad = self.path.with_name(self.path.name + ".bad")
+        os.replace(self.path, bad)
+        log.error("Ignoring %s, %s; moved to %s", self.path, why, bad.name)
+        return {}
 
     def choose(self, name: str, variants: list[Path]) -> Path | None:
         """The image this species is wearing. Held if it is still one of the

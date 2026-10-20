@@ -309,6 +309,17 @@ def _update(status: Status) -> str:
     return f'<span id="state">up to date</span>{_action("check", "Check")}'
 
 
+def _set_aside(data_dir: Path) -> str:
+    """The files settings.py and picks.py moved to `<name>.bad` because they could
+    not be read, said for as long as they are there: the journal is where nobody looks."""
+    notes = " · ".join(
+        f'<span class="bad">{bad.name.removesuffix(".bad")}</span> could not be read '
+        f"and is kept as {bad.name}"
+        for bad in sorted(data_dir.glob("*.json.bad"))
+    )
+    return f"<dt>Set aside</dt><dd>{notes}</dd>" if notes else ""
+
+
 def _reboot(status: Status) -> str:
     """The Reboot button beside when the frame started, on the Pi alone
     (`updates.can_reboot`)."""
@@ -842,6 +853,7 @@ def page(
         reboot=_reboot(status),
         kiosk_size=f"{w}×{h}",
         rendered=rendered,
+        set_aside=_set_aside(names_dir),
         latest=(
             f"{ctx.namer.inline(latest.scientific_name)} · {_stamp(latest.detected_at)}"
             if latest

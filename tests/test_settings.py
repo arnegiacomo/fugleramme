@@ -93,6 +93,70 @@ def test_a_file_that_is_json_but_not_settings_is_held_the_same_way(tmp_path, cap
     assert "not a JSON object" in caplog.text
 
 
+@pytest.mark.parametrize(
+    "body",
+    [
+        b'{"rotation": 90,}',
+        b"[1, 2]",
+        b"\x81\x8d",  # invalid in UTF-8 and undefined in cp1252 alike: used to escape the JSON check
+    ],
+)
+def test_a_file_that_cannot_be_read_is_set_aside_and_a_fresh_start_comes_up(tmp_path, body, caplog):
+    """A restart comes up on the defaults, so the next Save would write them over
+    the hand edit - the one copy of the admin's own password."""
+    path = tmp_path / "settings.json"
+    path.write_bytes(body)
+    with caplog.at_level(logging.ERROR, logger="fugleramme.settings"):
+        store = SettingsStore(path)
+        assert store.get() == Settings()
+        for _ in range(5):  # the kiosk polls: one error, not one per request
+            store.get()
+
+    assert (tmp_path / "settings.json.bad").read_bytes() == body
+    assert len(caplog.records) == 1
+    assert "settings.json" in caplog.text and "settings.json.bad" in caplog.text
+
+
+def test_a_broken_edit_while_running_is_set_aside_too(tmp_path, caplog):
+    path = tmp_path / "settings.json"
+    path.write_text('{"rotation": 90}')
+    store = SettingsStore(path)
+
+    path.write_bytes(b"\x81\x8d")
+    os.utime(path, (0, path.stat().st_mtime + 10))  # a later edit, whatever the clock says
+    with caplog.at_level(logging.ERROR, logger="fugleramme.settings"):
+        assert store.get().rotation == 90  # what it was still stands
+
+    assert (tmp_path / "settings.json.bad").read_bytes() == b"\x81\x8d"
+    assert "settings.json.bad" in caplog.text
+
+
+@pytest.mark.parametrize("number", ["Infinity", "-Infinity", "1e999", '"abc"'])
+@pytest.mark.parametrize(
+    "key", ["rotation", "refresh_minutes", "margin", "margin_top", "species_limit"]
+)
+def test_a_bad_number_resets_its_key_alone_and_says_which(tmp_path, key, number, caplog):
+    """json reads `Infinity` and `1e999` as a float int() refuses with OverflowError,
+    which used to take the frame down on startup; a non-number fell back unsaid."""
+    path = tmp_path / "settings.json"
+    path.write_text(f'{{"{key}": {number}, "style": "classic"}}')
+    with caplog.at_level(logging.WARNING, logger="fugleramme.settings"):
+        settings = SettingsStore(path).get()
+
+    assert getattr(settings, key) == getattr(Settings(), key)
+    assert settings.style == "classic"  # the rest of the file loads as written
+    assert len(caplog.records) == 1
+    assert key in caplog.text and repr(json.loads(number)) in caplog.text
+
+
+def test_a_lookback_that_is_not_a_number_says_so_too(tmp_path, caplog):
+    path = tmp_path / "settings.json"
+    path.write_text('{"lookback_hours": "abc"}')
+    with caplog.at_level(logging.WARNING, logger="fugleramme.settings"):
+        assert SettingsStore(path).get().lookback_hours == Settings().lookback_hours
+    assert "lookback_hours='abc'" in caplog.text
+
+
 def test_reload_picks_up_external_edit(tmp_path):
     path = tmp_path / "settings.json"
     store = SettingsStore(path)

@@ -60,6 +60,25 @@ def test_the_page_still_fills_every_slot_with_the_detector_gone(tmp_path, source
     assert "detector unreachable" in page
 
 
+def test_the_page_says_which_file_was_set_aside_while_it_is_there(tmp_path, source):
+    """settings.py and picks.py move a file they cannot read to `<name>.bad`; the
+    journal is where nobody looks, so the page says so until it is cleaned up."""
+    assert "set aside" not in _page(tmp_path, source()).lower()
+
+    (tmp_path / "settings.json.bad").write_text("{not json")
+    assert "settings.json.bad" in _page(tmp_path, source())
+
+
+def test_the_set_aside_row_names_each_file_and_is_empty_without_one(tmp_path):
+    assert admin._set_aside(tmp_path / "data") == ""  # a fresh checkout: no data dir yet
+
+    (tmp_path / "settings.json.bad").write_text("{not json")
+    row = admin._set_aside(tmp_path)
+    assert "settings.json.bad" in row and "artwork" not in row
+    (tmp_path / "artwork.json.bad").write_text("[]")
+    assert "artwork.json.bad" in admin._set_aside(tmp_path)
+
+
 def test_the_detector_tab_counts_every_bird_heard_without_art(tmp_path, source):
     heard = source(count=40, seed=0).species_since(0)
     page = _page(tmp_path, source(count=40, seed=0))  # no style folder: nothing has art
