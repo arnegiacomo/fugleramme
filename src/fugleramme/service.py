@@ -210,9 +210,15 @@ def run(config: Config) -> None:
             try:
                 panel.push(*pending)
                 pending = None
+                if status.push_error:
+                    log.info("Panel push recovered")
                 status.push_error = None
             except Exception as exc:
-                # Retry next tick from the same image rather than re-rendering.
-                log.exception("Panel push failed")
-                status.push_error = str(exc) or type(exc).__name__
+                # Retry next tick from the same image rather than re-rendering. A panel
+                # that fails on every tick would otherwise fill the journal with one
+                # traceback per tick, so it is logged again only when the cause changes.
+                cause = str(exc) or type(exc).__name__
+                if cause != status.push_error:
+                    log.exception("Panel push failed")
+                status.push_error = cause
         time.sleep(_POLL_SECONDS)
