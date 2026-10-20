@@ -171,18 +171,10 @@ def _backup_db(progress: Progress | None = None) -> None:
         return  # a frame pointed at a detector elsewhere has no file of its own to keep
     if progress:
         progress("Backing up detections", None)
-    backup = DEFAULT_DB_PATH.with_suffix(".db.bak")
     source = sqlite3.connect(f"file:{DEFAULT_DB_PATH}?mode=ro", uri=True)
-    target = sqlite3.connect(backup)
+    target = sqlite3.connect(DEFAULT_DB_PATH.with_suffix(".db.bak"))
     try:
         source.backup(target)  # consistent under WAL, which copying the file is not
-    except sqlite3.Error:
-        # A copy that stopped part way is no backup, and when it stopped for want of
-        # space it is what keeps BirdNET-Go from writing detections and the frame
-        # from saving its page. The next update takes a fresh one.
-        target.close()
-        backup.unlink(missing_ok=True)
-        raise
     finally:
         target.close()
         source.close()
