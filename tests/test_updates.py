@@ -178,10 +178,8 @@ def test_checkout_is_forced_past_a_dirty_tree():
 
 
 def test_a_lock_left_by_a_killed_checkout_does_not_block_the_next(tmp_path):
-    """Power loss, or the stall guard's SIGKILL, part way through a checkout leaves
-    `.git/index.lock`, and git refuses every checkout after it - so one bad update
-    would end the auto-update for good. The checkout itself is real here; the fetch
-    and the sync are faked away."""
+    """One cut-short checkout would otherwise end the auto-update for good. Only the
+    checkout is real here."""
     repo = tmp_path / "repo"
     repo.mkdir()
     git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]

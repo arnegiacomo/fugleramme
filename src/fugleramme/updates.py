@@ -115,10 +115,8 @@ def apply(tag: str, progress: Progress | None = None) -> None:
         "Downloading",
         progress,
     )
-    # A checkout cut short - power loss, or the stall guard's kill, which git gets no
-    # chance to clean up after - leaves index.lock behind, and git then refuses every
-    # checkout until it is gone. It is always stale here: the frame is the only thing
-    # running git on an appliance, and `_run` has waited for its fetch to end.
+    # A checkout cut short by power loss or the stall guard leaves this behind, and git
+    # refuses every checkout after it. Nothing else runs git here, so it is stale.
     lock = REPO_ROOT / ".git" / "index.lock"
     if lock.is_file():
         lock.unlink()
