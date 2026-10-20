@@ -324,6 +324,8 @@ class ApiSource:
                     raise entry[1]
                 return entry[1]
             started = time.monotonic()
+            # A window's dates roll daily, so its old keys are never asked again.
+            self._cache = {k: v for k, v in self._cache.items() if v[0] > started}
             try:
                 value: Any = fetch()
             except Unavailable as error:

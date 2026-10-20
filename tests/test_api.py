@@ -160,6 +160,18 @@ def test_a_slow_answer_is_held_for_longer(detector, monkeypatch):
     assert detections.species_since(0) == first
 
 
+def test_an_answer_past_its_time_is_forgotten(monkeypatch):
+    """A window's dates move on daily, so a frame left running for months would
+    otherwise keep every day's summary."""
+    now = [0.0]
+    monkeypatch.setattr(api, "time", SimpleNamespace(monotonic=lambda: now[0]))
+    detections = ApiSource("http://detector.invalid")
+    detections._cached(("summary", "2026-10-18", "2026-10-19"), list)
+    now[0] += 3600
+    detections._cached(("summary", "2026-10-19", "2026-10-20"), list)
+    assert list(detections._cache) == [("summary", "2026-10-19", "2026-10-20")]
+
+
 def test_a_station_slow_to_answer_is_not_called_unreachable():
     """It is answering, slowly: "unreachable" would send the reader to check an
     address that is fine."""
