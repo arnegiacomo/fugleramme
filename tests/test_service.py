@@ -233,6 +233,14 @@ def test_no_floor_is_the_shipped_default(tmp_path):
     assert service._due(0, service.time.monotonic())
 
 
+def test_startup_clears_what_earlier_releases_left_and_nothing_else(tmp_path):
+    (tmp_path / "artwork.json").write_text("{}")
+    (tmp_path / "settings.json").write_text("{}")
+    service._clean_up(tmp_path)
+    service._clean_up(tmp_path)  # already gone is fine
+    assert [p.name for p in tmp_path.iterdir()] == ["settings.json"]
+
+
 def test_with_the_e6_page_on_the_loop_lays_out_and_hands_over_a_13_inch_page(
     tmp_path, images, detector
 ):

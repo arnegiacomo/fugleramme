@@ -19,6 +19,7 @@ import signal
 import threading
 import time
 from dataclasses import replace
+from pathlib import Path
 
 from . import __version__, buttons, languages, modes, taxa, updates
 from .api import Configured
@@ -34,6 +35,23 @@ from .web.server import serve
 log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 5  # one query per tick; re-renders only on change, so e-ink stays the bottleneck
+
+# Files an earlier release left in the data dir and nothing reads any more. An
+# update never re-runs run.sh, so startup is the one place that reaches every
+# frame. Each entry carries the date after which its line can go.
+_STALE = (
+    "artwork.json",  # per-bird variant picks, unread since #302. Remove after 2027-01-21.
+)
+
+
+def _clean_up(data_dir: Path) -> None:
+    """Delete what earlier releases left behind. Run off the main thread, so a
+    slow SD card never holds up the first render."""
+    for name in _STALE:
+        try:
+            (data_dir / name).unlink(missing_ok=True)
+        except OSError as exc:
+            log.warning("Could not remove stale %s (%s)", name, exc)
 
 
 def detector(config: Config) -> tuple[SettingsStore, Configured]:
@@ -121,9 +139,7 @@ def run(config: Config) -> None:
 
     panel = init_panel()
     store, source = detector(config)
-    # Marked for removal in a few releases: v0.28.1 and earlier held each bird's
-    # variant in artwork.json, which nothing reads since the pick went by day (#302).
-    (config.config_path.parent / "artwork.json").unlink(missing_ok=True)
+    threading.Thread(target=_clean_up, args=(config.config_path.parent,), daemon=True).start()
     status = Status()
 
     server = serve(
