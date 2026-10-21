@@ -12,7 +12,7 @@ import logging
 import socket
 import time as systime
 from collections import Counter
-from datetime import UTC, datetime, time, timedelta, timezone
+from datetime import UTC, datetime, time, timedelta
 from types import SimpleNamespace
 from urllib.request import urlopen
 
@@ -114,27 +114,36 @@ def test_a_sub_day_window_holds_less_than_the_day_around_it(source):
     )
 
 
-def test_the_station_clock_comes_off_the_summary_not_the_frames(detector, monkeypatch):
-    """The feed's date and time carry no offset, so a detector in another
-    timezone would land hours out."""
+def test_the_feed_and_the_summary_agree_on_the_newest_call(detector):
     url, _httpd = detector()
-    monkeypatch.setattr(api, "_local", lambda: timezone(timedelta(hours=7)))
-
     heard = max(datetime.fromisoformat(row["last_heard"]) for row in _raw(url, _SUMMARY))
     newest = ApiSource(url).latest()
     assert newest is not None and newest.detected_at == heard
 
 
-def test_the_station_clock_is_the_newest_stamps_offset(monkeypatch):
-    """The summary is most detections first, so its top row can be a summer
-    migrant last heard in another daylight-saving season."""
+def _feed_row(stamp: str, **extra) -> dict:
+    day, clock = stamp[:19].split("T")
+    return {"date": day, "time": clock, "scientificName": BLACKBIRD, **extra}
+
+
+def test_each_detection_keeps_its_own_offset(monkeypatch):
+    """A feed spanning a daylight-saving change holds rows an hour apart in
+    offset; one offset for all of them would put the older ones an hour out."""
     detections = ApiSource("http://detector.invalid")
-    rows = [
-        {"scientific_name": BLACKBIRD, "last_heard": "2026-07-01T10:00:00+02:00"},
-        {"scientific_name": TIT, "last_heard": "2026-11-10T09:00:00+01:00"},
+    stamps = ["2026-10-25T09:00:00+01:00", "2026-10-24T20:00:00+02:00"]
+    monkeypatch.setattr(detections, "_feed", lambda _: [_feed_row(s, timestamp=s) for s in stamps])
+    monkeypatch.setattr(detections, "_summary", lambda *_: pytest.fail("the feed needs no summary"))
+    assert [d.detected_at for d in detections.recent()] == [
+        datetime.fromisoformat(s) for s in stamps
     ]
-    monkeypatch.setattr(detections, "_summary", lambda *_: rows)
-    assert detections._offset() == timezone(timedelta(hours=1))
+
+
+def test_a_detection_without_a_timestamp_is_read_in_the_frames_zone(monkeypatch):
+    """BirdNET-Go before 20260712 sends only the wall clock."""
+    detections = ApiSource("http://detector.invalid")
+    monkeypatch.setattr(detections, "_feed", lambda _: [_feed_row("2026-07-01T10:00:00")])
+    (heard,) = detections.recent()
+    assert heard.detected_at == datetime(2026, 7, 1, 10).astimezone()
 
 
 def test_a_repeated_question_is_answered_without_asking_again(detector):
