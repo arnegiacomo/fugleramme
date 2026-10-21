@@ -121,6 +121,9 @@ def run(config: Config) -> None:
 
     panel = init_panel()
     store, source = detector(config)
+    # Marked for removal in a few releases: v0.28.1 and earlier held each bird's
+    # variant in artwork.json, which nothing reads since the pick went by day (#302).
+    (config.config_path.parent / "artwork.json").unlink(missing_ok=True)
     status = Status()
 
     server = serve(
