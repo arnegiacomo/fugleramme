@@ -83,7 +83,8 @@ start() {
 release() {
   [[ $# -eq 1 ]] || die "usage: pi.sh release <tag>"
   # One tag, shallow, as updates.apply fetches it: every tag pins a copy of the artwork.
-  remote "git fetch --depth 1 origin tag '$1' --force && git checkout -f --detach '$1' && { git branch -D test 2>/dev/null || true; } && uv sync --extra panel && sudo -n systemctl restart $UNIT"
+  # --no-tags: auto-follow would add every old release still in the object store.
+  remote "git fetch --depth 1 --no-tags origin tag '$1' --force && git checkout -f --detach '$1' && { git branch -D test 2>/dev/null || true; } && uv sync --extra panel && sudo -n systemctl restart $UNIT"
   verify "$1"
 }
 
