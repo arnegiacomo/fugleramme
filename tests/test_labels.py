@@ -88,6 +88,16 @@ def test_a_flat_label_is_freetype_mono_not_a_cut_of_the_grey_raster():
         assert cut.shape != flat.shape or not np.array_equal(cut, flat)
 
 
+def test_a_flat_mark_is_freetype_mono_too():
+    """The newcomer's asterisk is drawn for the one-bit target like its name, not
+    an antialiased one pasted in, which would ink every pixel it greys."""
+    font = fonts.load("garamond", 15)
+    flat = _trimmed(text_mask("Pica pica" + NEW, font, flat=True))
+    plain = _trimmed(text_mask("Pica pica", font, flat=True))
+    mark, _ = page._mark(font, "1")
+    assert flat.sum() == plain.sum() + _trimmed(mark.convert("L")).sum()
+
+
 def test_every_flat_path_holds_no_grey():
     # Not only the plain label: a newcomer's mark is pasted on afterwards, a
     # fallback line is stacked by hand, and a key's figures are set on their own.
