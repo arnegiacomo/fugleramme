@@ -7,8 +7,8 @@ training set while BirdNET-Go reports the current name, so one bird reaches the
 frame as "Corvus monedula" and as "Coloeus monedula" both. `normalize` folds
 the pair to the current name through the vendored OpenFauna alias map, and
 shipped artwork is filed under that one spelling - the same key the label
-table, the body masses and the variant picks all use. Names with no artwork resolve to
-None and the collage omits them.
+table, the body masses and the variant picks all use. Names with no artwork
+resolve to None and the collage omits them.
 
 The shipped styles are WebP. It stores alpha losslessly, so a cut-out survives
 exactly, and the tree is a sixth of what the same plates cost as PNG. PNG is
@@ -20,7 +20,7 @@ user's "custom", ...), one active at a time: `available_styles` lists what is
 present and `resolve` turns a saved selection into the folder to actually draw
 from. A style is curated by hand (`scripts/curate.py`) and may keep more than
 one image for a bird, numbered "<key>-2.webp", "<key>-3.webp", and a bird
-wears the next of them each day (`image_for`).
+may wear a different one each day (`image_for`).
 
 Each style folder carries its own ATTRIBUTION.md naming the works it draws on,
 and a manifest.json giving each single file the work it was cut from

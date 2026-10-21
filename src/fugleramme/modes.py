@@ -215,11 +215,7 @@ def _collage_key(ctx: Context) -> tuple:
     # places across it while the set of species heard sits still.
     species = tuple(_selected(ctx))
     spotlit = _spotlit(ctx)
-    return (
-        species,
-        spotlit if spotlit in species else None,
-        day_ordinal() if not species else None,
-    )
+    return (species, spotlit if spotlit in species else None)
 
 
 def _collage(ctx: Context) -> Image.Image:
@@ -271,7 +267,7 @@ def _latest_key(ctx: Context) -> tuple:
     # When the run began, not when the bird last called: the caption shows a
     # clock time, so a key that moved on every call would re-push the panel all
     # day, and one that ignored the time would let the two outputs disagree.
-    return _holder(ctx) or (None, day_ordinal())
+    return _holder(ctx) or ()
 
 
 def _latest_page(ctx: Context) -> Image.Image:
@@ -294,7 +290,7 @@ def _arrival(ctx: Context) -> Species | None:
 def _arrival_key(ctx: Context) -> tuple:
     species = _arrival(ctx)
     if species is None:
-        return (None, day_ordinal())
+        return ()
     return (species.scientific_name, species.first_seen.astimezone().date())
 
 
@@ -361,7 +357,7 @@ def state_key(ctx: Context) -> tuple:
         # The plate clamps to its own margin, so a nudge under it must not repaint.
         ctx.margin if mode.windowed else effective_margin(ctx.margin),
         ctx.namer.key,
-        # Every bird turns to its next variant overnight, so the page redraws then.
+        # Each bird's plate is picked again overnight, so the page redraws then.
         ctx.day,
         _marked(ctx),
         mode.key(ctx),

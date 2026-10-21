@@ -126,12 +126,17 @@ def test_image_for_is_none_when_the_active_style_has_nothing(tmp_path):
 
 def test_a_bird_wears_one_variant_a_day_and_a_different_one_across_days(tmp_path):
     _make(tmp_path, "classic", "turdus-merula", "turdus-merula-2", "turdus-merula-3")
+    # Pinned: hash() is salted per process, and a restart must not change the page.
+    week = [image_for("Turdus merula", tmp_path, "classic", d).stem for d in range(739000, 739006)]
+    assert week == [
+        "turdus-merula",
+        "turdus-merula",
+        "turdus-merula-2",
+        "turdus-merula-2",
+        "turdus-merula",
+        "turdus-merula",
+    ]
     days = range(739000, 739060)
-    assert all(
-        image_for("Turdus merula", tmp_path, "classic", d)
-        == image_for("Turdus merula", tmp_path, "classic", d)
-        for d in days
-    )
     assert len({image_for("Turdus merula", tmp_path, "classic", d) for d in days}) == 3
 
 

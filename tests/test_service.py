@@ -73,42 +73,6 @@ def test_the_loop_holds_its_last_page_when_the_detector_goes_away(
     assert np.asarray(Image.open(config.output_path)).std() > 0.5  # birds, not bare paper
 
 
-def test_cleanup_starts_once_and_only_after_the_first_render(tmp_path, images, detector):
-    url, _httpd = detector(count=40, seed=0)
-    config = Config(
-        images_dir=images,
-        detector_url=url,
-        output_path=tmp_path / "frame.png",
-        host="127.0.0.1",
-        port=0,
-        config_path=tmp_path / "settings.json",
-    )
-    order: list[str] = []
-    ticks = 0
-    real_render = modes.render
-
-    def render(ctx):
-        order.append("render")
-        return real_render(ctx)
-
-    def sleep(_seconds):
-        nonlocal ticks
-        ticks += 1
-        if ticks == 3:
-            raise _Stop
-
-    with (
-        patch.object(service.updates, "available", return_value=None),
-        patch.object(service.modes, "render", side_effect=render),
-        patch.object(service.cleanup, "start", side_effect=lambda d: order.append("cleanup")),
-        patch.object(service.time, "sleep", sleep),
-        pytest.raises(_Stop),
-    ):
-        service.run(config)
-
-    assert order == ["render", "cleanup"]
-
-
 def test_a_render_error_holds_the_page_instead_of_ending_the_service(
     tmp_path, images, detector, monkeypatch, caplog
 ):

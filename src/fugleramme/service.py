@@ -20,7 +20,7 @@ import threading
 import time
 from dataclasses import replace
 
-from . import __version__, buttons, cleanup, languages, modes, taxa, updates
+from . import __version__, buttons, languages, modes, taxa, updates
 from .api import Configured
 from .config import Config
 from .languages import namer
@@ -121,6 +121,8 @@ def run(config: Config) -> None:
 
     panel = init_panel()
     store, source = detector(config)
+    # Per-bird picks, unread since the pick went by day (#302). Remove after 2027-01-21.
+    (config.config_path.parent / "artwork.json").unlink(missing_ok=True)
     status = Status()
 
     server = serve(
@@ -188,8 +190,6 @@ def run(config: Config) -> None:
                 log.info("Rendered %s for the panel at %dx%d", ctx.mode, *size)
                 frame = (panel_image, settings.rotation)
                 status.rendered(frame)
-                if last_render is None:
-                    cleanup.start(config.config_path.parent)
                 last_key, last_settings, last_render = key, _paced(settings), time.monotonic()
                 pending = frame if panel is not None else None
             if unreachable:
