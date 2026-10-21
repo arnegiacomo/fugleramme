@@ -137,8 +137,13 @@ def _ranked(counts: Iterable[tuple[str, int]]) -> list[tuple[str, int]]:
     return sorted(counts, key=lambda pair: (-pair[1], pair[0]))
 
 
-def _detection(row: dict, offset: tzinfo) -> Detection:
-    at = datetime.fromisoformat(f"{row['date']}T{row['time']}").replace(tzinfo=offset)
+def _detection(row: dict) -> Detection:
+    # BirdNET-Go since 20260321 (upstream #2048) stamps each row with its own
+    # offset, right across a daylight-saving change; older stations give a bare
+    # wall clock.
+    at = _time(row.get("timestamp") or "") or _aware(
+        datetime.fromisoformat(f"{row['date']}T{row['time']}")
+    )
     return Detection(
         id=int(row.get("id") or 0),
         detected_at=at,
@@ -368,14 +373,6 @@ class ApiSource:
     def _feed(self, limit: int) -> list[dict]:
         return self._cached(("recent", limit), lambda: self._get("/detections/recent", limit=limit))
 
-    def _offset(self) -> tzinfo:
-        """The station's own UTC offset. The feed gives a bare wall clock and
-        the summary's timestamps carry an offset, so it is read off there rather
-        than assuming the detector shares the frame's timezone."""
-        newest = max(self._summary(), key=lambda row: _at(row.get("last_heard")), default=None)
-        stamp = _time(newest.get("last_heard") or "") if newest else None
-        return stamp.tzinfo if stamp and stamp.tzinfo else _local()
-
     # -- source ------------------------------------------------------------
 
     def latest(self) -> Detection | None:
@@ -383,12 +380,11 @@ class ApiSource:
         return rows[0] if rows else None
 
     def recent(self, limit: int = 20) -> list[Detection]:
-        offset = self._offset()
         try:
             # Not in `_feed`: `_counted` reads the raw row count to spot a feed
             # that ran out before reaching its cutoff.
             return [
-                _detection(row, offset)
+                _detection(row)
                 for row in self._feed(limit)
                 if row.get("verified") != "false_positive"
                 and self._is_bird(row["scientificName"], row.get("commonName") or "")

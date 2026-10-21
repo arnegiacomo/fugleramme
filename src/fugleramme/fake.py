@@ -5,8 +5,8 @@ detections, the locale list, the name dictionaries and the species list in the
 station's own language - over generated in-memory detections.
 
 The shapes are upstream's, warts and all: a detection carries its date and time
-as two strings of station-local wall clock with no offset, while the summary's
-`first_heard`/`last_heard` are RFC3339 with one.
+as two strings of station-local wall clock with no offset, beside a `timestamp`
+that is RFC3339 with one, as are the summary's `first_heard`/`last_heard`.
 
 Usage:
     fugleramme-fake-detector --count 40 --seed 1
