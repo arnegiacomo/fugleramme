@@ -219,6 +219,7 @@ class ApiSource:
         self._opener = build_opener(_NoRedirect, HTTPCookieProcessor(CookieJar()))
         self._lock = threading.RLock()
         self._cache: dict[tuple, tuple[float, Any]] = {}
+        self._down: tuple[float, Unavailable] | None = None
         self._not_birds: set[str] = set()
         self._bare_clock = False
 
@@ -262,13 +263,17 @@ class ApiSource:
         except HTTPError as error:
             answer = error.code, _headers(error), error.read()
         except (URLError, OSError) as error:
-            log.debug(
-                "%s %s failed after %.1fs: %s", method, url, time.monotonic() - started, error
-            )
+            took = time.monotonic() - started
+            log.debug("%s %s failed after %.1fs: %s", method, url, took, error)
             # Slow is not unreachable: that would send the reader to check a fine address.
             if isinstance(error.reason if isinstance(error, URLError) else error, TimeoutError):
-                raise Unavailable(f"{url} did not answer within {self._timeout:g}s") from error
-            raise Unavailable(f"{self.base_url} unreachable: {error}") from error
+                failure = Unavailable(f"{url} did not answer within {self._timeout:g}s")
+            else:
+                failure = Unavailable(f"{self.base_url} unreachable: {error}")
+            # Any other endpoint would take as long to fail again, so `_cached`
+            # answers every key with this for as long as learning it took.
+            self._down = (time.monotonic() + max(_TTL, took), failure)
+            raise failure from error
         log.debug("%s %s answered %s in %.1fs", method, url, answer[0], time.monotonic() - started)
         return answer
 
@@ -323,6 +328,8 @@ class ApiSource:
         that will not resolve costs a DNS timeout per call, and one admin page
         makes five."""
         with self._lock:
+            if self._down is not None and time.monotonic() < self._down[0]:
+                raise self._down[1]
             entry = self._cache.get(key)
             if entry is not None and time.monotonic() < entry[0]:
                 if isinstance(entry[1], Unavailable):
