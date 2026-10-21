@@ -14,6 +14,7 @@ import time as systime
 from collections import Counter
 from datetime import UTC, datetime, time, timedelta, timezone
 from types import SimpleNamespace
+from urllib.error import URLError
 from urllib.request import urlopen
 
 import pytest
@@ -195,6 +196,32 @@ def test_a_station_slow_to_answer_is_not_called_unreachable():
         with pytest.raises(Unavailable, match="did not answer within 0.2s") as raised:
             ApiSource(url, timeout=0.2).species_since(0)
     assert "unreachable" not in str(raised.value)
+
+
+def test_a_hung_station_costs_one_timeout_for_every_question(monkeypatch):
+    """The loop and the handlers ask different endpoints first, so a failure
+    remembered per endpoint would have expired by the time the other side asked,
+    and each would wait out the timeout in turn."""
+    now = [0.0]
+    monkeypatch.setattr(api, "time", SimpleNamespace(monotonic=lambda: now[0]))
+    detections = ApiSource("http://detector.invalid")
+    asked = []
+
+    def hang(request, timeout):
+        asked.append(request.full_url)
+        now[0] += 30
+        raise URLError(TimeoutError())
+
+    monkeypatch.setattr(detections, "_opener", SimpleNamespace(open=hang))
+    for call in [lambda: detections.species_since(WINDOW), detections.life_list]:
+        with pytest.raises(Unavailable, match="did not answer"):
+            call()
+    assert len(asked) == 1
+
+    now[0] += 30
+    with pytest.raises(Unavailable):
+        detections.life_list()
+    assert len(asked) == 2
 
 
 def test_a_private_detector_needs_credentials(source):
