@@ -6959,6 +6959,54 @@
    1200
   ]
  },
+ "birds/haliaeetus-leucocephalus-2.webp": {
+  "box": [
+   0.11,
+   0.07,
+   0.93,
+   0.84
+  ],
+  "cut": [
+   1200,
+   774
+  ]
+ },
+ "birds/haliaeetus-leucocephalus-3.webp": {
+  "box": [
+   0.01,
+   0.01,
+   0.985,
+   0.872
+  ],
+  "cut": [
+   816,
+   1200
+  ]
+ },
+ "birds/haliaeetus-leucocephalus-4.webp": {
+  "box": [
+   0.08,
+   0.01,
+   0.98,
+   0.98
+  ],
+  "cut": [
+   743,
+   1200
+  ]
+ },
+ "birds/haliaeetus-leucocephalus-5.webp": {
+  "box": [
+   0.111,
+   0.01,
+   0.574,
+   0.76
+  ],
+  "cut": [
+   1033,
+   1200
+  ]
+ },
  "birds/haliaeetus-leucocephalus.webp": {
   "box": [
    0.0900670998912317,
@@ -12431,6 +12479,18 @@
    786
   ]
  },
+ "birds/setophaga-palmarum.webp": {
+  "box": [
+   0.39934464414914445,
+   0.1918535798651987,
+   0.9893988800048829,
+   0.6250398191687179
+  ],
+  "cut": [
+   1200,
+   876
+  ]
+ },
  "birds/setophaga-petechia.webp": {
   "box": [
    0.001,
@@ -12511,8 +12571,8 @@
    0.6421160077715253
   ],
   "cut": [
-   3481,
-   3110
+   1200,
+   1072
   ]
  },
  "birds/sialia-sialis.webp": {

@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import socket
+import time as systime
 from collections import Counter
 from datetime import UTC, datetime, time, timedelta, timezone
 from types import SimpleNamespace
@@ -57,6 +58,19 @@ def test_a_detector_that_is_not_there_raises(detector):
     for call in _asked(ApiSource(url)):
         with pytest.raises(Unavailable):
             call()
+
+
+@pytest.mark.parametrize("route", [_SUMMARY, "/detections/recent"])
+@pytest.mark.parametrize(
+    "body", [{"data": []}, [None], [{"scientific_name": None, "scientificName": None}]]
+)
+def test_a_detector_answering_in_an_unknown_shape_raises(monkeypatch, route, body):
+    """An error body or a null row, read as birds, would surface as a render
+    error rather than as a detector that is not answering."""
+    detections = ApiSource("http://detector.invalid")
+    monkeypatch.setattr(detections, "_get", lambda path, **_: body if path == route else [])
+    with pytest.raises(Unavailable):
+        detections.species_since(0) if route == _SUMMARY else detections.latest()
 
 
 def test_a_detector_with_no_birds_reads_as_empty(source):
@@ -111,6 +125,18 @@ def test_the_station_clock_comes_off_the_summary_not_the_frames(detector, monkey
     assert newest is not None and newest.detected_at == heard
 
 
+def test_the_station_clock_is_the_newest_stamps_offset(monkeypatch):
+    """The summary is most detections first, so its top row can be a summer
+    migrant last heard in another daylight-saving season."""
+    detections = ApiSource("http://detector.invalid")
+    rows = [
+        {"scientific_name": BLACKBIRD, "last_heard": "2026-07-01T10:00:00+02:00"},
+        {"scientific_name": TIT, "last_heard": "2026-11-10T09:00:00+01:00"},
+    ]
+    monkeypatch.setattr(detections, "_summary", lambda *_: rows)
+    assert detections._offset() == timezone(timedelta(hours=1))
+
+
 def test_a_repeated_question_is_answered_without_asking_again(detector):
     url, httpd = detector()
     detections = ApiSource(url)
@@ -147,6 +173,18 @@ def test_a_slow_answer_is_held_for_longer(detector, monkeypatch):
     now[0] += 20
     monkeypatch.setattr(detections, "_get", get)
     assert detections.species_since(0) == first
+
+
+def test_an_answer_past_its_time_is_forgotten(monkeypatch):
+    """A window's dates move on daily, so a frame left running for months would
+    otherwise keep every day's summary."""
+    now = [0.0]
+    monkeypatch.setattr(api, "time", SimpleNamespace(monotonic=lambda: now[0]))
+    detections = ApiSource("http://detector.invalid")
+    detections._cached(("summary", "2026-10-18", "2026-10-19"), list)
+    now[0] += 3600
+    detections._cached(("summary", "2026-10-19", "2026-10-20"), list)
+    assert list(detections._cache) == [("summary", "2026-10-19", "2026-10-20")]
 
 
 def test_a_station_slow_to_answer_is_not_called_unreachable():
@@ -247,6 +285,20 @@ def test_a_summary_stamped_without_an_offset_is_read_in_the_frames_zone(
         assert source.life_list()[0].first_seen == heard
         assert source.stats()["last_24h"] == 1
     assert caplog.text.count("without a UTC offset") == 1
+
+
+@pytest.mark.skipif(not hasattr(systime, "tzset"), reason="needs time.tzset")
+def test_a_bare_stamp_takes_its_own_seasons_offset(monkeypatch):
+    monkeypatch.setenv("TZ", "Europe/Oslo")
+    systime.tzset()
+    try:
+        summer = api._time("2026-07-01T23:30:00")
+        winter = api._time("2026-01-01T23:30:00")
+    finally:
+        monkeypatch.undo()
+        systime.tzset()
+    assert summer is not None and summer.utcoffset() == timedelta(hours=2)
+    assert winter is not None and winter.utcoffset() == timedelta(hours=1)
 
 
 def test_a_window_the_feed_cannot_reach_falls_back_to_the_summary(detector, monkeypatch, caplog):

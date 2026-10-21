@@ -97,7 +97,7 @@ def _local() -> tzinfo:
 def _aware(stamp: datetime) -> datetime:
     """A stamp with no offset is read in the frame's own zone, as the feed's wall
     clock is. BirdNET-Go before 20260712 stamped the summary bare (upstream #3793)."""
-    return stamp if stamp.tzinfo else stamp.replace(tzinfo=_local())
+    return stamp if stamp.tzinfo else stamp.astimezone()
 
 
 def _bare(value: str) -> bool:
@@ -324,6 +324,8 @@ class ApiSource:
                     raise entry[1]
                 return entry[1]
             started = time.monotonic()
+            # A window's dates roll daily, so its old keys are never asked again.
+            self._cache = {k: v for k, v in self._cache.items() if v[0] > started}
             try:
                 value: Any = fetch()
             except Unavailable as error:
@@ -335,13 +337,15 @@ class ApiSource:
 
     def _summary(self, start: str = "", end: str = "") -> list[dict]:
         def fetch() -> list[dict]:
-            rows = [
-                row
-                for row in _merged(
-                    self._get("/analytics/species/summary", start_date=start, end_date=end)
-                )
-                if self._is_bird(row["scientific_name"], row.get("common_name") or "")
-            ]
+            body = self._get("/analytics/species/summary", start_date=start, end_date=end)
+            try:
+                rows = [
+                    row
+                    for row in _merged(body)
+                    if self._is_bird(row["scientific_name"], row.get("common_name") or "")
+                ]
+            except (AttributeError, KeyError, TypeError) as error:
+                raise Unavailable(f"unreadable species summary: {error}") from error
             if not self._bare_clock and any(_bare(row.get("last_heard") or "") for row in rows):
                 self._bare_clock = True
                 log.warning(
@@ -361,11 +365,9 @@ class ApiSource:
         """The station's own UTC offset. The feed gives a bare wall clock and
         the summary's timestamps carry an offset, so it is read off there rather
         than assuming the detector shares the frame's timezone."""
-        for row in self._summary():
-            stamp = _time(row.get("last_heard") or row.get("first_heard") or "")
-            if stamp and stamp.tzinfo:
-                return stamp.tzinfo
-        return _local()
+        newest = max(self._summary(), key=lambda row: _at(row.get("last_heard")), default=None)
+        stamp = _time(newest.get("last_heard") or "") if newest else None
+        return stamp.tzinfo if stamp and stamp.tzinfo else _local()
 
     # -- source ------------------------------------------------------------
 
@@ -384,7 +386,7 @@ class ApiSource:
                 if row.get("verified") != "false_positive"
                 and self._is_bird(row["scientificName"], row.get("commonName") or "")
             ]
-        except (KeyError, TypeError, ValueError) as error:
+        except (AttributeError, KeyError, TypeError, ValueError) as error:
             raise Unavailable(f"unreadable detections: {error}") from error
 
     def _counted(self, hours: float) -> list[tuple[str, int]] | None:

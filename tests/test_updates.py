@@ -177,6 +177,36 @@ def test_checkout_is_forced_past_a_dirty_tree():
     assert "--force" in checkout and checkout[-2:] == ["--detach", "v0.2.0"]
 
 
+def test_a_lock_left_by_a_killed_checkout_does_not_block_the_next(tmp_path):
+    """One cut-short checkout would otherwise end the auto-update for good. Only the
+    checkout is real here."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git = [
+        "git",
+        "-c",
+        "user.name=t",
+        "-c",
+        "user.email=t@t",
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "tag.gpgsign=false",
+    ]
+    for args in (["init", "-q"], ["commit", "-q", "--allow-empty", "-m", "x"], ["tag", "v0.2.0"]):
+        subprocess.run([*git, *args], cwd=repo, check=True, capture_output=True)
+    (repo / ".git" / "index.lock").write_bytes(b"")
+    real_run = updates._run
+
+    def run(cmd, phase, progress=None):
+        if cmd[:2] == ["git", "checkout"]:
+            real_run(cmd, phase, progress)
+
+    with patch.multiple(updates, REPO_ROOT=repo, _run=run, _converge_detector=DEFAULT):
+        updates.apply("v0.2.0")
+    assert not (repo / ".git" / "index.lock").exists()
+
+
 def test_git_progress_reaches_the_admin_page():
     """git writes progress to stderr, \\r-separated and only under --progress."""
     assert all(
@@ -227,6 +257,37 @@ def _apply_calls():
     with patch.object(updates, "_run") as run, patch.object(updates, "_converge_detector"):
         updates.apply("v0.2.0")
     return run.call_args_list
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        RuntimeError("uv sync: network is unreachable"),
+        FileNotFoundError("uv is not installed"),  # what Popen raises for a missing binary
+    ],
+)
+def test_a_failed_dependency_sync_puts_the_checkout_back(failure):
+    """Left on the new tag, the next restart runs new code on the old environment."""
+
+    def run(cmd, *_):
+        if cmd[1:2] == ["sync"]:
+            raise failure
+
+    def read(cmd, **_):
+        stdout = "abc123\n" if cmd[1] == "rev-parse" else "v0.1.0\n"
+        return subprocess.CompletedProcess(cmd, 0, stdout=stdout)
+
+    with (
+        patch.object(updates, "_run", side_effect=run) as call,
+        patch.object(updates.subprocess, "run", side_effect=read),
+        patch.object(updates, "_converge_detector") as converge,
+        pytest.raises(type(failure)),
+    ):
+        updates.apply("v0.2.0")
+
+    checkouts = [c.args[0] for c in call.call_args_list if c.args[0][:2] == ["git", "checkout"]]
+    assert [c[-1] for c in checkouts] == ["v0.2.0", "abc123"]  # onto the tag, then back
+    assert not converge.called
 
 
 def test_a_failed_install_does_not_retry_every_tick():

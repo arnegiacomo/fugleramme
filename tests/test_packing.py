@@ -6,11 +6,12 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from fugleramme.render import collage, packing
 from fugleramme.render.collage import _Sprite, render_collage
 from fugleramme.render.packing import LAYOUTS
+from fugleramme.render.page import trim
 
 
 def _sprites(count: int = 8) -> list[_Sprite]:
@@ -112,3 +113,12 @@ def test_the_spotlit_birds_name_is_set_larger(crowded):
     (placed, _px), *_ = collage._layouts.values()
     widths = {p.index: p.label_w for p in placed}
     assert widths[0] > 1.3 * max(w for i, w in widths.items() if i)
+
+
+def test_a_plate_that_will_not_open_says_which_file(tmp_path):
+    """Pillow's "image file is truncated" never names the file."""
+    junk = tmp_path / "perch.png"
+    junk.write_bytes(b"not an image")
+    with pytest.raises(UnidentifiedImageError) as caught:
+        trim(junk)
+    assert any(str(junk) in note for note in caught.value.__notes__)

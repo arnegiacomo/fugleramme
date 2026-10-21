@@ -58,7 +58,7 @@ exclude_commit_patterns = ["^chore: release v"]
 
 [tool.ruff]
 line-length = 100  # what the code was already written to; 88 would rewrap a third of it
-extend-exclude = ["scripts", "tools/platereview/review*"]  # gitignored, workstation-only
+extend-exclude = ["./scripts", "tools/platereview/review*"]  # gitignored, workstation-only
 
 [tool.ruff.lint]
 extend-select = ["I", "UP", "B", "C4"]
