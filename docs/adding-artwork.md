@@ -141,4 +141,4 @@ Happy with the bird and want to share it with others? Open a PR. See [Contributi
 - No need to trim the empty space around the bird. The tool crops to the cut-out.
 - Always look at `--preview` before you commit. It puts the bird on the frame's own paper with the frame's own halo, which is the only honest check of whether it blends.
 - Nothing that separates the bird from the page: no drop shadows, no glows
-- A second (or more) plate of the same bird is worth adding - the frame keeps one pick per bird per window, so variants show up over days rather than all at once. (e.g. variation for male/females, or different coats or scenery)
+- A second (or more) plate of the same bird is worth adding - the frame picks one per bird per day, so variants show up over days rather than all at once. (e.g. variation for male/females, or different coats or scenery)

@@ -42,7 +42,6 @@ from urllib.parse import parse_qs, urlparse
 from .. import __version__, e6, modes, updates
 from ..languages import namer
 from ..panel import Panel, resolution_of
-from ..picks import Picks
 from ..render.paper import paper_tile
 from ..settings import Settings, SettingsStore, merged
 from ..source import Source, Unavailable
@@ -129,7 +128,6 @@ def make_handler(
     source: Source,
     images_dir: Path,
     store: SettingsStore,
-    picks: Picks,
     panel: Panel | None,
     status: Status,
 ):
@@ -324,7 +322,6 @@ def make_handler(
             return modes.context(
                 source,
                 images_dir,
-                picks,
                 settings,
                 namer(settings.primary_language, settings.secondary_language, store.path.parent),
                 settings.web_size(attached),
@@ -540,13 +537,12 @@ def serve(
     host: str,
     port: int,
     store: SettingsStore,
-    picks: Picks,
     panel: Panel | None = None,
     status: Status | None = None,
 ) -> ThreadingHTTPServer:
     """Start the kiosk on a daemon thread. Port 0 asks the OS for one - read it
     back from `server_address[1]`."""
-    handler = make_handler(source, images_dir, store, picks, panel, status or Status())
+    handler = make_handler(source, images_dir, store, panel, status or Status())
     httpd = ThreadingHTTPServer((host, port), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd

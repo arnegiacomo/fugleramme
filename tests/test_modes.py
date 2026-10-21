@@ -15,7 +15,6 @@ from fugleramme import fake, modes
 from fugleramme.api import ApiSource
 from fugleramme.languages import NONE, STATION, Namer, namer, numeric
 from fugleramme.names import normalize
-from fugleramme.picks import Picks
 from fugleramme.render.collage import KEY_LIMIT, NO_LIMIT
 from fugleramme.render.page import NEW
 from fugleramme.render.paper import PANEL_PAPER
@@ -62,7 +61,6 @@ def _ctx(source, images, tmp_path, mode, panel=False, **overrides):
     return modes.context(
         source,
         images,
-        Picks(tmp_path / "artwork.json"),
         settings,
         namer("sci", "", tmp_path),
         (400, 300),

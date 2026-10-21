@@ -23,7 +23,6 @@ import pytest
 from fugleramme import service, updates
 from fugleramme.api import ApiSource
 from fugleramme.config import BIRDNET_PORT, DEFAULT_DETECTOR_URL, DEFAULT_PORT, REPO_ROOT
-from fugleramme.picks import Picks
 from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import Status
 from fugleramme.web import admin, hostinfo, server
@@ -119,7 +118,6 @@ def test_admin_buttons_drive_the_status_object(tmp_path):
         ApiSource("http://127.0.0.1:1"),
         tmp_path,
         SettingsStore(tmp_path / "s.json"),
-        Picks(tmp_path / "artwork.json"),
         None,
         status,
     )
@@ -442,7 +440,6 @@ def test_the_reboot_button_reboots_only_where_it_may(tmp_path, monkeypatch):
         ApiSource("http://127.0.0.1:1"),
         tmp_path,
         SettingsStore(tmp_path / "s.json"),
-        Picks(tmp_path / "artwork.json"),
         None,
         status,
     )

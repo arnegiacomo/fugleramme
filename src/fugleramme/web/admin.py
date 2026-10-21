@@ -95,7 +95,7 @@ def subjects(ctx: modes.Context) -> list[tuple[str, str | None, str]]:
     was cut from - None when it has none to draw - and the plate's citation."""
     rows: list[tuple[str, str | None, str]] = []
     for name in modes.subjects(ctx):
-        pick = image_for(name, ctx.images_dir, ctx.style, ctx.picks)
+        pick = image_for(name, ctx.images_dir, ctx.style, ctx.day)
         if not pick:
             rows.append((name, None, ""))
             continue

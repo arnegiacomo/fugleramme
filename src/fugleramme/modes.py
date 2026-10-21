@@ -28,7 +28,6 @@ from PIL import Image
 
 from .languages import STATION, Drawable, Namer, english_name, station_locale
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
-from .picks import Picks
 from .render import fonts
 from .render.collage import KEY_LIMIT, NO_LIMIT, gather_entries, render_collage, selected_species
 from .render.page import NEW, Edges, day_ordinal
@@ -55,7 +54,7 @@ class Context:
     source: Source
     images_dir: Path
     style: str
-    picks: Picks
+    day: int  # which variant each bird wears (`image_for`)
     namer: Namer
     resolution: tuple[int, int]
     show_names: bool
@@ -82,7 +81,6 @@ class Context:
 def context(
     source: Source,
     images_dir: Path,
-    picks: Picks,
     settings: Settings,
     namer: Namer,
     resolution: tuple[int, int],
@@ -96,7 +94,7 @@ def context(
         source=source,
         images_dir=images_dir,
         style=resolve(settings.style, images_dir),
-        picks=picks,
+        day=day_ordinal(),
         namer=namer,
         resolution=resolution,
         show_names=settings.show_names,
@@ -124,8 +122,7 @@ class Mode:
     key: Callable[[Context], tuple]
     # The species this page is about, for the admin listing.
     subjects: Callable[[Context], list[str]]
-    # Driven by the lookback window: the admin offers the setting, and the loop
-    # prunes artwork picks to it.
+    # Driven by the lookback window: the admin offers the setting.
     windowed: bool = False
 
 
@@ -174,7 +171,7 @@ def _labeller(ctx: Context) -> Callable[[str], str]:
 
 def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = None) -> Image.Image:
     if name and art is None:
-        art = image_for(name, ctx.images_dir, ctx.style, ctx.picks)
+        art = image_for(name, ctx.images_dir, ctx.style, ctx.day)
     return render_plate(
         art,
         _labeller(ctx)(name) if name else "",
@@ -232,7 +229,7 @@ def _collage(ctx: Context) -> Image.Image:
             ctx.source,
             ctx.images_dir,
             ctx.style,
-            ctx.picks,
+            ctx.day,
             ctx.lookback_hours,
             ctx.species_limit,
             ctx.ranking,
@@ -364,6 +361,8 @@ def state_key(ctx: Context) -> tuple:
         # The plate clamps to its own margin, so a nudge under it must not repaint.
         ctx.margin if mode.windowed else effective_margin(ctx.margin),
         ctx.namer.key,
+        # Every bird turns to its next variant overnight, so the page redraws then.
+        ctx.day,
         _marked(ctx),
         mode.key(ctx),
     )

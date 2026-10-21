@@ -99,7 +99,7 @@ Two more variables are not settings, so they apply on every start:
 
 ## The volume
 
-`/data` holds the settings, the current artwork picks, the cached species names dictionaries and
+`/data` holds the settings, the cached species names dictionaries and
 the rendered page. A bind mount instead of a named volume has to be writable by
 uid 1000:
 

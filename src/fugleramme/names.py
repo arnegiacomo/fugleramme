@@ -7,7 +7,7 @@ training set while BirdNET-Go reports the current name, so one bird reaches the
 frame as "Corvus monedula" and as "Coloeus monedula" both. `normalize` folds
 the pair to the current name through the vendored OpenFauna alias map, and
 shipped artwork is filed under that one spelling - the same key the label
-table, the body masses and the picks all use. Names with no artwork resolve to
+table, the body masses and the variant picks all use. Names with no artwork resolve to
 None and the collage omits them.
 
 The shipped styles are WebP. It stores alpha losslessly, so a cut-out survives
@@ -19,8 +19,8 @@ Artwork is grouped by *style* into subfolders of `images_dir` ("classic", a
 user's "custom", ...), one active at a time: `available_styles` lists what is
 present and `resolve` turns a saved selection into the folder to actually draw
 from. A style is curated by hand (`scripts/curate.py`) and may keep more than
-one image for a bird, numbered "<key>-2.webp", "<key>-3.webp"; which of them a
-species is currently wearing is picks.py's business, not this module's.
+one image for a bird, numbered "<key>-2.webp", "<key>-3.webp", and a bird
+wears the next of them each day (`image_for`).
 
 Each style folder carries its own ATTRIBUTION.md naming the works it draws on,
 and a manifest.json giving each single file the work it was cut from
@@ -30,12 +30,12 @@ hand has no manifest and simply has no provenance to show.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
 
 from .config import REPO_ROOT
-from .picks import Picks
 
 BIRDS = "birds"
 PERCHES = "perches"
@@ -196,9 +196,19 @@ def drawable_keys(images_dir: Path, style: str) -> set[str]:
     return {normalize(_NUMBERED.sub("", stem)) for stem in _by_stem(images_dir / style / BIRDS)}
 
 
-def image_for(scientific_name: str, images_dir: Path, style: str, picks: Picks) -> Path | None:
-    """The artwork this species is currently wearing, or None if it has none."""
-    return picks.choose(scientific_name, variants_for(scientific_name, images_dir, style))
+def image_for(scientific_name: str, images_dir: Path, style: str, day: int) -> Path | None:
+    """The artwork this species is wearing on `day`, or None if it has none.
+
+    A hash of the name and the date, so the panel and the kiosk agree, a
+    restart changes nothing, and a bird in the window all week still varies.
+    Hashed together rather than stepped by the day, which would pair two birds'
+    variants the same way forever. blake2b, as hash() is salted per process.
+    """
+    variants = variants_for(scientific_name, images_dir, style)
+    if not variants:
+        return None
+    seed = hashlib.blake2b(f"{scientific_name}/{day}".encode(), digest_size=4).digest()
+    return variants[int.from_bytes(seed) % len(variants)]
 
 
 def perches_for(images_dir: Path, style: str) -> list[Path]:

@@ -9,7 +9,6 @@ from __future__ import annotations
 from PIL import Image
 
 from fugleramme.names import normalize
-from fugleramme.picks import Picks
 from fugleramme.render import collage
 from fugleramme.render.collage import RANK_LAST_HEARD, RANK_RAREST, RANK_RAREST_EVER
 from fugleramme.settings import DEFAULT_LIMIT, Settings
@@ -127,9 +126,7 @@ def test_the_entries_carry_the_artwork_each_selected_bird_is_wearing(tmp_path):
     names = _garden(tmp_path, 6)
     source = _Counted({name: i + 1 for i, name in enumerate(names)})
 
-    entries = collage.gather_entries(
-        source, tmp_path, "classic", Picks(tmp_path / "artwork.json"), limit=3
-    )
+    entries = collage.gather_entries(source, tmp_path, "classic", 0, limit=3)
 
     assert [name for name, _path in entries] == sorted(names[-3:])
     assert all(path is not None for _name, path in entries)

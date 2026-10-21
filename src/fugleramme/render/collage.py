@@ -16,9 +16,9 @@ the silhouette, so a name can never land on a neighbour or clip. As a numbered
 key, each bird gets a number there instead and the names are listed beside or
 below the birds.
 
-Nothing here rolls dice per render: a species holds its artwork for as long as
-it is in the window (picks.py) and the mirror is a hash of the name, so a bird
-is unaffected by which other birds are on the page, or by a restart.
+Nothing here rolls dice per render: a species' artwork is a function of the
+day (`names.image_for`) and the mirror is a hash of the name, so a bird is
+unaffected by which other birds are on the page, or by a restart.
 """
 
 from __future__ import annotations
@@ -37,7 +37,6 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from ..names import canonical, drawable_keys, image_for, normalize
-from ..picks import Picks
 from ..source import Source
 from . import fonts, packing
 from .page import (
@@ -817,7 +816,7 @@ def gather_entries(
     source: Source,
     images_dir: Path,
     style: str,
-    picks: Picks,
+    day: int,
     hours: float = 24,
     limit: int = NO_LIMIT,
     ranking: str = DEFAULT_RANKING,
@@ -826,7 +825,7 @@ def gather_entries(
     """The page's species paired with the artwork each is wearing. The None only
     stands for a file that vanished between `selected_species` and here."""
     return [
-        (name, image_for(name, images_dir, style, picks))
+        (name, image_for(name, images_dir, style, day))
         for name in selected_species(
             source, images_dir, style, hours, limit, ranking, spotlight=spotlight
         )

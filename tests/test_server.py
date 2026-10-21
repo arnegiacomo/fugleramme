@@ -21,7 +21,6 @@ from PIL import Image
 
 from fugleramme import api
 from fugleramme.api import ApiSource
-from fugleramme.picks import Picks
 from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import Status
 from fugleramme.web import LOGIN, LOGOUT, admin, server
@@ -41,7 +40,6 @@ def _serve(tmp_path, source, store=None, panel=None, status=None):
         source,
         tmp_path / "images",
         store or SettingsStore(tmp_path / SETTINGS),
-        Picks(tmp_path / "artwork.json"),
         panel,
         status or Status(),
     )
@@ -403,7 +401,6 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
         source(),
         tmp_path,
         SettingsStore(tmp_path / SETTINGS),
-        Picks(tmp_path / "artwork.json"),
         None,
         Status(),
     )
@@ -741,9 +738,7 @@ def test_a_forged_address_cannot_grow_the_limiter_without_end(tmp_path, source, 
         tmp_path / SETTINGS,
         Settings(admin_password=PASSWORD, require_sign_in=True, behind_proxy=True),
     )
-    handler = server.make_handler(
-        source(), tmp_path, store, Picks(tmp_path / "artwork.json"), None, Status()
-    )
+    handler = server.make_handler(source(), tmp_path, store, None, Status())
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
     try:

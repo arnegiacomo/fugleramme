@@ -24,7 +24,6 @@ from .config import (
 )
 from .languages import namer
 from .panel import init_panel
-from .picks import FILENAME as PICKS_FILE, Picks
 from .service import detector, run
 from .source import Unavailable
 
@@ -78,7 +77,6 @@ def main(argv: list[str] | None = None) -> None:
         ctx = modes.context(
             source,
             config.images_dir,
-            Picks(data_dir / PICKS_FILE),
             settings,
             name_of,
             replace(settings, web_lock=True).web_size(panel.resolution if panel else None),

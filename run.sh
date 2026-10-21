@@ -170,7 +170,7 @@ echo "==> fugleramme v$VERSION"
 ensure_fribidi
 sync_python
 echo "==> data dir"
-# Settings, artwork picks and name caches; also BirdNET-Go's bind mount, which
+# Settings and name caches; also BirdNET-Go's bind mount, which
 # docker would otherwise create as root.
 mkdir -p "$REPO_ROOT/detector/data"
 if [[ $DETECTOR_MODE == bundled ]]; then

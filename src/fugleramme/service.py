@@ -25,7 +25,6 @@ from .api import Configured
 from .config import Config
 from .languages import namer
 from .panel import init_panel, resolution_of
-from .picks import FILENAME as PICKS_FILE, Picks
 from .render.dither import dither
 from .settings import Settings, SettingsStore, from_env
 from .source import Unavailable
@@ -122,7 +121,6 @@ def run(config: Config) -> None:
 
     panel = init_panel()
     store, source = detector(config)
-    picks = Picks(config.config_path.parent / PICKS_FILE)
     status = Status()
 
     server = serve(
@@ -131,7 +129,6 @@ def run(config: Config) -> None:
         config.host,
         config.port,
         store,
-        picks,
         panel,
         status,
     )
@@ -172,7 +169,6 @@ def run(config: Config) -> None:
         ctx = modes.context(
             source,
             config.images_dir,
-            picks,
             settings,
             name_of,
             size,
@@ -186,10 +182,6 @@ def run(config: Config) -> None:
             if key != last_key and (
                 _paced(settings) != last_settings or _due(settings.refresh_minutes, last_render)
             ):
-                if modes.mode_of(ctx.mode).windowed:
-                    # The loop owns the window, so it is the only caller that may forget
-                    # a departed bird's artwork - the kiosk may be previewing another one.
-                    picks.retain(name for name, _ in source.species_since(settings.lookback_hours))
                 panel_image = dither(modes.render(ctx))
                 panel_image.save(config.output_path)
                 log.info("Rendered %s for the panel at %dx%d", ctx.mode, *size)

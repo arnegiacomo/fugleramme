@@ -20,7 +20,6 @@ from fugleramme.names import (
     source_of,
     variants_for,
 )
-from fugleramme.picks import Picks
 
 
 def _make(images_dir, style, *stems):
@@ -119,11 +118,36 @@ def test_drawable_keys_name_a_reclassified_bird_once(tmp_path):
 def test_image_for_is_none_when_the_active_style_has_nothing(tmp_path):
     _make(tmp_path, "classic", "turdus-merula")
     _make(tmp_path, "custom", "corvus-corax")
-    picks = Picks(tmp_path / "artwork.json")
-    assert image_for("Turdus merula", tmp_path, "classic", picks).stem == "turdus-merula"
-    assert image_for("Turdus merula", tmp_path, "custom", picks) is None
-    assert image_for("Corvus corax", tmp_path, "classic", picks) is None
-    assert image_for("Turdus merula", tmp_path, "", picks) is None
+    assert image_for("Turdus merula", tmp_path, "classic", 0).stem == "turdus-merula"
+    assert image_for("Turdus merula", tmp_path, "custom", 0) is None
+    assert image_for("Corvus corax", tmp_path, "classic", 0) is None
+    assert image_for("Turdus merula", tmp_path, "", 0) is None
+
+
+def test_a_bird_wears_one_variant_a_day_and_a_different_one_across_days(tmp_path):
+    _make(tmp_path, "classic", "turdus-merula", "turdus-merula-2", "turdus-merula-3")
+    days = range(739000, 739060)
+    assert all(
+        image_for("Turdus merula", tmp_path, "classic", d)
+        == image_for("Turdus merula", tmp_path, "classic", d)
+        for d in days
+    )
+    assert len({image_for("Turdus merula", tmp_path, "classic", d) for d in days}) == 3
+
+
+def test_two_birds_variants_are_not_paired_for_good(tmp_path):
+    # Stepping every bird by the day would hold the offset between two birds with
+    # as many variants fixed: three of their nine pairings, forever.
+    _make(tmp_path, "classic", "turdus-merula", "turdus-merula-2", "turdus-merula-3")
+    _make(tmp_path, "classic", "corvus-corax", "corvus-corax-2", "corvus-corax-3")
+    pairs = {
+        (
+            image_for("Turdus merula", tmp_path, "classic", d).stem,
+            image_for("Corvus corax", tmp_path, "classic", d).stem,
+        )
+        for d in range(739000, 739060)
+    }
+    assert len(pairs) > 3
 
 
 def test_perches_come_from_the_active_style(tmp_path):

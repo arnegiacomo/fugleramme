@@ -14,7 +14,6 @@ from PIL import features
 from fugleramme import languages, modes
 from fugleramme.config import BIRDNET_PORT
 from fugleramme.languages import namer
-from fugleramme.picks import Picks
 from fugleramme.settings import MARGIN_CEILING, Settings, SettingsStore
 from fugleramme.source import NEEDS_PASSWORD
 from fugleramme.status import Status
@@ -28,7 +27,6 @@ def _page(tmp_path, source, names_dir=None, detected=True, **overrides) -> str:
     ctx = modes.context(
         source,
         tmp_path,
-        Picks(tmp_path / "artwork.json"),
         settings,
         namer("sci", "", tmp_path),
         settings.web_size(PANEL if detected else None),
@@ -43,7 +41,7 @@ def _config(page: str) -> dict:
 
 
 def test_the_page_renders_before_anything_has_written_to_the_data_dir(tmp_path, source):
-    # A fresh checkout has no detector/data: nothing has saved settings, picks or
+    # A fresh checkout has no detector/data: nothing has saved settings or
     # a dictionary yet, and the admin is where the frame is first reached (#43).
     assert "$" not in _page(tmp_path, source(), names_dir=tmp_path / "data")
 
