@@ -126,20 +126,27 @@ def _feed_row(stamp: str, **extra) -> dict:
     return {"date": day, "time": clock, "scientificName": BLACKBIRD, **extra}
 
 
+@pytest.mark.skipif(not hasattr(systime, "tzset"), reason="needs time.tzset")
 def test_each_detection_keeps_its_own_offset(monkeypatch):
     """A feed spanning a daylight-saving change holds rows an hour apart in
-    offset; one offset for all of them would put the older ones an hour out."""
+    offset; one offset for all of them would put the older ones an hour out.
+    The frame sits in another zone, so the wall clock alone cannot pass."""
     detections = ApiSource("http://detector.invalid")
     stamps = ["2026-10-25T09:00:00+01:00", "2026-10-24T20:00:00+02:00"]
     monkeypatch.setattr(detections, "_feed", lambda _: [_feed_row(s, timestamp=s) for s in stamps])
     monkeypatch.setattr(detections, "_summary", lambda *_: pytest.fail("the feed needs no summary"))
-    assert [d.detected_at for d in detections.recent()] == [
-        datetime.fromisoformat(s) for s in stamps
-    ]
+    monkeypatch.setenv("TZ", "Asia/Bangkok")
+    systime.tzset()
+    try:
+        heard = [d.detected_at for d in detections.recent()]
+    finally:
+        monkeypatch.undo()
+        systime.tzset()
+    assert heard == [datetime.fromisoformat(s) for s in stamps]
 
 
 def test_a_detection_without_a_timestamp_is_read_in_the_frames_zone(monkeypatch):
-    """BirdNET-Go before 20260712 sends only the wall clock."""
+    """BirdNET-Go before 20260321 sends only the wall clock."""
     detections = ApiSource("http://detector.invalid")
     monkeypatch.setattr(detections, "_feed", lambda _: [_feed_row("2026-07-01T10:00:00")])
     (heard,) = detections.recent()

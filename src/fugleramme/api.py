@@ -138,8 +138,9 @@ def _ranked(counts: Iterable[tuple[str, int]]) -> list[tuple[str, int]]:
 
 
 def _detection(row: dict) -> Detection:
-    # BirdNET-Go since 20260712 stamps each row with its own offset, right
-    # across a daylight-saving change; older stations give a bare wall clock.
+    # BirdNET-Go since 20260321 (upstream #2048) stamps each row with its own
+    # offset, right across a daylight-saving change; older stations give a bare
+    # wall clock.
     at = _time(row.get("timestamp") or "") or _aware(
         datetime.fromisoformat(f"{row['date']}T{row['time']}")
     )
