@@ -55,8 +55,9 @@ verify() {
   [[ $have == "$want" ]] || die "the Pi runs $have, expected $want (the admin's Install button moves it)"
   state=$(remote "systemctl is-active $UNIT" || true)
   [[ $state == active ]] || die "$UNIT is $state"
-  host=$(ssh -o BatchMode=yes "$PI" hostname -I | cut -d' ' -f1)
-  curl -fs "http://$host:8080/health" | grep -qx ok || die "no 'ok' from http://$host:8080/health"
+  host=${PI#*@}
+  # Asked on the Pi: its first address can be one the workstation cannot reach (usb0, docker).
+  remote "curl -fs localhost:8080/health" | grep -qx ok || die "no 'ok' from /health on the Pi"
   since=$(remote "systemctl show -p ActiveEnterTimestamp --value $UNIT")
   log=$(remote "journalctl -u $UNIT --since '$since' --no-pager")
   echo "$log"
@@ -81,7 +82,8 @@ start() {
 
 release() {
   [[ $# -eq 1 ]] || die "usage: pi.sh release <tag>"
-  remote "git fetch --tags && git checkout -f --detach '$1' && uv sync --extra panel && sudo -n systemctl restart $UNIT"
+  # One tag, shallow, as updates.apply fetches it: every tag pins a copy of the artwork.
+  remote "git fetch --depth 1 origin tag '$1' --force && git checkout -f --detach '$1' && { git branch -D test 2>/dev/null || true; } && uv sync --extra panel && sudo -n systemctl restart $UNIT"
   verify "$1"
 }
 
