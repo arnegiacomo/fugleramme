@@ -109,6 +109,7 @@ def apply(tag: str, progress: Progress | None = None) -> None:
     if in_container():
         # Handing the frame the docker socket is the only way round this, for a button.
         raise RuntimeError(f"Running in a container: update with `{CONTAINER_COMMAND}`")
+    previous = _head()
     # One tag, shallow: a full fetch would pull every past version of the artwork.
     _run(
         ["git", "fetch", "--progress", "--depth", "1", REPO_HTTPS_URL, "tag", tag, "--force"],
@@ -123,13 +124,35 @@ def apply(tag: str, progress: Progress | None = None) -> None:
     # --force: `uv sync` rewrites uv.lock in place, and a plain checkout refuses to
     # run against that. Only tracked files are discarded; data/ and config are ignored.
     _run(["git", "checkout", "--progress", "--force", "--detach", tag], "Checking out", progress)
-    _drop_stale_tags(tag, progress)
     try:
-        _run([_uv(), "sync", "--extra", "panel"], "Installing dependencies", progress)
-    except RuntimeError:
-        # Same fallback as run.sh: no panel driver still leaves a working kiosk.
-        _run([_uv(), "sync"], "Installing dependencies", progress)
+        try:
+            _run([_uv(), "sync", "--extra", "panel"], "Installing dependencies", progress)
+        except RuntimeError:
+            # Same fallback as run.sh: no panel driver still leaves a working kiosk.
+            _run([_uv(), "sync"], "Installing dependencies", progress)
+    except Exception:
+        # The next restart would run the new code on the old dependencies, and keep failing.
+        # Not only RuntimeError: a missing uv is the FileNotFoundError Popen raises.
+        _run(
+            ["git", "checkout", "--progress", "--force", "--detach", previous],
+            "Rolling back",
+            progress,
+        )
+        raise
+    # After the install has held, so a failed update leaves the tags as they were.
+    _drop_stale_tags(tag, progress)
     _converge_detector(progress)
+
+
+def _head() -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        env=_env(),
+        check=True,
+    ).stdout.strip()
 
 
 def _converge_detector(progress: Progress | None = None) -> None:

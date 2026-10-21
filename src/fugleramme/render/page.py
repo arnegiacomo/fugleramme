@@ -64,7 +64,11 @@ def label_px(width: int, height: int, size_key: str) -> int:
 
 
 def trim(path: Path) -> Image.Image:
-    img = Image.open(path).convert("RGBA")
+    try:
+        img = Image.open(path).convert("RGBA")
+    except Exception as exc:
+        exc.add_note(f"while opening {path}")  # Pillow's "image file is truncated" omits it
+        raise
     bbox = img.getchannel("A").getbbox()  # trim by alpha, not by RGB
     return img.crop(bbox) if bbox else img
 
