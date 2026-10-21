@@ -30,8 +30,8 @@ redraw. If `sudo -n` is refused, the user adds once, in a real terminal:
 
 Render the page at the panel's resolution (`Inky panel initialised: ... WxH` in the log) with
 the frame's own code: `PANEL_PAPER` ground, exact black through an alpha mask,
-`render.dither.dither` last. Pillow and FreeType match on both machines (12.3.0 and 2.14.3
-when this was written; recheck after an update), so preview the PNG locally. A font that is
+`render.dither.dither` last. `uv.lock` pins the same Pillow on both machines, so preview the
+PNG locally. A font that is
 not in the checkout goes to the Pi's `/tmp` with `scp`. `page` blocks about 35 s on the 13.3"
 and ignores the rotation setting.
 
@@ -52,8 +52,8 @@ Pi's `frame.env`.
 
 ## Cautions
 
-- Never run pytest on the Pi with the frame stopped: the service tests drive the real panel,
-  and one run rebooted the Pi. CI is the Linux check.
+- Never run pytest on the Pi with the frame stopped: the service tests drive the real panel.
+  CI is the Linux check.
 - The admin's Install button and auto-update toggle check a release out over the deploy. Ask
   the user to leave both alone while testing.
 - Per-Pi files (`frame.env`, `detector/.env`, `settings.json`) are gitignored and survive the
