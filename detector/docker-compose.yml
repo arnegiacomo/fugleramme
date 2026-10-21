@@ -1,7 +1,7 @@
 services:
   birdnet-go:
     # Upstream tags releases by date; bump deliberately after testing on the Pi.
-    image: ghcr.io/tphakala/birdnet-go:20260823
+    image: ghcr.io/tphakala/birdnet-go:20261014
     container_name: birdnet-go
     restart: unless-stopped
     environment:
