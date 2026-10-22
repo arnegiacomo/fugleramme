@@ -31,9 +31,7 @@ import network
 
 # Wi-Fi networks to join, in the order they should be tried: the first one
 # that connects wins. Add one by appending an (ssid, password) pair.
-WIFI_NETWORKS = (
-    ("your-network", "your-password"),
-)
+WIFI_NETWORKS = (("your-network", "your-password"),)
 # The network that connected last time, tried first on the next wake.
 WIFI_HINT = "wifi"
 
