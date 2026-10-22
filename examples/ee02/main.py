@@ -43,6 +43,11 @@ MIN_SLEEP_MINUTES = 5
 # Failed wakes in a row before an unreachable frame is worth a refresh.
 NOTICE_AFTER = 3
 
+# A full refresh takes about half a minute, but BUSY can report ready far too
+# early. Cutting power on that first high leaves the glass mid-refresh, so hold
+# a suspiciously early completion until this floor has passed.
+REFRESH_FLOOR_MS = 35_000
+
 WIDTH, HEIGHT = 1200, 1600
 
 # /frame.e6: a 20-byte little-endian header, then the left-controller rows
@@ -267,12 +272,17 @@ class Panel:
             pin.value(1)
         self.dc.value(0)
 
-    def wait(self, seconds: int = 5) -> None:
+    def wait(self, seconds: int = 5, floor_ms: int = 0) -> None:
         # The controller takes a moment to pull BUSY low after a command; ready is high.
         time.sleep_ms(10)
+        started = time.ticks_ms()
         # ticks_diff handles wraparound of MicroPython's tick counter.
-        deadline = time.ticks_add(time.ticks_ms(), seconds * 1000)
-        while not self.busy.value():
+        deadline = time.ticks_add(started, seconds * 1000)
+        while True:
+            # A ready level before the floor can be a glitch, so ignore it and
+            # keep watching; the panel may still be refreshing.
+            if self.busy.value() and time.ticks_diff(time.ticks_ms(), started) >= floor_ms:
+                return
             if time.ticks_diff(deadline, time.ticks_ms()) < 0:
                 raise OSError("panel stayed busy")
             time.sleep_ms(50)
@@ -301,7 +311,17 @@ class Panel:
         self.wait()
         time.sleep_ms(30)
         self.command(BOTH, 0x12, b"\x01")
-        self.wait(60)  # a full refresh of six colours takes about half a minute
+        try:
+            # A full refresh of six colours takes about half a minute, but a
+            # cold panel selects a slower waveform and can take much longer.
+            # Never trust an early BUSY-high: hold it until the floor, then let
+            # the normal long wait cover a genuinely slow refresh.
+            self.wait(80, REFRESH_FLOOR_MS)
+        except OSError:
+            # Do not cut the panel's power while it may still be refreshing: give
+            # it one more unattended window, and only then let show() power it off.
+            print("panel: refresh still busy after 80 s; waiting 30 s more")
+            self.wait(30)
         time.sleep_ms(30)
         self.command(BOTH, 0x02, b"\x00")
         self.wait()
