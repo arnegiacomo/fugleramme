@@ -29,9 +29,13 @@ import framebuf
 import machine
 import network
 
-# Change to your WiFi credentials
-WIFI_SSID = "your-network"
-WIFI_PASSWORD = "your-password"
+# Wi-Fi networks to join, in the order they should be tried: the first one
+# that connects wins. Add one by appending an (ssid, password) pair.
+WIFI_NETWORKS = (
+    ("your-network", "your-password"),
+)
+# The network that connected last time, tried first on the next wake.
+WIFI_HINT = "wifi"
 
 # Change to your Fugleramme setup
 FRAME_HOST = "fugleramme.local"
@@ -86,15 +90,35 @@ class Problem(Exception):
         self.lasting = lasting
 
 
+def wifi_hint() -> str:
+    """The network that connected last time, tried first if still configured."""
+    try:
+        with open(WIFI_HINT) as file:
+            return file.read()
+    except OSError:
+        return ""
+
+
 def connect() -> None:
+    hint = wifi_hint()
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
-    wlan.connect(WIFI_SSID, WIFI_PASSWORD)
-    for _ in range(30):
-        if wlan.isconnected():
-            return
-        time.sleep(1)
-    raise Problem(f"Cannot join the Wi-Fi network {WIFI_SSID}.")
+    # The remembered network goes first; the rest keep their configured order.
+    for ssid, password in sorted(WIFI_NETWORKS, key=lambda pair: pair[0] != hint):
+        print("wifi: trying", ssid)
+        wlan.connect(ssid, password)
+        for _ in range(30):
+            if wlan.isconnected():
+                print("wifi: joined", ssid)
+                if ssid != hint:
+                    with open(WIFI_HINT, "w") as file:
+                        file.write(ssid)
+                return
+            time.sleep(1)
+        wlan.disconnect()
+    raise Problem(
+        "Cannot join any Wi-Fi network: " + ", ".join(ssid for ssid, _ in WIFI_NETWORKS) + "."
+    )
 
 
 def disconnect() -> None:
