@@ -33,7 +33,7 @@ import network
 import config
 
 # load configuration
-WIFI_NETWORKS = config.WIFI_NEWORKS
+WIFI_NETWORKS = config.WIFI_NETWORKS
 WIFI_HINT = config.WIFI_HINT
 FRAME_HOST = config.FRAME_HOST
 FRAME_PORT = config.FRAME_PORT
