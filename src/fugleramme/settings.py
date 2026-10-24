@@ -143,6 +143,9 @@ class Settings:
     # a BirdNET-Go's.
     detector_kind: str = BIRDNET_GO
     detector_url: str = DEFAULT_DETECTOR_URL
+    # Where a browser reaches the same BirdNET-Go, for the admin's links, when the
+    # address above is one only the frame can use. "" links `detector_url`.
+    detector_public_url: str = ""
     detector_station: str = ""
     # Only needed for a BirdNET-Go that authenticates. The username is not in the
     # admin: BirdNET-Go asks for a password and matches the name against a fixed
@@ -349,6 +352,7 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
             str(raw.get("detector_kind", d.detector_kind)), DETECTOR_KINDS, d.detector_kind
         ),
         detector_url=_url(raw.get("detector_url"), d.detector_url),
+        detector_public_url=_url(raw.get("detector_public_url"), d.detector_public_url),
         detector_station=_station(raw.get("detector_station"), d.detector_station),
         detector_username=_text(raw.get("detector_username"), d.detector_username),
         detector_password=_text(raw.get("detector_password"), d.detector_password),

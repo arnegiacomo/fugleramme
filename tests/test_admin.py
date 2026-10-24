@@ -374,6 +374,11 @@ def test_the_birdnet_link_only_substitutes_this_host_for_a_loopback_one(url, exp
     assert admin.birdnet_link(url) == expected
 
 
+def test_a_public_address_is_linked_as_configured_whatever_the_detector_address():
+    public = "https://varquez.cybai.re/birdnet"
+    assert admin.birdnet_link("http://127.0.0.1:8090", BIRDNET_GO, public) == (public, None)
+
+
 def test_the_page_carries_the_link_for_a_detector_on_another_machine(tmp_path, source, monkeypatch):
     # The page probes whatever detector it is pointed at, and a name nothing on
     # this network answers to is seconds of resolver timeout per run.

@@ -548,3 +548,12 @@ def test_an_admin_password_is_kept_exactly_as_typed(tmp_path):
     assert store.update(admin_password=" wren house ").admin_password == " wren house "
     assert SettingsStore(path).get().admin_password == " wren house "
     assert store.update(admin_password=7).admin_password == ""  # still has to be a str
+
+
+def test_the_public_address_is_kept_by_shape_and_cleared_by_emptying(tmp_path):
+    path = tmp_path / "settings.json"
+    store = SettingsStore(path)
+    assert store.get().detector_public_url == ""
+    saved = store.update(detector_public_url="https://varquez.cybai.re/birdnet/")
+    assert saved.detector_public_url == "https://varquez.cybai.re/birdnet"
+    assert store.update(detector_public_url="").detector_public_url == ""

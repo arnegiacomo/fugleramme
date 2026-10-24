@@ -618,6 +618,12 @@ def _detector_field(settings: Settings, refused: str, stations: str) -> str:
     address = _text_field("detector_url", "Address", settings.detector_url).replace(
         "<input ", '<input inputmode="url" ', 1
     )
+    public = _text_field(
+        "detector_public_url",
+        "Public address",
+        settings.detector_public_url,
+        hint="(optional, for the link above)",
+    ).replace("<input ", '<input inputmode="url" ', 1)
     password = _text_field(
         "detector_password",
         "Password",
@@ -629,6 +635,7 @@ def _detector_field(settings: Settings, refused: str, stations: str) -> str:
         _radio_field("Type", "detector_kind", kinds, chosen)
         + _shown(address, BIRDNET_GO, birdnet)
         + (note if birdnet else "")
+        + _shown(public, BIRDNET_GO, birdnet)
         + _stations_field(settings, not birdnet)
         + ("" if birdnet else note)
         + _shown(password, BIRDNET_GO, birdnet)
@@ -706,14 +713,17 @@ def login_page(error: str = "") -> str:
     )
 
 
-def birdnet_link(url: str, kind: str = BIRDNET_GO) -> tuple[str, int | None]:
+def birdnet_link(url: str, kind: str = BIRDNET_GO, public_url: str = "") -> tuple[str, int | None]:
     """The nav link to the detector's own pages: (address, port to substitute
     this page's host on). A loopback address is loopback from the Pi only, so a
     remote browser cannot follow it; anything else, a BirdWeather station's page
     included, is reached exactly as configured. No station yet is BirdWeather's
-    own front page, and several are the first's (`_detector_link` lists them)."""
+    own front page, and several are the first's (`_detector_link` lists them).
+    A public address, when one is set, is reached exactly as configured."""
     if kind == BIRDWEATHER:
         return (station_pages(url) or [BIRDWEATHER_SITE])[0], None
+    if public_url:
+        return public_url, None
     parsed = urlparse(url)
     if parsed.hostname in _LOOPBACK:
         return url, parsed.port or BIRDNET_PORT
@@ -1030,7 +1040,9 @@ def page(
     attached = panel_size if paneled else None
     w, h = settings.web_size(attached)
     glass = f"{panel_size[0]}×{panel_size[1]}"
-    birdnet_url, birdnet_port = birdnet_link(settings.detector_address, settings.detector_kind)
+    birdnet_url, birdnet_port = birdnet_link(
+        settings.detector_address, settings.detector_kind, settings.detector_public_url
+    )
     return Template((STATIC_DIR / "admin.html").read_text()).substitute(
         version=__version__,
         docs_url=DOCS_URL,
