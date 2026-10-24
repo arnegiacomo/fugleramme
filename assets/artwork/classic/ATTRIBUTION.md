@@ -114,6 +114,10 @@ Parts I and II (U.S. Biological Survey Bulletins 30 and 34, 1907-1910), via the 
 Public domain (US Federal Government work).
 And paintings of his in the U.S. Fish and Wildlife Service's [FWS Library](https://www.fws.gov/library),
 public domain.
+And plates after his paintings in *A Natural History of the Ducks* by **John C. Phillips**
+(1922), Biodiversity Heritage Library scans from the Commons category
+[A Natural History of the Ducks](https://commons.wikimedia.org/wiki/Category:A_Natural_History_of_the_Ducks),
+public domain.
 And colour plates after his paintings in *The Burgess Bird Book for Children* by **Thornton W. Burgess**
 (1919), from the Commons category [The Burgess Bird Book for Children](https://commons.wikimedia.org/wiki/Category:The_Burgess_Bird_Book_for_Children),
 public domain (PD-US).

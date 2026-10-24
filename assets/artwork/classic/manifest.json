@@ -1023,6 +1023,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/turkey-buzzard"
   },
+  "birds/catharus-guttatus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:58_Hermit_Thrush.jpg"
+  },
   "birds/catharus-ustulatus.webp": {
     "source": "dresser",
     "url": "https://commons.wikimedia.org/wiki/File:A_history_of_the_birds_of_Europe_(Pl._634)_(7135304473).jpg"
@@ -1086,6 +1090,14 @@
   "birds/cettia-cetti.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISilky_Warbler.jpg"
+  },
+  "birds/chaetura-pelagica-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:158_American_Swift.jpg"
+  },
+  "birds/chaetura-pelagica.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:158_American_Swift.jpg"
   },
   "birds/charadrius-hiaticula.webp": {
     "source": "gould",
@@ -1475,6 +1487,10 @@
     "source": "gronvold",
     "url": "https://archive.org/details/birdsaustraliaxiimath/page/n531/mode/1up"
   },
+  "birds/corvus-ossifragus-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Illustration_from_Birds_of_America_(1827)_by_John_James_Audubon,_digitally_enhanced_by_rawpixel-com_146.jpg"
+  },
   "birds/corvus-ossifragus.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Birds_of_New_York_(Plate_72)_(6901490174).jpg"
@@ -1718,6 +1734,10 @@
   "birds/dendrocoptes-medius.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00188.jpg"
+  },
+  "birds/dendrocygna-autumnalis.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:A_natural_history_of_the_ducks_(Plate_11)_(8230112548).jpg"
   },
   "birds/dessonornis-caffer.webp": {
     "source": "levaillant",
