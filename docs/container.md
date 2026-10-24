@@ -58,6 +58,7 @@ Every setting on the admin page can be seeded with `FUGLERAMME_<NAME>`:
 ```yaml
     environment:
       FUGLERAMME_DETECTOR_URL: http://birdnet.local:8080
+      FUGLERAMME_DETECTOR_PUBLIC_URL: ""             # only if your browser reaches BirdNET-Go at another address
       FUGLERAMME_DETECTOR_PASSWORD: my-secret-password
       FUGLERAMME_DETECTOR_USERNAME: birdnet-client   # only if you changed BirdNET-Go's client id
       FUGLERAMME_DETECTOR_KIND: birdnet-go           # birdnet-go | birdweather

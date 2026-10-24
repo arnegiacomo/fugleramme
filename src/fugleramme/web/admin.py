@@ -622,7 +622,7 @@ def _detector_field(settings: Settings, refused: str, stations: str) -> str:
         "detector_public_url",
         "Public address",
         settings.detector_public_url,
-        hint="(optional, for the link above)",
+        hint="(optional, for links to BirdNET-Go)",
     ).replace("<input ", '<input inputmode="url" ', 1)
     password = _text_field(
         "detector_password",
