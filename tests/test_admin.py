@@ -375,7 +375,7 @@ def test_the_birdnet_link_only_substitutes_this_host_for_a_loopback_one(url, exp
 
 
 def test_a_public_address_is_linked_as_configured_whatever_the_detector_address():
-    public = "https://varquez.cybai.re/birdnet"
+    public = "https://example.org/birdnet"
     assert admin.birdnet_link("http://127.0.0.1:8090", BIRDNET_GO, public) == (public, None)
 
 
