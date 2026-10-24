@@ -135,6 +135,10 @@
     "source": "dorbigny",
     "url": "https://commons.wikimedia.org/wiki/File%3AAix_galericulata%28Mandarin_duck%29%2C_Pelecanus_%28Pelican%29.jpg"
   },
+  "birds/aix-sponsa.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/summer-or-wood-duck"
+  },
   "birds/alauda-arvensis.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00248.jpg"
@@ -394,6 +398,10 @@
   "birds/anthus-trivialis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIITree_Pipit.jpg"
+  },
+  "birds/antrostomus-carolinensis.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/chuck-wills-widow"
   },
   "birds/aphelocoma-californica-2.webp": {
     "source": "fuertes",
@@ -2927,6 +2935,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/wild-turkey"
   },
+  "birds/melospiza-georgiana.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/swamp-sparrow"
+  },
   "birds/melospiza-melodia.webp": {
     "source": "hines",
     "url": "https://commons.wikimedia.org/wiki/File:Melospiza_melodiaFJ03P03CA.JPG"
@@ -3866,6 +3878,14 @@
   "birds/prinia-inornata.webp": {
     "source": "keulemans",
     "url": "https://www.biodiversitylibrary.org/page/47162033"
+  },
+  "birds/progne-subis.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/purple-martin"
+  },
+  "birds/protonotaria-citrea.webp": {
+    "source": "audubon",
+    "url": "https://www.audubon.org/art/birds-of-america/prothonotary-warbler"
   },
   "birds/prunella-collaris.webp": {
     "source": "gould",
