@@ -114,6 +114,7 @@ Parts I and II (U.S. Biological Survey Bulletins 30 and 34, 1907-1910), via the 
 Public domain (US Federal Government work).
 And paintings of his in the U.S. Fish and Wildlife Service's [FWS Library](https://www.fws.gov/library),
 public domain.
+And plates after his paintings in *A Natural History of the Ducks* by John C. Phillips (1922), Biodiversity Heritage Library scans on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:A_natural_history_of_the_ducks_(Plate_11)_(8230112548).jpg)
 
 **Hines** - Wildlife illustrations by **Bob Hines** (Robert W. Hines, 1912-1994) for the **U.S. Fish and Wildlife Service**, from the Commons category [Robert W. Hines](https://commons.wikimedia.org/wiki/Category:Robert_W._Hines). Public domain (US Federal Government work). Manifest key: `hines`.
 
