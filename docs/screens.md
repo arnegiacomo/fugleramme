@@ -170,6 +170,40 @@ Without an Inky connected, the page is laid out for the external 13.3" panel,
 so **Rotation**, **Margin** and **Panel refresh** all apply to it. With an Inky
 connected, the external panel gets the Inky's page.
 
+### Inky example code
+
+[`examples/inky/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/inky/main.py)
+is a Python program for a Pi with an Inky Impression, acting as a client of a
+remote Fugleramme. It checks `/frame.png` every 5 seconds and downloads it only
+if it has changed. If the frame can't be reached, the panel keeps showing its
+last page. The panel's buttons trigger the corresponding actions on the remote
+frame via the `/press` endpoint.
+
+1. Install Pimoroni's [inky library](https://github.com/pimoroni/inky) on the
+   Pi, following its instructions. They also turn on SPI and I2C, which the
+   panel needs.
+2. Copy the files in
+   [`examples/inky`](https://github.com/arnegiacomo/fugleramme/tree/main/examples/inky)
+   to `~/fugleramme-client` on the Pi, and set the frame's address in
+   `config.py`.
+3. Try it with the Python inky was installed into. The page should appear on
+   the panel; stop it with Ctrl+C.
+
+   ```bash
+   cd ~/fugleramme-client
+   ~/.virtualenvs/pimoroni/bin/python main.py
+   ```
+
+4. Install it as a service, so it starts on boot and restarts if it stops, the
+   way Fugleramme itself runs. `fugleramme-client.service` assumes the user
+   `pi`; for another user, change `User` and the two paths in it first.
+
+   ```bash
+   sudo cp fugleramme-client.service /etc/systemd/system/
+   sudo systemctl enable --now fugleramme-client
+   journalctl -u fugleramme-client -f
+   ```
+
 ### EE02 example code
 
 [`examples/ee02/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee02/main.py)
