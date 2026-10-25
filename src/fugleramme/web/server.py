@@ -41,7 +41,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 from .. import __version__, e6, modes, updates
 from ..languages import namer
-from ..panel import Panel, resolution_of
+from ..panel import Panel, resolution_of, to_glass
 from ..render.paper import paper_tile
 from ..settings import Settings, SettingsStore, merged
 from ..source import Source, Unavailable
@@ -146,6 +146,8 @@ def make_handler(
     # The panel page last packed for /frame.e6, the poll it carried, and the frame
     # it was packed from.
     packed: tuple[Frame, int, bytes] | None = None
+    # The same for /frame.png, which carries no poll.
+    pictured: tuple[Frame, bytes] | None = None
     # The kiosk polls every few seconds, so one warning per failed request would
     # never stop. Say it once, and again on recovery.
     unreachable = False
@@ -353,22 +355,39 @@ def make_handler(
             settings = replace(self._edited(), web_lock=True)
             self._send_cached(modes.png_bytes(self._context(settings)), "image/png")
 
-        def _e6(self):
-            # The loop's page, not a render of its own: it is already dithered, paced
-            # and held through an outage.
-            nonlocal packed
-            settings = store.get()
-            if not settings.external_panel:
+        def _external_frame(self) -> Frame | None:
+            """The loop's page for an external panel, or None once refused. Not a
+            render of its own: it is already dithered, paced and held through an outage."""
+            if not store.get().external_panel:
                 self._send(404, b"not found", "text/plain")
-                return
-            frame = status.frame
+                return None
+            frame = status.frame  # once: the loop may hand over a page between two reads
             if frame is None:
                 self._send(503, b"no page rendered yet", "text/plain")
+            return frame
+
+        def _e6(self):
+            nonlocal packed
+            frame = self._external_frame()
+            if frame is None:
                 return
-            poll = settings.refresh_minutes
+            poll = store.get().refresh_minutes
             if packed is None or packed[0] is not frame or packed[1] != poll:
                 packed = (frame, poll, e6.encode(*frame, poll))
             self._send_cached(packed[2], "application/octet-stream")
+
+        def _frame_png(self):
+            # For a panel driven through inky: in the panel's native orientation, so it
+            # can be pushed through set_image without rotating.
+            nonlocal pictured
+            frame = self._external_frame()
+            if frame is None:
+                return
+            if pictured is None or pictured[0] is not frame:
+                buffer = io.BytesIO()
+                to_glass(*frame).save(buffer, format="PNG")
+                pictured = (frame, buffer.getvalue())
+            self._send_cached(pictured[1], "image/png")
 
         def _state(self):
             # Cheap enough to poll: one grouped query, no render.
@@ -432,6 +451,7 @@ def make_handler(
         ROUTES: ClassVar[dict] = {
             "/collage.png": _page_png,
             "/frame.e6": _e6,
+            "/frame.png": _frame_png,
             "/preview.png": _preview_png,
             "/state": _state,
             "/paper.png": _paper,

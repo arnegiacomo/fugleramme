@@ -161,7 +161,10 @@ external panel gets the Inky's page.
 
 > [!IMPORTANT]
 > Like the kiosk, `/frame.e6` needs no sign-in: anyone who can reach the
-> frame can read it.
+> frame can read it. The same goes for `/frame.png`, the same page as a picture
+> for a panel driven through Pimoroni's inky library. It is in the panel's native
+> orientation, so it can be pushed without rotating; a frame that hangs in
+> portrait looks sideways in a browser.
 
 [`examples/ee02/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee02/main.py)
 is a MicroPython program for the XIAO EE02. It wakes for the interval the

@@ -293,6 +293,29 @@ def test_the_e6_page_is_open_like_the_kiosk(tmp_path, source):
         assert _fetch(base + "/frame.e6")[0] == 200
 
 
+def test_the_png_page_is_the_loop_s_frame_in_the_panel_s_native_orientation(ext_eink_panel):
+    """What a panel driven through inky pushes unrotated."""
+    ext_eink_panel.status.frame = (Image.new("P", (1200, 1600), 2), 90)
+    status, headers, body = _fetch(ext_eink_panel.base + "/frame.png")
+
+    image = Image.open(io.BytesIO(body))
+    assert status == 200 and headers["Content-Type"] == "image/png"
+    assert (image.mode, image.size) == ("P", (1600, 1200))
+
+
+def test_the_png_page_follows_the_e6_page_s_switch_and_first_render(ext_eink_panel):
+    assert _fetch(ext_eink_panel.base + "/frame.png")[0] == 503
+    ext_eink_panel.store.update(external_panel=False)
+    assert _fetch(ext_eink_panel.base + "/frame.png")[0] == 404
+
+
+def test_an_unchanged_png_page_revalidates_to_304(ext_eink_panel):
+    ext_eink_panel.status.frame = (_dithered(1), 0)
+    etag = _fetch(ext_eink_panel.base + "/frame.png")[1]["ETag"]
+    ext_eink_panel.store.update(refresh_minutes=30)  # in e6's header, not in a PNG
+    assert _fetch(ext_eink_panel.base + "/frame.png", headers={"If-None-Match": etag})[0] == 304
+
+
 def test_with_the_e6_page_on_the_frame_is_laid_out_for_a_13_inch_panel(ext_eink_panel):
     """No Inky Impression connected, but a panel all the same: its edges, and a preview
     in its shape."""
@@ -467,6 +490,7 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
         "/manifest.webmanifest",
         "/collage.png",
         "/frame.e6",
+        "/frame.png",
         "/state",
         "/paper.png",
         "/health",
