@@ -14,6 +14,12 @@ that does not fit this panel or a frame that is not serving one at once, a
 frame it cannot reach only after NOTICE_AFTER wakes in a row, so a restart or
 a Wi-Fi blip leaves the birds up. The next page that arrives replaces it.
 
+The panel is taken over without a cut to its supply - a partially drained
+controller rail makes a brief interruption poisonous - and a refresh is
+trusted only when BUSY actually moved and stayed low for a full refresh's
+time. A failed refresh is never retried in the same
+wake; the next wake's takeover recovers the panel.
+
 The file format is in docs/screens.md. The panel's command sequence is ported
 from Seeed_GFX2's Driver_T133A01.cpp
 (https://github.com/Seeed-Studio/Seeed_GFX2, MIT License, see its LICENSE).
@@ -21,6 +27,7 @@ GPIO 43 and 44 double as UART0, so use the USB REPL.
 """
 
 import binascii
+import contextlib
 import json
 import socket
 import ssl
@@ -32,7 +39,6 @@ import framebuf
 import machine
 import network
 
-# load configuration
 WIFI_NETWORKS = config.WIFI_NETWORKS
 WIFI_HINT = config.WIFI_HINT
 FRAME_HOST = config.FRAME_HOST
@@ -48,6 +54,16 @@ HEIGHT = config.HEIGHT
 HEADER = "<4sHBBHHII"
 BLACK, WHITE = 0, 1
 SCALE, MARGIN = 4, 96  # the built-in font is 8 px, far too small at this size
+
+# T133A01 BUSY is active-low: LOW while refreshing, HIGH when idle. A healthy
+# full refresh stays busy for about 28 s, or about 47 s on a cold panel. Treat
+# a missing or very short BUSY-low as a refresh that never started.
+WATCHDOG_TIMEOUT_MS = 300_000
+REFRESH_START_MS = 2_000
+REFRESH_MIN_BUSY_MS = 10_000
+REFRESH_TIMEOUT_MS = 60_000
+_WATCHDOG = None
+
 FRESH = {"etag": "", "shown": "", "failures": 0, "poll": MIN_SLEEP_MINUTES}
 
 # EE02 wiring, from Seeed_GFX2's XIAO_ePaper_Board_Configs.h.
@@ -84,6 +100,20 @@ class Problem(Exception):
         self.lasting = lasting
 
 
+class RefreshProblem(OSError):
+    def __init__(self, message: str, code: str):
+        super().__init__(message)
+        self.code = code
+
+
+def feed_watchdog() -> None:
+    """Keep the watchdog alive during long panel or network waits."""
+    global _WATCHDOG
+    if _WATCHDOG is None:
+        _WATCHDOG = machine.WDT(timeout=WATCHDOG_TIMEOUT_MS)
+    _WATCHDOG.feed()
+
+
 def wifi_hint() -> str:
     """The network that connected last time, tried first if still configured."""
     try:
@@ -102,6 +132,7 @@ def connect() -> None:
         print("wifi: trying", ssid)
         wlan.connect(ssid, password)
         for _ in range(30):
+            feed_watchdog()
             if wlan.isconnected():
                 print("wifi: joined", ssid)
                 if ssid != hint:
@@ -123,6 +154,7 @@ def read_exactly(sock, buffer) -> None:
     view = memoryview(buffer)
     got = 0
     while got < len(buffer):
+        feed_watchdog()
         count = sock.readinto(view[got:])
         if not count:
             raise OSError("connection closed early")
@@ -256,7 +288,19 @@ def notice(message: str) -> bytearray:
 
 
 class Panel:
+    """Robust lifecycle.
+
+    The controllers power on corrupted from a partially drained rail, so an
+    energised panel must never see a short power interruption. GPIO43 (the
+    panel's load switch) is UART0 TX: the ROM dirty-powers the panel at every
+    boot, and this class takes such a panel over without touching its supply.
+    The 100/100 ms hardware reset fully recovers any state.
+    """
+
     def __init__(self):
+        # Preserve the panel's power state; a brief cut poisons the controllers.
+        level = machine.Pin(POWER, machine.Pin.IN).value()
+        self.power = machine.Pin(POWER, machine.Pin.OUT, value=level)
         self.spi = machine.SPI(
             1,
             baudrate=10_000_000,
@@ -272,7 +316,6 @@ class Panel:
         self.dc = machine.Pin(DC, machine.Pin.OUT, value=0)
         self.rst = machine.Pin(RST, machine.Pin.OUT, value=1)
         self.busy = machine.Pin(BUSY, machine.Pin.IN)
-        self.power = machine.Pin(POWER, machine.Pin.OUT, value=0)
 
     def command(self, target: int, command: int, data=b"") -> None:
         # Shared SPI carries commands and data; CS selects controllers and DC distinguishes the two.
@@ -288,58 +331,127 @@ class Panel:
             pin.value(1)
         self.dc.value(0)
 
-    def wait(self, seconds: int = 5) -> None:
+    def command_rows(self, target: int, command: int, data) -> None:
+        """Send a DTM in row-sized chunks, giving the controller time to drain."""
+        chips = [pin for chip, pin in self.cs.items() if target & chip]
+        for pin in chips:
+            pin.value(0)
+        self.dc.value(0)
+        self.spi.write(bytes([command]))
+        self.dc.value(1)
+        view = memoryview(data)
+        stride = (WIDTH // 4) * 64  # 64 rows of 300 bytes
+        for offset in range(0, len(view), stride):
+            feed_watchdog()
+            self.spi.write(view[offset : offset + stride])
+            time.sleep_ms(1)
+        for pin in chips:
+            pin.value(1)
+        self.dc.value(0)
+
+    def wait(self, seconds: int = 5, floor_ms: int = 0) -> None:
         # The controller takes a moment to pull BUSY low after a command; ready is high.
         time.sleep_ms(10)
+        started = time.ticks_ms()
         # ticks_diff handles wraparound of MicroPython's tick counter.
-        deadline = time.ticks_add(time.ticks_ms(), seconds * 1000)
-        while not self.busy.value():
+        deadline = time.ticks_add(started, seconds * 1000)
+        while True:
+            feed_watchdog()
+            # A ready level before the floor can be a glitch, so ignore it and
+            # keep watching; the panel may still be refreshing.
+            if self.busy.value() and time.ticks_diff(time.ticks_ms(), started) >= floor_ms:
+                return
             if time.ticks_diff(deadline, time.ticks_ms()) < 0:
                 raise OSError("panel stayed busy")
             time.sleep_ms(50)
 
     def on(self) -> None:
-        self.power.value(1)
-        time.sleep_ms(50)
+        if not self.power.value():
+            self.power.value(1)
+            time.sleep_ms(100)
+        # 100/100 ms reset per the reference drivers; 20 ms is marginal.
         self.rst.value(0)
-        time.sleep_ms(20)
+        time.sleep_ms(100)
         self.rst.value(1)
-        time.sleep_ms(20)
-        self.wait()
+        time.sleep_ms(100)
+        self.wait(5)
         for target, command, data in INIT:
+            feed_watchdog()
             self.command(target, command, data)
             time.sleep_ms(10)
+        # PLL: absent from the Seeed init; an unprogrammed register can hold
+        # garbage when the panel's power-on reset never ran.
+        self.command(BOTH, 0x30, b"\x08")
+        time.sleep_ms(10)
+        # PON before any pixel data, like every reference driver.
+        self.command(BOTH, 0x04)
+        self.wait(5)
+        time.sleep_ms(30)
+
+    def refresh(self) -> None:
+        """Run DRF and follow BUSY through a real refresh, not just its edges."""
+        started = time.ticks_ms()
+        while self.busy.value():
+            feed_watchdog()
+            if time.ticks_diff(time.ticks_ms(), started) >= REFRESH_START_MS:
+                raise RefreshProblem("panel did not start refreshing", "no_start")
+            time.sleep_ms(2)
+
+        busy_since = time.ticks_ms()
+        while not self.busy.value():
+            feed_watchdog()
+            now = time.ticks_ms()
+            if time.ticks_diff(now, busy_since) >= REFRESH_TIMEOUT_MS:
+                raise RefreshProblem("panel stayed busy", "stuck_busy")
+            time.sleep_ms(5)
+
+        busy_ms = time.ticks_diff(time.ticks_ms(), busy_since)
+        if busy_ms < REFRESH_MIN_BUSY_MS:
+            raise RefreshProblem(f"panel released BUSY after only {busy_ms} ms", "short_busy")
 
     def draw(self, pixels) -> None:
         half = len(pixels) // 2
         view = memoryview(pixels)
-        self.command(BOTH, 0xE0, b"\x01")
-        self.wait()
-        # Memoryview slices send each controller its contiguous half without copying the page.
-        self.command(PRIMARY, 0x10, view[:half])
-        self.command(SECONDARY, 0x10, view[half:])
-        self.command(BOTH, 0x04)
-        self.wait()
+        # CCSET must be re-armed before each controller's DTM, and the vendor
+        # sequence leaves 10 ms after it. The second controller otherwise
+        # accepts a refresh and never starts it.
+        for target, chunk in ((PRIMARY, view[:half]), (SECONDARY, view[half:])):
+            self.command(BOTH, 0xE0, b"\x01")
+            self.wait(5)
+            time.sleep_ms(10)
+            self.command_rows(target, 0x10, chunk)
         time.sleep_ms(30)
         self.command(BOTH, 0x12, b"\x01")
-        self.wait(60)  # a full refresh of six colours takes about half a minute
-        time.sleep_ms(30)
-        self.command(BOTH, 0x02, b"\x00")
-        self.wait()
+        self.refresh()
 
     def off(self) -> None:
-        self.command(PRIMARY, 0x07, b"\xa5")
+        """Clean shutdown: POF, cut power, then hold every pin at 0 V so the
+        idle panel drains instead of being back-fed (GPIO44/CS0 carries a UART
+        pull-up, so floating pins are not safe while the board is awake)."""
+        self.command(BOTH, 0x02, b"\x00")
+        self.wait(5)
         time.sleep_ms(100)
         self.power.value(0)
+        # Not every build offers deinit; a failed one leaves the pins to the hold below.
+        with contextlib.suppress(Exception):
+            self.spi.deinit()
+        for num in (RST, DC, CS0, CS1, BUSY, SCK, MOSI):
+            machine.Pin(num, machine.Pin.OUT, value=0)
 
 
 def show(pixels) -> None:
+    """One attempt only: a refresh that fails from the partial-charge window
+    cannot be retried with a short power cycle; the next wake's takeover
+    recovers the panel instead."""
     panel = Panel()
-    panel.on()
     try:
+        panel.on()
         panel.draw(pixels)
     finally:
-        panel.off()
+        try:
+            panel.off()
+        except OSError:
+            pass
 
 
 def load(rtc) -> dict:
@@ -376,7 +488,16 @@ def main() -> int:
         state = dict(state, poll=poll)
     if page is not None:
         pixels, etag = page
-        show(pixels)
+        try:
+            show(pixels)
+        except OSError as error:
+            # The glass did not get this page. Drop the ETag so the next wake
+            # fetches the body again instead of trusting a 304 over a failed
+            # refresh.
+            print("fugleramme: panel refresh failed:", error)
+            state = dict(state, etag="", failures=state["failures"] + 1)
+            rtc.memory(json.dumps(state).encode())
+            return max(state["poll"], MIN_SLEEP_MINUTES)
         state = dict(state, etag=etag, shown="")
     rtc.memory(json.dumps(dict(state, failures=0)).encode())
     return max(state["poll"], MIN_SLEEP_MINUTES)
