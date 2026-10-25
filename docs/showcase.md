@@ -102,6 +102,12 @@ Frames people have running around the world. Click one to open it.
       <figcaption>Victoria, British Columbia, Canada <small>fugleramme.seanjones.dev</small></figcaption>
     </a>
   </figure>
+  <figure>
+    <a href="https://birds.familleseux.net">
+      <img src="https://birds.familleseux.net/collage.png" alt="The frame is Sarthe, France loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>Sarthe, France <small>birds.familleseux.net</small></figcaption>
+    </a>
+  </figure>
 </div>
 
 Running one yourself and want to share with others? Post the link in
