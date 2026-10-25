@@ -20,6 +20,15 @@ mechanism is not established. A refresh is trusted only when BUSY actually
 moved and stayed low for a full refresh's time. A failed refresh is never
 retried in the same wake; the next wake's takeover recovers the panel.
 
+Every OTA_EVERY_N_RUNS wakes the panel also asks the frame for its own program
+at FIRMWARE. A different program is downloaded, compile-checked and staged as
+main.py.new, and boot.py swaps it in at the next boot as a trial: the new
+program deletes boot.py's main.py.bak once a wake has reached the frame
+without a problem, and otherwise boot.py puts the old one back and keeps the
+rejected version at bay through main.etag. A watchdog in boot.py catches a
+program that hangs instead of crashing, and an update that keeps failing the
+same way is announced on the glass.
+
 The file format is in docs/screens.md. The panel's command sequence is
 inspired by Seeed_GFX2's Driver_T133A01.cpp
 (https://github.com/Seeed-Studio/Seeed_GFX2, MIT License, see its LICENSE).
@@ -31,6 +40,7 @@ GPIO 43 and 44 double as UART0, so use the USB REPL.
 
 import binascii
 import json
+import os
 import socket
 import ssl
 import struct
@@ -42,11 +52,18 @@ import framebuf
 import machine
 import network
 
+try:
+    import hashlib
+except ImportError:  # some MicroPython builds leave it out
+    hashlib = None
+
+# load configuration
 WIFI_NETWORKS = config.WIFI_NETWORKS
 WIFI_HINT = config.WIFI_HINT
 FRAME_HOST = config.FRAME_HOST
 FRAME_PORT = config.FRAME_PORT
 FRAME_TLS = config.FRAME_TLS
+FIRMWARE = config.FIRMWARE
 MIN_SLEEP_MINUTES = config.MIN_SLEEP_MINUTES
 NOTICE_AFTER = config.NOTICE_AFTER
 WIDTH = config.WIDTH
@@ -65,7 +82,20 @@ REFRESH_START_MS = 2_000
 REFRESH_MIN_BUSY_MS = 10_000
 REFRESH_TIMEOUT_MS = 60_000
 
-FRESH = {"etag": "", "shown": "", "failures": 0, "poll": MIN_SLEEP_MINUTES}
+# The panel's program is checked every OTA_EVERY_N_RUNS wakes. An update is
+# staged for boot.py, which swaps it in and leaves main.py.bak behind until
+# the new program has pulled a page cleanly.
+OTA_EVERY_N_RUNS = 48
+MAX_FIRMWARE_BYTES = 1_000_000
+
+FRESH = {
+    "etag": "",
+    "shown": "",
+    "failures": 0,
+    "poll": MIN_SLEEP_MINUTES,
+    "refreshes_since_firmware_check": 0,
+    "ota_failures": 0,
+}
 
 # EE02 wiring, from Seeed_GFX2's XIAO_ePaper_Board_Configs.h.
 SCK, MOSI = 7, 9  # XIAO D8, D10
@@ -140,6 +170,36 @@ def disconnect() -> None:
     network.WLAN(network.STA_IF).active(False)
 
 
+def there(name: str) -> bool:
+    try:
+        os.stat(name)
+        return True
+    except OSError:
+        return False
+
+
+def installed_etag() -> str:
+    """What the running program believes is on the frame, kept in flash rather
+    than RTC memory: a power cut during a trial must not lose it, or the
+    rejected version would be fetched all over again."""
+    try:
+        with open("main.etag") as file:
+            return file.read()
+    except OSError:
+        return ""
+
+
+def firmware_target(path: str):
+    """Split a FIRMWARE URL into (host, port, tls, path); a bare path is
+    served by the frame's own host."""
+    if "://" not in path:
+        return FRAME_HOST, FRAME_PORT, FRAME_TLS, path
+    tls = path.startswith("https://")
+    hostpart, _, location = path.partition("://")[2].partition("/")
+    host, _, port = hostpart.partition(":")
+    return host, int(port) if port else (443 if tls else 80), tls, "/" + location
+
+
 def read_exactly(sock, buffer) -> None:
     view = memoryview(buffer)
     got = 0
@@ -150,29 +210,47 @@ def read_exactly(sock, buffer) -> None:
         got += count
 
 
-def fetch(etag: str):
-    """Returns (page, poll): page is None when the frame still has the one
-    drawn, and poll is None with it, since a page the frame revalidates
-    carries the same poll as the one on the glass."""
-    address = socket.getaddrinfo(FRAME_HOST, FRAME_PORT)[0][-1]
+def _get(path: str, etag: str, target=None):
+    """One GET to the frame, headers consumed. `target` is an optional
+    (host, port, tls) triple for a request that goes to another host than the
+    frame's page. Returns (sock, status, etag, content_length) - the socket
+    still open, closed by the caller in its own finally."""
+    host, port, tls = target or (FRAME_HOST, FRAME_PORT, FRAME_TLS)
+    address = socket.getaddrinfo(host, port)[0][-1]
     sock = socket.socket()
     sock.settimeout(30)
     try:
         sock.connect(address)
-        if FRAME_TLS:
+        if tls:
             # server_hostname carries the SNI the frame's certificate needs.
-            sock = ssl.wrap_socket(sock, server_hostname=FRAME_HOST)
-        request = f"GET /frame.e6 HTTP/1.0\r\nHost: {FRAME_HOST}\r\n"
+            sock = ssl.wrap_socket(sock, server_hostname=host)
+        request = f"GET {path} HTTP/1.0\r\nHost: {host}\r\n"
         if etag:
             request += f"If-None-Match: {etag}\r\n"
         sock.write((request + "\r\n").encode())
         status = int(sock.readline().split()[1])
-        new_etag = ""
+        served = ""
+        length = None
         while (line := sock.readline()) not in (b"\r\n", b""):
             name, _, value = line.decode().partition(":")
-            if name.strip().lower() == "etag":
-                new_etag = value.strip()
+            name = name.strip().lower()
+            value = value.strip()
+            if name == "etag":
+                served = value
+            elif name == "content-length":
+                length = int(value)
+        return sock, status, served, length
+    except Exception:
+        sock.close()
+        raise
 
+
+def fetch(etag: str):
+    """Returns (page, poll): page is None when the frame still has the one
+    drawn, and poll is None with it, since a page the frame revalidates
+    carries the same poll as the one on the glass."""
+    sock, status, new_etag, _length = _get("/frame.e6", etag)
+    try:
         if status == 304:
             # Unchanged: the frame has nothing to send and the glass keeps its birds.
             return None, None
@@ -230,6 +308,94 @@ def download(etag: str):
     finally:
         # Wi-Fi is only needed for fetching; keep it off while the panel refreshes.
         disconnect()
+
+
+def firmware():
+    """Returns (source, etag) for the panel's program, or None while it is
+    unchanged - or while a frame that predates the route answers 404, which is
+    not a failure, only nothing new."""
+    installed = installed_etag()
+    host, port, tls, path = firmware_target(FIRMWARE)
+    sock, status, served, length = _get(path, installed, (host, port, tls))
+    try:
+        if status in (304, 404):
+            return None
+        if status != 200:
+            raise Problem(f"The frame answered {status} for {FIRMWARE}.")
+        if length is None:
+            raise Problem("The frame did not send the program's length.")
+        if length <= 0 or length > MAX_FIRMWARE_BYTES:
+            raise Problem(f"The frame sent an implausible program length ({length}).")
+        if served != installed:
+            print("ota: new version", served)
+        source = bytearray(length)
+        read_exactly(sock, source)
+        return bytes(source), served
+    finally:
+        sock.close()
+
+
+def download_firmware():
+    try:
+        connect()
+        return firmware()
+    except Problem:
+        raise
+    except Exception as error:
+        raise Problem(f"Cannot reach the frame at {FRAME_HOST}:{FRAME_PORT} ({error}).") from error
+    finally:
+        disconnect()
+
+
+def update(state: dict):
+    """Check the frame for a new program when the count runs out. Returns
+    (state, problem): the problem is None when the check was skipped or
+    passed, and the failure the panel may want to say when it did not. On a
+    new version this never returns: the board restarts onto it, and boot.py
+    rolls it back if it fails its trial."""
+    if state["refreshes_since_firmware_check"] < OTA_EVERY_N_RUNS:
+        return state, None
+    if there("main.py.bak"):
+        # A trial is still unconfirmed; installing now would overwrite the way
+        # back with the program being trialled.
+        return state, None
+    print("ota: checking", FIRMWARE)
+    try:
+        answer = download_firmware()
+    except Problem as problem:
+        return dict(state, ota_failures=state["ota_failures"] + 1), problem
+    if answer is None:
+        print("ota: up to date")
+        return dict(state, refreshes_since_firmware_check=0, ota_failures=0), None
+    source, served = answer
+    print("ota: installing", served)
+    try:
+        compile(source, "main.py", "exec")
+    except SyntaxError:
+        # Never rename a program that cannot load; say so once the streak says.
+        return dict(state, ota_failures=state["ota_failures"] + 1), Problem(
+            "The frame sends a program this panel cannot load."
+        )
+    # Stage atomically: boot.py must never see a half-written program.
+    with open("main.py.tmp", "wb") as file:
+        file.write(source)
+        file.flush()
+    try:
+        os.remove("main.py.new")
+    except OSError:
+        pass
+    os.rename("main.py.tmp", "main.py.new")
+    # Record what was installed before restarting, in flash so a power cut
+    # cannot lose it, and after staging so a cut here only costs one refetch.
+    with open("main.etag.tmp", "w") as file:
+        file.write(served)
+        file.flush()
+    try:
+        os.remove("main.etag")
+    except OSError:
+        pass
+    os.rename("main.etag.tmp", "main.etag")
+    machine.reset()
 
 
 def wrap(text: str, width: int) -> list:
@@ -461,6 +627,22 @@ def main() -> int:
     """One wake: fetch, draw when the page moved, and return the minutes to sleep."""
     rtc = machine.RTC()
     state = load(rtc)
+    state = dict(
+        state,
+        refreshes_since_firmware_check=state["refreshes_since_firmware_check"] + 1,
+    )
+    rtc.memory(json.dumps(state).encode())
+    state, problem = update(state)
+    if problem is not None and state["ota_failures"] >= NOTICE_AFTER:
+        # An update that keeps failing is worth the glass saying so, even at the
+        # cost of this wake's page: it would otherwise draw the birds over it.
+        message = f"The panel's program update keeps failing. ({problem})"
+        print("fugleramme:", message)
+        if message != state["shown"]:
+            show(notice(message))
+            state = dict(state, shown=message)
+        rtc.memory(json.dumps(state).encode())
+        return max(state["poll"], MIN_SLEEP_MINUTES)
     try:
         page, poll = download(state["etag"])
     except Problem as problem:
@@ -484,6 +666,12 @@ def main() -> int:
         pixels, etag = page
         show(pixels)
         state = dict(state, etag=etag, shown="")
+    # This wake reached the frame without a problem, which is the trial's
+    # confirmation: boot.py keeps main.py.bak exactly until it sees this.
+    try:
+        os.remove("main.py.bak")
+    except OSError:
+        pass
     rtc.memory(json.dumps(dict(state, failures=0)).encode())
     return max(state["poll"], MIN_SLEEP_MINUTES)
 
