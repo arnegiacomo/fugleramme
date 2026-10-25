@@ -39,7 +39,7 @@ from pathlib import Path
 from typing import ClassVar
 from urllib.parse import parse_qs, urlencode, urlparse
 
-from .. import __version__, e6, modes, updates
+from .. import __version__, buttons, e6, modes, updates
 from ..languages import namer
 from ..panel import Panel, resolution_of
 from ..render.paper import paper_tile
@@ -58,7 +58,7 @@ JSON = "application/json"
 # What a password covers (#52). The kiosk stays open whatever is set: it is the
 # product, and the demo page and the container's healthcheck read it as strangers.
 GATED = frozenset(
-    {"/admin", "/preview.png", "/species", "/stations", "/update", "/detector", LOGOUT}
+    {"/admin", "/preview.png", "/species", "/stations", "/update", "/detector", "/press", LOGOUT}
 )
 
 COOKIE = "fugleramme_session"
@@ -512,6 +512,14 @@ def make_handler(
                 if store.get().admin_locked:
                     store.update(session_secret=secrets.token_urlsafe(32))
                 self._redirect(LOGIN, _set_cookie("", 0))
+                return
+            if route == "/press":
+                label = form.get("label", [""])[0]
+                if label not in buttons.LABELS:
+                    self._send(400, b"no such button", "text/plain")
+                    return
+                buttons.press(label, store, images_dir)
+                self._send(204, b"", "text/plain")
                 return
             # POST, not a query: the connection test carries a password.
             if route == "/detector":

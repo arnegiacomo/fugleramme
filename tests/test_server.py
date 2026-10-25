@@ -836,3 +836,19 @@ def test_a_signed_out_post_saves_nothing(locked, tmp_path):
 
     _post(locked + "/admin", {"mode": "latest"}, _signed_in(locked))
     assert SettingsStore(tmp_path / SETTINGS).get().mode == "latest"
+
+
+def test_a_press_from_another_machine_is_the_button_s_settings_write(frame, tmp_path):
+    status, _headers, _body = _post(frame + "/press", {"label": "B"})
+
+    assert status == 204
+    assert SettingsStore(tmp_path / SETTINGS).get().show_names is False
+
+
+def test_a_press_names_a_button_the_panel_has(frame):
+    assert _post(frame + "/press", {"label": "E"})[0] == 400
+
+
+def test_a_press_needs_the_password_like_the_admin(locked, tmp_path):
+    assert _post(locked + "/press", {"label": "B"})[0] == 401
+    assert SettingsStore(tmp_path / SETTINGS).get().show_names is True

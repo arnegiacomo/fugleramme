@@ -52,3 +52,4 @@ Covers `service.py`, `panel.py`, `buttons.py` and the `render/` package.
 
 - Pins key off `Panel.driver` (the 13.3" moves C to line 25).
 - A press only ever calls `SettingsStore.update`, so nothing crosses threads and presses during a refresh coalesce.
+- `POST /press` applies a press from a panel driven by another machine. The request contains the button press to trigger, rather than the specific change to make. This keeps the responsibility for deciding how to cycle through config in a single place.
