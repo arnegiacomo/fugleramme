@@ -7573,8 +7573,8 @@
  },
  "birds/icterus-galbula.webp": {
   "box": [
-   0.08,
-   0.08,
+   0.09,
+   0.16,
    0.78,
    0.72
   ],
@@ -8113,14 +8113,14 @@
  },
  "birds/larus-delawarensis.webp": {
   "box": [
+   0.01,
    0.0,
-   0.0,
-   0.53,
-   0.88
+   0.99,
+   0.99
   ],
   "cut": [
    1200,
-   748
+   750
   ]
  },
  "birds/larus-fuscus-2.webp": {
@@ -14161,14 +14161,14 @@
  },
  "birds/tachycineta-bicolor.webp": {
   "box": [
-   0.38,
-   0.0,
-   0.64,
+   0.03,
+   0.05,
+   0.97,
    0.97
   ],
   "cut": [
    1200,
-   701
+   702
   ]
  },
  "birds/tachycineta-thalassina.webp": {
@@ -15349,14 +15349,14 @@
  },
  "birds/vireo-gilvus.webp": {
   "box": [
-   0.39,
-   0.53,
+   0.37,
+   0.55,
    0.84,
-   0.97
+   0.98
   ],
   "cut": [
    1200,
-   902
+   920
   ]
  },
  "birds/vireo-griseus.webp": {
@@ -15373,13 +15373,13 @@
  },
  "birds/vireo-olivaceus.webp": {
   "box": [
-   0.21,
-   0.39,
+   0.22,
+   0.37,
    0.72,
-   0.56
+   0.58
   ],
   "cut": [
-   936,
+   934,
    1200
   ]
  },
