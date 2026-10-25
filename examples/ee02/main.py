@@ -29,6 +29,11 @@ rejected version at bay through main.etag. A watchdog in boot.py catches a
 program that hangs instead of crashing, and an update that keeps failing the
 same way is announced on the glass. OTA is off while FIRMWARE is None.
 
+The user LED (GPIO21, active low) reports the wake: 1 long = button 1, 2 long
+= button 2, 1 short = timer wake or reset. Then short-long-short once Wi-Fi is
+up, five short when it cannot join, steady on while the panel refreshes
+(~30 s), and three short if that refresh failed.
+
 The file format is in docs/screens.md. The panel's command sequence is
 inspired by Seeed_GFX2's Driver_T133A01.cpp
 (https://github.com/Seeed-Studio/Seeed_GFX2, MIT License, see its LICENSE).
@@ -88,9 +93,19 @@ WATCHDOG_TIMEOUT_MS = 300_000
 
 # The panel's program is checked every OTA_EVERY_N_RUNS wakes. An update is
 # staged for boot.py, which swaps it in and leaves main.py.bak behind until
-# the new program has pulled a page cleanly.
+# the new program has pulled a page cleanly. The board pulls the buttons high
+# and a press pulls them low: any press on button 1 (GPIO2, XIAO D1) forces a
+# fresh page, while button 2 (GPIO3, XIAO D2, "Next Page") asks for an update
+# check at once. EXT0 and EXT1 tell the two buttons apart after the wake.
 OTA_EVERY_N_RUNS = 48
 MAX_FIRMWARE_BYTES = 1_000_000
+BUTTON_REFRESH = 2
+BUTTON_NEXT = 3
+
+# The XIAO's user LED (GPIO21) is the board's only controllable light: active
+# low, so 0 is on. It blinks the wake's progress, since a page takes a while.
+LED = 21
+SHORT, LONG = 120, 480
 
 FRESH = {
     "etag": "",
@@ -142,6 +157,29 @@ class RefreshProblem(OSError):
 _WATCHDOG = None
 
 
+def blink(pattern) -> None:
+    """Blink the user LED: `pattern` is on-durations in ms, off in between."""
+    led = machine.Pin(LED, machine.Pin.OUT, value=1)  # active low: 1 is off
+    for duration in pattern:
+        led.value(0)
+        time.sleep_ms(duration)
+        led.value(1)
+        time.sleep_ms(duration)
+
+
+def button_wake() -> str:
+    """Which button woke the board: refresh, update, or an empty string."""
+    try:
+        reason = machine.wake_reason()
+    except (AttributeError, ValueError):
+        return ""  # a build without wake reasons still sleeps and checks on the count
+    if reason in (getattr(machine, "PIN_WAKE", None), getattr(machine, "EXT0_WAKE", None)):
+        return "refresh"
+    if reason == getattr(machine, "EXT1_WAKE", None):
+        return "update"
+    return ""
+
+
 def feed_watchdog() -> None:
     """Feed the watchdog boot.py arms during a firmware trial, over long
     network waits. Outside a trial nothing is armed, and feeding would be
@@ -178,9 +216,11 @@ def connect() -> None:
                 if ssid != hint:
                     with open(WIFI_HINT, "w") as file:
                         file.write(ssid)
+                blink((SHORT, LONG, SHORT))
                 return
             time.sleep(1)
         wlan.disconnect()
+    blink((SHORT,) * 5)
     raise Problem(
         "Cannot join any Wi-Fi network: " + ", ".join(ssid for ssid, _ in WIFI_NETWORKS) + "."
     )
@@ -318,10 +358,11 @@ def fetch(etag: str):
         sock.close()
 
 
-def download(etag: str):
+def download(etag: str, refresh: bool = False):
     try:
         connect()
-        return fetch(etag)
+        # A forced refresh asks for the body even when our ETag still matches.
+        return fetch("" if refresh else etag)
     except Problem:
         raise
     except Exception as error:
@@ -354,6 +395,7 @@ def firmware():
             raise Problem(f"The frame sent an implausible program length ({length}).")
         if served != installed:
             print("ota: new version", served)
+            blink((SHORT,))
         source = bytearray(length)
         read_exactly(sock, source)
         return bytes(source), served
@@ -373,15 +415,15 @@ def download_firmware():
         disconnect()
 
 
-def update(state: dict):
-    """Check the frame for a new program when the count runs out. Returns
-    (state, problem): the problem is None when the check was skipped or
-    passed, and the failure the panel may want to say when it did not. On a
-    new version this never returns: the board restarts onto it, and boot.py
-    rolls it back if it fails its trial."""
+def update(state: dict, asked: bool):
+    """Check the frame for a new program when the count runs out or the button
+    asks. Returns (state, problem): the problem is None when the check was
+    skipped or passed, and the failure the panel may want to say when it did
+    not. On a new version this never returns: the board restarts onto it, and
+    boot.py rolls it back if it fails its trial."""
     if not OTA_ENABLED:
         return state, None
-    if state["refreshes_since_firmware_check"] < OTA_EVERY_N_RUNS:
+    if not asked and state["refreshes_since_firmware_check"] < OTA_EVERY_N_RUNS:
         return state, None
     if there("main.py.bak"):
         # A trial is still unconfirmed; installing now would overwrite the way
@@ -427,6 +469,7 @@ def update(state: dict):
     except OSError:
         pass
     os.rename("main.etag.tmp", "main.etag")
+    blink((SHORT,) * 5)
     machine.reset()
 
 
@@ -635,15 +678,23 @@ def show(pixels) -> None:
     """One attempt only: a refresh that fails from the partial-charge window
     cannot be retried with a short power cycle; the next wake's takeover
     recovers the panel instead."""
+    # LED held on while the panel refreshes (~30 s): do not press anything,
+    # and do not unplug, until it goes out.
+    led = machine.Pin(LED, machine.Pin.OUT, value=0)
     panel = Panel()
     try:
         panel.on()
         panel.draw(pixels)
+    except OSError:
+        led.value(1)
+        blink((SHORT,) * 3)  # three short blinks: the refresh failed
+        raise
     finally:
         try:
             panel.off()
         except OSError:
             pass
+        led.value(1)
 
 
 def load(rtc) -> dict:
@@ -657,6 +708,10 @@ def load(rtc) -> dict:
 
 def main() -> int:
     """One wake: fetch, draw when the page moved, and return the minutes to sleep."""
+    button = button_wake()
+    refresh = button == "refresh"
+    # Button 2 asks for an immediate update check; button 1 only repaints.
+    asked = button == "update"
     rtc = machine.RTC()
     state = load(rtc)
     if OTA_ENABLED:
@@ -665,7 +720,7 @@ def main() -> int:
             refreshes_since_firmware_check=state["refreshes_since_firmware_check"] + 1,
         )
     rtc.memory(json.dumps(state).encode())
-    state, problem = update(state)
+    state, problem = update(state, asked)
     if problem is not None and state["ota_failures"] >= NOTICE_AFTER:
         # An update that keeps failing is worth the glass saying so. It never
         # costs this wake's page, though: the page below is still fetched and
@@ -677,7 +732,10 @@ def main() -> int:
             state = dict(state, shown=message)
         rtc.memory(json.dumps(state).encode())
     try:
-        page, poll = download(state["etag"])
+        # A notice is not the page: ask for the body even when the saved page
+        # ETag still matches, so the next good wake replaces the notice.
+        etag = "" if state["shown"] else state["etag"]
+        page, poll = download(etag, refresh)
     except Problem as problem:
         failures = state["failures"] + 1
         message = str(problem)
@@ -709,11 +767,24 @@ def main() -> int:
     return max(state["poll"], MIN_SLEEP_MINUTES)
 
 
+# Immediate feedback on why the board woke, before anything slow happens:
+#   1 long  = button 1 (refetch and redraw)
+#   2 long  = button 2 (firmware update check)
+#   1 short = timer wake, reset or power-on
+_wake = button_wake()
+blink({"refresh": (LONG,), "update": (LONG, LONG)}.get(_wake, (SHORT,)))
+
 try:
     minutes = main()
 except Exception as error:
     print("fugleramme:", error)
     minutes = MIN_SLEEP_MINUTES
 
-# The frame's poll decides the sleep; the minimum is the floor under it.
+# The frame's poll decides the sleep; the minimum is the floor under it. Button
+# 1 forces a fresh page, button 2 asks for an update check at once; EXT0 and
+# EXT1 keep them distinguishable on the next wake.
+for pin in (BUTTON_REFRESH, BUTTON_NEXT):
+    machine.Pin(pin, machine.Pin.IN, machine.Pin.PULL_UP)
+esp32.wake_on_ext0(machine.Pin(BUTTON_REFRESH), 0)
+esp32.wake_on_ext1((machine.Pin(BUTTON_NEXT),), 0)
 machine.deepsleep(minutes * 60 * 1000)
