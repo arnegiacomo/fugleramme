@@ -12275,16 +12275,40 @@
    1113
   ]
  },
- "birds/quiscalus-major.webp": {
+ "birds/quiscalus-major-2.webp": {
   "box": [
-   0.03617650884495317,
-   0.548427734375,
-   0.801777120187305,
-   0.8115169270833333
+   0.0212,
+   0.0189,
+   0.98,
+   0.8552
+  ],
+  "cut": [
+   849,
+   953
+  ]
+ },
+ "birds/quiscalus-major-3.webp": {
+  "box": [
+   0.0362,
+   0.5484,
+   0.8018,
+   0.8115
   ],
   "cut": [
    961,
    1200
+  ]
+ },
+ "birds/quiscalus-major.webp": {
+  "box": [
+   0.0088,
+   0.0251,
+   0.9878,
+   0.9036
+  ],
+  "cut": [
+   1200,
+   615
   ]
  },
  "birds/quiscalus-quiscula.webp": {
