@@ -86,6 +86,12 @@ restart). **Test connection** lets you check before saving the changes.
 The frame reads detections only. Everything about how birds are detected stays
 in BirdNET-Go's own settings.
 
+The admin page links to BirdNET-Go's own pages. By default that is the address
+above, or this page's host on the same port when the address is local to the
+frame. If you reach BirdNET-Go through a different address in your browser, for
+example behind a reverse proxy, put it under **Public address**. Only the links
+use it; the frame keeps reading detections from **Address**.
+
 If Fugleramme was running a BirdNET-Go of its own and you move the frame to
 another instance for good, re-run `./install.sh` and answer 2 or 3. It offers to stop
 the old container and hand the port back, so updates stop pulling an image

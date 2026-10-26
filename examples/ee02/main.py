@@ -27,10 +27,10 @@ import ssl
 import struct
 import time
 
+import config
 import framebuf
 import machine
 import network
-import config
 
 # load configuration
 WIFI_NETWORKS = config.WIFI_NETWORKS

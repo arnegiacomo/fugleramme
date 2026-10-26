@@ -43,6 +43,12 @@ Frames people have running around the world. Click one to open it.
     </a>
   </figure>
   <figure>
+    <a href="https://fugleramme-bergen.arnegiacomo.dev">
+      <img src="https://fugleramme-bergen.arnegiacomo.dev/collage.png" alt="The frame reading five BirdWeather stations around Bergen, Norway" loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>Bergen, Norway, five BirdWeather stations <small>fugleramme-bergen.arnegiacomo.dev</small></figcaption>
+    </a>
+  </figure>
+  <figure>
     <a href="https://birdies.semmel.org">
       <img src="https://birdies.semmel.org/collage.png" alt="The frame in Möhlin, Switzerland" loading="lazy" referrerpolicy="no-referrer">
       <figcaption>Möhlin, Switzerland <small>birdies.semmel.org</small></figcaption>
@@ -94,6 +100,12 @@ Frames people have running around the world. Click one to open it.
     <a href="https://fugleramme.seanjones.dev/">
       <img src="https://fugleramme.seanjones.dev/collage.png" alt="The frame in Victoria, British Columbia, Canada" loading="lazy" referrerpolicy="no-referrer">
       <figcaption>Victoria, British Columbia, Canada <small>fugleramme.seanjones.dev</small></figcaption>
+    </a>
+  </figure>
+  <figure>
+    <a href="https://birds.familleseux.net">
+      <img src="https://birds.familleseux.net/collage.png" alt="The frame is Sarthe, France loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>Sarthe, France <small>birds.familleseux.net</small></figcaption>
     </a>
   </figure>
 </div>
