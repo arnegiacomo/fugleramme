@@ -862,17 +862,25 @@ def test_a_signed_out_post_saves_nothing(locked, tmp_path):
     assert SettingsStore(tmp_path / SETTINGS).get().mode == "latest"
 
 
-def test_a_press_from_another_machine_is_the_button_s_settings_write(frame, tmp_path):
-    status, _headers, _body = _post(frame + "/press", {"label": "B"})
-
-    assert status == 204
-    assert SettingsStore(tmp_path / SETTINGS).get().show_names is False
+def test_a_press_from_another_machine_is_the_button_s_settings_write(ext_eink_panel):
+    assert _post(ext_eink_panel.base + "/press", {"button": "B"})[0] == 204
+    assert ext_eink_panel.store.get().show_names is False
 
 
-def test_a_press_names_a_button_the_panel_has(frame):
-    assert _post(frame + "/press", {"label": "E"})[0] == 400
+def test_a_press_names_a_button_the_panel_has(ext_eink_panel):
+    assert _post(ext_eink_panel.base + "/press", {"button": "E"})[0] == 400
 
 
-def test_a_press_needs_the_password_like_the_admin(locked, tmp_path):
-    assert _post(locked + "/press", {"label": "B"})[0] == 401
-    assert SettingsStore(tmp_path / SETTINGS).get().show_names is True
+def test_a_press_is_not_there_until_the_external_panel_is_switched_on(frame):
+    assert _post(frame + "/press", {"button": "B"})[0] == 404
+
+
+def test_a_press_is_open_like_the_panel_s_own_buttons(tmp_path, source):
+    """A headless client cannot hold a browser session, and a sign-out anywhere
+    would end it."""
+    store = SettingsStore(
+        tmp_path / SETTINGS,
+        Settings(admin_password=PASSWORD, require_sign_in=True, external_panel=True),
+    )
+    for base in _serve(tmp_path, source(count=40, seed=0), store=store):
+        assert _post(base + "/press", {"button": "B"})[0] == 204

@@ -58,7 +58,7 @@ JSON = "application/json"
 # What a password covers (#52). The kiosk stays open whatever is set: it is the
 # product, and the demo page and the container's healthcheck read it as strangers.
 GATED = frozenset(
-    {"/admin", "/preview.png", "/species", "/stations", "/update", "/detector", "/press", LOGOUT}
+    {"/admin", "/preview.png", "/species", "/stations", "/update", "/detector", LOGOUT}
 )
 
 COOKIE = "fugleramme_session"
@@ -533,12 +533,16 @@ def make_handler(
                     store.update(session_secret=secrets.token_urlsafe(32))
                 self._redirect(LOGIN, _set_cookie("", 0))
                 return
+            # Open like the panel's own buttons, which anyone at the frame can press.
             if route == "/press":
-                label = form.get("label", [""])[0]
-                if label not in buttons.LABELS:
+                if not store.get().external_panel:
+                    self._send(404, b"not found", "text/plain")
+                    return
+                button = form.get("button", [""])[0]
+                if button not in buttons.LABELS:
                     self._send(400, b"no such button", "text/plain")
                     return
-                buttons.press(label, store, images_dir)
+                buttons.press(button, store, images_dir)
                 self._send(204, b"", "text/plain")
                 return
             # POST, not a query: the connection test carries a password.
