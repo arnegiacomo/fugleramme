@@ -853,9 +853,9 @@ EDGES = "The same margin on every edge of the panel"
 
 
 EXTERNAL = (
-    "Serves the panel's page at /frame.e6, for an external e-ink panel "
-    "driven by its own board. Without an Inky Impression, the page is laid "
-    "out for that panel. Anyone who can reach the frame can access /frame.e6."
+    "Serves the panel's page at /frame.e6 and /frame.png for external e-ink panels. "
+    'Without an Inky Impression, the page is laid out for a 13.3" panel. Anyone who can '
+    "reach the frame can access these endpoints."
 )
 
 
