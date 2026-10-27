@@ -34,6 +34,7 @@ import struct
 import time
 
 import config
+import esp32
 import framebuf
 import machine
 import network
@@ -297,6 +298,9 @@ class Panel:
     """
 
     def __init__(self):
+        # Release the hold off() left through the previous deep sleep.
+        for num in (RST, DC, CS0, CS1, SCK, MOSI):
+            machine.Pin(num, hold=False)
         # Preserve the panel's power state; a brief cut poisons the controllers.
         level = machine.Pin(POWER, machine.Pin.IN).value()
         self.power = machine.Pin(POWER, machine.Pin.OUT, value=level)
@@ -424,9 +428,10 @@ class Panel:
         self.refresh()
 
     def off(self) -> None:
-        """Clean shutdown: POF, cut power, then hold every pin at 0 V so the
-        idle panel drains instead of being back-fed (GPIO44/CS0 carries a UART
-        pull-up, so floating pins are not safe while the board is awake)."""
+        """Clean shutdown: POF, cut power, then hold the outputs at 0 V through
+        deep sleep so the idle panel drains instead of being back-fed (GPIO44/CS0
+        carries a UART pull-up). BUSY is the panel's output, so it stays an
+        input."""
         self.command(BOTH, 0x02, b"\x00")
         self.wait(5)
         time.sleep_ms(100)
@@ -436,8 +441,10 @@ class Panel:
             self.spi.deinit()
         except (AttributeError, OSError):
             pass
-        for num in (RST, DC, CS0, CS1, BUSY, SCK, MOSI):
-            machine.Pin(num, machine.Pin.OUT, value=0)
+        for num in (RST, DC, CS0, CS1, SCK, MOSI):
+            machine.Pin(num, machine.Pin.OUT, value=0, hold=True)
+        machine.Pin(BUSY, machine.Pin.IN)
+        esp32.gpio_deep_sleep_hold(True)
 
 
 def show(pixels) -> None:
