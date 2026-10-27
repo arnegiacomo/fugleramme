@@ -51,9 +51,10 @@ void displayError(String message, bool persistent = false) {
   Serial.println(message);
 }
 
-uint8_t getFrame(String oldEtag = "") {
+bool getFrame(String oldEtag = "", uint8_t &poll) {
   HTTPClient http;
 
+  bool refresh = false;
   const char* headerKeys[] = {"Etag"};
   size_t headerKeysCount = sizeof(headerKeys) / sizeof(headerKeys[0]);
   http.collectHeaders(headerKeys, headerKeysCount);
@@ -79,17 +80,20 @@ uint8_t getFrame(String oldEtag = "") {
       // No change to display
       Serial.println("No change to frame.");
       http.end();
-      return 0;
+      poll = 0;
+      return false;
       break;
     case 404:
       displayError("The frame is not configured to serve external panels. Please enable \"External e-ink panel\" at on the admin page's \"Frame\" tab.",true);
       http.end();
-      return 0;
+      poll = 0;
+      return false;
       break;
     case 503:
       displayError("The frame has not drawn a page yet.");
       http.end();
-      return 0;
+      poll = 0;
+      return false;
       break;
     case 200:
       // Go on to display
@@ -97,7 +101,8 @@ uint8_t getFrame(String oldEtag = "") {
     default:
       displayError("The frame answered with HTTP code " + httpResponseCode);
       http.end();
-      return 0;
+      poll = 0;
+      return false;
       break;
   }
 
@@ -124,8 +129,7 @@ uint8_t getFrame(String oldEtag = "") {
           convertBuffer(pixels,header.length,header.width);
           Serial.println("Attempting to write:");
           epaper.pushImage(0, 0, header.width, header.height, (uint16_t *)pixels);
-          epaper.update();
-          epaper.sleep();
+          refresh = true;
         }
         free(pixels);
       } else {
@@ -138,7 +142,8 @@ uint8_t getFrame(String oldEtag = "") {
   sock.stop();
   http.end();
 
-  return header.poll;
+  poll = header.poll;
+  return refresh;
 }
 /*
 void displaySetupInfo(WiFiManager *wifi) {
@@ -253,13 +258,20 @@ void setup() {
     useSSL = prefs.getBool("useSSL", false);
   }
 
-  framePort = "443";
-  useSSL = true;
-
   String Etag = prefs.getString("Etag","");
   Serial.println("Loaded frame host " + frameHost + ":" + framePort);
 
-  uint8_t sleep = getFrame(Etag);
+  uint8_t sleep;
+  bool need_refresh;
+    
+  need_refresh = getFrame(Etag, sleep);
+
+// Code to add overlays goes here
+    
+  if(need_refresh) {
+    epanel.update();
+    epanel.sleep();
+  }
   
   //printAllPullupsS3();
   // Any need to disable pullups or isolate RTC GPIOs before sleep?
