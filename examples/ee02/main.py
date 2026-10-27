@@ -20,9 +20,12 @@ trusted only when BUSY actually moved and stayed low for a full refresh's
 time. A failed refresh is never retried in the same
 wake; the next wake's takeover recovers the panel.
 
-The file format is in docs/screens.md. The panel's command sequence is ported
-from Seeed_GFX2's Driver_T133A01.cpp
+The file format is in docs/screens.md. The panel's command sequence is
+inspired by Seeed_GFX2's Driver_T133A01.cpp
 (https://github.com/Seeed-Studio/Seeed_GFX2, MIT License, see its LICENSE).
+Several changes were made at once to recover a corrupted panel. They seem
+to fix the failures seen here. They were not bisected, so which change
+matters is not known.
 GPIO 43 and 44 double as UART0, so use the USB REPL.
 """
 
@@ -280,7 +283,8 @@ class Panel:
     energised panel must never see a short power interruption. GPIO43 (the
     panel's load switch) is UART0 TX: the ROM dirty-powers the panel at every
     boot, and this class takes such a panel over without touching its supply.
-    The 100/100 ms hardware reset fully recovers any state.
+    The reset and extra init steps recover it in practice. They were added
+    together and not bisected.
     """
 
     def __init__(self):
@@ -321,7 +325,7 @@ class Panel:
         self.dc.value(0)
 
     def command_rows(self, target: int, command: int, data) -> None:
-        """Send a DTM in row-sized chunks, giving the controller time to drain."""
+        """Send a DTM in row-sized chunks, unlike the Seeed driver."""
         chips = [pin for chip, pin in self.cs.items() if target & chip]
         for pin in chips:
             pin.value(0)
@@ -353,7 +357,7 @@ class Panel:
     def on(self) -> None:
         # POWER is already high; give it the settle a cold power-on got.
         time.sleep_ms(100)
-        # 100/100 ms reset per the reference drivers; 20 ms is marginal.
+        # 100/100 ms reset. Seeed uses 20/20 ms. One of the changes made at once.
         self.rst.value(0)
         time.sleep_ms(100)
         self.rst.value(1)
@@ -362,11 +366,12 @@ class Panel:
         for target, command, data in INIT:
             self.command(target, command, data)
             time.sleep_ms(10)
-        # PLL: absent from the Seeed init; an unprogrammed register can hold
-        # garbage when the panel's power-on reset never ran.
+        # PLL: absent from the Seeed init. One of the changes added at once.
+        # Whether it matters on its own is not known.
         self.command(BOTH, 0x30, b"\x08")
         time.sleep_ms(10)
-        # PON before any pixel data, like every reference driver.
+        # PON before any pixel data, unlike the Seeed driver. One of the
+        # changes not tested in isolation.
         self.command(BOTH, 0x04)
         self.wait(5)
         time.sleep_ms(30)
@@ -393,9 +398,8 @@ class Panel:
     def draw(self, pixels) -> None:
         half = len(pixels) // 2
         view = memoryview(pixels)
-        # CCSET must be re-armed before each controller's DTM, and the vendor
-        # sequence leaves 10 ms after it. The second controller otherwise
-        # accepts a refresh and never starts it.
+        # CCSET before each controller's DTM, unlike the Seeed driver. One of
+        # the changes added together, not tested in isolation.
         for target, chunk in ((PRIMARY, view[:half]), (SECONDARY, view[half:])):
             self.command(BOTH, 0xE0, b"\x01")
             self.wait(5)
