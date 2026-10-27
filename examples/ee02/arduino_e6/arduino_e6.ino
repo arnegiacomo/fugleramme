@@ -14,22 +14,27 @@ using fs::FS;
 #include <TFT_eSPI.h>
 
 
-//#ifdef ESP32
-//  #include <SPIFFS.h>
-//#endif
+#define LOW_BATTERY_BOOT 3.0
+#define LOW_BATTERY_WIFI 3.4
+#define LOW_BATTERY_WARNING 3.5
 
+#define LOW_BATTERY_SLEEP_MINUTES ((uint8_t))60
 #define MIN_SLEEP_MINUTES ((uint8_t)1)
+
 #define uS_TO_S_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
 
 Preferences prefs;
 bool paramsChanged = false;
 
-// Default placeholders for first run, don't modify
-String frameHost = "fugleramme.local";
-String framePort = "8080";
+String frameHost = "";
+String framePort = "";
 bool useSSL = false;
 
 EPaper epaper;
+
+#define BATTERY_ADC 1A0;
+#define ADC_EN 6;
+#define VOLTAGE_DIVIDER_RATIO 2.0
 
 struct __attribute__((__packed__)) Header {
     char     magic[4];  // 4s: 4-character string/bytes
@@ -206,6 +211,20 @@ void printAllPullupsS3() {
   Serial.println("-----------------------------------------");
 }
 
+float readBatteryVoltage() {
+    analogReadResolution(12);
+    pinMode(BATTERY_ADC, INPUT);
+    pinMode(ADC_EN, OUTPUT);
+    digitalWrite(ADC_EN, HIGH);
+
+    uint32_t sum = 0;
+    for(int i = 0; i < 16; i++) {
+        sum += analogReadMilliVolts(BATTERY_ADC);
+        delay(1);
+    }
+    return sum * VOLTAGE_DIVIDER_RATIO / 16 / 1000.0;
+}
+
 void setup() {
   Serial.begin(115200);
   delay(2000);
@@ -217,6 +236,8 @@ void setup() {
   epaper.sleep();
 
   prefs.begin("BirdFrame");
+
+  float battery = readBatteryVoltage();
 
   WiFiManager wm;
   //wm.resetSettings();
