@@ -499,16 +499,7 @@ def main() -> int:
         state = dict(state, poll=poll)
     if page is not None:
         pixels, etag = page
-        try:
-            show(pixels)
-        except OSError as error:
-            # The glass did not get this page. Drop the ETag so the next wake
-            # fetches the body again instead of trusting a 304 over a failed
-            # refresh.
-            print("fugleramme: panel refresh failed:", error)
-            state = dict(state, etag="", failures=state["failures"] + 1)
-            rtc.memory(json.dumps(state).encode())
-            return max(state["poll"], MIN_SLEEP_MINUTES)
+        show(pixels)
         state = dict(state, etag=etag, shown="")
     rtc.memory(json.dumps(dict(state, failures=0)).encode())
     return max(state["poll"], MIN_SLEEP_MINUTES)
