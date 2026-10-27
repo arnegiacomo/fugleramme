@@ -180,34 +180,19 @@ last page. The panel's buttons trigger the corresponding actions on the remote
 frame via the `/press` endpoint.
 
 If the frame requires sign-in for its admin page, `/press` requires the admin
-password too: set it as `ADMIN_PASSWORD` in `config.py`. It is sent with every
-press over plain HTTP, so if the frame is reachable from the internet, put HTTPS
-in front of it.
+password too. It is sent with every press over plain HTTP, so if the frame is
+reachable from the internet, put HTTPS in front of it.
 
-1. Install Pimoroni's [inky library](https://github.com/pimoroni/inky) on the
-   Pi, following its instructions. They also turn on SPI and I2C, which the
-   panel needs.
-2. Copy the files in
-   [`examples/inky`](https://github.com/arnegiacomo/fugleramme/tree/main/examples/inky)
-   to `~/fugleramme-client` on the Pi, and set the frame's address in
-   `config.py`.
-3. Try it with the Python inky was installed into. The page should appear on
-   the panel; stop it with Ctrl+C.
+Tick **External e-ink panel** on the frame's admin page, then on the Pi with
+the Inky, one command:
 
-   ```bash
-   cd ~/fugleramme-client
-   ~/.virtualenvs/pimoroni/bin/python main.py
-   ```
+```bash
+curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/examples/inky/install.sh | bash
+```
 
-4. Install it as a service, so it starts on boot and restarts if it stops, the
-   way Fugleramme itself runs. `fugleramme-client.service` assumes the user
-   `pi`; for another user, change `User` and the two paths in it first.
+It asks for the frame's address and the admin password (leave it empty if auth is not enabled), enables SPI and I2C, and sets the client up as a systemd service. If it tells you to **reboot**, do it - an image should show on the display once the Pi is online. Rerun command again to update; your answers are kept.
 
-   ```bash
-   sudo cp fugleramme-client.service /etc/systemd/system/
-   sudo systemctl enable --now fugleramme-client
-   journalctl -u fugleramme-client -f
-   ```
+Logs: `journalctl -u fugleramme-client -f`
 
 Contributed by [MT Lewis](https://github.com/mtlewis). Tested on a 13.3"
 panel with a Pi Zero 2 W.
