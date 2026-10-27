@@ -301,9 +301,9 @@ class Panel:
         # Release the hold off() left through the previous deep sleep.
         for num in (RST, DC, CS0, CS1, SCK, MOSI):
             machine.Pin(num, hold=False)
-        # Preserve the panel's power state; a brief cut poisons the controllers.
-        level = machine.Pin(POWER, machine.Pin.IN).value()
-        self.power = machine.Pin(POWER, machine.Pin.OUT, value=level)
+        # Drive the load switch high without releasing it first; a brief cut
+        # poisons the controllers.
+        self.power = machine.Pin(POWER, machine.Pin.OUT, value=1)
         self.spi = machine.SPI(
             1,
             baudrate=10_000_000,
@@ -369,9 +369,8 @@ class Panel:
             time.sleep_ms(50)
 
     def on(self) -> None:
-        if not self.power.value():
-            self.power.value(1)
-            time.sleep_ms(100)
+        # POWER is already high; give it the settle a cold power-on got.
+        time.sleep_ms(100)
         # 100/100 ms reset per the reference drivers; 20 ms is marginal.
         self.rst.value(0)
         time.sleep_ms(100)
