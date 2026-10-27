@@ -27,7 +27,7 @@ program deletes boot.py's main.py.bak once a wake has reached the frame
 without a problem, and otherwise boot.py puts the old one back and keeps the
 rejected version at bay through main.etag. A watchdog in boot.py catches a
 program that hangs instead of crashing, and an update that keeps failing the
-same way is announced on the glass.
+same way is announced on the glass. OTA is off while FIRMWARE is None.
 
 The file format is in docs/screens.md. The panel's command sequence is
 inspired by Seeed_GFX2's Driver_T133A01.cpp
@@ -63,7 +63,8 @@ WIFI_HINT = config.WIFI_HINT
 FRAME_HOST = config.FRAME_HOST
 FRAME_PORT = config.FRAME_PORT
 FRAME_TLS = config.FRAME_TLS
-FIRMWARE = config.FIRMWARE
+FIRMWARE = getattr(config, "FIRMWARE", None)
+OTA_ENABLED = isinstance(FIRMWARE, str)
 MIN_SLEEP_MINUTES = config.MIN_SLEEP_MINUTES
 NOTICE_AFTER = config.NOTICE_AFTER
 WIDTH = config.WIDTH
@@ -353,6 +354,8 @@ def update(state: dict):
     passed, and the failure the panel may want to say when it did not. On a
     new version this never returns: the board restarts onto it, and boot.py
     rolls it back if it fails its trial."""
+    if not OTA_ENABLED:
+        return state, None
     if state["refreshes_since_firmware_check"] < OTA_EVERY_N_RUNS:
         return state, None
     if there("main.py.bak"):
@@ -627,10 +630,11 @@ def main() -> int:
     """One wake: fetch, draw when the page moved, and return the minutes to sleep."""
     rtc = machine.RTC()
     state = load(rtc)
-    state = dict(
-        state,
-        refreshes_since_firmware_check=state["refreshes_since_firmware_check"] + 1,
-    )
+    if OTA_ENABLED:
+        state = dict(
+            state,
+            refreshes_since_firmware_check=state["refreshes_since_firmware_check"] + 1,
+        )
     rtc.memory(json.dumps(state).encode())
     state, problem = update(state)
     if problem is not None and state["ota_failures"] >= NOTICE_AFTER:

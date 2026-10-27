@@ -11,13 +11,12 @@ FRAME_PORT = 8080
 # Note: we don't enable host validation, just encryption to avoid having to store a certificate store
 FRAME_TLS = FRAME_PORT == 443
 
-# The panel's program comes from the frame itself: a full URL, since it may be
-# served by another host than the frame's page - for example through a reverse
-# proxy whose auth the token in the path skips, which would otherwise answer
-# the board's HTTP client with a 302 it cannot use. A bare path is served by
-# the frame's own host. Checked every OTA_EVERY_N_RUNS wakes in main.py, or at
-# once when button 2 wakes the board.
-FIRMWARE = "http://fugleramme.local/FIRMWARE-TOKEN/admin.py"
+# Set FIRMWARE to a URL serving the panel's latest program to enable OTA
+# updates. The URL must return the file directly, with no authentication or
+# redirect, for example the raw main.py from the main branch on GitHub:
+# https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/examples/ee02/main.py
+# None disables OTA.
+FIRMWARE = None
 
 # The minimum sleep duration between two polls
 MIN_SLEEP_MINUTES = 5
