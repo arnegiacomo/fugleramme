@@ -209,6 +209,9 @@ in front of it.
    journalctl -u fugleramme-client -f
    ```
 
+Contributed by [MT Lewis](https://github.com/mtlewis). Tested on a 13.3"
+panel with a Pi Zero 2 W.
+
 ### EE02 example code
 
 [`examples/ee02/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee02/main.py)
