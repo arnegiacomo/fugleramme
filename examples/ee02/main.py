@@ -83,6 +83,9 @@ REFRESH_START_MS = 2_000
 REFRESH_MIN_BUSY_MS = 10_000
 REFRESH_TIMEOUT_MS = 60_000
 
+# boot.py arms this; main.py feeds it during long network waits.
+WATCHDOG_TIMEOUT_MS = 300_000
+
 # The panel's program is checked every OTA_EVERY_N_RUNS wakes. An update is
 # staged for boot.py, which swaps it in and leaves main.py.bak behind until
 # the new program has pulled a page cleanly.
@@ -136,6 +139,17 @@ class RefreshProblem(OSError):
     pass
 
 
+_WATCHDOG = None
+
+
+def feed_watchdog() -> None:
+    """Feed the watchdog armed by boot.py during long network waits."""
+    global _WATCHDOG
+    if _WATCHDOG is None:
+        _WATCHDOG = machine.WDT(timeout=WATCHDOG_TIMEOUT_MS)
+    _WATCHDOG.feed()
+
+
 def wifi_hint() -> str:
     """The network that connected last time, tried first if still configured."""
     try:
@@ -154,6 +168,7 @@ def connect() -> None:
         print("wifi: trying", ssid)
         wlan.connect(ssid, password)
         for _ in range(30):
+            feed_watchdog()
             if wlan.isconnected():
                 print("wifi: joined", ssid)
                 if ssid != hint:
@@ -205,6 +220,7 @@ def read_exactly(sock, buffer) -> None:
     view = memoryview(buffer)
     got = 0
     while got < len(buffer):
+        feed_watchdog()
         count = sock.readinto(view[got:])
         if not count:
             raise OSError("connection closed early")
