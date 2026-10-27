@@ -101,9 +101,7 @@ class Problem(Exception):
 
 
 class RefreshProblem(OSError):
-    def __init__(self, message: str, code: str):
-        super().__init__(message)
-        self.code = code
+    pass
 
 
 def feed_watchdog() -> None:
@@ -352,7 +350,7 @@ class Panel:
             pin.value(1)
         self.dc.value(0)
 
-    def wait(self, seconds: int = 5, floor_ms: int = 0) -> None:
+    def wait(self, seconds: int = 5) -> None:
         # The controller takes a moment to pull BUSY low after a command; ready is high.
         time.sleep_ms(10)
         started = time.ticks_ms()
@@ -360,9 +358,7 @@ class Panel:
         deadline = time.ticks_add(started, seconds * 1000)
         while True:
             feed_watchdog()
-            # A ready level before the floor can be a glitch, so ignore it and
-            # keep watching; the panel may still be refreshing.
-            if self.busy.value() and time.ticks_diff(time.ticks_ms(), started) >= floor_ms:
+            if self.busy.value():
                 return
             if time.ticks_diff(deadline, time.ticks_ms()) < 0:
                 raise OSError("panel stayed busy")
@@ -396,7 +392,7 @@ class Panel:
         while self.busy.value():
             feed_watchdog()
             if time.ticks_diff(time.ticks_ms(), started) >= REFRESH_START_MS:
-                raise RefreshProblem("panel did not start refreshing", "no_start")
+                raise RefreshProblem("panel did not start refreshing")
             time.sleep_ms(2)
 
         busy_since = time.ticks_ms()
@@ -404,12 +400,12 @@ class Panel:
             feed_watchdog()
             now = time.ticks_ms()
             if time.ticks_diff(now, busy_since) >= REFRESH_TIMEOUT_MS:
-                raise RefreshProblem("panel stayed busy", "stuck_busy")
+                raise RefreshProblem("panel stayed busy")
             time.sleep_ms(5)
 
         busy_ms = time.ticks_diff(time.ticks_ms(), busy_since)
         if busy_ms < REFRESH_MIN_BUSY_MS:
-            raise RefreshProblem(f"panel released BUSY after only {busy_ms} ms", "short_busy")
+            raise RefreshProblem(f"panel released BUSY after only {busy_ms} ms")
 
     def draw(self, pixels) -> None:
         half = len(pixels) // 2
