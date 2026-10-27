@@ -30,9 +30,10 @@ program that hangs instead of crashing, and an update that keeps failing the
 same way is announced on the glass. OTA is off while FIRMWARE is None.
 
 The user LED (GPIO21, active low) reports the wake: 1 long = button 1, 2 long
-= button 2, 1 short = timer wake or reset. Then short-long-short once Wi-Fi is
-up, five short when it cannot join, steady on while the panel refreshes
-(~30 s), and three short if that refresh failed.
+= button 2, 1 short = timer wake or reset. Button 2 only checks for updates
+while OTA is on. Then short-long-short once Wi-Fi is up, five short when it
+cannot join, steady on while the panel refreshes (~30 s), and three short if
+that refresh failed.
 
 The file format is in docs/screens.md. The panel's command sequence is
 inspired by Seeed_GFX2's Driver_T133A01.cpp
@@ -96,7 +97,8 @@ WATCHDOG_TIMEOUT_MS = 300_000
 # the new program has pulled a page cleanly. The board pulls the buttons high
 # and a press pulls them low: any press on button 1 (GPIO2, XIAO D1) forces a
 # fresh page, while button 2 (GPIO3, XIAO D2, "Next Page") asks for an update
-# check at once. EXT0 and EXT1 tell the two buttons apart after the wake.
+# check at once when OTA is on. EXT0 and EXT1 tell the two buttons apart after
+# the wake.
 OTA_EVERY_N_RUNS = 48
 MAX_FIRMWARE_BYTES = 1_000_000
 BUTTON_REFRESH = 2
@@ -680,8 +682,8 @@ def show(pixels) -> None:
     recovers the panel instead."""
     # LED held on while the panel refreshes (~30 s): do not press anything,
     # and do not unplug, until it goes out.
-    led = machine.Pin(LED, machine.Pin.OUT, value=0)
     panel = Panel()
+    led = machine.Pin(LED, machine.Pin.OUT, value=0)
     try:
         panel.on()
         panel.draw(pixels)
@@ -706,12 +708,11 @@ def load(rtc) -> dict:
         return FRESH  # a cold start leaves the memory empty
 
 
-def main() -> int:
+def main(wake: str) -> int:
     """One wake: fetch, draw when the page moved, and return the minutes to sleep."""
-    button = button_wake()
-    refresh = button == "refresh"
+    refresh = wake == "refresh"
     # Button 2 asks for an immediate update check; button 1 only repaints.
-    asked = button == "update"
+    asked = wake == "update"
     rtc = machine.RTC()
     state = load(rtc)
     if OTA_ENABLED:
@@ -769,20 +770,20 @@ def main() -> int:
 
 # Immediate feedback on why the board woke, before anything slow happens:
 #   1 long  = button 1 (refetch and redraw)
-#   2 long  = button 2 (firmware update check)
+#   2 long  = button 2 (firmware update check, when OTA is on)
 #   1 short = timer wake, reset or power-on
 _wake = button_wake()
 blink({"refresh": (LONG,), "update": (LONG, LONG)}.get(_wake, (SHORT,)))
 
 try:
-    minutes = main()
+    minutes = main(_wake)
 except Exception as error:
     print("fugleramme:", error)
     minutes = MIN_SLEEP_MINUTES
 
 # The frame's poll decides the sleep; the minimum is the floor under it. Button
-# 1 forces a fresh page, button 2 asks for an update check at once; EXT0 and
-# EXT1 keep them distinguishable on the next wake.
+# 1 forces a fresh page, button 2 asks for an update check at once when OTA is
+# on; EXT0 and EXT1 keep them distinguishable on the next wake.
 for pin in (BUTTON_REFRESH, BUTTON_NEXT):
     machine.Pin(pin, machine.Pin.IN, machine.Pin.PULL_UP)
 esp32.wake_on_ext0(machine.Pin(BUTTON_REFRESH), 0)
