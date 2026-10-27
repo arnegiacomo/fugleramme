@@ -58,11 +58,9 @@ SCALE, MARGIN = 4, 96  # the built-in font is 8 px, far too small at this size
 # T133A01 BUSY is active-low: LOW while refreshing, HIGH when idle. A healthy
 # full refresh stays busy for about 28 s, or about 47 s on a cold panel. Treat
 # a missing or very short BUSY-low as a refresh that never started.
-WATCHDOG_TIMEOUT_MS = 300_000
 REFRESH_START_MS = 2_000
 REFRESH_MIN_BUSY_MS = 10_000
 REFRESH_TIMEOUT_MS = 60_000
-_WATCHDOG = None
 
 FRESH = {"etag": "", "shown": "", "failures": 0, "poll": MIN_SLEEP_MINUTES}
 
@@ -104,14 +102,6 @@ class RefreshProblem(OSError):
     pass
 
 
-def feed_watchdog() -> None:
-    """Keep the watchdog alive during long panel or network waits."""
-    global _WATCHDOG
-    if _WATCHDOG is None:
-        _WATCHDOG = machine.WDT(timeout=WATCHDOG_TIMEOUT_MS)
-    _WATCHDOG.feed()
-
-
 def wifi_hint() -> str:
     """The network that connected last time, tried first if still configured."""
     try:
@@ -130,7 +120,6 @@ def connect() -> None:
         print("wifi: trying", ssid)
         wlan.connect(ssid, password)
         for _ in range(30):
-            feed_watchdog()
             if wlan.isconnected():
                 print("wifi: joined", ssid)
                 if ssid != hint:
@@ -152,7 +141,6 @@ def read_exactly(sock, buffer) -> None:
     view = memoryview(buffer)
     got = 0
     while got < len(buffer):
-        feed_watchdog()
         count = sock.readinto(view[got:])
         if not count:
             raise OSError("connection closed early")
@@ -343,7 +331,6 @@ class Panel:
         view = memoryview(data)
         stride = (WIDTH // 4) * 64  # 64 rows of 300 bytes
         for offset in range(0, len(view), stride):
-            feed_watchdog()
             self.spi.write(view[offset : offset + stride])
             time.sleep_ms(1)
         for pin in chips:
@@ -357,7 +344,6 @@ class Panel:
         # ticks_diff handles wraparound of MicroPython's tick counter.
         deadline = time.ticks_add(started, seconds * 1000)
         while True:
-            feed_watchdog()
             if self.busy.value():
                 return
             if time.ticks_diff(deadline, time.ticks_ms()) < 0:
@@ -374,7 +360,6 @@ class Panel:
         time.sleep_ms(100)
         self.wait(5)
         for target, command, data in INIT:
-            feed_watchdog()
             self.command(target, command, data)
             time.sleep_ms(10)
         # PLL: absent from the Seeed init; an unprogrammed register can hold
@@ -390,14 +375,12 @@ class Panel:
         """Run DRF and follow BUSY through a real refresh, not just its edges."""
         started = time.ticks_ms()
         while self.busy.value():
-            feed_watchdog()
             if time.ticks_diff(time.ticks_ms(), started) >= REFRESH_START_MS:
                 raise RefreshProblem("panel did not start refreshing")
             time.sleep_ms(2)
 
         busy_since = time.ticks_ms()
         while not self.busy.value():
-            feed_watchdog()
             now = time.ticks_ms()
             if time.ticks_diff(now, busy_since) >= REFRESH_TIMEOUT_MS:
                 raise RefreshProblem("panel stayed busy")
