@@ -27,7 +27,6 @@ GPIO 43 and 44 double as UART0, so use the USB REPL.
 """
 
 import binascii
-import contextlib
 import json
 import socket
 import ssl
@@ -433,8 +432,10 @@ class Panel:
         time.sleep_ms(100)
         self.power.value(0)
         # Not every build offers deinit; a failed one leaves the pins to the hold below.
-        with contextlib.suppress(Exception):
+        try:
             self.spi.deinit()
+        except (AttributeError, OSError):
+            pass
         for num in (RST, DC, CS0, CS1, BUSY, SCK, MOSI):
             machine.Pin(num, machine.Pin.OUT, value=0)
 
