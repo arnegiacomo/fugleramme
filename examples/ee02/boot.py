@@ -46,9 +46,13 @@ if there("main.py.bak") and not there("main.py.new"):
     os.rename("main.py.bak", "main.py")
 elif there("main.py.new"):
     if there("main.py.bak"):
-        # An unconfirmed trial must not be overwritten by another update.
-        print("boot: discarding update staged during an unconfirmed trial")
+        # A power cut during the last swap left no program. Undo the staging.
+        # Drop main.etag so the frame serves the update again.
+        print("boot: discarding update staged during an interrupted swap")
         discard("main.py.new")
+        discard("main.etag")
+        if not there("main.py"):
+            os.rename("main.py.bak", "main.py")
     else:
         try:
             with open("main.py.new", "rb") as file:
