@@ -1,3 +1,5 @@
+.gitignore
+
 # macOS
 .DS_Store
 
@@ -6,6 +8,10 @@ __pycache__/
 *.py[cod]
 .venv*/
 venv/
+
+# VIM temp files
+*.swp
+*~
 
 # Artwork tooling: auditing manifests, reviewing halos, normalising cut-outs and
 # benchmarking the packer. Workstation only, never on the Pi, and nothing the

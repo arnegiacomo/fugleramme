@@ -32,8 +32,8 @@ bool useSSL = false;
 
 EPaper epaper;
 
-#define BATTERY_ADC 1A0;
-#define ADC_EN 6;
+#define BATTERY_ADC A0
+#define ADC_EN 6
 #define VOLTAGE_DIVIDER_RATIO 2.0
 
 struct __attribute__((__packed__)) Header {
@@ -238,6 +238,8 @@ void setup() {
   prefs.begin("BirdFrame");
 
   float battery = readBatteryVoltage();
+
+  Serial.printf("Battery voltage is %.2f\n",battery);
 
   WiFiManager wm;
   //wm.resetSettings();
