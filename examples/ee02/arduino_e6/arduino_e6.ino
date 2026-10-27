@@ -7,14 +7,19 @@ using fs::FS;
 #include <WiFi.h>
 #include <esp_wifi.h>
 #include <WiFiManager.h>
+#include <WiFiClientSecure.h>
 //#include <qrcode_espi.h>
 #include "PanelConvert.h"
 #include "driver.h"
 #include <TFT_eSPI.h>
 
+
 //#ifdef ESP32
 //  #include <SPIFFS.h>
 //#endif
+
+#define MIN_SLEEP_MINUTES ((uint8_t)1)
+#define uS_TO_S_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
 
 Preferences prefs;
 bool paramsChanged = false;
@@ -22,6 +27,7 @@ bool paramsChanged = false;
 // Default placeholders for first run, don't modify
 String frameHost = "fugleramme.local";
 String framePort = "8080";
+bool useSSL = false;
 
 EPaper epaper;
 
@@ -40,14 +46,22 @@ void displayError(String message, bool persistent = false) {
   Serial.println(message);
 }
 
-void getFrame(String oldEtag = "") {
+uint8_t getFrame(String oldEtag = "") {
   HTTPClient http;
-  String path = "http://" + frameHost + ":" + framePort + "/frame.e6";
-  
+
   const char* headerKeys[] = {"Etag"};
   size_t headerKeysCount = sizeof(headerKeys) / sizeof(headerKeys[0]);
   http.collectHeaders(headerKeys, headerKeysCount);
-  http.begin(path.c_str());
+
+  String URL = frameHost + ":" + framePort + "/frame.e6";
+
+  if(useSSL) {
+    WiFiClientSecure *client = new WiFiClientSecure;
+    client->setInsecure();
+    http.begin(*client, "https://" + URL);
+  } else {
+    http.begin("http://" + URL);
+  }
 
   if(oldEtag != "") {
     http.addHeader("If-None-Match",oldEtag);
@@ -60,17 +74,17 @@ void getFrame(String oldEtag = "") {
       // No change to display
       Serial.println("No change to frame.");
       http.end();
-      return;
+      return 0;
       break;
     case 404:
       displayError("The frame is not configured to serve external panels. Please enable \"External e-ink panel\" at on the admin page's \"Frame\" tab.",true);
       http.end();
-      return;
+      return 0;
       break;
     case 503:
       displayError("The frame has not drawn a page yet.");
       http.end();
-      return;
+      return 0;
       break;
     case 200:
       // Go on to display
@@ -78,7 +92,7 @@ void getFrame(String oldEtag = "") {
     default:
       displayError("The frame answered with HTTP code " + httpResponseCode);
       http.end();
-      return;
+      return 0;
       break;
   }
 
@@ -118,6 +132,8 @@ void getFrame(String oldEtag = "") {
   }
   sock.stop();
   http.end();
+
+  return header.poll;
 }
 /*
 void displaySetupInfo(WiFiManager *wifi) {
@@ -131,8 +147,63 @@ void displaySetupInfo(WiFiManager *wifi) {
 }
 */
 
+void handle_wakeup() {
+  esp_sleep_wakeup_cause_t wakeup_reason;
+
+  wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  switch (wakeup_reason) {
+    case ESP_SLEEP_WAKEUP_EXT0:     Serial.println("Wakeup caused by external signal using RTC_IO"); break;
+    case ESP_SLEEP_WAKEUP_EXT1:     Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
+    case ESP_SLEEP_WAKEUP_TIMER:    Serial.println("Wakeup caused by timer"); break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD: Serial.println("Wakeup caused by touchpad"); break;
+    case ESP_SLEEP_WAKEUP_ULP:      Serial.println("Wakeup caused by ULP program"); break;
+    default:                        Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason); break;
+  }
+}
+
 void saveParams() {
   paramsChanged = true;
+}
+
+#include "soc/io_mux_reg.h"
+
+void printAllPullupsS3() {
+  Serial.println("--- ESP32-S3 GPIO Pull-Up Status Dump ---");
+  
+  // The ESP32-S3 has 49 GPIO pins (0 through 48)
+  for (int gpio = 0; gpio <= 48; gpio++) {
+    
+    // Explicitly skip non-existent registers to avoid CPU panic/hangs
+    // GPIO 22-25 do not exist as physical pins or registers on the S3
+    if (gpio >= 22 && gpio <= 25) {
+      continue;
+    }
+    
+    // Calculate the IO MUX register address for this specific pin
+    uint32_t reg_addr = IO_MUX_GPIO0_REG + (gpio * 4);
+    
+    // Read the current hardware configuration for the pad
+    uint32_t reg_val = REG_READ(reg_addr);
+    
+    // Extract pull-up and pull-down configurations
+    bool pullup_enabled = (reg_val & FUN_PU);
+    bool pulldown_enabled = (reg_val & FUN_PD);
+    
+    Serial.print("GPIO ");
+    if (gpio < 10) Serial.print(" "); // Formatting spacer
+    Serial.print(gpio);
+    Serial.print(": ");
+    
+    if (pullup_enabled) {
+      Serial.println("[PULL-UP ENABLED]");
+    } else if (pulldown_enabled) {
+      Serial.println("(Pull-Down Enabled)");
+    } else {
+      Serial.println("Floating / High-Z");
+    }
+  }
+  Serial.println("-----------------------------------------");
 }
 
 void setup() {
@@ -140,6 +211,8 @@ void setup() {
   delay(2000);
   Serial.println("13.3\" Bird frame");
   
+  handle_wakeup();
+
   epaper.begin();
   epaper.sleep();
 
@@ -168,15 +241,26 @@ void setup() {
 
     prefs.putString("frameHost", frameHost);
     prefs.putString("framePort", framePort);
+    prefs.putBool("useSSL", useSSL);
   } else {
     frameHost = prefs.getString("frameHost", "fugleramme.local");
     framePort = prefs.getString("framePort", "8080");
+    useSSL = prefs.getBool("useSSL", false);
   }
+
+  framePort = "443";
+  useSSL = true;
 
   String Etag = prefs.getString("Etag","");
   Serial.println("Loaded frame host " + frameHost + ":" + framePort);
 
-  getFrame(Etag);
+  uint8_t sleep = getFrame(Etag);
+  
+  //printAllPullupsS3();
+  // Any need to disable pullups or isolate RTC GPIOs before sleep?
+
+  //esp_sleep_enable_timer_wakeup(max(sleep,MIN_SLEEP_MINUTES) * 60 * uS_TO_S_FACTOR);
+  //esp_deep_sleep_start();
 }
 
 void loop() {
