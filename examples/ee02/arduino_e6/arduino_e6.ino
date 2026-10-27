@@ -171,46 +171,6 @@ void saveParams() {
   paramsChanged = true;
 }
 
-#include "soc/io_mux_reg.h"
-
-void printAllPullupsS3() {
-  Serial.println("--- ESP32-S3 GPIO Pull-Up Status Dump ---");
-  
-  // The ESP32-S3 has 49 GPIO pins (0 through 48)
-  for (int gpio = 0; gpio <= 48; gpio++) {
-    
-    // Explicitly skip non-existent registers to avoid CPU panic/hangs
-    // GPIO 22-25 do not exist as physical pins or registers on the S3
-    if (gpio >= 22 && gpio <= 25) {
-      continue;
-    }
-    
-    // Calculate the IO MUX register address for this specific pin
-    uint32_t reg_addr = IO_MUX_GPIO0_REG + (gpio * 4);
-    
-    // Read the current hardware configuration for the pad
-    uint32_t reg_val = REG_READ(reg_addr);
-    
-    // Extract pull-up and pull-down configurations
-    bool pullup_enabled = (reg_val & FUN_PU);
-    bool pulldown_enabled = (reg_val & FUN_PD);
-    
-    Serial.print("GPIO ");
-    if (gpio < 10) Serial.print(" "); // Formatting spacer
-    Serial.print(gpio);
-    Serial.print(": ");
-    
-    if (pullup_enabled) {
-      Serial.println("[PULL-UP ENABLED]");
-    } else if (pulldown_enabled) {
-      Serial.println("(Pull-Down Enabled)");
-    } else {
-      Serial.println("Floating / High-Z");
-    }
-  }
-  Serial.println("-----------------------------------------");
-}
-
 float readBatteryVoltage() {
     analogReadResolution(12);
     pinMode(BATTERY_ADC, INPUT);
@@ -223,6 +183,27 @@ float readBatteryVoltage() {
         delay(1);
     }
     return sum * VOLTAGE_DIVIDER_RATIO / 16 / 1000.0;
+}
+
+void drawLowBattery(uint32_t color) {
+    epanel.drawRoundRect(30, 30, 100, 42, 3, color);
+    epanel.drawRoundRect(31, 31, 98, 40, 3, color);
+    epanel.fillRoundRect(34, 34, 10, 27, 2, color);
+    epanel.fillRoundRect(128, 44, 12, 14, 2, color);
+}
+
+void drawNoBattery(uint32_t color) {
+    drawLowBattery(color);
+    epanel.drawWideLine(30, 45, 130, 15, 2, color);
+}
+
+void drawNoWifi(uint32_t color) {
+    int centerX = 1540;
+    int centerY = 60;
+    epanel.fillCircle(centerX, centerY, 5, color);
+    epanel.drawArc(centerX, centerY, 10, 8, 140, 220, color, TFT_WHITE, false);
+    epanel.drawArc(centerX, centerY, 16, 14, 140, 220, color, TFT_WHITE, false);
+    epanel.drawArc(centerX, centerY, 22, 20, 140, 220, color, TFT_WHITE, false);
 }
 
 void setup() {
