@@ -432,19 +432,23 @@ class Panel:
         deep sleep so the idle panel drains instead of being back-fed (GPIO44/CS0
         carries a UART pull-up). BUSY is the panel's output, so it stays an
         input."""
-        self.command(BOTH, 0x02, b"\x00")
-        self.wait(5)
-        time.sleep_ms(100)
-        self.power.value(0)
-        # Not every build offers deinit; a failed one leaves the pins to the hold below.
+        # A hung controller may never release BUSY, but the power cut and pin
+        # hold must still happen.
         try:
-            self.spi.deinit()
-        except (AttributeError, OSError):
-            pass
-        for num in (RST, DC, CS0, CS1, SCK, MOSI):
-            machine.Pin(num, machine.Pin.OUT, value=0, hold=True)
-        machine.Pin(BUSY, machine.Pin.IN)
-        esp32.gpio_deep_sleep_hold(True)
+            self.command(BOTH, 0x02, b"\x00")
+            self.wait(5)
+            time.sleep_ms(100)
+        finally:
+            self.power.value(0)
+            # Not every build offers deinit; a failed one leaves the pins to the hold below.
+            try:
+                self.spi.deinit()
+            except (AttributeError, OSError):
+                pass
+            for num in (RST, DC, CS0, CS1, SCK, MOSI):
+                machine.Pin(num, machine.Pin.OUT, value=0, hold=True)
+            machine.Pin(BUSY, machine.Pin.IN)
+            esp32.gpio_deep_sleep_hold(True)
 
 
 def show(pixels) -> None:
