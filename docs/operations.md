@@ -121,7 +121,8 @@ Only public stations work. The names come in the languages BirdWeather has, see
 By default anyone who can reach Fugleramme can change its settings. On the
 Security tab, tick **Require sign-in for the admin page**, set a password and
 **Save**. The page then asks you to sign in. You stay signed in for a week, and
-changing the password signs everyone out. The kiosk is always public.
+changing the password signs everyone out. The kiosk is always public. An
+external panel's buttons then need the password too, see [Screens](screens.md).
 
 If you forget the password, set a new one in [the settings file](troubleshooting.md#locked-out-of-the-admin-page).
 

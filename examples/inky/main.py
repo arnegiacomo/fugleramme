@@ -12,7 +12,8 @@ the glass, so set_image passes it through without dithering it again. Without
 an Inky of its own, the frame lays it out for the 13.3" Impression.
 
 The panel's buttons trigger the corresponding actions on the remote frame via
-the /press endpoint.
+the /press endpoint. A frame that requires sign-in takes its admin password with
+each press.
 """
 
 import io
@@ -47,7 +48,8 @@ log = logging.getLogger("fugleramme")
 
 def press(label: str) -> None:
     """One button, pressed on the frame."""
-    request = Request(FRAME_URL + "/press", data=urlencode({"button": label}).encode())
+    fields = {"button": label, "password": config.ADMIN_PASSWORD}
+    request = Request(FRAME_URL + "/press", data=urlencode(fields).encode())
     with urlopen(request, timeout=TIMEOUT):
         pass
     log.info("Button %s pressed", label)

@@ -120,6 +120,11 @@ def _valid(key: bytes, cookie: str) -> bool:
     return when > time.time() and hmac.compare_digest(cookie, _sign(key, when))
 
 
+def _retry_after(status: int) -> dict[str, str] | None:
+    # A refusal says when to come back: the window is what the limiter forgives after.
+    return {"Retry-After": str(WINDOW)} if status == 429 else None
+
+
 def _set_cookie(value: str, seconds: int) -> str:
     # No Secure: the frame is http://<pi>:8080 and the flag would drop the cookie
     # on every LAN install. Lax keeps it off another site's cross-site POST.
@@ -247,25 +252,17 @@ def make_handler(
             self.end_headers()
 
         def _login_page(self, error: str = "", status: int = 200):
-            # A refusal says when to come back: the window is what the limiter forgives after.
-            extra = {"Retry-After": str(WINDOW)} if status == 429 else None
-            self._send(status, admin.login_page(error).encode(), HTML, extra)
+            self._send(status, admin.login_page(error).encode(), HTML, _retry_after(status))
 
         def _sign_in(self, form: dict[str, list[str]]):
-            """The password is checked here and nowhere else."""
             settings = store.get()
             if not settings.admin_locked:
                 self._redirect("/admin")  # nothing to sign in to, and no secret to mint
                 return
-            client = self._client()
-            # Bytes: compare_digest refuses a str with an "ø" in it, and the form
-            # body is UTF-8, so the owner's own password would take the door off.
-            typed = form.get("password", [""])[0].encode()
-            refused, code = self._attempt(client, typed, settings.admin_password)
+            refused, code = self._password_refused(form, settings, "admin sign-in")
             if refused:
                 # Written with `guessing` released: a slow reader would hold every
                 # other sign-in behind it.
-                log.warning("Refused admin sign-in from %s: %s", client, refused)
                 self._login_page(refused, code)
                 return
             # Minted on the first sign-in rather than at startup, so a frame nobody
@@ -275,6 +272,31 @@ def make_handler(
             expires = int(time.time()) + SESSION_SECONDS
             cookie = _set_cookie(_sign(_key(settings), expires), SESSION_SECONDS)
             self._redirect("/admin", cookie)
+
+        def _press_refused(self, form: dict[str, list[str]]) -> tuple[str, int]:
+            """Whether a press is refused, and with what. A headless client cannot
+            hold a session, so a locked frame takes the admin password with each
+            press, validated the same way it is during sign in."""
+            settings = store.get()
+            if not settings.admin_locked:
+                return "", 200
+            if not form.get("password", [""])[0]:
+                return "Password required.", 401  # not a guess, so not counted
+            return self._password_refused(form, settings, "press")
+
+        def _password_refused(
+            self, form: dict[str, list[str]], settings: Settings, what: str
+        ) -> tuple[str, int]:
+            """The admin password is checked here and nowhere else: the sign-in and
+            /press post it the same way, and both are held to one limit."""
+            client = self._client()
+            # Bytes: compare_digest refuses a str with an "ø" in it, and the form
+            # body is UTF-8, so the owner's own password would take the door off.
+            typed = form.get("password", [""])[0].encode()
+            refused, code = self._attempt(client, typed, settings.admin_password)
+            if refused:
+                log.warning("Refused %s from %s: %s", what, client, refused)
+            return refused, code
 
         def _attempt(self, client: str, typed: bytes, password: str) -> tuple[str, int]:
             """Whether this guess is refused, and with what. The check and the record
@@ -533,10 +555,13 @@ def make_handler(
                     store.update(session_secret=secrets.token_urlsafe(32))
                 self._redirect(LOGIN, _set_cookie("", 0))
                 return
-            # Open like the panel's own buttons, which anyone at the frame can press.
             if route == "/press":
                 if not store.get().external_panel:
                     self._send(404, b"not found", "text/plain")
+                    return
+                refused, code = self._press_refused(form)
+                if refused:
+                    self._send(code, refused.encode(), "text/plain", _retry_after(code))
                     return
                 button = form.get("button", [""])[0]
                 if button not in buttons.LABELS:

@@ -179,6 +179,11 @@ if it has changed. If the frame can't be reached, the panel keeps showing its
 last page. The panel's buttons trigger the corresponding actions on the remote
 frame via the `/press` endpoint.
 
+If the frame requires sign-in for its admin page, `/press` requires the admin
+password too: set it as `ADMIN_PASSWORD` in `config.py`. It is sent with every
+press over plain HTTP, so if the frame is reachable from the internet, put HTTPS
+in front of it.
+
 1. Install Pimoroni's [inky library](https://github.com/pimoroni/inky) on the
    Pi, following its instructions. They also turn on SPI and I2C, which the
    panel needs.
