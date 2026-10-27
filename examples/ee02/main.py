@@ -14,11 +14,11 @@ that does not fit this panel or a frame that is not serving one at once, a
 frame it cannot reach only after NOTICE_AFTER wakes in a row, so a restart or
 a Wi-Fi blip leaves the birds up. The next page that arrives replaces it.
 
-The panel is taken over without a cut to its supply - a partially drained
-controller rail makes a brief interruption poisonous - and a refresh is
-trusted only when BUSY actually moved and stayed low for a full refresh's
-time. A failed refresh is never retried in the same
-wake; the next wake's takeover recovers the panel.
+The panel is taken over without a cut to its supply. A brief interruption of
+an energised panel has repeatedly left it unable to refresh, though the exact
+mechanism is not established. A refresh is trusted only when BUSY actually
+moved and stayed low for a full refresh's time. A failed refresh is never
+retried in the same wake; the next wake's takeover recovers the panel.
 
 The file format is in docs/screens.md. The panel's command sequence is
 inspired by Seeed_GFX2's Driver_T133A01.cpp
@@ -279,20 +279,20 @@ def notice(message: str) -> bytearray:
 class Panel:
     """Robust lifecycle.
 
-    The controllers power on corrupted from a partially drained rail, so an
-    energised panel must never see a short power interruption. GPIO43 (the
-    panel's load switch) is UART0 TX: the ROM dirty-powers the panel at every
-    boot, and this class takes such a panel over without touching its supply.
-    The reset and extra init steps recover it in practice. They were added
-    together and not bisected.
+    An energised panel must never see a short power interruption: refreshes
+    after one have failed here, though the mechanism is not established. GPIO43
+    (the panel's load switch) is UART0 TX: the ROM dirty-powers the panel at
+    every boot, and this class takes such a panel over without touching its
+    supply. The reset and extra init steps recover it in practice. They were
+    added together and not bisected.
     """
 
     def __init__(self):
         # Release the hold off() left through the previous deep sleep.
         for num in (RST, DC, CS0, CS1, SCK, MOSI):
             machine.Pin(num, hold=False)
-        # Drive the load switch high without releasing it first; a brief cut
-        # poisons the controllers.
+        # Drive the load switch high without releasing it first. A brief cut
+        # of an energised panel has broken refreshes here.
         self.power = machine.Pin(POWER, machine.Pin.OUT, value=1)
         self.spi = machine.SPI(
             1,
