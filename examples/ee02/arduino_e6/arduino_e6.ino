@@ -193,17 +193,18 @@ void drawLowBattery(uint32_t color) {
 }
 
 void drawNoBattery(uint32_t color) {
-    drawLowBattery(color);
     epanel.drawWideLine(30, 45, 130, 15, 2, color);
+    drawLowBattery(color);
 }
 
 void drawNoWifi(uint32_t color) {
     int centerX = 1540;
     int centerY = 60;
     epanel.fillCircle(centerX, centerY, 5, color);
-    epanel.drawArc(centerX, centerY, 10, 8, 140, 220, color, TFT_WHITE, false);
-    epanel.drawArc(centerX, centerY, 16, 14, 140, 220, color, TFT_WHITE, false);
-    epanel.drawArc(centerX, centerY, 22, 20, 140, 220, color, TFT_WHITE, false);
+    epanel.drawSmoothArc(centerX, centerY, 10, 8, 140, 220, color, TFT_WHITE, true);
+    epanel.drawSmoothArc(centerX, centerY, 16, 14, 140, 220, color, TFT_WHITE, true);
+    epanel.drawSmoothArc(centerX, centerY, 22, 20, 140, 220, color, TFT_WHITE, true);
+    epanel.drawWideLine(1525, 65, 1555, 30, 3, color);
 }
 
 void setup() {
