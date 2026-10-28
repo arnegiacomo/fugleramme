@@ -14,14 +14,15 @@ using fs::FS;
 #include <TFT_eSPI.h>
 
 
-#define LOW_BATTERY_BOOT 3.0
-#define LOW_BATTERY_WIFI 3.4
+#define LOW_BATTERY_WIFI 3.3
 #define LOW_BATTERY_WARNING 3.5
 
-#define LOW_BATTERY_SLEEP_MINUTES ((uint8_t))60
-#define MIN_SLEEP_MINUTES ((uint8_t)1)
+#define LOW_BATTERY_SLEEP_MINUTES ((uint8_t)60)
+#define MIN_SLEEP_MINUTES ((uint8_t)5)
 
 #define uS_TO_S_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
+
+enum powerMode{ SLEEP, WARN, FULL };
 
 Preferences prefs;
 bool paramsChanged = false;
@@ -48,10 +49,11 @@ struct __attribute__((__packed__)) Header {
 };
 
 void displayError(String message, bool persistent = false) {
+  // Not yet implemented, just print the error
   Serial.println(message);
 }
 
-bool getFrame(String oldEtag = "", uint8_t &poll) {
+bool getFrame(String oldEtag, float battery, uint8_t &poll) {
   HTTPClient http;
 
   bool refresh = false;
@@ -59,7 +61,7 @@ bool getFrame(String oldEtag = "", uint8_t &poll) {
   size_t headerKeysCount = sizeof(headerKeys) / sizeof(headerKeys[0]);
   http.collectHeaders(headerKeys, headerKeysCount);
 
-  String URL = frameHost + ":" + framePort + "/frame.e6";
+  String URL = frameHost + ":" + framePort + "/frame.e6?battery=" + String(battery, 2);
 
   if(useSSL) {
     WiFiClientSecure *client = new WiFiClientSecure;
@@ -187,29 +189,30 @@ float readBatteryVoltage() {
         sum += analogReadMilliVolts(BATTERY_ADC);
         delay(1);
     }
+    digitalWrite(ADC_EN, LOW);
     return sum * VOLTAGE_DIVIDER_RATIO / 16 / 1000.0;
 }
 
 void drawLowBattery(uint32_t color) {
-    epanel.drawRoundRect(30, 30, 100, 42, 3, color);
-    epanel.drawRoundRect(31, 31, 98, 40, 3, color);
-    epanel.fillRoundRect(34, 34, 10, 27, 2, color);
-    epanel.fillRoundRect(128, 44, 12, 14, 2, color);
+    epaper.fillRoundRect(1128, 30, 42, 100, 3, color);
+    epaper.fillRoundRect(1130, 32, 38, 96, 3, TFT_WHITE);
+    epaper.fillRoundRect(1133, 35, 32, 10, 2, color);
+    epaper.fillRoundRect(1138, 128, 22, 10, 2, color);
 }
 
 void drawNoBattery(uint32_t color) {
-    epanel.drawWideLine(30, 45, 130, 15, 2, color);
+    epaper.drawWideLine(1113, 30, 1185, 130, 2, color);
     drawLowBattery(color);
 }
 
 void drawNoWifi(uint32_t color) {
-    int centerX = 1540;
-    int centerY = 60;
-    epanel.fillCircle(centerX, centerY, 5, color);
-    epanel.drawSmoothArc(centerX, centerY, 10, 8, 140, 220, color, TFT_WHITE, true);
-    epanel.drawSmoothArc(centerX, centerY, 16, 14, 140, 220, color, TFT_WHITE, true);
-    epanel.drawSmoothArc(centerX, centerY, 22, 20, 140, 220, color, TFT_WHITE, true);
-    epanel.drawWideLine(1525, 65, 1555, 30, 3, color);
+    int centerX = 1140;
+    int centerY = 1540;
+    epaper.fillCircle(centerX, centerY, 5, color);
+    epaper.drawSmoothArc(centerX, centerY, 15, 10, 220, 320, color, TFT_WHITE, true);
+    epaper.drawSmoothArc(centerX, centerY, 25, 20, 220, 320, color, TFT_WHITE, true);
+    epaper.drawSmoothArc(centerX, centerY, 35, 30, 220, 320, color, TFT_WHITE, true);
+    epaper.drawWideLine(1140, 1520, 1172, 1562, 5, color);
 }
 
 void setup() {
@@ -224,60 +227,90 @@ void setup() {
 
   prefs.begin("BirdFrame");
 
+  uint8_t sleep = MIN_SLEEP_MINUTES;
   float battery = readBatteryVoltage();
+  powerMode currentMode;
+  powerMode lastMode = static_cast<powerMode>(prefs.getUChar("powerMode",static_cast<uint8_t>(FULL)));
+
+  if(battery >= LOW_BATTERY_WARNING)
+    currentMode = FULL;
+  else if(battery >= LOW_BATTERY_WIFI)
+    currentMode = WARN;
+  else
+    currentMode = SLEEP;
 
   Serial.printf("Battery voltage is %.2f\n",battery);
 
-  WiFiManager wm;
-  //wm.resetSettings();
-  
-  WiFiManagerParameter fuglerammeHost("frameHost", "Fugleramme Host", frameHost.c_str(), 128);
-  WiFiManagerParameter fuglerammePort("framePort", "Fugleramme Port", framePort.c_str(), 5);
-  
-  //wm.setAPCallback(displaySetupInfo);
-  wm.setSaveParamsCallback(saveParams);
-  wm.addParameter(&fuglerammeHost);
-  wm.addParameter(&fuglerammePort);
+  String Etag;
+  // Force one last fetch before entering low-power mode
+  if(lastMode != SLEEP && currentMode == SLEEP)
+    Etag = "";
+  else
+    Etag = prefs.getString("Etag","");
 
-  if(!wm.autoConnect()) {
-    delay(3000);
-    ESP.restart();
-    delay(5000);
-  }
-
-  if(paramsChanged) {
-    frameHost = fuglerammeHost.getValue();
-    framePort = fuglerammePort.getValue();
-
-    prefs.putString("frameHost", frameHost);
-    prefs.putString("framePort", framePort);
-    prefs.putBool("useSSL", useSSL);
-  } else {
-    frameHost = prefs.getString("frameHost", "fugleramme.local");
-    framePort = prefs.getString("framePort", "8080");
-    useSSL = prefs.getBool("useSSL", false);
-  }
-
-  String Etag = prefs.getString("Etag","");
-  Serial.println("Loaded frame host " + frameHost + ":" + framePort);
-
-  uint8_t sleep;
-  bool need_refresh;
+  // Skip all the processing and go back to sleep if we've been below Wifi threshold twice in a row
+  if(!(currentMode == SLEEP && lastMode == SLEEP)) {
+    WiFiManager wm;
+    //wm.resetSettings();
     
-  need_refresh = getFrame(Etag, sleep);
-
-// Code to add overlays goes here
+    WiFiManagerParameter fuglerammeHost("frameHost", "Fugleramme Host", frameHost.c_str(), 128);
+    WiFiManagerParameter fuglerammePort("framePort", "Fugleramme Port", framePort.c_str(), 5);
+    WiFiManagerParameter SSL("useSSL", "USE HTTPS", "F", 2, "type=\"checkbox\" value=\"F\"");
     
-  if(need_refresh) {
-    epanel.update();
-    epanel.sleep();
+    //wm.setAPCallback(displaySetupInfo);
+    wm.setSaveParamsCallback(saveParams);
+    wm.addParameter(&fuglerammeHost);
+    wm.addParameter(&fuglerammePort);
+    wm.addParameter(&SSL);
+
+    if(!wm.autoConnect()) {
+      delay(3000);
+      ESP.restart();
+      delay(5000);
+    }
+
+    if(paramsChanged) {
+      frameHost = fuglerammeHost.getValue();
+      framePort = fuglerammePort.getValue();
+      useSSL = (String(SSL.getValue()).length() > 0);
+
+      prefs.putString("frameHost", frameHost);
+      prefs.putString("framePort", framePort);
+      prefs.putBool("useSSL", useSSL);
+    } else {
+      frameHost = prefs.getString("frameHost", "fugleramme.local");
+      framePort = prefs.getString("framePort", "8080");
+      useSSL = prefs.getBool("useSSL", false);
+    }
+
+    Serial.println("Loaded frame host " + frameHost + ":" + framePort);
+
+    bool need_refresh;
+    need_refresh = getFrame(Etag, battery, sleep);
+
+    if(currentMode < FULL)
+      drawLowBattery(TFT_RED);
+    
+    if(currentMode == SLEEP)
+      drawNoWifi(TFT_RED);
+    
+    if(need_refresh) {
+      epaper.update();
+      epaper.sleep();
+    }
   }
-  
+
+  prefs.putUChar("powerMode",static_cast<uint8_t>(currentMode));
+
   //printAllPullupsS3();
   // Any need to disable pullups or isolate RTC GPIOs before sleep?
-
-  //esp_sleep_enable_timer_wakeup(max(sleep,MIN_SLEEP_MINUTES) * 60 * uS_TO_S_FACTOR);
-  //esp_deep_sleep_start();
+  uint8_t sleepTime;
+  if(currentMode == SLEEP)
+    sleepTime = LOW_BATTERY_SLEEP_MINUTES;
+  else
+    sleepTime = max(sleep,MIN_SLEEP_MINUTES);
+  esp_sleep_enable_timer_wakeup(sleepTime * 60 * uS_TO_S_FACTOR);
+  esp_deep_sleep_start();
 }
 
 void loop() {
