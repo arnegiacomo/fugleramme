@@ -7,7 +7,7 @@ How the frame shows the page, and how to change it. Open the admin page at
 
 ### Panel output
 
-Enable or disable the different outputs that are generated. The Inky Impression is automatically detected as soon as it is connected, and its image data is generated internally. The raw image data for an external e-ink panel is served via the web interface and can be enabled or disabled. The web view is always enabled.
+Enable or disable the different outputs that are generated. The Inky Impression is automatically detected as soon as it is connected, and its image data is generated internally. The raw image data for an external e-ink panel is served via the web interface and can be enabled or disabled. Set **External panel size** to match that panel. By default it matches the Inky connected to this frame, or **13.3"** if there is none. The web view is always enabled.
 
 ### Rotation
 

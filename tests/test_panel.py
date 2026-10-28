@@ -9,7 +9,7 @@ import numpy
 import pytest
 from PIL import Image
 
-from fugleramme.panel import Panel
+from fugleramme.panel import Panel, external_resolution, resolution_of
 from fugleramme.render.dither import dither
 
 # inky.inky_el133uf1.DESATURATED_PALETTE - what the driver quantizes against.
@@ -100,3 +100,13 @@ def test_dither_survives_the_driver_untouched():
     remapped = image.convert("RGB").quantize(6, palette=palette_image, dither=Image.Dither.NONE)
 
     assert numpy.array_equal(numpy.array(image), numpy.array(remapped))
+
+
+def test_the_external_panel_takes_its_pick_else_the_inky_s_size_else_the_13_inch():
+    device = FakeInky()
+    device.resolution = (800, 480)
+    inky = Panel(device)
+    assert external_resolution(inky, "") == (800, 480)
+    assert external_resolution(inky, "4") == (640, 400)
+    assert external_resolution(None, "") == (1600, 1200)
+    assert resolution_of(inky, "4") == (800, 480)  # this frame's own page stays the Inky's

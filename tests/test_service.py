@@ -8,6 +8,7 @@ import logging
 import re
 import signal
 from dataclasses import replace
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import numpy as np
@@ -300,11 +301,20 @@ def test_no_floor_is_the_shipped_default(tmp_path):
     assert service._due(0, service.time.monotonic())
 
 
-def test_with_the_e6_page_on_the_loop_lays_out_and_hands_over_a_13_inch_page(
-    tmp_path, images, detector
+@pytest.mark.parametrize(
+    ("inky", "external_panel_size", "hung", "renders"),
+    [
+        (None, "", (1200, 1600), 1),  # nothing picked and no Inky: the 13.3"
+        (None, "7.3", (480, 800), 1),
+        ((800, 480), "", (480, 800), 1),  # nothing picked: the Inky's page, as before the pick
+        ((800, 480), "13.3", (1200, 1600), 2),  # a page of its own, the Inky keeping its own
+    ],
+)
+def test_with_the_e6_page_on_the_loop_hands_over_a_page_at_the_external_panel_s_size(
+    tmp_path, images, detector, inky, external_panel_size, hung, renders
 ):
-    """No Inky Impression connected, so the external e-ink panel is the glass: its own
-    edges, and the dithered page left where /frame.e6 packs it from."""
+    """The external e-ink panel takes its own size and edges, and the dithered page
+    is left where /frame.e6 packs it from. This frame's Inky still gets its own."""
     url, _httpd = detector(count=40, seed=0)
     config = Config(
         images_dir=images,
@@ -315,7 +325,13 @@ def test_with_the_e6_page_on_the_loop_lays_out_and_hands_over_a_13_inch_page(
         config_path=tmp_path / "settings.json",
     )
     store = SettingsStore(config.config_path, Settings(detector_url=url))
-    store.update(external_panel=True, rotation=90, margin_lock=False, margin_top=20)
+    store.update(
+        external_panel=True,
+        external_panel_size=external_panel_size,
+        rotation=90,
+        margin_lock=False,
+        margin_top=20,
+    )
     statuses: list[Status] = []
 
     def status() -> Status:
@@ -325,8 +341,19 @@ def test_with_the_e6_page_on_the_loop_lays_out_and_hands_over_a_13_inch_page(
     def sleep(_seconds):
         raise _Stop
 
+    pushed: list[tuple[int, int]] = []
+    panel = (
+        SimpleNamespace(
+            resolution=inky, driver="", push=lambda image, _rotation: pushed.append(image.size)
+        )
+        if inky
+        else None
+    )
+
     with (
         patch.object(service.updates, "available", return_value=None),
+        patch.object(service, "init_panel", return_value=panel),
+        patch.object(service.buttons, "watch"),
         patch.object(service, "Status", status),
         patch.object(service.modes, "render", side_effect=modes.render) as render,
         patch.object(service.time, "sleep", sleep),
@@ -334,10 +361,12 @@ def test_with_the_e6_page_on_the_loop_lays_out_and_hands_over_a_13_inch_page(
     ):
         service.run(config)
 
+    assert render.call_count == renders
     ctx = render.call_args.args[0]
     assert 0.2 in ctx.margin and len(set(ctx.margin)) == 2  # the one edge set on its own
     image, rotation = statuses[0].frame
-    assert (image.mode, image.size, rotation) == ("P", (1200, 1600), 90)
+    assert (image.mode, image.size, rotation) == ("P", hung, 90)
+    assert pushed == ([(480, 800)] if inky else [])
 
 
 @pytest.mark.parametrize("signal_code", [signal.SIGINT, signal.SIGTERM])

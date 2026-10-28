@@ -325,6 +325,25 @@ def test_with_the_e6_page_on_the_frame_is_laid_out_for_a_13_inch_panel(ext_eink_
     assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1440, 1080)
 
 
+def test_the_picked_panel_size_lays_out_the_page_and_only_the_13_inch_gets_e6(ext_eink_panel):
+    ext_eink_panel.store.update(external_panel_size="7.3")
+    assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1800, 1080)
+
+    ext_eink_panel.status.frame = (Image.new("P", (480, 800), 1), 90)
+    assert _size(_fetch(ext_eink_panel.base + "/frame.png")[2]) == (800, 480)
+    status, _headers, body = _fetch(ext_eink_panel.base + "/frame.e6")
+    assert status == 404 and b"13.3" in body
+
+
+def test_the_preview_follows_this_frame_s_inky_whatever_the_external_size(tmp_path, source):
+    store = SettingsStore(
+        tmp_path / SETTINGS, Settings(external_panel=True, external_panel_size="4")
+    )
+    panel = SimpleNamespace(resolution=(800, 480))
+    for base in _serve(tmp_path, source(count=40, seed=0), store=store, panel=panel):
+        assert _size(_fetch(base + "/preview.png")[2]) == (1800, 1080)
+
+
 def test_the_admin_form_switches_the_e6_page(frame, tmp_path):
     fields = {"checkboxes": "external_panel", "external_panel": "on"}
     _post(frame + "/admin", fields)
@@ -875,12 +894,34 @@ def test_a_press_is_not_there_until_the_external_panel_is_switched_on(frame):
     assert _post(frame + "/press", {"button": "B"})[0] == 404
 
 
-def test_a_press_is_open_like_the_panel_s_own_buttons(tmp_path, source):
-    """A headless client cannot hold a browser session, and a sign-out anywhere
-    would end it."""
+@pytest.fixture
+def locked_panel(tmp_path, source):
     store = SettingsStore(
         tmp_path / SETTINGS,
         Settings(admin_password=PASSWORD, require_sign_in=True, external_panel=True),
     )
-    for base in _serve(tmp_path, source(count=40, seed=0), store=store):
-        assert _post(base + "/press", {"button": "B"})[0] == 204
+    yield from _serve(tmp_path, source(count=40, seed=0), store=store)
+
+
+def test_a_press_on_a_locked_frame_takes_the_admin_password(locked_panel):
+    """A headless client cannot hold a browser session, so it sends the password."""
+    assert _post(locked_panel + "/press", {"button": "B"})[0] == 401
+    assert _post(locked_panel + "/press", {"button": "B", "password": "sparrow"})[0] == 401
+    assert _post(locked_panel + "/press", {"button": "B", "password": PASSWORD})[0] == 204
+
+
+def test_wrong_press_passwords_are_held_to_the_sign_in_limit(locked_panel):
+    """Otherwise /press would be a way to guess the admin password unthrottled."""
+    for _ in range(server.TRIES):
+        assert _post(locked_panel + "/press", {"button": "B", "password": "sparrow"})[0] == 401
+    status, headers, _body = _post(locked_panel + "/press", {"button": "B", "password": PASSWORD})
+    assert status == 429
+    assert headers["Retry-After"] == str(server.WINDOW)
+    assert _post(locked_panel + LOGIN, {"password": PASSWORD})[0] == 429
+
+
+def test_a_press_without_a_password_is_not_a_guess(locked_panel):
+    """A client nobody has given the password must not lock the owner out."""
+    for _ in range(server.TRIES):
+        assert _post(locked_panel + "/press", {"button": "B"})[0] == 401
+    assert _post(locked_panel + "/press", {"button": "B", "password": PASSWORD})[0] == 204

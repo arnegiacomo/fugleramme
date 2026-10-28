@@ -24,7 +24,7 @@ from . import __version__, buttons, languages, modes, taxa, updates
 from .api import Configured
 from .config import Config
 from .languages import namer
-from .panel import init_panel, resolution_of
+from .panel import external_resolution, init_panel, resolution_of
 from .render.dither import dither
 from .settings import Settings, SettingsStore, from_env
 from .source import Unavailable
@@ -165,7 +165,14 @@ def run(config: Config) -> None:
         settings = store.get()
         if _update(status, settings.auto_update):
             return  # new code is checked out; systemd restarts us into it
-        size = settings.oriented(resolution_of(panel))
+        size = settings.oriented(resolution_of(panel, settings.external_panel_size))
+        # The external panel's own page, rendered apart only when this frame's Inky
+        # is another size.
+        outside = (
+            settings.oriented(external_resolution(panel, settings.external_panel_size))
+            if settings.external_panel
+            else size
+        )
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
@@ -180,7 +187,7 @@ def run(config: Config) -> None:
         )
         try:
             last_artless = _log_artless(ctx, last_artless)
-            key = (modes.state_key(ctx), settings.rotation)
+            key = (modes.state_key(ctx), outside, settings.rotation)
             # The floor paces the birds alone; a saved setting goes straight through.
             if key != last_key and (
                 _paced(settings) != last_settings or _due(settings.refresh_minutes, last_render)
@@ -189,7 +196,11 @@ def run(config: Config) -> None:
                 panel_image.save(config.output_path)
                 log.info("Rendered %s for the panel at %dx%d", ctx.mode, *size)
                 frame = (panel_image, settings.rotation)
-                status.rendered(frame)
+                external = frame
+                if outside != size:
+                    external = (dither(modes.render(replace(ctx, resolution=outside))), frame[1])
+                    log.info("Rendered %s for the external panel at %dx%d", ctx.mode, *outside)
+                status.rendered(external)
                 last_key, last_settings, last_render = key, _paced(settings), time.monotonic()
                 pending = frame if panel is not None else None
             if unreachable:

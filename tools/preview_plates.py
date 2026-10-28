@@ -11,7 +11,7 @@ import argparse
 import re
 from pathlib import Path
 
-from fugleramme.config import FALLBACK_PANEL_RESOLUTION
+from fugleramme.config import DEFAULT_PANEL_SIZE, PANEL_SIZES
 from fugleramme.render.collage import render_collage
 from fugleramme.render.dither import dither
 
@@ -29,8 +29,9 @@ def main() -> None:
 
     entries: list[tuple[str, Path | None]] = [(species(p), p) for p in args.plates]
     args.out.mkdir(parents=True, exist_ok=True)
-    render_collage(entries, FALLBACK_PANEL_RESOLUTION).save(args.out / "web.png")
-    panel = render_collage(entries, FALLBACK_PANEL_RESOLUTION, textured=False)
+    size = PANEL_SIZES[DEFAULT_PANEL_SIZE]
+    render_collage(entries, size).save(args.out / "web.png")
+    panel = render_collage(entries, size, textured=False)
     dither(panel).save(args.out / "panel.png")
 
 

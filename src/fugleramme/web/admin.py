@@ -21,8 +21,11 @@ from .. import __version__, birdweather, modes, updates
 from ..api import probe
 from ..config import (
     BIRDNET_PORT,
+    DEFAULT_PANEL_SIZE,
     DOCS_URL,
     NEW_ISSUE_URL,
+    PANEL_SIZES,
+    SAME_AS_INKY,
     WEB_ASPECTS,
     WEB_HEIGHTS,
 )
@@ -853,15 +856,27 @@ EDGES = "The same margin on every edge of the panel"
 
 
 EXTERNAL = (
-    "Serves the panel's page at /frame.e6 and /frame.png for external e-ink panels, "
-    "and takes their button presses at /press. "
-    'Without an Inky Impression, the page is laid out for a 13.3" panel. Anyone who can '
-    "reach the frame can access these endpoints."
+    "Serves the page to an e-ink panel driven by another device."
+    "\n\nAnyone who can reach the frame can see it. Its buttons need the admin password "
+    "while sign-in is on."
 )
+
+PANEL_SIZE = "The external panel's size. /frame.e6 is 13.3\" only."
 
 
 def _output_field(settings: Settings, detected: bool) -> str:
     # Only the external panel is a setting; the disabled rows post nothing, so declare none.
+    # Its size shows while the box is ticked; admin.js follows the form. Following the
+    # Inky is only offered while there is one to follow.
+    sizes = {s: '{}" ({}×{})'.format(s, *PANEL_SIZES[s]) for s in PANEL_SIZES}
+    if detected:
+        sizes = {SAME_AS_INKY: "Same as this frame's Inky", **sizes}
+    picked = (
+        settings.external_panel_size
+        if detected
+        else settings.external_panel_size or DEFAULT_PANEL_SIZE
+    )
+    off = "" if settings.external_panel else " disabled"
     inky = (
         "Always enabled as an Inky Impression panel is currently connected."
         if detected
@@ -881,6 +896,9 @@ def _output_field(settings: Settings, detected: bool) -> str:
             f"<span>External e-ink panel {_hint(EXTERNAL)}</span>",
             checked=settings.external_panel,
         )
+        + f'<label class="sub" id="panel-size"{"" if settings.external_panel else " hidden"}>'
+        f'<small>External panel size {_hint(PANEL_SIZE)}</small><select name="external_panel_size"{off}>'
+        f"{_options(sizes, picked, sizes.get)}</select></label>"
         + _checkbox(
             "web_enable",
             f"<span>Browser kiosk {_hint('Web access is always enabled.')}</span>",
@@ -1035,7 +1053,7 @@ def page(
     rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
     if status.push_error:
         rendered += f" · panel push failing ({status.push_error})"
-    # Without an Inky Impression connected, the external e-ink panel is the
+    # With no Inky connected to this frame, the external e-ink panel is the
     # one the page is laid out for.
     paneled = detected or settings.external_panel
     attached = panel_size if paneled else None
@@ -1063,6 +1081,7 @@ def page(
                 # else the external panel's.
                 "panel": [max(panel_size), min(panel_size)],
                 "detected": detected,
+                "panelSizes": PANEL_SIZES,  # so the page follows the external panel size picked
                 "faceNotes": face_notes,  # so the Typeface warning follows the form
             }
         ),
