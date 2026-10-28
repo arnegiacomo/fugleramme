@@ -32,8 +32,19 @@ WEB_ASPECTS: dict[str, tuple[int, int]] = {
 # The fallback panel's shape: what a panel-less kiosk packs unless told otherwise.
 DEFAULT_WEB_ASPECT = "4:3"
 
-# Panel render size when no Inky is attached (dev loop, external panel): Impression 13.3".
-FALLBACK_PANEL_RESOLUTION = (1600, 1200)
+# The Inky Impressions inky.auto knows, by diagonal in inches, as native landscape
+# (w, h): the sizes an external panel can be picked at.
+PANEL_SIZES: dict[str, tuple[int, int]] = {
+    "4": (640, 400),
+    "5.7": (600, 448),
+    "7.3": (800, 480),
+    "13.3": (1600, 1200),
+}
+
+# Nothing picked: the external panel takes this frame's Inky's size, as it did
+# before there was a pick, else the 13.3".
+SAME_AS_INKY = ""
+DEFAULT_PANEL_SIZE = "13.3"
 
 # Network defaults, single source for the app. The kiosk + admin bind here; the
 # BirdNET-Go container publishes its own UI on BIRDNET_PORT (detector/docker-compose.yml).

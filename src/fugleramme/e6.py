@@ -24,12 +24,16 @@ import zlib
 import numpy as np
 from PIL import Image
 
+from .config import PANEL_SIZES
 from .panel import to_glass
 
 MAGIC = b"E6F1"
 VERSION = 1
 ENCODING = 1
 HEADER = struct.Struct("<4sHBBHHII")
+
+# The only glass `encode` packs for: the 13.3" Seeed panel's, as two controllers.
+GLASS = PANEL_SIZES["13.3"]
 
 # `dither`'s palette order - black, white, yellow, red, blue, green - to the
 # controllers' codes, which skip 4.

@@ -403,9 +403,9 @@ const mat = document.getElementById("mat");
 const caption = document.querySelector(".rendering");
 const captionHTML = caption.innerHTML;
 const form = document.querySelector("form.settings");
-// The panel the page is laid out for: an Inky, else the external one while it is ticked.
+// The panel the page is laid out for: an Inky, else the external one at its size while it is ticked.
 const external = form.querySelector("input[name=external_panel]");
-const glass = () => (cfg.detected || external.checked ? cfg.panel : null);
+const glass = () => (cfg.detected ? cfg.panel : external.checked ? cfg.panelSizes[form.external_panel_size.value] : null);
 // What the preview shows: the panel's page while there is a panel, else the
 // web view alone in the browser.
 const title = document.getElementById("preview-title");
@@ -476,7 +476,7 @@ function hungMargins() {
 
 function reveal(el, on) {
   el.hidden = !on;
-  el.querySelectorAll("input").forEach((c) => { c.disabled = !on; });
+  el.querySelectorAll("input, select").forEach((c) => { c.disabled = !on; });
 }
 function syncMargin() {
   const open = unlocked();
@@ -566,6 +566,7 @@ const syncSizes = () => {
 };
 // Without a panel there is nothing to turn or lock to.
 function syncPanel() {
+  reveal(document.getElementById("panel-size"), external.checked);
   dim(form.rotation.closest("label"), Boolean(glass()));
   dim(document.getElementById("web-lock"), Boolean(glass()));
   const hint = document.getElementById("lock-hint");

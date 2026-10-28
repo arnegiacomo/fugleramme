@@ -324,9 +324,35 @@ def test_with_no_panel_the_lock_is_disabled_declaration_and_all(tmp_path, source
 
 
 def test_the_panel_has_a_title_over_its_outputs(tmp_path, source):
-    outputs = re.search(r'<div class="field" id="outputs">.*?</div>', _page(tmp_path, source()))
+    page = _page(tmp_path, source())
+    outputs = re.search(r'<div class="field" id="outputs">.*?</div>', page, re.DOTALL)
     assert outputs.group(0).startswith('<div class="field" id="outputs"><span>Outputs</span>')
     assert 'name="external_panel"' in outputs.group(0)
+
+
+def test_the_external_panel_size_is_offered_while_the_external_panel_is_ticked(tmp_path, source):
+    offered = (
+        '<label class="sub" id="panel-size"><small>External panel size '
+        f"{admin._hint(admin.PANEL_SIZE)}</small>"
+        '<select name="external_panel_size">'
+    )
+    page = _page(tmp_path, source(), detected=False, external_panel=True, external_panel_size="5.7")
+    assert offered in page
+    assert '<option value="5.7" selected>5.7" (600×448)</option>' in page
+    assert _config(page)["panelSizes"]["13.3"] == [1600, 1200]  # the preview follows the pick
+    assert offered in _page(tmp_path, source(), detected=True, external_panel=True)
+    page = _page(tmp_path, source(), external_panel=False)
+    assert (
+        'id="panel-size" hidden>' in page and '<select name="external_panel_size" disabled>' in page
+    )
+
+
+def test_following_the_inky_is_offered_only_while_there_is_one(tmp_path, source):
+    same = '<option value="" selected>Same as this frame\'s Inky</option>'
+    assert same in _page(tmp_path, source(), detected=True, external_panel=True)
+    page = _page(tmp_path, source(), detected=False, external_panel=True)
+    assert 'value=""' not in page.split('id="panel-size"')[1].split("</select>")[0]
+    assert '<option value="13.3" selected>' in page  # nothing picked, no Inky: the 13.3"
 
 
 def test_every_tab_has_the_pane_admin_js_shows(tmp_path, source):
