@@ -26,13 +26,18 @@ enum powerMode{ SLEEP, WARN, FULL };
 
 Preferences prefs;
 bool paramsChanged = false;
-
 String frameHost = "";
 String framePort = "";
 bool useSSL = false;
+bool forceUpdate = false;
+bool configPortal = false;
+bool configReset = false;
 
 EPaper epaper;
 
+#define KEY0  GPIO_NUM_2 // User Button 1
+#define KEY1  GPIO_NUM_3 // User Button 2
+#define KEY2  GPIO_NUM_5 // User Button 3
 #define BATTERY_ADC A0
 #define ADC_EN 6
 #define VOLTAGE_DIVIDER_RATIO 2.0
@@ -165,17 +170,49 @@ void handle_wakeup() {
   wakeup_reason = esp_sleep_get_wakeup_cause();
 
   switch (wakeup_reason) {
-    case ESP_SLEEP_WAKEUP_EXT0:     Serial.println("Wakeup caused by external signal using RTC_IO"); break;
-    case ESP_SLEEP_WAKEUP_EXT1:     Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
-    case ESP_SLEEP_WAKEUP_TIMER:    Serial.println("Wakeup caused by timer"); break;
-    case ESP_SLEEP_WAKEUP_TOUCHPAD: Serial.println("Wakeup caused by touchpad"); break;
-    case ESP_SLEEP_WAKEUP_ULP:      Serial.println("Wakeup caused by ULP program"); break;
-    default:                        Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason); break;
+    case ESP_SLEEP_WAKEUP_EXT1:
+      {
+        uint64_t wakeup_pin_mask = esp_sleep_get_ext1_wakeup_status();
+        if (wakeup_pin_mask & (1ULL << KEY0)) {
+          Serial.println("Wakeup caused by Button 1");
+          configReset = true;
+          for(int i = 0; i < 10; i++) {
+            if(digitalRead(KEY2) == HIGH) {
+              configReset = false;
+              break;
+            }
+            delay(1000);
+          }
+        }
+        if (wakeup_pin_mask & (1ULL << KEY1)) {
+          Serial.println("Wakeup caused by Button 2");
+          configPortal = true;
+          for(int i = 0; i < 5; i++) {
+            if(digitalRead(KEY1) == HIGH) {
+              configPortal = false;
+              break;
+            }
+            delay(1000);
+          }
+        }          
+        if (wakeup_pin_mask & (1ULL << KEY2)) {
+          Serial.println("Wakeup caused by Button 3");
+          forceUpdate = true;
+        }
+        break;
+      }
+    case ESP_SLEEP_WAKEUP_TIMER:
+      Serial.println("Wakeup caused by timer");
+      break;
+    default:
+      Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
+      break;
   }
 }
 
 void saveParams() {
   paramsChanged = true;
+  configPortal = false;
 }
 
 float readBatteryVoltage() {
@@ -239,11 +276,15 @@ void setup() {
   else
     currentMode = SLEEP;
 
+  // Force one last fetch before entering low-power mode
+  if(lastMode != SLEEP && currentMode == SLEEP)
+    forceUpdate = true;
+
   Serial.printf("Battery voltage is %.2f\n",battery);
 
   String Etag;
-  // Force one last fetch before entering low-power mode
-  if(lastMode != SLEEP && currentMode == SLEEP)
+
+  if(forceUpdate)
     Etag = "";
   else
     Etag = prefs.getString("Etag","");
@@ -251,7 +292,9 @@ void setup() {
   // Skip all the processing and go back to sleep if we've been below Wifi threshold twice in a row
   if(!(currentMode == SLEEP && lastMode == SLEEP)) {
     WiFiManager wm;
-    //wm.resetSettings();
+    
+    if(configReset)
+      wm.resetSettings();
     
     WiFiManagerParameter fuglerammeHost("frameHost", "Fugleramme Host", frameHost.c_str(), 128);
     WiFiManagerParameter fuglerammePort("framePort", "Fugleramme Port", framePort.c_str(), 5);
@@ -267,6 +310,13 @@ void setup() {
       delay(3000);
       ESP.restart();
       delay(5000);
+    }
+
+    if(configPortal){
+      wm.startWebPortal();
+      while(configPortal){
+        wm.process();
+      }
     }
 
     if(paramsChanged) {
@@ -302,13 +352,15 @@ void setup() {
 
   prefs.putUChar("powerMode",static_cast<uint8_t>(currentMode));
 
-  //printAllPullupsS3();
-  // Any need to disable pullups or isolate RTC GPIOs before sleep?
   uint8_t sleepTime;
   if(currentMode == SLEEP)
     sleepTime = LOW_BATTERY_SLEEP_MINUTES;
   else
     sleepTime = max(sleep,MIN_SLEEP_MINUTES);
+
+  uint64_t button_mask = ((1ULL << KEY0) | (1ULL << KEY1) | (1ULL << KEY2));
+
+  esp_sleep_enable_ext1_wakeup(button_mask, ESP_EXT1_WAKEUP_ANY_LOW);
   esp_sleep_enable_timer_wakeup(sleepTime * 60 * uS_TO_S_FACTOR);
   esp_deep_sleep_start();
 }
