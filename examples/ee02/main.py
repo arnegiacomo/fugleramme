@@ -79,6 +79,7 @@ MIN_SLEEP_MINUTES = config.MIN_SLEEP_MINUTES
 NOTICE_AFTER = config.NOTICE_AFTER
 BATTERY_EMPTY = config.BATTERY_EMPTY
 BATTERY_CHARGED = config.BATTERY_CHARGED
+BATTERY_FULL = config.BATTERY_FULL
 BATTERY_SCALE = config.BATTERY_SCALE
 WIDTH = config.WIDTH
 HEIGHT = config.HEIGHT
@@ -121,9 +122,12 @@ FRESH = {
     "shown": "",
     "failures": 0,
     "poll": MIN_SLEEP_MINUTES,
+    "charged_at": None,
+    "wakes": 0,
     "refreshes_since_firmware_check": 0,
     "ota_failures": 0,
 }
+SECONDS_PER_DAY = 86_400
 
 # EE02 wiring, from Seeed_GFX2's XIAO_ePaper_Board_Configs.h.
 SCK, MOSI = 7, 9  # XIAO D8, D10
@@ -750,12 +754,25 @@ def main(wake: str) -> int:
     # Once the notice is up only a charge clears it, so a resting cell that
     # recovers a few millivolts does not swap birds and notice back and forth.
     volts = battery()
-    empty = state["shown"] == EMPTY
+
+    # A full cell restarts the stats. Before one is seen they count from the
+    # cold start. The RTC keeps time through deep sleep, not through a reset.
+    if volts >= BATTERY_FULL or state["charged_at"] is None:
+        state = dict(state, charged_at=time.time(), wakes=0)
+    state = dict(state, wakes=state["wakes"] + 1)
+
+    empty = state["shown"].startswith(EMPTY)
     if BATTERY_ABSENT < volts < (BATTERY_CHARGED if empty else BATTERY_EMPTY):
         if not empty:
-            show(notice(EMPTY))
-            state = dict(state, etag="", shown=EMPTY)
-            rtc.memory(json.dumps(state).encode())
+            # Drawn once, so the stats are those of the wake that crossed.
+            days = (time.time() - state["charged_at"]) // SECONDS_PER_DAY
+            message = (
+                f"{EMPTY} The frame ran {days} days and {state['wakes']:,} wakes "
+                "since its last charge."
+            )
+            show(notice(message))
+            state = dict(state, etag="", shown=message)
+        rtc.memory(json.dumps(state).encode())
         return max(state["poll"], MIN_SLEEP_MINUTES)
 
     if OTA_ENABLED:

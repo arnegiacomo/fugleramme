@@ -26,10 +26,15 @@ NOTICE_AFTER = 3
 
 # Battery volts, for a 4.2 V Li-ion or LiPo cell at rest. Below BATTERY_EMPTY
 # (about 5%) the panel says so and stops fetching until a charge lifts it above
-# BATTERY_CHARGED. BATTERY_SCALE is the board's divider (2.0); adjust it if the
+# BATTERY_CHARGED, with the days and wakes since the cell last read
+# BATTERY_FULL. BATTERY_SCALE is the board's divider (2.0); adjust it if the
 # printed "battery:" reading differs from a multimeter's.
+# Shows the empty notice.
 BATTERY_EMPTY = 3.61
+# Clears the notice; the gap keeps a recovering cell from flipping it back.
 BATTERY_CHARGED = 3.80
+# Restarts the stats; only a charge reaches it.
+BATTERY_FULL = 4.10
 BATTERY_SCALE = 2.0
 
 WIDTH, HEIGHT = 1200, 1600
