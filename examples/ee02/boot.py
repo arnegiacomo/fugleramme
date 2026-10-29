@@ -8,10 +8,13 @@ on a later boot, the new program never got that far, so it is rolled back -
 and stays rolled back, because main.etag still names the rejected version, so
 the frame answers 304 until it serves something else.
 
-A watchdog backs the trial: a program that hangs instead of crashing never
-reaches another boot on its own, so this file arms one every boot, generous
-enough for a healthy wake; one that outlives it resets the board and takes the
-rollback path above.
+A watchdog backs the trial: while main.py.bak is still around, boot.py will
+roll back unless this boot's program reaches the next one healthy, and a hung
+program never reaches another boot on its own. One is armed only for those
+boots, generous enough for a healthy wake; one that outlives it resets the
+board and takes the rollback path above. Outside a trial - and whenever OTA
+is off, so there is never a trial - the watchdog would only reset REPL
+sessions after five minutes of sitting at a prompt.
 
 A staged file can be damaged by a power cut between writing and restarting.
 Never let that turn into a boot loop: reject it, keep the installed program,
@@ -20,14 +23,10 @@ and let the frame serve the update again.
 
 import os
 
-import config
 import machine
 
-# A hung program never reaches the next boot's check on its own. Only needed
-# when OTA is on: without it the watchdog just resets REPL sessions after
-# five minutes of sitting at a prompt.
-if isinstance(getattr(config, "FIRMWARE", None), str):
-    machine.WDT(timeout=300_000)
+# A hung program never reaches the next boot's check on its own.
+WATCHDOG_TIMEOUT_MS = 300_000
 
 
 def there(name: str) -> bool:
@@ -70,3 +69,8 @@ elif there("main.py.new"):
             if there("main.py"):
                 os.rename("main.py", "main.py.bak")
             os.rename("main.py.new", "main.py")
+
+# A trial is underway if the program that ran before it is still kept aside:
+# arm the watchdog for exactly those boots.
+if there("main.py.bak"):
+    machine.WDT(timeout=WATCHDOG_TIMEOUT_MS)

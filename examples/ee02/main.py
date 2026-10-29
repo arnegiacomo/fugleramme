@@ -143,10 +143,12 @@ _WATCHDOG = None
 
 
 def feed_watchdog() -> None:
-    """Feed the watchdog boot.py arms when OTA is on, during long network waits."""
+    """Feed the watchdog boot.py arms during a firmware trial, over long
+    network waits. Outside a trial nothing is armed, and feeding would be
+    pointless."""
     global _WATCHDOG
     if _WATCHDOG is None:
-        if not OTA_ENABLED:
+        if not there("main.py.bak"):
             return
         _WATCHDOG = machine.WDT(timeout=WATCHDOG_TIMEOUT_MS)
     _WATCHDOG.feed()
