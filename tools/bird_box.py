@@ -459,6 +459,7 @@ PAGE = """<!doctype html>
       <h2>What to box</h2>
       <ul>
         <li>One whole bird, bill to tail and feet.</li>
+        <li>A long bill, tail, legs or stretched wings? Not tip to tip: trim their outer part so it scales right.</li>
         <li>Nothing else: no perch, branch, ground or second bird.</li>
         <li>Two birds or more on a plate? Choose the biggest one.</li>
         <li>Only the longest side matters. Slop on the short side is fine.</li>
