@@ -708,7 +708,12 @@ class Panel:
             for num in (RST, DC, CS0, CS1, SCK, MOSI):
                 machine.Pin(num, machine.Pin.OUT, value=0, hold=True)
             machine.Pin(BUSY, machine.Pin.IN)
-            esp32.gpio_deep_sleep_hold(True)
+            # Not every build offers it either. Without it, the state save
+            # after a draw was skipped and every wake redrew the same screen.
+            try:
+                esp32.gpio_deep_sleep_hold(True)
+            except AttributeError:
+                pass
 
 
 def show(pixels) -> None:
