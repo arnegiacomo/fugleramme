@@ -2,6 +2,144 @@
 
 <!-- version list -->
 
+## v0.30.0 (2026-10-29)
+
+### Bug Fixes
+
+- Add a public address for the BirdNET-Go links
+  ([#317](https://github.com/arnegiacomo/fugleramme/pull/317),
+  [`d3611d4`](https://github.com/arnegiacomo/fugleramme/commit/d3611d4c72d76ed84595b9b2a5715b3b2b28ae4e))
+
+### Chores
+
+- (ee02) improve refresh reliability ([#325](https://github.com/arnegiacomo/fugleramme/pull/325),
+  [`f032654`](https://github.com/arnegiacomo/fugleramme/commit/f032654f68291f577067a596769e573d261e55ae))
+
+- Move config variables for ee02 display out of main.py
+  ([#315](https://github.com/arnegiacomo/fugleramme/pull/315),
+  [`44a7d11`](https://github.com/arnegiacomo/fugleramme/commit/44a7d114c05248f740e3f10178d4d4e7f06cb9ee))
+
+- Sort ee02 imports
+  ([`d6c790f`](https://github.com/arnegiacomo/fugleramme/commit/d6c790fa90381d70858dd95f9613f898c46c9093))
+
+- Use a neutral example address in the public address tests
+  ([#318](https://github.com/arnegiacomo/fugleramme/pull/318),
+  [`1bd4126`](https://github.com/arnegiacomo/fugleramme/commit/1bd4126091ca488f40c29e2ee236aaaa4ffd2cfe))
+
+- **assets**: #236 add 3 south-east Queensland birds
+  ([`4444f93`](https://github.com/arnegiacomo/fugleramme/commit/4444f933d62a49b42b8f7ab10e2903f0ffc2e37b))
+
+- **assets**: #33 add 6 North American birds
+  ([#273](https://github.com/arnegiacomo/fugleramme/pull/273),
+  [`75c851a`](https://github.com/arnegiacomo/fugleramme/commit/75c851a17cb2156f67760e1f8ca07b0ae27b8c90))
+
+- **assets**: #33 add 9 North American birds
+  ([`1d46afa`](https://github.com/arnegiacomo/fugleramme/commit/1d46afab80041fff1b77ca3b35ee0f8fb616f957))
+
+- **assets**: #33 add Ammodramus savannarum
+  ([#340](https://github.com/arnegiacomo/fugleramme/pull/340),
+  [`f9a557a`](https://github.com/arnegiacomo/fugleramme/commit/f9a557aaeea7a5aab109a52c01856ede672710c5))
+
+- **assets**: #33 add Catharus guttatus ([#322](https://github.com/arnegiacomo/fugleramme/pull/322),
+  [`4f85966`](https://github.com/arnegiacomo/fugleramme/commit/4f85966714443234baa6bc6c47ad1291c8bb7c93))
+
+- **assets**: #33 add Chaetura pelagica ([#320](https://github.com/arnegiacomo/fugleramme/pull/320),
+  [`1bb2f27`](https://github.com/arnegiacomo/fugleramme/commit/1bb2f278dd3e7a0859449f9867bbfccc9336ec2c))
+
+- **assets**: #33 add Corvus ossifragus ([#312](https://github.com/arnegiacomo/fugleramme/pull/312),
+  [`f664846`](https://github.com/arnegiacomo/fugleramme/commit/f664846dcb2bc742d06575e83176d742c7314e63))
+
+- **assets**: #33 add Corvus ossifragus variant
+  ([#319](https://github.com/arnegiacomo/fugleramme/pull/319),
+  [`632c9b2`](https://github.com/arnegiacomo/fugleramme/commit/632c9b27c4e02c5c69a1e2342385d16e75870290))
+
+- **assets**: #33 add Dendrocygna autumnalis
+  ([#321](https://github.com/arnegiacomo/fugleramme/pull/321),
+  [`1a015dd`](https://github.com/arnegiacomo/fugleramme/commit/1a015dddc5c34a550101870764f7de0d103cf0c2))
+
+- **assets**: #33 add Gallinago delicata
+  ([#341](https://github.com/arnegiacomo/fugleramme/pull/341),
+  [`cecfe92`](https://github.com/arnegiacomo/fugleramme/commit/cecfe927a003e6d978b2ef62b4ed8621117a6522))
+
+- **assets**: #33 add Hylocichla mustelina, Vireo flavifrons and Empidonax virescens
+  ([#272](https://github.com/arnegiacomo/fugleramme/pull/272),
+  [`0d0f42f`](https://github.com/arnegiacomo/fugleramme/commit/0d0f42f14681c271643a4d4fdf574d29d2e03629))
+
+- **assets**: #33 add Passerculus sandwichensis
+  ([#311](https://github.com/arnegiacomo/fugleramme/pull/311),
+  [`63738b7`](https://github.com/arnegiacomo/fugleramme/commit/63738b7e2882b1238f366c026aa60ebc51f39b33))
+
+- **assets**: #33 add Polioptila caerulea
+  ([#266](https://github.com/arnegiacomo/fugleramme/pull/266),
+  [`dfb9587`](https://github.com/arnegiacomo/fugleramme/commit/dfb9587897a46f85d9da00c38adf5f9c1a21eeec))
+
+- **assets**: #33 add Progne subis ([#339](https://github.com/arnegiacomo/fugleramme/pull/339),
+  [`b7fec6f`](https://github.com/arnegiacomo/fugleramme/commit/b7fec6f77311622e0f5fbfcf1853d01ca820ac1e))
+
+- **assets**: #33 add Setophaga americana
+  ([#324](https://github.com/arnegiacomo/fugleramme/pull/324),
+  [`06986e5`](https://github.com/arnegiacomo/fugleramme/commit/06986e5944c11922c0ef6efbfb9a1279c4230467))
+
+- **assets**: #33 add Sturnella magna ([#323](https://github.com/arnegiacomo/fugleramme/pull/323),
+  [`3e3afdf`](https://github.com/arnegiacomo/fugleramme/commit/3e3afdf13bfb3d5bb6b512e029006eb75746fd6c))
+
+- **assets**: #33 add winter wren ([#338](https://github.com/arnegiacomo/fugleramme/pull/338),
+  [`4b0caf0`](https://github.com/arnegiacomo/fugleramme/commit/4b0caf0a31e512ff0aaff8d9c29654c7af965437))
+
+- **assets**: Add Australian brushturkey
+  ([#252](https://github.com/arnegiacomo/fugleramme/pull/252),
+  [`febc36f`](https://github.com/arnegiacomo/fugleramme/commit/febc36f36ce9be9569b4deb8e975d15c1fac3c09))
+
+- **assets**: Box long bills, tails, legs and wings short of their tips
+  ([`2cf70e5`](https://github.com/arnegiacomo/fugleramme/commit/2cf70e50bd3758537c26c3ad7adb7d6da0bf6b76))
+
+- **docs**: Add a frame from France in showase
+  ([#329](https://github.com/arnegiacomo/fugleramme/pull/329),
+  [`e93bd55`](https://github.com/arnegiacomo/fugleramme/commit/e93bd554826863ec6e83138463992d3f8521b0f8))
+
+- **docs**: External EE02 panel self-update(#326)
+  ([`0ba5d83`](https://github.com/arnegiacomo/fugleramme/commit/0ba5d8322744904d88928cddab7c4fc66c7b00fb))
+
+- **ee02**: Buttons force a redraw or an update check, LED reports the wake
+  ([#327](https://github.com/arnegiacomo/fugleramme/pull/327),
+  [`bc3e290`](https://github.com/arnegiacomo/fugleramme/commit/bc3e290dc13c33e48eb66be2871d6d81a9cc21ab))
+
+### Documentation
+
+- Link the Tesserae widget
+  ([`a8a96fd`](https://github.com/arnegiacomo/fugleramme/commit/a8a96fd7f79d61e314d15c5a73d406505b1ad333))
+
+- Reword Tesserae to fit one line
+  ([`e0df4b9`](https://github.com/arnegiacomo/fugleramme/commit/e0df4b9dc790c6483fabd890987901a70eeae40b))
+
+- Update ee02 documentation for config.py
+  ([#316](https://github.com/arnegiacomo/fugleramme/pull/316),
+  [`d3f7e5b`](https://github.com/arnegiacomo/fugleramme/commit/d3f7e5be2042ac9bf656ee2b1977a7a5918a25ea))
+
+- **showcase**: Add a frame in Swanton, shared by @rjbenfield in #146
+  ([`00667c1`](https://github.com/arnegiacomo/fugleramme/commit/00667c193b24310dc6676c29889d13ce001a3452))
+
+- **showcase**: Add a frame reading five BirdWeather stations around Bergen
+  ([`ce2b34d`](https://github.com/arnegiacomo/fugleramme/commit/ce2b34dc8f7890b6df74d3253cbd8507a2884035))
+
+### Features
+
+- #332 serve the panel page as a dithered image at /frame.png
+  ([#334](https://github.com/arnegiacomo/fugleramme/pull/334),
+  [`e43b21c`](https://github.com/arnegiacomo/fugleramme/commit/e43b21c9c59d711475b9cd88c544e10d3b43f932))
+
+- #333 add /press API to allow external frames to "press buttons" remotely
+  ([#336](https://github.com/arnegiacomo/fugleramme/pull/336),
+  [`2bfa130`](https://github.com/arnegiacomo/fugleramme/commit/2bfa13069c1cd5b05fdc49761511fe8969b2ac8e))
+
+- Add an inky-based fugleramme external client & authenticate `/press` endpoint
+  ([#337](https://github.com/arnegiacomo/fugleramme/pull/337),
+  [`2c8755d`](https://github.com/arnegiacomo/fugleramme/commit/2c8755d6bccf4c14f282054ee93f1a9f2a29c5f7))
+
+- Configurable external panel size
+  ([`40b24df`](https://github.com/arnegiacomo/fugleramme/commit/40b24dfe17343aa9319bffdb60de2fb51693883c))
+
+
 ## v0.29.0 (2026-10-22)
 
 ### Bug Fixes

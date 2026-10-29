@@ -407,6 +407,30 @@
    872
   ]
  },
+ "birds/aix-sponsa-2.webp": {
+  "box": [
+   0.09,
+   0.05,
+   0.89,
+   0.74
+  ],
+  "cut": [
+   977,
+   1200
+  ]
+ },
+ "birds/aix-sponsa.webp": {
+  "box": [
+   0.04,
+   0.03,
+   0.96,
+   0.88
+  ],
+  "cut": [
+   1200,
+   998
+  ]
+ },
  "birds/alauda-arvensis.webp": {
   "box": [
    0.0,
@@ -1221,6 +1245,18 @@
   "cut": [
    1025,
    1200
+  ]
+ },
+ "birds/antrostomus-carolinensis.webp": {
+  "box": [
+   0.05,
+   0.04,
+   0.83,
+   0.68
+  ],
+  "cut": [
+   1200,
+   670
   ]
  },
  "birds/antrostomus-vociferus-2.webp": {
@@ -9083,6 +9119,18 @@
    1200
   ]
  },
+ "birds/melospiza-georgiana.webp": {
+  "box": [
+   0.191,
+   0.373,
+   0.648,
+   0.583
+  ],
+  "cut": [
+   836,
+   1200
+  ]
+ },
  "birds/melospiza-melodia.webp": {
   "box": [
    0.1725552749633789,
@@ -11951,6 +11999,42 @@
    850
   ]
  },
+ "birds/progne-subis-2.webp": {
+  "box": [
+   0.29,
+   0.6,
+   0.72,
+   0.9
+  ],
+  "cut": [
+   569,
+   1200
+  ]
+ },
+ "birds/progne-subis-3.webp": {
+  "box": [
+   0.03,
+   0.04,
+   0.93,
+   0.38
+  ],
+  "cut": [
+   1200,
+   849
+  ]
+ },
+ "birds/progne-subis-4.webp": {
+  "box": [
+   0.03,
+   0.08,
+   0.78,
+   0.92
+  ],
+  "cut": [
+   1200,
+   1185
+  ]
+ },
  "birds/progne-subis.webp": {
   "box": [
    0.03182715654373169,
@@ -11961,6 +12045,30 @@
   "cut": [
    1200,
    657
+  ]
+ },
+ "birds/protonotaria-citrea-2.webp": {
+  "box": [
+   0.3,
+   0.51,
+   0.94,
+   0.74
+  ],
+  "cut": [
+   1051,
+   1200
+  ]
+ },
+ "birds/protonotaria-citrea.webp": {
+  "box": [
+   0.14,
+   0.18,
+   0.78,
+   0.42
+  ],
+  "cut": [
+   917,
+   1200
   ]
  },
  "birds/prunella-collaris.webp": {
@@ -12849,6 +12957,18 @@
   "cut": [
    1200,
    917
+  ]
+ },
+ "birds/setophaga-fusca.webp": {
+  "box": [
+   0.04,
+   0.05,
+   0.66,
+   0.39
+  ],
+  "cut": [
+   983,
+   1200
   ]
  },
  "birds/setophaga-magnolia.webp": {
