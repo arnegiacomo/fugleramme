@@ -393,7 +393,9 @@ def update(state: dict):
     except Problem as problem:
         # The counter goes back to zero: a failed check waits a full interval
         # for the next one instead of retrying on every wake.
-        return dict(state, refreshes_since_firmware_check=0, ota_failures=state["ota_failures"] + 1), problem
+        return dict(
+            state, refreshes_since_firmware_check=0, ota_failures=state["ota_failures"] + 1
+        ), problem
     if answer is None:
         print("ota: up to date")
         return dict(state, refreshes_since_firmware_check=0, ota_failures=0), None
