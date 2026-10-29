@@ -78,12 +78,12 @@ This setup swaps the Raspberry Pi for a small, power-efficient microcontroller t
 
 | Part | What works |
 | --- | --- |
-| Board | [XIAO ePaper Display Board EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html) |
-| Panel | [Seeed Studio 13.3" e-ink](https://www.seeedstudio.com/13-3inch-Six-Color-eInk-ePaper-Display-with-1200x1600-Pixels-p-6569.html) (Spectra 6, 1600x1200) |
+| Board | [XIAO ePaper Display Board EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html) for the 13.3", [EE04](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-EE04-p-6560.html) for the 7.3" |
+| Panel | [Seeed Studio 13.3" e-ink](https://www.seeedstudio.com/13-3inch-Six-Color-eInk-ePaper-Display-with-1200x1600-Pixels-p-6569.html) (Spectra 6, 1600x1200) or [7.3" e-ink](https://www.seeedstudio.com/7-3inch-Six-Color-eInk-ePaper-Display-with-800x480-Pixels-p-6567.html) (Spectra 6, 800x480) |
 | Power | [Rechargeable single-cell lithium battery](https://docs.soldered.com/li-ion-battery/overview/) (3.7 V, with a JST 2.0 connector to match the XIAO board) |
-| Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) |
+| Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) for the 13.3", [RÖDALM 8x10"](https://www.ikea.com/us/en/p/roedalm-frame-oak-effect-70566392/) for the 7.3" |
 
-- Seeed Studio also sells the board and panel together as a [kit](https://www.seeedstudio.com/XIAO-ePaper-DIY-Kit-EE02-for-13-3-Spectratm-6-E-Ink.html).
+- Seeed Studio also sells the board and panel together as a kit, [EE02 with the 13.3"](https://www.seeedstudio.com/XIAO-ePaper-DIY-Kit-EE02-for-13-3-Spectratm-6-E-Ink.html) or [EE04 with the 7.3"](https://www.seeedstudio.com/XIAO-ePaper-EE04-DIY-Bundle-Kit.html).
 
 ## Microphones
 

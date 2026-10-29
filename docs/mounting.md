@@ -64,6 +64,15 @@ The frame's included passepartout fits the 7.3" panel as it is.
 
 ![The 7.3" panel and the Pi in the printed insert, inside a RÖDALM 13x18, seen from the back](assets/inky-7.3-insert.jpg)
 
+## Seeed 7.3" in a RÖDALM 8x10"
+
+The [Seeed Studio 7.3" panel](https://www.seeedstudio.com/7-3inch-Six-Color-eInk-ePaper-Display-with-800x480-Pixels-p-6567.html)
+of a [battery-powered frame](hardware.md#battery-powered-frame-external-fugleramme)
+fits an IKEA [RÖDALM 8x10"](https://www.ikea.com/us/en/p/roedalm-frame-oak-effect-70566392/),
+a size sold in the US. The frame's included passepartout, cut for a 5x7"
+picture, fits the panel as it is: the panel goes behind it, and the board, with
+its cable or a battery, tucks in behind the panel.
+
 ## Airflow
 
 Leave the backing board out, or cut a big hole in it.
