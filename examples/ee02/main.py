@@ -343,6 +343,11 @@ def firmware():
             return None
         if status != 200:
             raise Problem(f"The frame answered {status} for {FIRMWARE}.")
+        if served == "":
+            # Without an ETag there is nothing to revalidate against, so every
+            # check would download and install the program again. Say so
+            # instead of silently rebooting the panel once an interval.
+            raise Problem(f"The frame sent {FIRMWARE} without an ETag.")
         if length is None:
             raise Problem("The frame did not send the program's length.")
         if length <= 0 or length > MAX_FIRMWARE_BYTES:
