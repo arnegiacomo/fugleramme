@@ -24,4 +24,12 @@ MIN_SLEEP_MINUTES = 5
 # Failed wakes in a row before an unreachable frame is worth a refresh.
 NOTICE_AFTER = 3
 
+# Battery volts, for a 4.2 V Li-ion or LiPo cell at rest. Below BATTERY_EMPTY
+# (about 5%) the panel says so and stops fetching until a charge lifts it above
+# BATTERY_CHARGED. BATTERY_SCALE is the board's divider (2.0); adjust it if the
+# printed "battery:" reading differs from a multimeter's.
+BATTERY_EMPTY = 3.61
+BATTERY_CHARGED = 3.80
+BATTERY_SCALE = 2.0
+
 WIDTH, HEIGHT = 1200, 1600
