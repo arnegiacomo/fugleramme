@@ -386,7 +386,9 @@ def update(state: dict):
     try:
         answer = download_firmware()
     except Problem as problem:
-        return dict(state, ota_failures=state["ota_failures"] + 1), problem
+        # The counter goes back to zero: a failed check waits a full interval
+        # for the next one instead of retrying on every wake.
+        return dict(state, refreshes_since_firmware_check=0, ota_failures=state["ota_failures"] + 1), problem
     if answer is None:
         print("ota: up to date")
         return dict(state, refreshes_since_firmware_check=0, ota_failures=0), None
@@ -658,15 +660,15 @@ def main() -> int:
     rtc.memory(json.dumps(state).encode())
     state, problem = update(state)
     if problem is not None and state["ota_failures"] >= NOTICE_AFTER:
-        # An update that keeps failing is worth the glass saying so, even at the
-        # cost of this wake's page: it would otherwise draw the birds over it.
+        # An update that keeps failing is worth the glass saying so. It never
+        # costs this wake's page, though: the page below is still fetched and
+        # drawn, and when it moves it replaces the notice.
         message = f"The panel's program update keeps failing. ({problem})"
         print("fugleramme:", message)
         if message != state["shown"]:
             show(notice(message))
             state = dict(state, shown=message)
         rtc.memory(json.dumps(state).encode())
-        return max(state["poll"], MIN_SLEEP_MINUTES)
     try:
         page, poll = download(state["etag"])
     except Problem as problem:
