@@ -179,6 +179,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVRed-legged_Partridge.jpg"
   },
+  "birds/alectura-lathami.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/13588"
+  },
   "birds/alisterus-scapularis.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/13828"
@@ -194,6 +198,10 @@
   "birds/amaurornis-phoenicurus.webp": {
     "source": "gould",
     "url": "https://archive.org/details/BirdsAsiaJohnGoVIIGoul/page/n275"
+  },
+  "birds/ammodramus-savannarum.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/annualreport6631912newy/page/n706/mode/1up"
   },
   "birds/anarhynchus-alexandrinus-2.webp": {
     "source": "vonwright",
@@ -1935,6 +1943,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIReed_Bunting.jpg"
   },
+  "birds/empidonax-virescens.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:144_Small_Green_Crested_Flycatcher.jpg"
+  },
   "birds/entomyzon-cyanotis.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14054"
@@ -2182,6 +2194,10 @@
   "birds/galerida-theklae.webp": {
     "source": "whitaker",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Tunisia%3B_being_a_history_of_the_birds_found_in_the_regency_of_Tunis_(1905)_(20358881726).jpg"
+  },
+  "birds/gallinago-delicata.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1909)_(14753623136).jpg"
   },
   "birds/gallinago-gallinago-2.webp": {
     "source": "gould",
@@ -2478,6 +2494,14 @@
   "birds/hydroprogne-caspia.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVCaspian_Tern.jpg"
+  },
+  "birds/hylocichla-mustelina-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:73_Wood_Thrush.jpg"
+  },
+  "birds/hylocichla-mustelina.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:73_Wood_Thrush.jpg"
   },
   "birds/ichthyaetus-audouinii.webp": {
     "source": "gould",
@@ -3959,6 +3983,10 @@
     "source": "keulemans",
     "url": "https://www.biodiversitylibrary.org/page/47162033"
   },
+  "birds/progne-subis.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird-lore_(1917)_(14569280937).jpg"
+  },
   "birds/prunella-collaris.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIAlpine_Accentor.jpg"
@@ -5030,6 +5058,10 @@
   "birds/vidua-macroura.webp": {
     "source": "gordon",
     "url": "https://commons.wikimedia.org/wiki/File:Vidua_macroura_(Dominikanerwida)_en_sprinkhaan,_RP-T-1914-17-282.jpg"
+  },
+  "birds/vireo-flavifrons.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:119_Yellow-throated_Vireo.jpg"
   },
   "birds/vireo-griseus.webp": {
     "source": "audubon",

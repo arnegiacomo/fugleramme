@@ -11,6 +11,13 @@ FRAME_PORT = 8080
 # Note: we don't enable host validation, just encryption to avoid having to store a certificate store
 FRAME_TLS = FRAME_PORT == 443
 
+# Set FIRMWARE to a URL serving the panel's latest program to enable OTA
+# updates. The URL must return the file directly, with no authentication or
+# redirect, for example the raw main.py from the main branch on GitHub:
+# https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/examples/ee02/main.py
+# None disables OTA.
+FIRMWARE = None
+
 # The minimum sleep duration between two polls
 MIN_SLEEP_MINUTES = 5
 

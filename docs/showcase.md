@@ -104,8 +104,14 @@ Frames people have running around the world. Click one to open it.
   </figure>
   <figure>
     <a href="https://birds.familleseux.net">
-      <img src="https://birds.familleseux.net/collage.png" alt="The frame is Sarthe, France loading="lazy" referrerpolicy="no-referrer">
+      <img src="https://birds.familleseux.net/collage.png" alt="The frame in Sarthe, France" loading="lazy" referrerpolicy="no-referrer">
       <figcaption>Sarthe, France <small>birds.familleseux.net</small></figcaption>
+    </a>
+  </figure>
+  <figure>
+    <a href="https://www.benfieldwines.com/birds.html">
+      <img src="https://www.benfieldwines.com/birds/birds.png" alt="The frame in Swanton, Ohio, USA" loading="lazy" referrerpolicy="no-referrer">
+      <figcaption>Swanton, Ohio, USA <small>benfieldwines.com/birds.html</small></figcaption>
     </a>
   </figure>
 </div>

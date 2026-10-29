@@ -210,8 +210,16 @@ goes wrong, it writes an error message on the panel instead.
    [for the XIAO EE02](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
 2. Set your Wi-Fi credentials and Fugleramme host in `config.py`. A
    frame served over HTTPS on port 443 is fetched over TLS.
-3. Upload `main.py` and `config.py` to the board (e.g. with
+3. Upload `main.py`, `boot.py` and `config.py` to the board (e.g. with
    [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html))
+
+`boot.py` runs on every boot before `main.py`. It is what lets the panel
+update its own program: set `FIRMWARE` in `config.py` to a URL serving the
+panel's latest program (as plain file, no sign-in or redirect), and the panel
+checks it on its wakes. A new program is staged, and after a restart it gets
+one trial wake; if the panel reaches the frame cleanly on it, the update is
+kept, otherwise the board goes back to the program it had before.
+Leave `FIRMWARE` at `None` and nothing is downloaded.
 
 Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on
 a 13.3" panel with a XIAO EE02.
