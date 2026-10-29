@@ -24,4 +24,13 @@ MIN_SLEEP_MINUTES = 5
 # Failed wakes in a row before an unreachable frame is worth a refresh.
 NOTICE_AFTER = 3
 
+# The battery voltage below which the panel shows "Battery low" once and sleeps
+# at least LOW_BATTERY_SLEEP_MINUTES between wakes. The divider on the EE02
+# reads the raw cell, so a one-cell LiPo is full around 4.2 V and a
+# USB-powered board sits near 4.0 V: lower the threshold if your cell never
+# crosses 3.5 V, or the panel will warn at a healthy charge.
+LOW_BATTERY = 3.5
+# The sleep floor (in minutes) once the battery is below LOW_BATTERY.
+LOW_BATTERY_SLEEP_MINUTES = 60
+
 WIDTH, HEIGHT = 1200, 1600
