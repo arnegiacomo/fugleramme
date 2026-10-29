@@ -228,10 +228,33 @@ Leave `FIRMWARE` at `None` and nothing is downloaded.
 Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on
 a 13.3" panel with a XIAO EE02.
 
-Much of the program is generic and reusable, but the connection to the 13.3"
-panel and the controller board is specific. Running a smaller panel or another
-board? A program for it, and the packing it needs, would make a welcome
-contribution - see
+### EE04 example code
+
+[`examples/ee04/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee04/main.py)
+is a MicroPython program for the XIAO EE04 with the 7.3" panel. It fetches,
+sleeps and writes its error messages on the panel like the EE02 program, but
+it has no `boot.py` and does not update itself.
+
+1. Set **External panel size** to 7.3" on the frame's admin page.
+2. With the board unplugged, move its jumper cap to cover **50 PIN** and
+   **GND**, then connect the panel's ribbon and the antenna that comes with
+   the XIAO. Without the antenna, the board barely picks up a network.
+3. Install MicroPython on the board (e.g.
+   [for the XIAO EE04](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
+4. Set your Wi-Fi credentials and Fugleramme host in `config.py`. A
+   frame served over HTTPS on port 443 is fetched over TLS.
+5. Upload `main.py` and `config.py` to the board (e.g. with
+   [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html)).
+   The board sleeps between wakes, and its USB port is only there while it is
+   awake: start the upload, then press **RESET**.
+
+Contributed by [Travis Cole](https://github.com/tcole333), adapted from the
+EE02 program. Tested on a 7.3" panel with a XIAO EE04.
+
+Much of each program is generic and reusable, but the connection to the panel
+and the controller board is specific. Running another panel or board? A
+program for it, and the packing it needs, would make a welcome contribution -
+see
 [Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
 
 ### E6 file format
