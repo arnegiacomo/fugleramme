@@ -143,9 +143,11 @@ _WATCHDOG = None
 
 
 def feed_watchdog() -> None:
-    """Feed the watchdog armed by boot.py during long network waits."""
+    """Feed the watchdog boot.py arms when OTA is on, during long network waits."""
     global _WATCHDOG
     if _WATCHDOG is None:
+        if not OTA_ENABLED:
+            return
         _WATCHDOG = machine.WDT(timeout=WATCHDOG_TIMEOUT_MS)
     _WATCHDOG.feed()
 

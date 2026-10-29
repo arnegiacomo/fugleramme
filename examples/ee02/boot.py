@@ -20,10 +20,14 @@ and let the frame serve the update again.
 
 import os
 
+import config
 import machine
 
-# A hung program never reaches the next boot's check on its own.
-machine.WDT(timeout=300_000)
+# A hung program never reaches the next boot's check on its own. Only needed
+# when OTA is on: without it the watchdog just resets REPL sessions after
+# five minutes of sitting at a prompt.
+if isinstance(getattr(config, "FIRMWARE", None), str):
+    machine.WDT(timeout=300_000)
 
 
 def there(name: str) -> bool:
