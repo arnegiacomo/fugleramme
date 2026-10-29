@@ -313,8 +313,8 @@ class Panel:
 
 def show(pixels) -> None:
     panel = Panel()
-    panel.on()
     try:
+        panel.on()
         panel.draw(pixels)
     finally:
         panel.off()
