@@ -8,9 +8,17 @@ import struct
 import zlib
 
 import numpy as np
+import pytest
 from PIL import Image
 
 from fugleramme import e6
+
+# A glass turned to how the page hangs at each rotation: what `to_glass` turns back.
+_HUNG = {
+    90: Image.Transpose.ROTATE_270,
+    180: Image.Transpose.ROTATE_180,
+    270: Image.Transpose.ROTATE_90,
+}
 
 
 def _page(rows: list[list[int]]) -> Image.Image:
@@ -99,3 +107,16 @@ def test_a_portrait_7_inch_page_turns_back_onto_its_landscape_glass():
 
     assert struct.unpack_from("<HH", data, 8) == (800, 480)
     assert data[20] == 0x01
+
+
+@pytest.mark.parametrize("size", e6.GLASSES)
+@pytest.mark.parametrize("rotation", [90, 180, 270])
+def test_a_page_packs_the_same_however_it_hangs(size, rotation):
+    """The glass is what gets packed, so a portrait 13.3" page still goes to two
+    controllers, and a page hung upside down still lands the right way up."""
+    width, height = size
+    glass = _marked(width, height, {(0, 0): 0, (width - 1, 0): 3, (0, height - 1): 4})
+
+    assert e6.encode(glass.transpose(_HUNG[rotation]), rotation, poll=0) == e6.encode(
+        glass, 0, poll=0
+    )
