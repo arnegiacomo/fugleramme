@@ -237,11 +237,11 @@ contribution - see
 #### Arduino
 
 Preparing the Arduino environment:
-1. Follow the [instructions from Seeed](https://wiki.seeedstudio.com/epaper_work_with_arduino/) to install ESP32 board and Seeed_GFX library.
+1. Follow the [instructions from Seeed](https://wiki.seeedstudio.com/epaper_work_with_arduino/) to install the ESP32 board and Seeed_GFX libraries.
 2. From the Arduino IDE library manager, install QRCode by Richard Moore and WiFiManager by tzapu.
 3. Plug in your board, select Xiao_ESP32S3_PLUS for your board, and the appropriate COM port.
 4. Under tools, set PSRAM to "OPI PSRAM".
-5. Open the Arduino_e6.ino sketch and upload.
+5. Open the [`examples/ee02/arduino_e6/arduino_e6.ino`](/examples/ee02/arduino_e6/arduino_e6.ino) sketch and upload.
 
 On first boot, the board will start a WiFi network with a configuration page. The screen will display setup instructions, including QR codes to connect to the network and open the configuration webpage:
 ![An epaper screen with a Fugleramme header, instructions, and QR codes](assets/setup_display.jpg)
