@@ -70,8 +70,8 @@ The [Seeed Studio 7.3" panel](https://www.seeedstudio.com/7-3inch-Six-Color-eInk
 of a [battery-powered frame](hardware.md#battery-powered-frame-external-fugleramme)
 fits an IKEA [RÖDALM 8x10"](https://www.ikea.com/us/en/p/roedalm-frame-oak-effect-70566392/),
 a size sold in the US. The frame's included passepartout, cut for a 5x7"
-picture, fits the panel as it is: the panel goes behind it, and the board, with
-its cable or a battery, tucks in behind the panel.
+picture, fits the panel as it is: the panel goes behind it, and the board tucks
+in behind the panel.
 
 ## Airflow
 

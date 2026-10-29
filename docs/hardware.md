@@ -83,7 +83,7 @@ This setup swaps the Raspberry Pi for a small, power-efficient microcontroller t
 | Power | [Rechargeable single-cell lithium battery](https://docs.soldered.com/li-ion-battery/overview/) (3.7 V, with a JST 2.0 connector to match the XIAO board) |
 | Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) for the 13.3", [RÖDALM 8x10"](https://www.ikea.com/us/en/p/roedalm-frame-oak-effect-70566392/) for the 7.3" |
 
-- Seeed Studio also sells the board and panel together as a kit, [EE02 with the 13.3"](https://www.seeedstudio.com/XIAO-ePaper-DIY-Kit-EE02-for-13-3-Spectratm-6-E-Ink.html) or [EE04 with the 7.3"](https://www.seeedstudio.com/XIAO-ePaper-EE04-DIY-Bundle-Kit.html).
+- Seeed Studio also sells the EE02 and the 13.3" panel together as a [kit](https://www.seeedstudio.com/XIAO-ePaper-DIY-Kit-EE02-for-13-3-Spectratm-6-E-Ink.html), and the EE04 in a [bundle](https://www.seeedstudio.com/XIAO-ePaper-EE04-DIY-Bundle-Kit.html) where you pick the 7.3" as its panel.
 
 ## Microphones
 

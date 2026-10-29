@@ -156,8 +156,8 @@ another device to render its content:
   [Seeed Studio 13.3" Spectra 6 panel](https://www.seeedstudio.com/13-3inch-Six-Color-eInk-ePaper-Display-with-1200x1600-Pixels-p-6569.html)
   on a
   [XIAO EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html),
-  or its
-  [7.3" Spectra 6 panel](https://www.seeedstudio.com/7-3inch-Six-Color-eInk-ePaper-Display-with-800x480-Pixels-p-6567.html)
+  or the
+  [Seeed Studio 7.3" Spectra 6 panel](https://www.seeedstudio.com/7-3inch-Six-Color-eInk-ePaper-Display-with-800x480-Pixels-p-6567.html)
   on a
   [XIAO EE04](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-EE04-p-6560.html).
 
@@ -235,7 +235,8 @@ is a MicroPython program for the XIAO EE04 with the 7.3" panel. It fetches,
 sleeps and writes its error messages on the panel like the EE02 program, but
 it has no `boot.py` and does not update itself.
 
-1. Set **External panel size** to 7.3" on the frame's admin page.
+1. Tick **External e-ink panel** on the frame's admin page and set
+   **External panel size** to 7.3".
 2. With the board unplugged, move its jumper cap to cover **50 PIN** and
    **GND**, then connect the panel's ribbon and the antenna that comes with
    the XIAO. Without the antenna, the board barely picks up a network.
