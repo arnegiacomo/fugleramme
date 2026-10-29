@@ -8,11 +8,9 @@ using fs::FS;
 #include <esp_wifi.h>
 #include <WiFiManager.h>
 #include <WiFiClientSecure.h>
-//#include <qrcode_espi.h>
-#include "PanelConvert.h"
+#include "gutils.h"
 #include "driver.h"
 #include <TFT_eSPI.h>
-
 
 #define LOW_BATTERY_WIFI 3.3
 #define LOW_BATTERY_WARNING 3.5
@@ -26,12 +24,13 @@ enum powerMode{ SLEEP, WARN, FULL };
 
 Preferences prefs;
 bool paramsChanged = false;
-String frameHost = "";
-String framePort = "";
+String frameHost = "fugleramme.local";
+String framePort = "8080";
 bool useSSL = false;
 bool forceUpdate = false;
 bool configPortal = false;
 bool configReset = false;
+String APPass;
 
 EPaper epaper;
 
@@ -135,7 +134,9 @@ bool getFrame(String oldEtag, float battery, uint8_t &poll) {
           prefs.putString("Etag",Etag);
           convertBuffer(pixels,header.length,header.width);
           Serial.println("Attempting to write:");
+          epaper.setRotation(0);
           epaper.pushImage(0, 0, header.width, header.height, (uint16_t *)pixels);
+          epaper.setRotation(1);
           refresh = true;
         }
         free(pixels);
@@ -152,17 +153,59 @@ bool getFrame(String oldEtag, float battery, uint8_t &poll) {
   poll = header.poll;
   return refresh;
 }
-/*
+
 void displaySetupInfo(WiFiManager *wifi) {
-  EPaper epaper;
-  QRcode_eSPI qrcode (&epaper);
-  epaper.begin();
-  qrcode.init();
-  qrcode.create("WIFI:S:" + wifi->getConfigPortalSSID() + ";T:nopass;;");
+  int qr_width = 0;
+  size_t qr_bytes = 0;
+  
+  String portalIP;
+  int portalQRLoc;
+  int portalTextLoc;
+
+  epaper.fillScreen(TFT_WHITE);
+
+  epaper.setTextColor(TFT_BLACK);
+  epaper.setTextSize(4);
+  epaper.setFreeFont(&FreeSerifItalic24pt7b);
+  epaper.setTextDatum(TC_DATUM);
+  epaper.drawString("Fugleramme", 800, 50);
+
+  epaper.setTextSize(1);
+  epaper.setFreeFont(&FreeSerif24pt7b);
+  epaper.drawString("Welcome to Fugleramme, please follow the setup instructions below", 800, 250);
+
+  epaper.setFreeFont(&FreeSerif12pt7b);
+  epaper.setTextDatum(TL_DATUM);
+
+  if(WiFi.getMode() == WIFI_MODE_AP || WiFi.getMode() == WIFI_MODE_APSTA) {
+    portalIP = WiFi.softAPIP().toString();
+    epaper.drawString("To connect to wifi, scan the QR code below", 200, 500);
+    epaper.drawString("or manually connect to the network:", 200, 530);
+    epaper.drawString(wifi->getConfigPortalSSID() + " with password " + APPass, 200, 560);
+    uint8_t* wifiQR = generateQRBitmap(("WIFI:S:" + wifi->getConfigPortalSSID() + ";T:WPA;P:" + APPass + ";;").c_str(), 8, 10, qr_width, qr_bytes);
+    int wifiQRLoc = (800 - qr_width) / 2;
+    portalQRLoc = 800 + wifiQRLoc;
+    portalTextLoc = 1000;
+    epaper.drawBitmap(wifiQRLoc, 700, wifiQR, qr_width, qr_width, TFT_BLACK);
+    free(wifiQR);
+  } else {
+    portalIP = WiFi.localIP().toString();
+    portalQRLoc = 750 - (qr_width / 2);
+    portalTextLoc = 550;
+  }
+
+  epaper.drawString("To configure the frame, scan the QR code below, or visit", portalTextLoc, 500);
+  epaper.drawString("http://" + portalIP, portalTextLoc, 530);
+  epaper.drawString("in your browser and follow the instructions.", portalTextLoc, 560);
+  
+  uint8_t* portalQR = generateQRBitmap(("http://" + portalIP).c_str(), 8, 10, qr_width, qr_bytes);
+  epaper.drawBitmap(portalQRLoc, 700, portalQR, qr_width, qr_width, TFT_BLACK);
+  
   epaper.update();
   epaper.sleep();
+  free(portalQR);
 }
-*/
+
 
 void handle_wakeup() {
   esp_sleep_wakeup_cause_t wakeup_reason;
@@ -213,6 +256,7 @@ void handle_wakeup() {
 void saveParams() {
   paramsChanged = true;
   configPortal = false;
+  forceUpdate = true;
 }
 
 float readBatteryVoltage() {
@@ -252,6 +296,28 @@ void drawNoWifi(uint32_t color) {
     epaper.drawWideLine(1140, 1520, 1172, 1562, 5, color);
 }
 
+String generateRandomPassword() {
+    String password = "";
+    password.reserve(8); // Allocate memory upfront to prevent heap fragmentation
+    
+    uint8_t randomBytes[8];
+    esp_fill_random(randomBytes, 8); // Fetch hardware random bytes
+
+    for (int i = 0; i < 8; i++) {
+        uint8_t idx = randomBytes[i] % 62; // 10 digits + 26 upper + 26 lower
+        
+        if (idx < 10) {
+            password += (char)('0' + idx);
+        } else if (idx < 36) {
+            password += (char)('A' + (idx - 10));
+        } else {
+            password += (char)('a' + (idx - 36));
+        }
+    }
+    
+    return password;
+}
+
 void setup() {
   Serial.begin(115200);
   delay(2000);
@@ -260,6 +326,7 @@ void setup() {
   handle_wakeup();
 
   epaper.begin();
+  epaper.setRotation(1);
   epaper.sleep();
 
   prefs.begin("BirdFrame");
@@ -293,27 +360,47 @@ void setup() {
   if(!(currentMode == SLEEP && lastMode == SLEEP)) {
     WiFiManager wm;
     
-    if(configReset)
+    if(configReset) {
       wm.resetSettings();
-    
+    } else {
+      frameHost = prefs.getString("frameHost", "fugleramme.local");
+      framePort = prefs.getString("framePort", "8080");
+      useSSL = prefs.getBool("useSSL", false);
+    }
+
     WiFiManagerParameter fuglerammeHost("frameHost", "Fugleramme Host", frameHost.c_str(), 128);
     WiFiManagerParameter fuglerammePort("framePort", "Fugleramme Port", framePort.c_str(), 5);
     WiFiManagerParameter SSL("useSSL", "USE HTTPS", "F", 2, "type=\"checkbox\" value=\"F\"");
     
-    //wm.setAPCallback(displaySetupInfo);
+    wm.setAPCallback(displaySetupInfo);
     wm.setSaveParamsCallback(saveParams);
     wm.addParameter(&fuglerammeHost);
     wm.addParameter(&fuglerammePort);
     wm.addParameter(&SSL);
 
-    if(!wm.autoConnect()) {
+    APPass = generateRandomPassword();
+
+    if(!wm.autoConnect("Fugleramme Setup",APPass.c_str())) {
       delay(3000);
       ESP.restart();
       delay(5000);
     }
 
     if(configPortal){
+      wm.setCustomHeadElement(
+        "<script>"
+        "document.addEventListener('DOMContentLoaded', function() {"
+        "  var buttons = document.getElementsByTagName('button');"
+        "  for (var i = 0; i < buttons.length; i++) {"
+        "    if (buttons[i].textContent === 'Configure WiFi') {"
+        "      buttons[i].textContent = 'Configure Settings';" // Your new text here
+        "    }"
+        "  }"
+        "});"
+        "</script>"
+      );
       wm.startWebPortal();
+      displaySetupInfo(&wm);
       while(configPortal){
         wm.process();
       }
