@@ -65,11 +65,6 @@ import network
 
 RUN_STARTED_MS = time.ticks_ms()
 
-try:
-    import hashlib
-except ImportError:  # some MicroPython builds leave it out
-    hashlib = None
-
 # load configuration
 WIFI_NETWORKS = config.WIFI_NETWORKS
 WIFI_HINT = config.WIFI_HINT
@@ -277,23 +272,16 @@ def battery() -> float:
 
 
 def firmware_hash() -> str:
-    """A digest of the program on disk, to tell firmware versions apart.
+    """A CRC32 of the program on disk, to tell firmware versions apart.
 
     It is read before the wake's page fetch, so right after an OTA swap it
     already describes the staged program while the previous one still runs
-    until the next reboot. SHA-256 where the build has it, otherwise the
-    board's CRC32 so a missing algorithm can never stop a wake from fetching
-    its page."""
+    until the next reboot."""
     try:
         with open("main.py", "rb") as file:
             source = file.read()
     except OSError:
         return ""
-    if hashlib is not None:
-        try:
-            return hashlib.sha256(source).hexdigest()
-        except (AttributeError, ValueError):
-            pass
     return f"{binascii.crc32(source) & 0xFFFFFFFF:08x}"
 
 
