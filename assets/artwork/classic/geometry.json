@@ -5363,6 +5363,42 @@
    1200
   ]
  },
+ "birds/diopsittaca-nobilis-3.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   1.0
+  ],
+  "cut": [
+   798,
+   1200
+  ]
+ },
+ "birds/diopsittaca-nobilis-2.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   1.0
+  ],
+  "cut": [
+   980,
+   1200
+  ]
+ },
+ "birds/diopsittaca-nobilis.webp": {
+  "box": [
+   0.0,
+   0.0,
+   1.0,
+   1.0
+  ],
+  "cut": [
+   967,
+   1200
+  ]
+ },
  "birds/dolichonyx-oryzivorus-2.webp": {
   "box": [
    0.2593689919907184,
