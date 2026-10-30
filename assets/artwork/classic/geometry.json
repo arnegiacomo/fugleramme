@@ -4163,6 +4163,18 @@
    1200
   ]
  },
+ "birds/colluricincla-harmonica.webp": {
+  "box": [
+   0.271,
+   0.365,
+   0.842,
+   0.558
+  ],
+  "cut": [
+   831,
+   1200
+  ]
+ },
  "birds/coloeus-monedula-2.webp": {
   "box": [
    0.0,
@@ -10101,6 +10113,30 @@
   "cut": [
    937,
    1070
+  ]
+ },
+ "birds/pachycephala-pectoralis.webp": {
+  "box": [
+   0.172,
+   0.346,
+   0.766,
+   0.522
+  ],
+  "cut": [
+   757,
+   1200
+  ]
+ },
+ "birds/pachycephala-rufiventris.webp": {
+  "box": [
+   0.526,
+   0.017,
+   0.872,
+   0.467
+  ],
+  "cut": [
+   856,
+   1200
   ]
  },
  "birds/pagophila-eburnea.webp": {

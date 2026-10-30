@@ -1387,6 +1387,10 @@
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Colius_striatus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ19300017.tif"
   },
+  "birds/colluricincla-harmonica.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14870"
+  },
   "birds/coloeus-monedula-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00244.jpg"
@@ -3366,6 +3370,14 @@
   "birds/otus-scops.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsIEuropeIScops_Eared_Owl.jpg"
+  },
+  "birds/pachycephala-pectoralis.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14918"
+  },
+  "birds/pachycephala-rufiventris.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14906"
   },
   "birds/pagophila-eburnea.webp": {
     "source": "vonwright",
