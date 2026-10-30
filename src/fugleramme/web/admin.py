@@ -432,8 +432,11 @@ def _update(status: Status) -> str:
         return f'<span class="bad">{status.update_error}</span>{_action("check", "Retry")}'
     if status.update_available:
         # The command stands in for the button: the image is the host's to replace.
+        # A phone gets the link instead, as nobody runs it there.
         install = (
             f'·<pre class="cmd">{html.escape(updates.CONTAINER_COMMAND)}</pre>'
+            f'<a class="host" href="{DOCS_URL}container/#updates" target="_blank" rel="noopener">'
+            "how to update</a>"
             if updates.in_container()
             else _action("update", "Install")
         )

@@ -85,6 +85,7 @@ dl.status dd.update, dl.status dd.action { display: flex; align-items: center; g
 dl.status .missing { align-self: center; }  /* the Copy button makes the row taller */
 dl.status dd.missing { display: flex; align-items: center; gap: 0.3rem; }
 dl.status dd.update button, dl.status dd.action button { margin: 0; }
+dl.status dd.update a.host { display: none; }
 time { border-bottom: 1px dotted #bbb; cursor: help; }
 /* White, not the panel's own #f4f2ee, or the box vanishes into it. `user-select:
    all` takes the whole command in one click - plain http has no clipboard API. */
@@ -236,4 +237,6 @@ ul.species li.problem { color: #a4392f; }
   nav.tabs button { flex: 1; font-size: 0.9rem; padding: 0.4rem 0.25rem; }
   .cols { flex-direction: column; }
   form.settings { flex: none; }
+  dl.status dd.update pre.cmd { display: none; }
+  dl.status dd.update a.host { display: inline; }
 }
