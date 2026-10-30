@@ -440,7 +440,7 @@ void setup() {
   prefs.putUChar("powerMode",static_cast<uint8_t>(currentMode));
 
   uint8_t sleepTime;
-  if(currentMode == SLEEP)
+  if(currentMode < FULL)
     sleepTime = LOW_BATTERY_SLEEP_MINUTES;
   else
     sleepTime = max(sleep,MIN_SLEEP_MINUTES);
