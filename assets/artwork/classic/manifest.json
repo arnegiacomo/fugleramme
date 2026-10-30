@@ -2535,6 +2535,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack-headed_Gull.jpg"
   },
+  "birds/icterus-galbula.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:12_Baltimore_Oriole.jpg"
+  },
   "birds/icterus-spurius-2.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_America._(Livraison)_9,_Plate_42,_Orchard_Oriole,_Male_1_%26_2._adult,_3_%26_4._second_year,_5._Female_;_Plant_vulgo_honey_locust_-_estampe_-_Drawn_from_Nature_and_Published_by_John_J._Audubon..._-_btv1b53144087j.jpg"
@@ -4723,6 +4727,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVLittle_Grebe.jpg"
   },
+  "birds/tachycineta-bicolor.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:98_White-bellied_Swallow.jpg"
+  },
   "birds/tachycineta-thalassina.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:385_I._Bank_Swallow_-_2._Violet-green_Swallow.jpg"
@@ -5115,9 +5123,17 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:119_Yellow-throated_Vireo.jpg"
   },
+  "birds/vireo-gilvus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:118_Warbling_Flycatcher.jpg"
+  },
   "birds/vireo-griseus.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/white-eyed-flycatcher-or-vireo"
+  },
+  "birds/vireo-olivaceus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:150_Red-eyed_Vireo.jpg"
   },
   "birds/vireo-solitarius.webp": {
     "source": "audubon",
