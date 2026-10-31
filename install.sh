@@ -320,13 +320,18 @@ ensure_panel_bus() {
 }
 
 ensure_gadget() {
-  if have rpi-usb-gadget; then
-    echo "   already installed"
+  # Trixie images ship the package with gadget mode off, so being installed says nothing about being on.
+  # `status` exits 0 either way; only its text tells. Not grep -q: it stops reading at the match, and under
+  # pipefail the SIGPIPE it leaves `status` with fails the check.
+  if have rpi-usb-gadget && sudo rpi-usb-gadget status 2>/dev/null | grep 'mode is on' >/dev/null; then
+    echo "   already on"
     return 0
   fi
   confirm "enable USB gadget mode (SSH over the USB-C cable)?" || { echo "   skipped"; return 0; }
-  apt_update
-  sudo apt-get install -y rpi-usb-gadget
+  if ! have rpi-usb-gadget; then
+    apt_update
+    sudo apt-get install -y rpi-usb-gadget
+  fi
   sudo rpi-usb-gadget on
   NEEDS_REBOOT=1
   cat <<'EOF'
