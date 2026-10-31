@@ -85,7 +85,6 @@ TTYPath=/dev/tty1
 TTYReset=yes
 TTYVHangup=yes
 StandardInput=tty-force
-Environment=XDG_RUNTIME_DIR=/run/user/%U
 ExecStart=/usr/bin/cage -- /usr/bin/chromium --kiosk --ozone-platform=wayland --noerrdialogs --disable-infobars http://localhost:8080/
 Restart=always
 RestartSec=5
