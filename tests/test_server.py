@@ -9,6 +9,7 @@ import json
 import logging
 import re
 import socket
+import struct
 import threading
 import time
 import urllib.parse
@@ -325,14 +326,23 @@ def test_with_the_e6_page_on_the_frame_is_laid_out_for_a_13_inch_panel(ext_eink_
     assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1440, 1080)
 
 
-def test_the_picked_panel_size_lays_out_the_page_and_only_the_13_inch_gets_e6(ext_eink_panel):
+def test_the_picked_panel_size_lays_out_the_page_and_its_e6(ext_eink_panel):
     ext_eink_panel.store.update(external_panel_size="7.3")
     assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1800, 1080)
 
     ext_eink_panel.status.frame = (Image.new("P", (480, 800), 1), 90)
     assert _size(_fetch(ext_eink_panel.base + "/frame.png")[2]) == (800, 480)
     status, _headers, body = _fetch(ext_eink_panel.base + "/frame.e6")
-    assert status == 404 and b"13.3" in body
+    assert status == 200
+    assert struct.unpack_from("<HHI", body, 8) == (800, 480, 192_000)
+
+
+def test_the_e6_page_is_not_there_for_a_panel_it_cannot_pack(ext_eink_panel):
+    ext_eink_panel.store.update(external_panel_size="4")
+    ext_eink_panel.status.frame = (Image.new("P", (640, 400), 1), 0)
+
+    status, _headers, body = _fetch(ext_eink_panel.base + "/frame.e6")
+    assert status == 404 and b'7.3" and 13.3"' in body
 
 
 def test_the_preview_follows_this_frame_s_inky_whatever_the_external_size(tmp_path, source):

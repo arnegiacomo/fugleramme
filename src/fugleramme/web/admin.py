@@ -864,7 +864,7 @@ EXTERNAL = (
     "while sign-in is on."
 )
 
-PANEL_SIZE = "The external panel's size. /frame.e6 is 13.3\" only."
+PANEL_SIZE = 'The external panel\'s size. /frame.e6 is 7.3" and 13.3" only.'
 
 
 def _output_field(settings: Settings, detected: bool) -> str:
