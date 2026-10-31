@@ -8339,6 +8339,30 @@
    1200
   ]
  },
+ "birds/leucophaeus-atricilla-2.webp": {
+  "box": [
+   0.0105,
+   0.0176,
+   0.9885,
+   0.9498
+  ],
+  "cut": [
+   1200,
+   962
+  ]
+ },
+ "birds/leucophaeus-atricilla.webp": {
+  "box": [
+   0.1688,
+   0.0188,
+   0.9562,
+   0.9506
+  ],
+  "cut": [
+   1200,
+   770
+  ]
+ },
  "birds/limosa-lapponica-2.webp": {
   "box": [
    0.011028088331222534,
