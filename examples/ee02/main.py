@@ -14,6 +14,10 @@ that does not fit this panel or a frame that is not serving one at once, a
 frame it cannot reach only after NOTICE_AFTER wakes in a row, so a restart or
 a Wi-Fi blip leaves the birds up. The next page that arrives replaces it.
 
+An empty battery gets the same notice, read before Wi-Fi so its draw does not
+pull the voltage down. Wakes then only read the battery until a charge: e-ink
+keeps the notice unpowered, so it outlasts the cell.
+
 The panel is taken over without a cut to its supply. A brief interruption of
 an energised panel has repeatedly left it unable to refresh, though the exact
 mechanism is not established. A refresh is trusted only when BUSY actually
@@ -73,6 +77,10 @@ FIRMWARE = getattr(config, "FIRMWARE", None)
 OTA_ENABLED = isinstance(FIRMWARE, str)
 MIN_SLEEP_MINUTES = config.MIN_SLEEP_MINUTES
 NOTICE_AFTER = config.NOTICE_AFTER
+BATTERY_EMPTY = config.BATTERY_EMPTY
+BATTERY_CHARGED = config.BATTERY_CHARGED
+BATTERY_FULL = config.BATTERY_FULL
+BATTERY_SCALE = config.BATTERY_SCALE
 WIDTH = config.WIDTH
 HEIGHT = config.HEIGHT
 
@@ -114,13 +122,27 @@ FRESH = {
     "shown": "",
     "failures": 0,
     "poll": MIN_SLEEP_MINUTES,
+    "charged_at": None,
+    "wakes": 0,
     "refreshes_since_firmware_check": 0,
     "ota_failures": 0,
 }
+SECONDS_PER_DAY = 86_400
 
 # EE02 wiring, from Seeed_GFX2's XIAO_ePaper_Board_Configs.h.
 SCK, MOSI = 7, 9  # XIAO D8, D10
 CS0, CS1, DC, RST, BUSY, POWER = 44, 41, 10, 38, 4, 43
+# From the EE02 schematic: ADC_EN switches VBAT onto a 10K/10K divider read at BAT_ADC.
+ADC_EN, BAT_ADC = 6, 1
+
+# The board cuts its own supply below 2.93 V (its ME2805 detector), so a lower
+# reading means USB power with no battery.
+BATTERY_ABSENT = 2.9
+EMPTY = (
+    "The battery is nearly empty. Charge it to bring the birds back. Before "
+    "plugging in the USB-C cable, move the board's switch from battery to "
+    "manual."
+)
 
 # Controller-select bit flags for the shared SPI bus.
 PRIMARY, SECONDARY, BOTH = 1, 2, 3
@@ -260,6 +282,19 @@ def firmware_target(path: str):
     hostpart, _, location = path.partition("://")[2].partition("/")
     host, _, port = hostpart.partition(":")
     return host, int(port) if port else (443 if tls else 80), tls, "/" + location
+
+
+def battery() -> float:
+    """VBAT in volts. The divider is switched on only for the reading."""
+    # Release a hold gpio_deep_sleep_hold() may have left through deep sleep.
+    machine.Pin(ADC_EN, hold=False)
+    enable = machine.Pin(ADC_EN, machine.Pin.OUT, value=1)
+    time.sleep_ms(10)
+    adc = machine.ADC(machine.Pin(BAT_ADC), atten=machine.ADC.ATTN_11DB)
+    samples = 8
+    microvolts = sum(adc.read_uv() for _ in range(samples)) / samples
+    enable.value(0)
+    return microvolts / 1_000_000 * BATTERY_SCALE
 
 
 def read_exactly(sock, buffer) -> None:
@@ -673,7 +708,12 @@ class Panel:
             for num in (RST, DC, CS0, CS1, SCK, MOSI):
                 machine.Pin(num, machine.Pin.OUT, value=0, hold=True)
             machine.Pin(BUSY, machine.Pin.IN)
-            esp32.gpio_deep_sleep_hold(True)
+            # Not every build offers it either. Without it, the state save
+            # after a draw was skipped and every wake redrew the same screen.
+            try:
+                esp32.gpio_deep_sleep_hold(True)
+            except AttributeError:
+                pass
 
 
 def show(pixels) -> None:
@@ -715,12 +755,38 @@ def main(wake: str) -> int:
     asked = wake == "update"
     rtc = machine.RTC()
     state = load(rtc)
+
+    # Once the notice is up only a charge clears it, so a resting cell that
+    # recovers a few millivolts does not swap birds and notice back and forth.
+    volts = battery()
+
+    # A full cell restarts the stats. Before one is seen they count from the
+    # cold start. The RTC keeps time through deep sleep, not through a reset.
+    if volts >= BATTERY_FULL or state["charged_at"] is None:
+        state = dict(state, charged_at=time.time(), wakes=0)
+    state = dict(state, wakes=state["wakes"] + 1)
+
+    empty = state["shown"].startswith(EMPTY)
+    if BATTERY_ABSENT < volts < (BATTERY_CHARGED if empty else BATTERY_EMPTY):
+        if not empty:
+            # Drawn once, so the stats are those of the wake that crossed.
+            days = (time.time() - state["charged_at"]) // SECONDS_PER_DAY
+            message = (
+                f"{EMPTY} The frame ran {days} days and {state['wakes']:,} wakes "
+                "since its last charge."
+            )
+            show(notice(message))
+            state = dict(state, etag="", shown=message)
+        rtc.memory(json.dumps(state).encode())
+        return max(state["poll"], MIN_SLEEP_MINUTES)
+
     if OTA_ENABLED:
         state = dict(
             state,
             refreshes_since_firmware_check=state["refreshes_since_firmware_check"] + 1,
         )
     rtc.memory(json.dumps(state).encode())
+
     state, problem = update(state, asked)
     if problem is not None and state["ota_failures"] >= NOTICE_AFTER:
         # An update that keeps failing is worth the glass saying so. It never
@@ -732,6 +798,7 @@ def main(wake: str) -> int:
             show(notice(message))
             state = dict(state, shown=message)
         rtc.memory(json.dumps(state).encode())
+
     try:
         # A notice is not the page: ask for the body even when the saved page
         # ETag still matches, so the next good wake replaces the notice.
