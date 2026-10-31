@@ -67,6 +67,33 @@ ssh <user>@<host>.local
 sudo apt install --no-install-recommends chromium cage
 ```
 
+`cage` draws a mouse pointer in the middle of the screen, even with no mouse
+plugged in, and the page can't hide it. A cursor theme whose cursors are a
+single transparent pixel does:
+
+```bash
+sudo mkdir -p /usr/share/icons/invisible/cursors
+sudo python3 - <<'EOF'
+import struct
+# An Xcursor file: a header, one table-of-contents entry and one transparent 1x1 image.
+IMAGE, SIZE = 0xFFFD0002, 1
+header = b"Xcur" + struct.pack("<III", 16, 0x10000, 1)
+toc = struct.pack("<III", IMAGE, SIZE, 28)
+chunk = struct.pack("<IIIIIIIII", 36, IMAGE, SIZE, 1, 1, 1, 0, 0, 0) + struct.pack("<I", 0)
+open("/usr/share/icons/invisible/cursors/default", "wb").write(header + toc + chunk)
+EOF
+for name in left_ptr arrow pointer hand1 hand2 text xterm watch wait progress crosshair grab grabbing; do
+  sudo ln -sf default /usr/share/icons/invisible/cursors/$name
+done
+printf '[Icon Theme]\nName=invisible\n' | sudo tee /usr/share/icons/invisible/index.theme
+mkdir -p ~/.icons/default
+ln -sfn /usr/share/icons/invisible/cursors ~/.icons/default/cursors
+```
+
+The browser picks the theme up through `XCURSOR_THEME` in the service below.
+`cage` loads the theme called `default` no matter what that says, which is
+what the last two lines are for.
+
 Then a service, so it comes up with the Pi. `PAMName` and `TTYPath` are what
 give the browser a login session and a seat on the screen, which is the part
 that is missing on Lite:
@@ -85,6 +112,7 @@ TTYPath=/dev/tty1
 TTYReset=yes
 TTYVHangup=yes
 StandardInput=tty-force
+Environment=XCURSOR_THEME=invisible
 ExecStart=/usr/bin/cage -- /usr/bin/chromium --kiosk --ozone-platform=wayland --noerrdialogs --disable-infobars http://localhost:8080/
 Restart=always
 RestartSec=5
