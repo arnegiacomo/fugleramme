@@ -224,6 +224,10 @@ panel with a Pi Zero 2 W.
 
 ### EE02 example code
 
+There are currently two options for the EE02 display board that have been contributed by the community. One is written in python on MicroPython, and the other is written on the Arduino platform.
+
+#### Python
+
 [`examples/ee02/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee02/main.py)
 is a MicroPython program for the XIAO EE02, which runs from a battery and can
 hang anywhere in Wi-Fi range. It wakes for the interval the page's header
@@ -256,6 +260,34 @@ panel and the controller board is specific. Running a smaller panel or another
 board? A program for it, and the packing it needs, would make a welcome
 contribution - see
 [Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
+
+#### Arduino
+
+Preparing the Arduino environment:
+1. Follow the [instructions from Seeed](https://wiki.seeedstudio.com/epaper_work_with_arduino/) to install the ESP32 board and Seeed_GFX libraries.
+2. From the Arduino IDE library manager, install QRCode by Richard Moore and WiFiManager by tzapu.
+3. Plug in your board, select Xiao_ESP32S3_PLUS for your board, and the appropriate COM port.
+4. Under tools, set PSRAM to "OPI PSRAM".
+5. Open the [`examples/ee02/arduino_epaper/arduino_epaper.ino`](/examples/ee02/arduino_epaper/arduino_epaper.ino) sketch and upload.
+
+On first boot, the board will start a WiFi network with a configuration page. The screen will display setup instructions, including QR codes to connect to the network and open the configuration webpage:
+![An epaper screen with a Fugleramme header, instructions, and QR codes](assets/setup_display.jpg)
+
+Use this web portal to connect to your WiFi network and enter your Fugleramme host and port information. When you save, your screen will reboot, connect to your server, and start displaying your collage. This uses the frame.e6 endpoint, so ensure that "External e-ink panel" is checked in the Fugleramme admin under the "Frame" tab.
+
+The display will show a low battery indicator when the battery level starts to get too low. When it gets below the threshold for WiFi to be able to run, it will display an empty battery indicator and begin sleeping for 60 minutes between wake-ups.
+![An epaper screen with a bird collage and a red low battery icon in the top left](assets/low_battery.jpg)
+
+Button functions:
+* Reset button: Press to wake the panel immediately and check for an updated image.
+* Key3 button: Press to wake the panel and pull the latest image even if it hasn't changed.
+* Key2 button: Hold for 5 seconds to launch a web portal without erasing settings. A QR code to manage your device will be displayed. WiFi, and Fugleramme host information can be changed, and new firmware can be loaded.
+* Key1 button: Hold for 10 seconds to erase settings and restart the initial setup.
+
+This code uses standard libraries and should therefore be easy to adapt to other hardware.
+
+Contributed by [Brent Gerig](https://github.com/brgerig). Tested on
+a Waveshare 13.3" panel with a Seeed XIAO EE02.
 
 ### E6 file format
 

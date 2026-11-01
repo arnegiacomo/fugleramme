@@ -7,6 +7,10 @@ __pycache__/
 .venv*/
 venv/
 
+# VIM temp files
+*.swp
+*~
+
 # Artwork tooling: auditing manifests, reviewing halos, normalising cut-outs and
 # benchmarking the packer. Workstation only, never on the Pi, and nothing the
 # frame runs depends on it - so it stays local. Anchored: a skill's scripts/ is tracked.
