@@ -92,7 +92,8 @@ FILES = {
 
 
 def _title_font() -> bytes:
-    """The portal's title face: Cormorant Garamond, the plates' engraved display italic."""
+    """The title face of the portal and the admin: Cormorant Garamond, the plates'
+    engraved display italic, cut to the one word it sets."""
     return cut("cormorant", portal.TITLE)
 
 
@@ -504,6 +505,9 @@ def make_handler(
         def _paper(self):
             self._send_cached(paper_png(), "image/png")
 
+        def _title(self):
+            self._send_cached(_title_font(), "font/ttf")
+
         def _health(self):
             self._send(200, b"ok", "text/plain")
 
@@ -514,6 +518,7 @@ def make_handler(
             "/preview.png": _preview_png,
             "/state": _state,
             "/paper.png": _paper,
+            "/title.ttf": _title,
             "/species": _species,
             "/stations": _stations,
             "/admin": _admin,

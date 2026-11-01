@@ -512,6 +512,7 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
         "/frame.png",
         "/state",
         "/paper.png",
+        "/title.ttf",
         "/health",
     }
 
