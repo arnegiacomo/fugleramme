@@ -61,9 +61,8 @@ can hang anywhere.
 | Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) |
 
 - **Any 40-pin Pi drives the panel** - thanks to Pimoroni's
-  [`inky`](https://github.com/pimoroni/inky) library. A Zero 2 W renders more
-  slowly, which you might not notice on a panel that takes half a minute anyway.
-  [Alternatives](#alternatives) says what's verified.
+  [`inky`](https://github.com/pimoroni/inky) library (a Zero 2 W works, but
+  packs the collage slowly). [Alternatives](#alternatives) says what's verified.
 - **The cooler is optional.** Nothing is classifying around the clock here, so
   the Pi pretty much idles between renders.
 - **Less storage.** No sound clips, no detection database.
@@ -106,8 +105,7 @@ the capsule drowns out everything else).
 
 ## Alternatives
 
-- **Other boards.** A **Pi 4** and a **Pi Zero 2 W** both work - people are running them, the Zero just renders more slowly. A **Pi 5 with 1 GB** should be plenty for a frame that isn't also classifying. (None of these are officially supported
-  yet, only because I don't have units to verify on).
+- **Other boards.** A **Pi 4** and a **Pi Zero 2 W** both work - people are running them. On the Zero, packing the collage is slow and takes all of its processing power while it runs (single-bird modes are unaffected). A **Pi 5 with 1 GB** should be plenty for a frame that isn't also classifying.
 - **NVMe instead of microSD** spares the card BirdNET-Go's constant writes, but the HAT/Base adds cost, height and heat for a mostly idle workload - and the drives are crazy expensive right now.
 - **Other Inky displays** work, you just lose resolution and size. The 7.3" fits a smaller frame, see [Mounting](mounting.md). Alternatively skip the panel: the frame serves the same page as a web kiosk, on a TV, over HDMI or headless - see [Screens](screens.md).
 
