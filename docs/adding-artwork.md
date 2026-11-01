@@ -55,6 +55,10 @@ Use **Image > Flatten Image** first.
 
 If you use Claude Code, the repo ships a `plate-review` skill that does the cutting and the halo from a small spec, then opens a review page where you can compare it to the original and come with feedback. Type `/plate-review` in the repo and give it the scan url. See `tools/platereview/`. Contributed by [erendrake](https://github.com/erendrake).
 
+### Or let an agent take it end to end
+
+[fugleramme-artkit](https://github.com/N-Soder/fugleramme-artkit) is a Python tool you drive from an agent: it finds the birds missing for your country, sources a plate and its licence, cuts it, checks it for the faults reviews have caught before, and imports it with this repo's tools. You approve each step in its review UI. By [N-Soder](https://github.com/N-Soder).
+
 ## Add the bird to a style
 
 Use the artwork tool to give a finished cut-out a BirdNET-compatible filename,
