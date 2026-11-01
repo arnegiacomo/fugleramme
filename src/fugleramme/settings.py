@@ -164,6 +164,11 @@ class Settings:
     # Behind a reverse proxy every request arrives from the proxy, so the sign-in
     # limiter has to key on the address the proxy reports instead (#52).
     behind_proxy: bool = False
+    # Opens a setup hotspot when the frame has no network (#308). On by default, updated
+    # frames included: it only acts on a frame that is offline, which was a dead frame before.
+    wifi_setup: bool = True
+    # Makes the hotspot WPA2; empty leaves it open. 8 to 63 characters, as WPA2 asks.
+    hotspot_password: str = ""
     # Signs the admin's session cookie. Minted at the first sign-in and kept, so a
     # restart does not sign everyone out; not a setting anyone edits.
     session_secret: str = ""
@@ -299,6 +304,14 @@ def _text(value, default: str) -> str:
     return value.strip() if isinstance(value, str) else default
 
 
+def _hotspot_password(value, default: str) -> str:
+    """A WPA2 passphrase or nothing: one outside 8 to 63 characters would keep the hotspot from
+    opening at all, which is worse than an open one."""
+    if not isinstance(value, str):
+        return default
+    return value if value == "" or 8 <= len(value) <= 63 else default
+
+
 def _secret(value, default: str) -> str:
     """Kept byte for byte: the login page compares what was typed, so a stripped
     trailing space would save a password that no longer signs anyone in."""
@@ -368,6 +381,8 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         require_sign_in=_as_bool(raw.get("require_sign_in"), d.require_sign_in),
         behind_proxy=_as_bool(raw.get("behind_proxy"), d.behind_proxy),
         admin_password=_secret(raw.get("admin_password"), d.admin_password),
+        wifi_setup=_as_bool(raw.get("wifi_setup"), d.wifi_setup),
+        hotspot_password=_hotspot_password(raw.get("hotspot_password"), d.hotspot_password),
         session_secret=_text(raw.get("session_secret"), d.session_secret),
     )
 

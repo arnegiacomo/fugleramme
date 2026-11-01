@@ -30,6 +30,7 @@ import io
 import json
 import logging
 import secrets
+import socket
 import threading
 import time
 from dataclasses import replace
@@ -39,14 +40,15 @@ from pathlib import Path
 from typing import ClassVar
 from urllib.parse import parse_qs, urlencode, urlparse
 
-from .. import __version__, buttons, e6, modes, updates
+from .. import __version__, buttons, e6, modes, updates, wifi
 from ..languages import namer
 from ..panel import Panel, resolution_of, to_glass
+from ..render.fonts import cut
 from ..render.paper import paper_tile
 from ..settings import Settings, SettingsStore, merged
 from ..source import Source, Unavailable
 from ..status import Frame, Status
-from . import LOGIN, LOGOUT, STATIC_DIR, admin
+from . import LOGIN, LOGOUT, STATIC_DIR, admin, portal
 
 log = logging.getLogger(__name__)
 
@@ -87,6 +89,11 @@ FILES = {
     "/favicon.png": ("favicon.png", "image/png"),
     "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),
 }
+
+
+def _title_font() -> bytes:
+    """The portal's title face: Cormorant Garamond, the plates' engraved display italic."""
+    return cut("cormorant", portal.TITLE)
 
 
 @functools.cache
@@ -137,6 +144,8 @@ def make_handler(
     store: SettingsStore,
     panel: Panel | None,
     status: Status,
+    setup: wifi.Setup | None = None,
+    home: str = "",
 ):
     def glass(settings: Settings) -> tuple[int, int] | None:
         """The panel the page is laid out for, or None: nothing for the kiosk to lock to."""
@@ -340,6 +349,31 @@ def make_handler(
                 del attempts[next(iter(attempts))]  # insertion order: the oldest first
             return len(attempts.get(client, [])) >= TRIES
 
+        def _on_hotspot(self) -> bool:
+            """A phone on the Wi-Fi setup hotspot, which only ever gets the portal (#308)."""
+            return wifi.on_hotspot(self.client_address[0])
+
+        def _portal(self, form: dict[str, list[str]] | None = None):
+            # Whether a phone's network check reaches the frame is what decides if the portal
+            # opens by itself, and nothing else shows it.
+            log.info(
+                "Portal: %s %s %s%s",
+                self.client_address[0],
+                self.command,
+                self.headers.get("Host", ""),
+                urlparse(self.path).path,
+            )
+            state = status.wifi or wifi.State()
+            picked = portal.parse(form) if form is not None else None
+            if picked is None or setup is None:
+                networks = [(n.ssid, n.secure) for n in state.networks]
+                error = state.error or ("Pick a network." if form is not None else "")
+                page = portal.choose(state.name, networks, error, _title_font())
+                self._send(200, page.encode(), HTML)
+                return
+            setup.join(*picked)
+            self._send(200, portal.joining(picked[0], home, _title_font()).encode(), HTML)
+
         def _query(self) -> dict[str, list[str]]:
             return parse_qs(urlparse(self.path).query, keep_blank_values=True)
 
@@ -488,6 +522,9 @@ def make_handler(
         }
 
         def do_GET(self):
+            if self._on_hotspot():
+                self._portal()
+                return
             route = urlparse(self.path).path
             if route == LOGIN:
                 if self._allowed():
@@ -544,6 +581,9 @@ def make_handler(
             # keep_blank_values: an emptied field is a change, not an absent one.
             # "None" for the second language and a cleared credential both post blank.
             form = parse_qs(body, keep_blank_values=True)
+            if self._on_hotspot():
+                self._portal(form)
+                return
             if route == LOGIN:
                 self._sign_in(form)
                 return
@@ -619,10 +659,13 @@ def serve(
     store: SettingsStore,
     panel: Panel | None = None,
     status: Status | None = None,
+    setup: wifi.Setup | None = None,
 ) -> ThreadingHTTPServer:
     """Start the kiosk on a daemon thread. Port 0 asks the OS for one - read it
     back from `server_address[1]`."""
-    handler = make_handler(source, images_dir, store, panel, status or Status())
+    # Where a phone finds the frame once the setup hotspot has put it on a network.
+    home = f"http://{socket.gethostname()}.local:{port}"
+    handler = make_handler(source, images_dir, store, panel, status or Status(), setup, home)
     httpd = ThreadingHTTPServer((host, port), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd

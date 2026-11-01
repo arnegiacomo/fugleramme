@@ -12,7 +12,10 @@ dependencies = [
     # Which characters a typeface has, to pick a label line's fallback face.
     "fonttools>=4.60",
     "numpy>=2.4.6",
-    "pillow>=10.0",
+    # 10.1 for a scalable load_default(), which sets the Wi-Fi setup screen.
+    "pillow>=10.1",
+    # The Wi-Fi setup screen's QR code. Pure python, no dependencies.
+    "segno>=1.6",
 ]
 
 [project.scripts]

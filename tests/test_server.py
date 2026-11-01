@@ -925,3 +925,40 @@ def test_a_press_without_a_password_is_not_a_guess(locked_panel):
     for _ in range(server.TRIES):
         assert _post(locked_panel + "/press", {"button": "B"})[0] == 401
     assert _post(locked_panel + "/press", {"button": "B", "password": PASSWORD})[0] == 204
+
+
+def test_a_phone_on_the_setup_hotspot_only_ever_gets_the_portal(tmp_path, source, monkeypatch):
+    """#308: the hotspot serves the portal, never the admin or the kiosk, and the portal's
+    post hands the network to the Wi-Fi setup."""
+    from fugleramme import wifi
+
+    joined = []
+    status = Status(wifi=wifi.State(available=True, up=True, name="Fugleramme-A215"))
+    handler = server.make_handler(
+        source(count=5, seed=0),
+        tmp_path / "images",
+        SettingsStore(tmp_path / SETTINGS),
+        None,
+        status,
+        SimpleNamespace(join=lambda *picked: joined.append(picked)),
+        "http://crow.local:8080",
+    )
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
+    base = f"http://127.0.0.1:{httpd.server_address[1]}"
+    try:
+        monkeypatch.setattr(wifi, "on_hotspot", lambda address: True)
+        for path in ("/admin", "/", "/hotspot-detect.html", "/frame.png"):
+            code, _headers, body = _fetch(base + path)
+            assert code == 200
+            assert b"Connect the frame to Wi-Fi" in body
+        code, _headers, body = _post(base + "/join", {"ssid": "Home", "password": "pw"})
+        assert code == 200
+        assert b"http://crow.local:8080" in body
+        assert joined == [("Home", "pw", False)]
+
+        monkeypatch.setattr(wifi, "on_hotspot", lambda address: False)
+        code, _headers, body = _fetch(base + "/admin")
+        assert b"Connect the frame to Wi-Fi" not in body
+    finally:
+        httpd.shutdown()

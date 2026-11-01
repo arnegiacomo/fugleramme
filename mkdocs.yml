@@ -42,6 +42,7 @@ nav:
     - Hardware: hardware.md
     - Mounting: mounting.md
     - Install: install.md
+    - Wi-Fi: wifi.md
     - Container: container.md
     - Configuring BirdNET-Go: birdnetgo-config.md
   - Using it:

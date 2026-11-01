@@ -72,3 +72,9 @@ def _pop(image: Image.Image) -> Image.Image:
 def dither(image: Image.Image) -> Image.Image:
     """Quantize an RGB image to the 6-color panel palette (returns mode "P")."""
     return _pop(image).quantize(palette=_palette_image(), dither=Image.Dither.FLOYDSTEINBERG)
+
+
+def monochrome(image: Image.Image) -> Image.Image:
+    """A black and white page onto the panel palette as it is, undithered: the setup screen's
+    QR code stops scanning once it is smeared."""
+    return image.convert("RGB").quantize(palette=_palette_image(), dither=Image.Dither.NONE)

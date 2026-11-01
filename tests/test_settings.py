@@ -576,3 +576,17 @@ def test_the_public_address_is_kept_by_shape_and_cleared_by_emptying(tmp_path):
     saved = store.update(detector_public_url="https://example.org/birdnet/")
     assert saved.detector_public_url == "https://example.org/birdnet"
     assert store.update(detector_public_url="").detector_public_url == ""
+
+
+def test_wifi_setup_is_on_and_the_hotspot_open_unless_set(tmp_path):
+    settings = SettingsStore(tmp_path / "settings.json").get()
+    assert settings.wifi_setup is True
+    assert settings.hotspot_password == ""
+
+
+@pytest.mark.parametrize(
+    ("typed", "kept"), [("", ""), ("eight888", "eight888"), ("short", ""), ("x" * 64, "")]
+)
+def test_a_hotspot_password_wpa2_would_refuse_is_not_saved(tmp_path, typed, kept):
+    store = SettingsStore(tmp_path / "settings.json")
+    assert store.update(hotspot_password=typed).hotspot_password == kept

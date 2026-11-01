@@ -25,6 +25,7 @@ Read the area's breadcrumb before changing it. Each records a constraint the cod
 - [`.agents/render.md`](.agents/render.md) - how the page looks or when it re-renders: panel sizing, the packers and their cache, labels, dithering, the buttons
 - [`.agents/web.md`](.agents/web.md) - the kiosk and the admin
 - [`.agents/artwork.md`](.agents/artwork.md) - artwork files, styles, manifests, attribution, `geometry.json`, variant picks
+- [`.agents/wifi.md`](.agents/wifi.md) - the Wi-Fi setup hotspot, its portal and setup screen, and what the Pi's radio allows
 - [`.agents/install.md`](.agents/install.md) - any default, setting or per-Pi file, the install scripts, self-update, releases, the image
 - [`docs/`](docs/index.md) - the end-user manual, in plain speech, with nothing about one deployment's hosting
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) - commit types and the bump each one makes

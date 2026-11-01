@@ -923,3 +923,23 @@ def test_a_station_on_birdweather_is_shown_by_its_id(tmp_path, source):
     form = _detector_form(_page(tmp_path, source(), detector_station=stations))
     assert 'name="detector_station" value="31086"' in form
     assert 'name="detector_station" value="http://127.0.0.1:8090/stations/1"' in form
+
+
+def test_the_wifi_setup_is_offered_only_on_the_pis_own_service(monkeypatch):
+    from fugleramme import updates, wifi
+
+    monkeypatch.setattr(updates, "can_reboot", lambda: False)
+    assert admin._wifi_field(Settings(), Status(), detected=True) == ""
+
+    monkeypatch.setattr(updates, "can_reboot", lambda: True)
+    field = admin._wifi_field(Settings(), Status(), detected=False)
+    assert "Needs an Inky panel connected" in field
+    assert "disabled" in field
+
+    refused = Status(wifi=wifi.State(problem="sudo refuses nmcli"))
+    assert admin.INSTALL_COMMAND in admin._wifi_field(Settings(), refused, True)
+
+    ready = Status(wifi=wifi.State(available=True, up=True, name="Fugleramme-A215"))
+    field = admin._wifi_field(Settings(hotspot_password="birdsbirds"), ready, True)
+    assert 'name="hotspot_password" value="birdsbirds"' in field
+    assert "Join Fugleramme-A215 to use it" in field

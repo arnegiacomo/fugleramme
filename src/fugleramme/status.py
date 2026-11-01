@@ -11,6 +11,8 @@ from datetime import UTC, datetime
 
 from PIL import Image
 
+from .wifi import State as WifiState
+
 # The panel page as dithered, and the rotation it hangs at.
 Frame = tuple[Image.Image, int]
 
@@ -34,6 +36,8 @@ class Status:
     update_phase: str | None = None
     update_percent: int | None = None
     reboot_error: str | None = None
+    # The Wi-Fi setup's, published by its own thread; None where there is none (#308).
+    wifi: WifiState | None = None
 
     def rendered(self, frame: Frame) -> None:
         self.rendered_at = _now()

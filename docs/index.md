@@ -37,13 +37,14 @@ Bug reports and suggestions are very welcome on
 - **[Hardware](hardware.md)** - the parts list with alternatives
 - **[Mounting](mounting.md)** - mounting the panel and the Pi in an IKEA frame
 - **[Install](install.md)** - from a blank SD card to a running frame
+- **[Wi-Fi](wifi.md)** - connecting the frame to Wi-Fi
 - **[Configuring BirdNET-Go](birdnetgo-config.md)** - the mic, your location, and
   avoiding incorrect detections
 - **[Display](display.md)** - modes, settings and names
 - **[Frame](frame.md)** - panel refresh, web resolution and margin
 - **[Languages](languages.md)** - language support
 - **[Screens](screens.md)** - a browser, an HDMI screen, a TV or your desktop
-- **[Operations](operations.md)** - buttons, updates, ports, authentication and Wi-Fi
+- **[Operations](operations.md)** - buttons, updates, ports and authentication
 - **[Container](container.md)** - running Fugleramme with Docker
 - **[Species coverage](species.md)** - searchable list of currently supported species
 - **[Adding artwork](adding-artwork.md)** - cutting a bird the frame can't draw yet
