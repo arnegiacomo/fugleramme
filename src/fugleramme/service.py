@@ -26,8 +26,6 @@ from .config import Config
 from .languages import namer
 from .panel import Panel, external_resolution, init_panel, resolution_of
 from .render.dither import dither, monochrome
-from .render.fonts import FONTS, FONTS_DIR
-from .render.setup import setup_page
 from .settings import Settings, SettingsStore, from_env
 from .source import Unavailable
 from .status import Frame, Status
@@ -89,12 +87,11 @@ def _update(status: Status, auto: bool) -> bool:
         return False
 
 
-def _wifi_setup(
-    panel: Panel | None, port: int, store: SettingsStore, status: Status
-) -> wifi.Setup | None:
-    """The Wi-Fi setup's thread, on the Pi's own service with an Inky on it alone: the setup
-    screen is the panel's, and only that service may touch the network, as with the reboot."""
-    if panel is None or not updates.can_reboot():
+def _wifi_setup(port: int, store: SettingsStore, status: Status) -> wifi.Setup | None:
+    """The Wi-Fi setup's thread, on the Pi's own service alone: only that service may touch
+    the network, as with the reboot. It runs with no screen at all, since a phone lists the
+    hotspot by name."""
+    if not updates.can_reboot():
         return None
 
     def publish(state: wifi.State) -> None:
@@ -118,17 +115,7 @@ def _setup_key(state: wifi.State, settings: Settings, size: tuple[int, int]) -> 
 
 def _setup_screen(state: wifi.State, settings: Settings, size: tuple[int, int]) -> Frame:
     """The setup screen for the panel."""
-    top, right, bottom, left = settings.margins(True)
-    page = setup_page(
-        size,
-        (top / 100, right / 100, bottom / 100, left / 100),
-        state.name,
-        state.password,
-        f"http://{wifi.ADDRESS}",
-        state.error,
-        str(FONTS_DIR / FONTS["cormorant"][1]),  # the plates' engraved display italic
-    )
-    return monochrome(page), settings.rotation
+    return monochrome(modes.setup_screen(state, settings, size, True)), settings.rotation
 
 
 def _push(panel: Panel, frame: Frame, status: Status) -> bool:
@@ -182,7 +169,7 @@ def run(config: Config) -> None:
     (config.config_path.parent / "artwork.json").unlink(missing_ok=True)
     status = Status()
 
-    setup = _wifi_setup(panel, config.port, store, status)
+    setup = _wifi_setup(config.port, store, status)
     server = serve(
         source,
         config.images_dir,

@@ -1,13 +1,13 @@
 # Wi-Fi
 
-A frame with an Inky panel can be moved to a new Wi-Fi network without SSH.
+A Pi running Fugleramme can be moved to a new Wi-Fi network without SSH.
 When it starts up without a network, it will open a Wi-Fi hotspot of its own and show you how to connect.
 
 ## Setting up
 
 ![The setup screen: Fugleramme across the top, a QR code, the hotspot's name and the address](assets/wifi-screen.png)
 
-1. Plug the frame in. If it's unable to connect to a network, the setup screen appears. (can be turned off - on by default)
+1. Plug the frame in. If it's unable to connect to a network, the setup screen appears on the Inky panel or HDMI screen. (can be turned off - on by default)
 2. Scan the QR code on the screen with your phone's camera, or join the hotspot (name on screen),
    `Fugleramme-` and four characters.
 3. A setup portal will open by itself. If it doesn't, open `http://10.42.0.1` (also on the screen) in a browser.
@@ -31,7 +31,9 @@ Gifting the frame to someone? Set it up on your own network as usual. In its new
 
 ## Changing network
 
-Hold button **A** for five seconds. The setup screen and hotspot will come up while you're still holding it. Hold **A** again to close it without changing anything and it reconnects to a network it knows.
+On an Inky frame, hold button **A** for five seconds. The setup screen and hotspot will come up while you're still holding it. Hold **A** again to close it without changing anything and it reconnects to a network it knows.
+
+Without an Inky, the setup only opens by itself, when the frame starts up and it can't connect.
 
 The frame remembers the networks it already has connected to.
 
@@ -49,7 +51,7 @@ Untick **Start Wi-Fi setup when the frame is offline** on the System tab. Holdin
 
 ## When it isn't available
 
-- Only a Pi with an Inky panel connected has this - not HDMI, an external panel or the container.
+- Only on a Pi, not in the container.
 - The frame needs permission to change the network. If the System tab says it isn't allowed, run the command it shows on the Pi. That is the [install command](install.md#3-install-the-frame), which is safe to rerun.
 
 ## Over USB-C (gadget mode)

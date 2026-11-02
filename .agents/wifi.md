@@ -10,6 +10,11 @@ Covers `wifi.py`, `render/setup.py` and `web/portal.py` (#308). All three import
 - **NetworkManager never leaves an active hotspot for a saved network that comes back**, so the app drops it (`_retry`). After a failed join it falls back to a saved network in range within seconds, which is why `_join` reopens the hotspot at once.
 - Wi-Fi is rfkill-blocked until a country is set; Imager sets one. Imager's networks are netplan-generated on trixie: change them with `nmcli`, never `/etc/netplan`.
 
+## Where it runs
+
+- On the Pi's own service, with or without a panel or a screen (`service._wifi_setup`): a phone lists the hotspot by name.
+- While the hotspot is up, the kiosk page is the setup screen as see-through greyscale ink on the kiosk's paper (`server._setup_shown`); the panel gets it in 1-bit. The frame is offline then, so only an HDMI screen on the Pi or a computer over USB sees the kiosk's. Holding A is the only way to open it by hand.
+
 ## Captive portal
 
 - iOS opens the portal by itself once every name resolves to the frame and port 80 reaches the frame's port: the `dnsmasq-shared.d` file and the `nft` redirect in `Nmcli.open`. Android is untested; DHCP option 114 is sent for it and changes nothing on iOS.
@@ -23,4 +28,4 @@ Covers `wifi.py`, `render/setup.py` and `web/portal.py` (#308). All three import
 
 ## Defaults
 
-- `wifi_setup` is on for updated frames too, against the usual rule that a release reproduces the previous one's behaviour: it only acts on a frame with no network, which was a dead frame before.
+- `wifi_setup` is on for updated frames too, against the usual rule that a release reproduces the previous one's behaviour: it only acts on a frame with no network. A frame offline on purpose with a local BirdNET-Go showed birds before and shows the setup screen after `GRACE` now, until the switch is turned off. Accepted for the Inky and HDMI alike.

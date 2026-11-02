@@ -490,22 +490,20 @@ _WIFI_PROBLEMS = {
 }
 
 
-def _wifi_problem(status: Status, detected: bool) -> str:
+def _wifi_problem(status: Status) -> str:
     """Why this frame cannot open a setup hotspot, as HTML, or "" if it can."""
-    if not detected:
-        return "Needs an Inky panel connected."
     state = status.wifi
     if state is None or state.available:
         return ""
     return _WIFI_PROBLEMS.get(state.problem, html.escape(state.problem))
 
 
-def _wifi_field(settings: Settings, status: Status, detected: bool) -> str:
+def _wifi_field(settings: Settings, status: Status) -> str:
     """The Wi-Fi setup (#308): its switch and the hotspot's password. Only the Pi's own
-    service with an Inky on it runs one, so anywhere else there is nothing to offer."""
+    service runs one, so anywhere else there is nothing to offer."""
     if not updates.can_reboot():
         return ""
-    problem = _wifi_problem(status, detected)
+    problem = _wifi_problem(status)
     label = "Start Wi-Fi setup when the frame is offline"
     if problem:
         return (
@@ -1178,7 +1176,7 @@ def page(
         ),
         update=_update(status),
         auto_update=_auto_update(settings),
-        wifi=_wifi_field(settings, status, detected),
+        wifi=_wifi_field(settings, status),
         panel=f"detected · {glass}" if detected else "not detected",
         detector_name=KINDS[settings.detector_kind].removesuffix(" station(s)"),
         detector_link=_detector_link(settings),

@@ -23,6 +23,14 @@ def test_it_fills_the_page_at_any_shape(size):
     assert page.getbbox() is not None  # inverted: the ink
 
 
+def test_a_browser_gets_it_in_greyscale():
+    page = setup_page(
+        (1920, 1080), (0, 0, 0, 0), "Fugleramme-A215", "", "http://10.42.0.1", mode="L"
+    )
+    assert page.mode == "L"
+    assert len(page.getcolors()) > 2  # antialiased
+
+
 def test_on_the_panel_it_stays_two_colours():
     page = setup_page((800, 480), (0, 0, 0, 0), "Fugleramme-A215", "secret12", "http://10.42.0.1")
     assert {index for _, index in monochrome(page).getcolors()} == {0, 1}  # black, white

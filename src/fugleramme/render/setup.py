@@ -1,7 +1,8 @@
-"""The Wi-Fi setup screen the panel shows while the hotspot is up (#308).
+"""The Wi-Fi setup screen that stands in for the page while the hotspot is up (#308).
 
 "Fugleramme" across the top, then a QR code that joins the hotspot and the same in words.
-Black and white only: a QR code dithered into the panel's colours stops scanning. Pillow's own
+Black and white only: a QR code dithered into the panel's colours stops scanning. A browser
+gets it in greyscale, so the words are antialiased. Pillow's own
 typeface (Aileron) sets the words; the name takes the face it is handed.
 
 Pillow and segno only, and nothing from the rest of the package, so a frame that only drives a
@@ -96,8 +97,9 @@ def setup_page(
     address: str,
     error: str = "",
     name_font: str = "",
+    mode: str = "1",
 ) -> Image.Image:
-    """The screen at `size` as the frame hangs, in mode "1". `margins` are the mat's top,
+    """The screen at `size` as the frame hangs, in `mode` ("1" or "L"). `margins` are the mat's top,
     right, bottom and left, as fractions of the short side. Landscape sets the code left of
     the words, portrait above them. `name_font` is a font file for "Fugleramme" across the
     top; empty sets it in Aileron."""
@@ -108,7 +110,7 @@ def setup_page(
     gap = round(short * _GAP)
     landscape = width >= height
 
-    page = Image.new("1", size, 1)
+    page = Image.new(mode, size, "white")
     draw = ImageDraw.Draw(page)
     y0 += _name(draw, short, (x0, y0, x1), name_font) + gap
 

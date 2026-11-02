@@ -929,17 +929,15 @@ def test_the_wifi_setup_is_offered_only_on_the_pis_own_service(monkeypatch):
     from fugleramme import updates, wifi
 
     monkeypatch.setattr(updates, "can_reboot", lambda: False)
-    assert admin._wifi_field(Settings(), Status(), detected=True) == ""
+    assert admin._wifi_field(Settings(), Status()) == ""
 
     monkeypatch.setattr(updates, "can_reboot", lambda: True)
-    field = admin._wifi_field(Settings(), Status(), detected=False)
-    assert "Needs an Inky panel connected" in field
+    refused = Status(wifi=wifi.State(problem="sudo refuses nmcli"))
+    field = admin._wifi_field(Settings(), refused)
+    assert admin.INSTALL_COMMAND in field
     assert "disabled" in field
 
-    refused = Status(wifi=wifi.State(problem="sudo refuses nmcli"))
-    assert admin.INSTALL_COMMAND in admin._wifi_field(Settings(), refused, True)
-
     ready = Status(wifi=wifi.State(available=True, up=True, name="Fugleramme-A215"))
-    field = admin._wifi_field(Settings(hotspot_password="birdsbirds"), ready, True)
+    field = admin._wifi_field(Settings(hotspot_password="birdsbirds"), ready)
     assert 'name="hotspot_password" value="birdsbirds"' in field
     assert "Join Fugleramme-A215 to use it" in field

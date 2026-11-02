@@ -13,6 +13,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+from dataclasses import replace
 from http.server import ThreadingHTTPServer
 from types import SimpleNamespace
 
@@ -961,5 +962,34 @@ def test_a_phone_on_the_setup_hotspot_only_ever_gets_the_portal(tmp_path, source
         monkeypatch.setattr(wifi, "on_hotspot", lambda address: False)
         code, _headers, body = _fetch(base + "/admin")
         assert b"Connect the frame to Wi-Fi" not in body
+    finally:
+        httpd.shutdown()
+
+
+def test_the_kiosk_shows_the_setup_screen_while_the_hotspot_is_up(tmp_path, source):
+    """#308: an HDMI screen on the Pi reads the kiosk from localhost, which is not the hotspot."""
+    from fugleramme import wifi
+
+    status = Status()
+    handler = server.make_handler(
+        source(count=5, seed=0),
+        tmp_path / "images",
+        SettingsStore(tmp_path / SETTINGS),
+        None,
+        status,
+    )
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
+    base = f"http://127.0.0.1:{httpd.server_address[1]}"
+    try:
+        birds = json.loads(_fetch(base + "/state")[2])["token"]
+        status.wifi = wifi.State(available=True, up=True, name="Fugleramme-A215")
+        assert json.loads(_fetch(base + "/state")[2])["token"] != birds
+        code, _headers, body = _fetch(base + "/collage.png")
+        assert code == 200
+        assert Image.open(io.BytesIO(body)).mode == "LA"  # ink over the kiosk's paper
+
+        status.wifi = replace(status.wifi, up=False)
+        assert json.loads(_fetch(base + "/state")[2])["token"] == birds
     finally:
         httpd.shutdown()

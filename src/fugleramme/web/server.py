@@ -394,8 +394,24 @@ def make_handler(
             preview and its listing show a change before Save."""
             return merged(store.get(), **admin.form_changes(self._query()))
 
+        def _setup_shown(self) -> wifi.State | None:
+            """The hotspot's state while the setup screen stands in for the page (#308). The
+            frame is offline then, so only a browser on the Pi itself or over USB sees it."""
+            state = status.wifi
+            return state if state is not None and state.up else None
+
         def _page_png(self):
             nonlocal last_page, last_from
+            shown = self._setup_shown()
+            if shown is not None:
+                settings = store.get()
+                page = modes.setup_screen(
+                    shown, settings, settings.web_size(glass(settings)), False
+                )
+                buffer = io.BytesIO()
+                page.save(buffer, format="PNG")
+                self._send_cached(buffer.getvalue(), "image/png")
+                return
             if source.base_url != last_from:
                 last_page, last_from = None, source.base_url
             try:
@@ -451,7 +467,21 @@ def make_handler(
 
         def _state(self):
             # Cheap enough to poll: one grouped query, no render.
-            token = modes.token(modes.state_key(self._context(store.get())))
+            settings = store.get()
+            shown = self._setup_shown()
+            key = (
+                (
+                    "wifi",
+                    shown.name,
+                    shown.password,
+                    shown.error,
+                    settings.web_size(glass(settings)),
+                    settings.margin,
+                )
+                if shown is not None
+                else modes.state_key(self._context(settings))
+            )
+            token = modes.token(key)
             self._send(200, json.dumps({"token": token}).encode(), JSON)
 
         def _species(self):

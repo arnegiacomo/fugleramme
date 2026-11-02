@@ -38,6 +38,8 @@ On a tablet, add the page to the home screen and it opens like an app, with its 
 
 ## On HDMI, Raspberry Pi OS Desktop
 
+When the frame can't connect to a network, the screen shows the [Wi-Fi setup](wifi.md).
+
 The desktop OS already has a browser and a session to run it in:
 
 ```bash
