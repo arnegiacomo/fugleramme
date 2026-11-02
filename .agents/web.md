@@ -29,6 +29,7 @@ Covers the `web/` package.
 
 - `admin.js` is static and cached: it reads its server values from a JSON blob in the page rather than being built per request.
 - The Margin field is a range slider. `admin.js` renders its preview on `change` (release, or a keyboard step), never on `input`, so a drag costs one render.
+- A change to any `margin*` field also posts the form to `/mat-test` (debounced 500 ms), which starts the margin test the render breadcrumb describes. There is no button: the black band is the feedback.
 - The preview box takes the page's shape before a render starts: `cfg.panel` while an Inky is detected or the form's external panel box is ticked, turned by the rotation in the *form*, not the one last rendered (with no panel, the form's aspect and portrait), so the species list under it holds still and moves only when the page would.
 - `syncPanel` and `syncMargin` follow the same answer: Rotation, Lock to panel, Uniform and the edges are offered while the form has a panel. All are always rendered with their declarations, and disabled - declaration included - without a panel, so a save then leaves the stored values alone.
 - Display and Frame are two tabs over one form, so one Save and one preview serve both; `#settings` is shown for either.

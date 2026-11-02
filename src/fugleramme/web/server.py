@@ -44,10 +44,11 @@ from .. import __version__, buttons, e6, modes, updates, wifi
 from ..languages import namer
 from ..panel import Panel, resolution_of, to_glass
 from ..render.fonts import cut
+from ..render.page import banded
 from ..render.paper import paper_tile
 from ..settings import Settings, SettingsStore, merged
 from ..source import Source, Unavailable
-from ..status import Frame, Status
+from ..status import MAT_TEST_SECONDS, Frame, MatTest, Status, under_test
 from . import LOGIN, LOGOUT, STATIC_DIR, admin, portal
 
 log = logging.getLogger(__name__)
@@ -60,7 +61,16 @@ JSON = "application/json"
 # What a password covers (#52). The kiosk stays open whatever is set: it is the
 # product, and the demo page and the container's healthcheck read it as strangers.
 GATED = frozenset(
-    {"/admin", "/preview.png", "/species", "/stations", "/update", "/detector", LOGOUT}
+    {
+        "/admin",
+        "/preview.png",
+        "/species",
+        "/stations",
+        "/update",
+        "/detector",
+        "/mat-test",
+        LOGOUT,
+    }
 )
 
 COOKIE = "fugleramme_session"
@@ -137,6 +147,14 @@ def _set_cookie(value: str, seconds: int) -> str:
     # No Secure: the frame is http://<pi>:8080 and the flag would drop the cookie
     # on every LAN install. Lax keeps it off another site's cross-site POST.
     return f"{COOKIE}={value}; Max-Age={seconds}; Path=/; HttpOnly; SameSite=Lax"
+
+
+def _banded_png(ctx: modes.Context) -> bytes:
+    """The kiosk's page under a margin test, rendered past the page cache so the band
+    never lands in it."""
+    buffer = io.BytesIO()
+    banded(modes.render(ctx).convert("RGB"), ctx.margin, (0, 0, 0)).save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def make_handler(
@@ -414,8 +432,10 @@ def make_handler(
                 return
             if source.base_url != last_from:
                 last_page, last_from = None, source.base_url
+            test = status.testing()
             try:
-                last_page = modes.png_bytes(self._context(store.get()))
+                ctx = self._context(under_test(store.get(), test))
+                last_page = modes.png_bytes(ctx) if test is None else _banded_png(ctx)
             except Unavailable as exc:
                 if last_page is None:
                     raise
@@ -479,7 +499,10 @@ def make_handler(
                     settings.margin,
                 )
                 if shown is not None
-                else modes.state_key(self._context(settings))
+                else (
+                    modes.state_key(self._context(under_test(settings, status.testing()))),
+                    status.mat_test is not None,
+                )
             )
             token = modes.token(key)
             self._send(200, json.dumps({"token": token}).encode(), JSON)
@@ -653,6 +676,12 @@ def make_handler(
                 answer = admin.connection(form, store.get())
                 self._send(200, json.dumps(answer).encode(), JSON)
                 return
+            if route == "/mat-test":
+                edited = merged(store.get(), **admin.form_changes(form))
+                until = time.monotonic() + MAT_TEST_SECONDS
+                status.mat_test = MatTest(edited.margin, edited.glass_margins(), until)
+                self._send(204, b"", "text/plain")
+                return
             if route != "/admin":
                 self._send(404, b"not found", "text/plain")
                 return
@@ -681,6 +710,7 @@ def make_handler(
                 if password is not None and password != store.get().admin_password:
                     changes["session_secret"] = secrets.token_urlsafe(32)
                 store.update(**changes)
+                status.mat_test = None
             self._redirect("/admin")
 
     return Handler

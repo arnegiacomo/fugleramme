@@ -25,10 +25,11 @@ from .api import Configured
 from .config import Config
 from .languages import namer
 from .panel import Panel, external_resolution, init_panel, resolution_of
-from .render.dither import dither, monochrome
+from .render.dither import BLACK, dither, monochrome
+from .render.page import banded
 from .settings import Settings, SettingsStore, from_env
 from .source import Unavailable
-from .status import Frame, Status
+from .status import Frame, MatTest, Status, under_test
 from .web.server import serve
 
 log = logging.getLogger(__name__)
@@ -201,7 +202,7 @@ def run(config: Config) -> None:
     log.info("Reading detections from %s", source.base_url)
 
     last_key: tuple | None = None
-    last_settings: Settings | None = None
+    last_settings: tuple[Settings, MatTest | None] | None = None
     last_render: float | None = None
     last_artless: list[str] | None = None
     pending = None  # rendered but not yet on the glass; survives a failed push
@@ -232,13 +233,14 @@ def run(config: Config) -> None:
             if settings.external_panel
             else size
         )
+        test = status.testing() if panel is not None else None  # the kiosk shows its own
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
         ctx = modes.context(
             source,
             config.images_dir,
-            settings,
+            under_test(settings, test),
             name_of,
             size,
             textured=False,
@@ -246,11 +248,19 @@ def run(config: Config) -> None:
         )
         try:
             last_artless = _log_artless(ctx, last_artless)
-            key = (modes.state_key(ctx), outside, settings.rotation)
-            # The floor paces the birds alone; a saved setting goes straight through.
-            if key != last_key and (
-                _paced(settings) != last_settings or _due(settings.refresh_minutes, last_render)
-            ):
+            key = (modes.state_key(ctx), outside, settings.rotation, test is not None)
+            # The floor paces the birds alone; a saved setting, or a test starting or
+            # ending, goes straight through.
+            paced = (_paced(settings), test)
+            due = key != last_key and (
+                paced != last_settings or _due(settings.refresh_minutes, last_render)
+            )
+            if due and test is not None:
+                # The glass's alone: /frame.e6 and /frame.png keep the page.
+                pending = (banded(dither(modes.render(ctx)), ctx.margin, BLACK), settings.rotation)
+                log.info("Showing a margin test on the panel at %dx%d", *size)
+                last_key, last_settings = key, paced
+            elif due:
                 panel_image = dither(modes.render(ctx))
                 panel_image.save(config.output_path)
                 log.info("Rendered %s for the panel at %dx%d", ctx.mode, *size)
@@ -260,7 +270,7 @@ def run(config: Config) -> None:
                     external = (dither(modes.render(replace(ctx, resolution=outside))), frame[1])
                     log.info("Rendered %s for the external panel at %dx%d", ctx.mode, *outside)
                 status.rendered(external)
-                last_key, last_settings, last_render = key, _paced(settings), time.monotonic()
+                last_key, last_settings, last_render = key, paced, time.monotonic()
                 pending = frame if panel is not None else None
             if unreachable:
                 log.info("Detector reachable again")

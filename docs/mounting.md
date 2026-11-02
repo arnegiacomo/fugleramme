@@ -46,6 +46,11 @@ and fits the frame.
 > Cut against the steel ruler in several light passes rather than one hard one -
 > and buy a spare mat or two or three (recommended from experience).
 
+Once it's in, set the [margin](frame.md#margin) to match. Move the sliders under
+**Frame** in the admin and the panel shows the margins in black - stop where a thin
+line of black still shows on every side, and save. That line becomes a strip of
+paper inside the passepartout, so the birds never touch the edges. (Adjust as you please.)
+
 ## 7.3" in a RÖDALM 13x18
 
 The [Inky Impression 7.3"](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression)

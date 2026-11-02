@@ -993,3 +993,38 @@ def test_the_kiosk_shows_the_setup_screen_while_the_hotspot_is_up(tmp_path, sour
         assert json.loads(_fetch(base + "/state")[2])["token"] == birds
     finally:
         httpd.shutdown()
+
+
+@pytest.fixture
+def inky(tmp_path, source):
+    """A frame with an Inky attached."""
+    store = SettingsStore(tmp_path / SETTINGS)
+    status = Status()
+    panel = SimpleNamespace(resolution=(800, 480))
+    for base in _serve(tmp_path, source(count=40, seed=0), store, panel, status):
+        yield SimpleNamespace(base=base, store=store, status=status)
+
+
+def test_a_margin_test_takes_the_form_s_edges_without_saving_them(inky):
+    form = {admin.CHECKBOXES: "margin_lock", "margin_top": "12"}  # Uniform unticked
+    assert _post(inky.base + "/mat-test", form)[0] == 204
+    assert inky.status.mat_test is not None
+    assert inky.status.mat_test.edges == (12, 4, 4, 4)
+    assert inky.store.get().margin_lock
+
+
+def test_a_save_ends_the_margin_test(inky):
+    _post(inky.base + "/mat-test", {"margin": "10"})
+    _post(inky.base + "/admin", {"margin": "10"})
+    assert inky.status.mat_test is None
+    assert inky.store.get().margin == 10
+
+
+def test_a_margin_test_paints_the_kiosk_and_moves_its_token(frame):
+    """A frame with no Inky tests on its web view; the kiosk reloads on the token."""
+    token = json.loads(_fetch(frame + "/state")[2])["token"]
+    assert _post(frame + "/mat-test", {"margin": "20"})[0] == 204
+    assert json.loads(_fetch(frame + "/state")[2])["token"] != token
+    page = Image.open(io.BytesIO(_fetch(frame + "/collage.png")[2])).convert("RGB")
+    assert page.getpixel((5, 5)) == (0, 0, 0)
+    assert page.getpixel((page.width // 2, page.height // 2)) != (0, 0, 0)

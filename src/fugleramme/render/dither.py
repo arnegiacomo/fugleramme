@@ -24,6 +24,8 @@ from .paper import PANEL_PAPER, _reach
 _DESATURATED = [(0, 0, 0), (255, 255, 255), (255, 255, 0), (255, 0, 0), (0, 0, 255), (0, 255, 0)]
 _SATURATED = [(0, 0, 0), (161, 164, 165), (208, 190, 71), (156, 72, 75), (61, 59, 94), (58, 91, 70)]
 
+BLACK = 0  # the index, for painting straight onto a dithered page
+
 # Matches the inky default. Raising it dithers against duller targets, which
 # spreads more ink; the blend must stay nearest-neighbour to _DESATURATED or the
 # driver's remap will land on the wrong color.

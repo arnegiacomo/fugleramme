@@ -508,6 +508,19 @@ form.addEventListener("change", (e) => {  // on release, or a keyboard step
   if (e.target.type === "range") queueRender();
 });
 
+// A changed margin shows in black on the panel and the web view, for holding a mat
+// up to it. Debounced like the preview: a keyboard step is a change of its own.
+let matTimer = null;
+form.addEventListener("change", (e) => {
+  if (!e.target.name.startsWith("margin")) return;
+  clearTimeout(matTimer);
+  matTimer = setTimeout(async () => {
+    try {
+      signedOut(await fetch("/mat-test", {method: "POST", body: new URLSearchParams(new FormData(form))}));
+    } catch (e) {}  // the preview still shows the margin
+  }, 500);
+});
+
 // Settings the chosen mode ignores go dim and stop being submitted, so the
 // saved value survives a trip through a mode that has no use for it.
 const lookback = document.getElementById("lookback");
