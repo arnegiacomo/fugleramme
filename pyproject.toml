@@ -57,6 +57,8 @@ major_on_zero = false  # a feat on 0.x bumps the minor, not to 1.0
 match = "main"
 
 [tool.semantic_release.changelog]
+# Release notes only; CHANGELOG.md keeps the default template.
+template_dir = ".github/release"
 exclude_commit_patterns = ["^chore: release v"]
 
 [tool.ruff]

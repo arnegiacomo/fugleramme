@@ -1,0 +1,47 @@
+{#- GitHub release body: user-facing changes first. -#}
+{%- macro line(commit) -%}
+{%- set refs = [] -%}
+{%- if commit.linked_merge_request -%}
+{%- set _ = refs.append("[%s](%s)" | format(commit.linked_merge_request, commit.linked_merge_request | pull_request_url)) -%}
+{%- endif -%}
+{%- set _ = refs.append("[`%s`](%s)" | format(commit.short_hash, commit.hexsha | commit_hash_url)) -%}
+{%- set text = commit.descriptions[0] -%}
+- {% if commit.scope and commit.scope != "assets" %}**{{ commit.scope }}**: {% endif %}{{ text[0] | upper }}{{ text[1:] }} ({{ refs | join(", ") }})
+{%- endmacro -%}
+{%- macro section(title, commits) -%}
+{%- if commits %}
+
+### {{ title }}
+{% for commit in commits %}
+{{ line(commit) }}
+{%- endfor %}
+{%- endif -%}
+{%- endmacro -%}
+{%- set new, fixed, birds, rest = [], [], [], [] -%}
+{%- for type_, commits in release["elements"] | dictsort if type_ != "unknown" -%}
+{%- for commit in commits if commit.error is undefined -%}
+{%- if commit.scope == "assets" -%}{%- set _ = birds.append(commit) -%}
+{%- elif type_ == "features" -%}{%- set _ = new.append(commit) -%}
+{%- elif type_ == "bug fixes" -%}{%- set _ = fixed.append(commit) -%}
+{%- else -%}{%- set _ = rest.append(commit) -%}
+{%- endif -%}
+{%- endfor -%}
+{%- endfor -%}
+## {{ release.version.as_semver_tag() }} ({{ release.tagged_date.strftime("%Y-%m-%d") }})
+{%- if license_name %}
+
+_This release is published under the {{ license_name }} License._
+{%- endif %}
+{{- section("New", new) }}
+{{- section("Fixed", fixed) }}
+{{- section("Artwork", birds) }}
+{{- section("Other", rest) }}
+{%- set releases = context.history.released.values() | list -%}
+{%- set prev = releases.index(release) + 1 -%}
+{%- if prev < releases | length -%}
+{%- set from, to = releases[prev].version.as_tag(), release.version.as_tag() %}
+
+---
+
+**Detailed changes**: [{{ from }}...{{ to }}]({{ from | compare_url(to) }})
+{%- endif %}
