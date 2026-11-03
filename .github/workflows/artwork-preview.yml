@@ -17,10 +17,10 @@ jobs:
   render:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2  # the merge commit and its base
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Render the added plates
@@ -29,7 +29,7 @@ jobs:
           echo "${{ github.event.pull_request.number }}" > preview/pr
           git diff -z --name-only --diff-filter=A HEAD^1 HEAD -- 'assets/artwork/*/birds/*' \
             | xargs -0 -r uv run python tools/preview_plates.py preview
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: artwork-preview
           path: preview
