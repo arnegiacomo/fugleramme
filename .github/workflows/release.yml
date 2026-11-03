@@ -27,6 +27,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # history back to the last tag
+          # Commits and tags only: the artwork's full blob history is over a GiB.
+          filter: blob:none
           token: ${{ secrets.GITHUB_TOKEN }}
       # A red commit releases nothing.
       - name: Require a green ci run on this commit
