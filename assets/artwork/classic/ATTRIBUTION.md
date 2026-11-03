@@ -207,6 +207,8 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Emory** - *Report on the United States and Mexican boundary survey* (1857-1859), directed by **William H. Emory**, with ornithology by **Spencer Fullerton Baird**. Missouri Botanical Garden Library scan via [Internet Archive / BHL](https://archive.org/details/mobot31753002023650). Public domain. Manifest key: `emory`.
 
+**Baird** - *The Birds of North America* by **Spencer F. Baird**, **John Cassin** and **George N. Lawrence** (Philadelphia: J. B. Lippincott & Co., 1860), atlas of hand-coloured lithographs by **Bowen & Co.**, Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/birdsofnorthamer1860bair). Public domain (No Copyright - United States). Manifest key: `baird`.
+
 **Reed** - *The Bird Book* by **Chester A. Reed** (Worcester, Mass.: C. K. Reed, 1914). Prelinger Library scan via the [Internet Archive](https://archive.org/details/birdbookillustra00reedrich). Public domain (published in the US before 1929; Reed died 1912). Manifest key: `reed`.
 
 **Wolf** - plates drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851, printed by **M. & N. Hanhart**; 1852, printed by **Ford & West**), Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool), and Wikimedia Commons, and Ernst Mayr Library, Museum of Comparative Zoology, Harvard University scan via the [Internet Archive](https://archive.org/details/proceedingsofzoo002zool). Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
@@ -225,7 +227,7 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Michaux** - *The North American Sylva* by **François André Michaux** (1819 English edition), plates after **Pancrace Bessa**. Biodiversity Heritage Library scans via Wikimedia Commons. Public domain (PD-old-100). Manifest key: `michaux`.
 
-**Wilson** - *American Ornithology; or, the Natural History of the Birds of the United States* by **Alexander Wilson** (1808-1814), hand-coloured engravings by **Alexander Lawson** after Wilson's drawings. Oak Spring Garden Library scan of the first edition via the [Internet Archive](https://archive.org/details/Wilson5896-v5). Public domain. Manifest key: `wilson`.
+**Wilson** - *American Ornithology; or, the Natural History of the Birds of the United States* by **Alexander Wilson** (1808-1814), hand-coloured engravings by **Alexander Lawson** after Wilson's drawings. Oak Spring Garden Library scan of the first edition via the [Internet Archive](https://archive.org/details/Wilson5896-v5), public domain; and [National Gallery of Art](https://www.nga.gov/) open-access scans via Wikimedia Commons (CC0). Manifest key: `wilson`.
 
 **DeKay** - *Zoology of New-York, or the New-York Fauna*, Part 2: Birds, by **James E. DeKay** (Albany, 1844), hand-coloured lithographs by **J. W. Hill**, printed by **Endicott**. New York Public Library scans via Wikimedia Commons. Public domain. Manifest key: `dekay`.
 
