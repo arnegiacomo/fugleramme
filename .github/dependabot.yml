@@ -1,0 +1,29 @@
+# Bumps reach the Pis only with the next release.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7  # a compromised release is usually pulled within days
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    versioning-strategy: lockfile-only  # keep the commented floors in pyproject.toml
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      python:
+        patterns: ["*"]
