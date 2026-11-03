@@ -1791,13 +1791,13 @@
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Bessonornis_bicolor_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300353.tif"
   },
-  "birds/diopsittaca-nobilis-3.webp": {
-    "source": "brehm",
-    "url": "https://commons.wikimedia.org/wiki/File:Conurus_nobilis_-_1842-1855_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18500141.tif"
-  },
   "birds/diopsittaca-nobilis-2.webp": {
     "source": "martinet",
     "url": "https://archive.org/details/planchesenlumin02mart/page/n140/mode/1up"
+  },
+  "birds/diopsittaca-nobilis-3.webp": {
+    "source": "brehm",
+    "url": "https://commons.wikimedia.org/wiki/File:Conurus_nobilis_-_1842-1855_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18500141.tif"
   },
   "birds/diopsittaca-nobilis.webp": {
     "source": "martinet",
@@ -3639,6 +3639,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVCommon_Flamingo.jpg"
   },
+  "birds/phoenicopterus-ruber.webp": {
+    "source": "nuttall",
+    "url": "https://archive.org/details/popularhandbook00nutt/page/n744/mode/1up"
+  },
   "birds/phoenicurus-auroreus-2.webp": {
     "source": "arnoul",
     "url": "https://numelyo.bm-lyon.fr/f_view/BML:BML_00GOO0100137001200136039/IMG00000061"
@@ -4007,6 +4011,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVHyacinthine_Porphyrio.jpg"
   },
+  "birds/porzana-carolina-2.webp": {
+    "source": "dekay",
+    "url": "https://digitalcollections.nypl.org/items/510d47d9-76c4-a3d9-e040-e00a18064a99"
+  },
+  "birds/porzana-carolina.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr05audu/page/n201/mode/1up"
+  },
   "birds/porzana-porzana-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00116.jpg"
@@ -4194,6 +4206,10 @@
   "birds/rallus-aquaticus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVWater_Rail.jpg"
+  },
+  "birds/rallus-limicola.webp": {
+    "source": "dekay",
+    "url": "https://digitalcollections.nypl.org/items/510d47d9-76c4-a3d9-e040-e00a18064a99"
   },
   "birds/recurvirostra-avosetta-2.webp": {
     "source": "vonwright",
