@@ -29,8 +29,25 @@ fi
 page=index.html
 [ -f "$folder/birds.js" ] || page=crop.html
 [ -f "$folder/birds.js" ] || [ -f "$folder/crops.js" ] || { echo "no birds.js or crops.js in $folder - run build.py or crops.py on it first" >&2; exit 1; }
-[ -f "$folder/$page" ] || cp "$here/$page" "$folder/$page"
+# always the checked-in page: a copy left from an earlier run would miss its later fixes
+cp "$here/$page" "$folder/$page"
 
 echo "serving $folder on http://localhost:$port/$page"
 command -v open >/dev/null && (sleep 1 && open "http://localhost:$port/$page") &
-exec python3 -m http.server "$port" --bind 127.0.0.1 --directory "$folder"
+# A rebuild rewrites img/ and birds.js under the same names, so a cached copy would show the
+# previous round's plate after a reload: serve everything as no-store.
+exec python3 - "$port" "$folder" <<'PY'
+import functools
+import http.server
+import sys
+
+
+class NoStore(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
+
+handler = functools.partial(NoStore, directory=sys.argv[2])
+http.server.ThreadingHTTPServer(("127.0.0.1", int(sys.argv[1])), handler).serve_forever()
+PY
