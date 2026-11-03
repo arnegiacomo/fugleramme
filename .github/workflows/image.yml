@@ -99,10 +99,17 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=ref,event=branch
+      # GHCR reads a multi-arch description from the index only, max 512 characters.
       - name: Create the manifest list
         working-directory: /tmp/digests
+        env:
+          DESCRIPTION: >-
+            Fugleramme for a homelab or any machine with docker: the bird collage in a
+            browser, web only. Docs: https://arnegiacomo.dev/fugleramme/container/
+            Release notes: https://github.com/arnegiacomo/fugleramme/releases
         run: |
           docker buildx imagetools create \
+            --annotation "index:org.opencontainers.image.description=$DESCRIPTION" \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.IMAGE }}@sha256:%s ' *)
       - name: Inspect
