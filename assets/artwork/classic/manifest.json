@@ -1527,6 +1527,10 @@
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14954"
   },
+  "birds/coragyps-atratus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:106_Black_Vulture_or_Carrion_Crow.jpg"
+  },
   "birds/corthylio-calendula-2.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/ruby-crowned-wren"
@@ -2787,6 +2791,14 @@
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/9624"
   },
+  "birds/larus-delawarensis-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:285._The_Common_American_Gull_(Larus_zonorhyncus)._286._The_Winter_Gull,_var._(Larus_argentatus)_(NYPL_b14505696-113672).tiff"
+  },
+  "birds/larus-delawarensis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Common_American_Gull.-_Ring-billed_Gull._1._Adult._2._Young_(NYPL_b13559627-108710).tiff"
+  },
   "birds/larus-fuscus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00317.jpg"
@@ -3195,6 +3207,10 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18425305152).jpg"
   },
+  "birds/mniotilta-varia.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr02audu/page/n199/mode/1up"
+  },
   "birds/molothrus-ater.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18243212489).jpg"
@@ -3318,6 +3334,14 @@
   "birds/myzomela-sanguinolenta.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14078"
+  },
+  "birds/nannopterum-auritum-2.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu"
+  },
+  "birds/nannopterum-auritum.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu"
   },
   "birds/neophron-percnopterus.webp": {
     "source": "gould",
@@ -4018,6 +4042,10 @@
   "birds/podiceps-nigricollis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVEared_Grebe.jpg"
+  },
+  "birds/podilymbus-podiceps.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr07audu/page/n460/mode/1up"
   },
   "birds/poecile-atricapillus-2.webp": {
     "source": "hines",
