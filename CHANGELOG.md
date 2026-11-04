@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v0.31.1 (2026-11-04)
+
+### Bug Fixes
+
+- Hotspot mode detection when running in k8s
+  ([#365](https://github.com/arnegiacomo/fugleramme/pull/365),
+  [`19bc241`](https://github.com/arnegiacomo/fugleramme/commit/19bc241bc6afebed9c18fe664005c14dd5133107))
+
+
 ## v0.31.0 (2026-11-03)
 
 ### Bug Fixes
