@@ -369,8 +369,11 @@ def make_handler(
             return len(attempts.get(client, [])) >= TRIES
 
         def _on_hotspot(self) -> bool:
-            """A phone on the Wi-Fi setup hotspot, which only ever gets the portal (#308)."""
-            return wifi.on_hotspot(self.client_address[0])
+            """A phone on the Wi-Fi setup hotspot, which only ever gets the portal (#308).
+            The subnet alone is not enough: Kubernetes' default pod CIDR is the same
+            10.42.0.0/24, so a reverse proxy there would otherwise get the portal."""
+            state = status.wifi
+            return state is not None and state.up and wifi.on_hotspot(self.client_address[0])
 
         def _portal(self, form: dict[str, list[str]] | None = None):
             # Whether a phone's network check reaches the frame is what decides if the portal
