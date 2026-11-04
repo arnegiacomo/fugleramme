@@ -67,7 +67,9 @@ Manifest key: `keulemans`.
 **Grönvold** - plates by **Henrik Grönvold** (1858-1940) for *The Birds of Australia* by
 **Gregory M. Mathews**, vol. 12 (1925-1927), Museums Victoria scans via the
 [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/126732) and the
-[Internet Archive](https://archive.org/details/birdsaustraliaxiimath).
+[Internet Archive](https://archive.org/details/birdsaustraliaxiimath);
+and for *The Ibis* (1912), printed by **West, Newman**, from the Commons category
+[Ibis (1912)](https://commons.wikimedia.org/wiki/Category:Ibis_(1912)).
 Public domain (PD-old-70-expired; Grönvold died 1940). Manifest key: `gronvold`.
 
 **Morris** - *British Game Birds and Wildfowl* by **Beverley R. Morris**
@@ -134,6 +136,8 @@ public domain (PD-US).
 **Levaillant** - *Histoire naturelle des oiseaux d'Afrique* by **François Levaillant** (1796-1808), plates by **Jacques Barraband**, **Johann Lebrecht Reinold** and others. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain; Levaillant died 1824). Manifest key: `levaillant`.
 
 **Rüppell** - *Neue Wirbelthiere zu der Fauna von Abyssinien gehörig: Vögel* by **Eduard Rüppell** (1835-1840). Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (Commons: public domain; Rüppell died 1884). Manifest key: `ruppell`.
+
+**Reichenbach** - the bird works of **Heinrich Gottlieb Ludwig Reichenbach** (1793-1879), issued at Dresden and Leipzig from 1845. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-Art; Reichenbach died 1879). Manifest key: `reichenbach`.
 
 **Legge** - *A history of the birds of Ceylon* by **W. Vincent Legge**
 (1878-1880), plates lithographed by **John Gerrard Keulemans**, printed by **Hanhart**.
@@ -211,7 +215,7 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Reed** - *The Bird Book* by **Chester A. Reed** (Worcester, Mass.: C. K. Reed, 1914). Prelinger Library scan via the [Internet Archive](https://archive.org/details/birdbookillustra00reedrich). Public domain (published in the US before 1929; Reed died 1912). Manifest key: `reed`.
 
-**Wolf** - plates drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851, printed by **M. & N. Hanhart**; 1852, printed by **Ford & West**), Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool), and Wikimedia Commons, and Ernst Mayr Library, Museum of Comparative Zoology, Harvard University scan via the [Internet Archive](https://archive.org/details/proceedingsofzoo002zool). Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
+**Wolf** - plates drawn and lithographed by **Joseph Wolf** for the *Proceedings of the Zoological Society of London* (1851, printed by **M. & N. Hanhart**; 1852, printed by **Ford & West**), Natural History Museum Library scan via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/96443) and the [Internet Archive](https://archive.org/details/proceedingsofgen51zool), and Wikimedia Commons, and Ernst Mayr Library, Museum of Comparative Zoology, Harvard University scan via the [Internet Archive](https://archive.org/details/proceedingsofzoo002zool); and for *The Ibis* (1868), printed by **M. & N. Hanhart**, from the Commons category [Ibis (1868)](https://commons.wikimedia.org/wiki/Category:Ibis_(1868)). Public domain (PD-old-100; Wolf died 1899). Manifest key: `wolf`.
 
 **Descourtilz** - *Ornithologie Brésilienne, ou, Histoire des oiseaux du Brésil* by **Jean Théodore Descourtilz** (Rio de Janeiro: Thomas Reeves, 1854), lithographed by **Waterlow and Sons**, Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/OrnithologieBre00Desc) and Wikimedia Commons. Public domain (Descourtilz died 1855). Manifest key: `descourtilz`.
 

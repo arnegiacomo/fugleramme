@@ -3623,6 +3623,10 @@
     "source": "sharpe",
     "url": "https://commons.wikimedia.org/wiki/File:Petrochelidon_pyrrhonota_1894.jpg"
   },
+  "birds/petrochelidon-spilodera.webp": {
+    "source": "wolf",
+    "url": "https://commons.wikimedia.org/wiki/File:Petrochelidon_spilodera_1868.jpg"
+  },
   "birds/petroica-rosea.webp": {
     "source": "gould",
     "url": "https://www.biodiversitylibrary.org/page/48285795"
@@ -3706,6 +3710,10 @@
   "birds/phoenicopterus-ruber.webp": {
     "source": "nuttall",
     "url": "https://archive.org/details/popularhandbook00nutt/page/n744/mode/1up"
+  },
+  "birds/phoeniculus-purpureus.webp": {
+    "source": "reichenbach",
+    "url": "https://commons.wikimedia.org/wiki/File:Irrisor_erythrorhynchos_-_1820-1860_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16100031.tif"
   },
   "birds/phoenicurus-auroreus-2.webp": {
     "source": "arnoul",
@@ -4330,6 +4338,10 @@
   "birds/rissa-tridactyla.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVKittiwake_Gull.jpg"
+  },
+  "birds/rostratula-benghalensis.webp": {
+    "source": "finchdavies",
+    "url": "https://commons.wikimedia.org/wiki/File:RostratulaCapensisDavies.jpg"
   },
   "birds/saxicola-rubetra-2.webp": {
     "source": "vonwright",
@@ -5162,6 +5174,10 @@
   "birds/turnix-sylvaticus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVAndalusian_Turnix.jpg"
+  },
+  "birds/turtur-chalcospilos.webp": {
+    "source": "gronvold",
+    "url": "https://commons.wikimedia.org/wiki/File:ChalcopeliaGronvold.jpg"
   },
   "birds/tyrannus-tyrannus.webp": {
     "source": "fuertes",
