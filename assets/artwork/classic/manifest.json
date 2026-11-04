@@ -1063,6 +1063,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRed-collared_Goatsucker.jpg"
   },
+  "birds/cardellina-canadensis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:5_Bonaparte%27s_Flycatcher.jpg"
+  },
   "birds/cardinalis-cardinalis-2.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-159-cardinal-grosbeak.jpg"
@@ -1090,6 +1094,10 @@
   "birds/cathartes-aura.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/turkey-buzzard"
+  },
+  "birds/catharus-fuscescens.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_America_(Pl._145)_(8572287264).jpg"
   },
   "birds/catharus-guttatus.webp": {
     "source": "audubon",
@@ -3479,6 +3487,10 @@
     "source": "gould",
     "url": "https://archive.org/details/birdsAustraliav2Goul/page/n147/mode/1up"
   },
+  "birds/parkesia-motacilla.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-19-louisiana-water-thrush.jpg"
+  },
   "birds/parus-cinereus.webp": {
     "source": "gould",
     "url": "https://archive.org/details/BirdsAsiaJohnGoIIGoul/page/n227"
@@ -4419,6 +4431,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:15_Blue_Yellow-backed_Warbler.jpg"
   },
+  "birds/setophaga-caerulescens.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:155_Black-throated_Blue_Warbler.jpg"
+  },
   "birds/setophaga-citrina-2.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/hooded-warbler"
@@ -4490,6 +4506,10 @@
   "birds/setophaga-striata.webp": {
     "source": "dekay",
     "url": "https://digitalcollections.nypl.org/items/510d47d9-7699-a3d9-e040-e00a18064a99"
+  },
+  "birds/setophaga-tigrina.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-414-golden-winged-warbler.jpg"
   },
   "birds/setophaga-virens.webp": {
     "source": "audubon",
