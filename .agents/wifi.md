@@ -19,7 +19,8 @@ Covers `wifi.py`, `render/setup.py` and `web/portal.py` (#308). All three import
 
 - iOS opens the portal by itself once every name resolves to the frame and port 80 reaches the frame's port: the `dnsmasq-shared.d` file and the `nft` redirect in `Nmcli.open`. Android is untested; DHCP option 114 is sent for it and changes nothing on iOS.
 - `dnsmasq-shared.d` is read by every shared connection's dnsmasq, and the USB gadget's (`rpi-usb-gadget`) is one. The file holds anything only while the hotspot is up, and dnsmasq reads it at start, so an already running gadget is untouched.
-- A client in `wifi.SUBNET` only ever gets the portal (`server._on_hotspot`), never the admin or the kiosk, whatever path it asks for.
+- While the hotspot is up, a client in `wifi.SUBNET` only ever gets the portal (`server._on_hotspot`), never the admin or the kiosk, whatever path it asks for.
+- The hotspot's state gates that, not the subnet alone: Kubernetes' default pod CIDR is also 10.42.0.0/24, so a reverse proxy there would otherwise keep getting the portal.
 
 ## Root
 

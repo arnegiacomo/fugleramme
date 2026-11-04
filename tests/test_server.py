@@ -959,6 +959,12 @@ def test_a_phone_on_the_setup_hotspot_only_ever_gets_the_portal(tmp_path, source
         assert b"http://crow.local:8080" in body
         assert joined == [("Home", "pw", False)]
 
+        # Kubernetes' default pod CIDR is 10.42.0.0/24: a reverse proxy there is not a phone.
+        status.wifi = None
+        code, _headers, body = _fetch(base + "/admin")
+        assert code == 200
+        assert b"Connect the frame to Wi-Fi" not in body
+
         monkeypatch.setattr(wifi, "on_hotspot", lambda address: False)
         code, _headers, body = _fetch(base + "/admin")
         assert b"Connect the frame to Wi-Fi" not in body
