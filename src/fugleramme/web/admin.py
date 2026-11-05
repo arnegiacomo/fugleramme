@@ -659,6 +659,7 @@ def system_tab(
         settings=settings,
         status=status,
         container=container,
+        update_command=updates.update_command(),
         pi=updates.can_reboot(),
         panel_size=panel_size,
         detected=detected,
