@@ -2095,6 +2095,10 @@
     "source": "martinet",
     "url": "https://commons.wikimedia.org/wiki/File:Eudynamys_horonata_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18800311.tif"
   },
+  "birds/euphagus-carolinus.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-157-rusty-grakle.jpg"
+  },
   "birds/euplectes-orix.webp": {
     "source": "hahn",
     "url": "https://commons.wikimedia.org/wiki/File:Ploceus_oryx_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15900083.tif"
@@ -2846,6 +2850,10 @@
   "birds/larus-michahellis.webp": {
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof18dres/page/n531/mode/1up"
+  },
+  "birds/leiothlypis-peregrina.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-154-tennessee-warbler.jpg"
   },
   "birds/leucogeranus-leucogeranus.webp": {
     "source": "gould",
@@ -5103,6 +5111,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVGreen_Sandpiper_Wood_Sandpiper.jpg"
   },
+  "birds/tringa-solitaria.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-289-solitary-sandpiper.jpg"
+  },
   "birds/tringa-stagnatilis.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVMarshSandpiper.jpg"
@@ -5286,6 +5298,10 @@
   "birds/vanellus-vanellus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLapwing.jpg"
+  },
+  "birds/vermivora-cyanoptera.webp": {
+    "source": "audubon",
+    "url": "https://media.audubon.org/boa_illustration/plate-20-blue-winged-yellow-warbler.jpg"
   },
   "birds/vidua-macroura.webp": {
     "source": "gordon",
