@@ -62,18 +62,6 @@ def resolution_of(panel: Panel | None, size: str) -> tuple[int, int]:
     return panel.resolution if panel else external_resolution(None, size)
 
 
-def glass_size() -> tuple[int, int] | None:
-    """The attached Inky's size off its EEPROM, or None. I2C only: unlike `init_panel` it
-    claims no SPI or GPIO line, so another process can ask while the service drives the panel."""
-    try:
-        from inky.eeprom import read_eeprom
-
-        board = read_eeprom()
-    except Exception:  # no library, no bus, no board
-        return None
-    return (board.width, board.height) if board else None
-
-
 def init_panel() -> Panel | None:
     """Return a Panel, or None if no Inky is available (web-only mode)."""
     try:

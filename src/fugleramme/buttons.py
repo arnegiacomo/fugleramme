@@ -111,11 +111,9 @@ def watch(
     store: SettingsStore,
     images_dir: Path,
     hold: Callable[[], None] | None = None,
-    frozen: Callable[[], bool] = lambda: False,
 ) -> None:
     """Block on button edges forever. Returns at once if the GPIO lines are unusable.
-    `hold` is what holding A does, if anything. While `frozen`, a gift's splash is up and
-    presses do nothing."""
+    `hold` is what holding A does, if anything."""
     try:
         import gpiod
         import gpiodevice
@@ -151,9 +149,9 @@ def watch(
                 # Pulled up, so a press pulls the line down.
                 if event.event_type == gpiod.EdgeEvent.Type.FALLING_EDGE:
                     presses.down(label, time.monotonic())
-                elif presses.up(label) and not frozen():
+                elif presses.up(label):
                     _safely(label, partial(press, label, store, images_dir))
-        if hold is not None and presses.held(time.monotonic()) and not frozen():
+        if hold is not None and presses.held(time.monotonic()):
             log.info("Button A held")
             _safely("A", hold)
 
