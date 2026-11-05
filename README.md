@@ -123,6 +123,17 @@ docker compose up -d
 
 See **[Container](docs/container.md)** for more info.
 
+## Run on Proxmox
+
+On the Proxmox host's shell:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/dmellok/proxmox-fugleramme/main/ct/fugleramme.sh)"
+```
+
+It creates an LXC, installs the latest release in it and starts the frame on `:8080`. Point it at
+your BirdNET-Go on `:8080/admin`. See **[Proxmox](docs/proxmox.md)** for more info.
+
 ## Run locally (for development)
 
 ```bash
