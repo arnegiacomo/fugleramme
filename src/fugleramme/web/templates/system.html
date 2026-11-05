@@ -19,9 +19,12 @@
       {% elif status.update_available %}
       <span class="warn">{{ status.update_available }} available</span>
       {#- The command stands in for the button: the image is the host's to replace.
-          A phone gets the link instead, as nobody runs it there. #}
-      {% if container %}
+          A phone gets the link instead, as nobody runs it there. An install's own
+          command has no page here to link to, so it shows everywhere. #}
+      {% if container and update_command == CONTAINER_COMMAND %}
       ·<pre class="cmd">{{ CONTAINER_COMMAND }}</pre><a class="host" href="{{ DOCS_URL }}container/#updates" target="_blank" rel="noopener">how to update</a>
+      {% elif container %}
+      ·<pre class="cmd own">{{ update_command }}</pre>
       {% else %}
       {{ action("update", "Install") }}
       {% endif %}

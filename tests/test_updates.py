@@ -449,6 +449,43 @@ def test_the_admin_offers_the_pull_instead_of_an_install_button(_in_a_container,
     assert 'name="auto_update" disabled' in tab
 
 
+# An install that is not the image (the Proxmox LXC) names its own update command.
+
+
+def test_the_update_command_is_the_pull_unless_the_install_names_its_own(monkeypatch):
+    monkeypatch.delenv("FUGLERAMME_UPDATE_COMMAND", raising=False)
+    assert updates.update_command() == updates.CONTAINER_COMMAND
+    monkeypatch.setenv("FUGLERAMME_UPDATE_COMMAND", "  ")
+    assert updates.update_command() == updates.CONTAINER_COMMAND
+    monkeypatch.setenv("FUGLERAMME_UPDATE_COMMAND", "update")
+    assert updates.update_command() == "update"
+
+
+def test_refusing_names_the_installs_own_command(_in_a_container, monkeypatch):
+    monkeypatch.setenv("FUGLERAMME_UPDATE_COMMAND", "update")
+    with (
+        patch.object(updates, "_run") as run,
+        pytest.raises(RuntimeError, match="update with `update`"),
+    ):
+        updates.apply("v0.2.0")
+    assert not run.called
+
+
+def test_the_admin_shows_the_installs_own_command_without_the_image_docs(
+    _in_a_container, monkeypatch, tmp_path
+):
+    monkeypatch.setenv("FUGLERAMME_UPDATE_COMMAND", "update")
+    status = Status()
+    status.update_available = "v0.2.0"
+    row = re.search(
+        r'<dd class="update">(.*?)</dd>', _system_tab(status, tmp_path), re.DOTALL
+    ).group(1)
+    assert '<pre class="cmd own">update</pre>' in row
+    assert "docker compose" not in row
+    assert "container/#updates" not in row
+    assert 'value="update"' not in row
+
+
 def test_a_containers_host_row_is_not_dressed_up_as_an_address(monkeypatch):
     """The id resolves nowhere, and the way in - the host's address and its
     published port - is not visible from inside."""

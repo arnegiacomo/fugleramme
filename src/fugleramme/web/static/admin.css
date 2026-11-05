@@ -366,6 +366,6 @@ form.login .note { margin-top: 1.5rem; }
   .preview { order: -1; }
   form.settings { flex: none; width: 100%; }
   dl.status { grid-template-columns: auto 1fr; gap: 0.35rem 0.9rem; }
-  dl.status dd.update pre.cmd { display: none; }
+  dl.status dd.update pre.cmd:not(.own) { display: none; }
   dl.status dd.update a.host { display: inline; }
 }
