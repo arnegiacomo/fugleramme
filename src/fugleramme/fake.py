@@ -1,8 +1,8 @@
 """A fake BirdNET-Go for a hardware-free dev loop, or a fake BirdWeather station.
 
 Serves the slice of `/api/v2` the frame reads - the species summary, the recent
-detections, the locale list, the name dictionaries and the species list in the
-station's own language - over generated in-memory detections.
+detections, the locale list, the name dictionaries, the species list in the
+station's own language and the range model's scores - over generated in-memory detections.
 
 The shapes are upstream's, warts and all: a detection carries its date and time
 as two strings of station-local wall clock with no offset, beside a `timestamp`
@@ -212,6 +212,40 @@ def species_all(locale: str) -> dict[str, Any]:
     return {"species": rows, "count": len(rows)}
 
 
+def range_scores(lat: float, lon: float, week: int) -> dict[str, Any]:
+    """`/range/species/scores?names=false`: every label the range model scores, birds or not,
+    seeded by the place and week so another place or season is another ranking. Upstream adds
+    `commonName` unless asked for `names=false`, which is all the frame asks."""
+    rng = random.Random(f"{lat:.2f},{lon:.2f},{week}")
+    scored = sorted(((round(rng.random(), 4), sci) for sci in sorted(HEARD)), reverse=True)
+    rows = [
+        {"label": f"{sci}_{_common(sci)}", "scientificName": sci, "commonName": "", "score": score}
+        for score, sci in scored
+    ]
+    return {
+        "species": rows,
+        "count": len(rows),
+        "location": {"latitude": lat, "longitude": lon},
+        "week": week,
+        "threshold": 0,
+    }
+
+
+def _scores(query: dict[str, list[str]]) -> tuple[int, dict[str, Any]]:
+    """Upstream's checks: a latitude, longitude or week out of range is a 400."""
+    try:
+        lat, lon, week = (
+            float(_one(query, "lat")),
+            float(_one(query, "lon")),
+            int(_one(query, "week")),
+        )
+    except ValueError:
+        return 400, {"error": "Invalid format"}
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180 and 1 <= week <= 48):
+        return 400, {"error": "Out of range"}
+    return 200, range_scores(lat, lon, week)
+
+
 def summary(
     rows: list[Detection], start: str = "", end: str = "", limit: int = 0
 ) -> list[dict[str, Any]]:
@@ -417,6 +451,8 @@ def make_handler(
                         _int(query, "limit"),
                     ),
                 )
+            elif route == f"{API}/range/species/scores":
+                self._json(*_scores(query))
             elif route == f"{API}/detections/recent":
                 self._json(200, detections(rows, _int(query, "limit", 10) or 10))
             elif route == f"{API}/settings/locales":

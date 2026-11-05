@@ -31,12 +31,14 @@ from .languages import STATION, Drawable, Namer, english_name, station_locale
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .render import fonts
 from .render.collage import KEY_LIMIT, NO_LIMIT, gather_entries, render_collage, selected_species
+from .render.gift import splash
 from .render.page import NEW, Edges, day_ordinal
 from .render.plate import effective_margin, render_plate
 from .render.setup import setup_page
 from .source import Source, Species
 
 if TYPE_CHECKING:
+    from .gift import Gift
     from .settings import Settings
 
 log = logging.getLogger(__name__)
@@ -411,6 +413,31 @@ def setup_screen(
     if panel:
         return page
     return Image.merge("LA", (Image.new("L", size, 0), ImageOps.invert(page)))
+
+
+def gift_screen(
+    present: Gift,
+    settings: Settings,
+    images_dir: Path,
+    name_of: Namer,
+    size: tuple[int, int],
+    panel: bool,
+) -> Image.Image:
+    """A gift's splash in place of the page, in the frame's own style, names and margins."""
+    style, day = resolve(settings.style, images_dir), day_ordinal()
+    return splash(
+        [(name, image_for(name, images_dir, style, day)) for name in present.birds],
+        present.spotlight,
+        present.month,
+        present.notes,
+        size,
+        Edges(*(m / 100 for m in settings.margins(panel))),
+        font_key=settings.label_font,
+        label_size=settings.label_size,
+        label_text=name_of.label,
+        show_names=settings.show_names,
+        textured=not panel,
+    )
 
 
 _cache: tuple[tuple, bytes] | None = None

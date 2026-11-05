@@ -23,6 +23,17 @@ Covers `install.sh`, `run.sh`, `updates.py` and the `Dockerfile`.
 - BirdNET-Go must run with the host user's UID and GID so its mounted config and data remain writable without changing checkout ownership.
 - USB gadget access is documented in troubleshooting; do not assume `10.12.194.1` when macOS Internet Sharing may assign a leased address.
 
+## Gift mode (`gift.py`, #355)
+
+- The last step on a frame that already works: install, test the panel and the mic, then wrap it. It is a CLI, never the admin: wiping the history and changing the Wi-Fi do not belong on a page that may have no password. Bundled BirdNET-Go only, by the `detector/.env` marker.
+- **The CLI never draws.** It writes `gift.json` beside `settings.json` and the service, which owns the panel, reads it every tick. No file, no change: an updated frame never sees gift mode unless someone runs the command.
+- The form is `giftform.py` (prompt_toolkit), apart from `gift.py` so the service never imports it. A note line is checked against this frame's splash: the Inky's size comes off its EEPROM (`panel.glass_size`), I2C only, since `init_panel` would claim GPIO lines the running service holds.
+- Unheard birds only ever appear on the splash in the box, never as the page after it is opened (#347).
+- `wrapped` is frozen until the power goes: no redraw, no buttons, no self-update. The service tells a reboot from its own restart by `/proc/sys/kernel/random/boot_id`, recorded when the wrap finished, so a crash in the box does not open it. The first boot in another boot id starts the detector and deletes the set-aside history; a test boot at home spends the gift.
+- `restart: unless-stopped` does not revive a container stopped by hand across a reboot, so the service starts it on opening, and `unwrap` does before then.
+- The restore record goes into `gift.json` before each step that changes something, so `unwrap` undoes a wrap that failed half way. The place is written into `config.yaml` by line, inside `birdnet:` only, and unwrap puts back the old text exactly.
+- Saving the recipient's Wi-Fi is `nmcli connection add`, which `install.sh`'s rule already allows (it names `/usr/bin/nmcli` with any arguments).
+
 ## Releases
 
 - Cut by hand: `release.yml`'s `workflow_dispatch` runs python-semantic-release on `main` once its ci is green, bumping by the commit types since the last tag (`CONTRIBUTING.md`). Its `force` input bumps when only `chore` is queued.

@@ -439,3 +439,26 @@ def test_a_reclassified_species_keeps_its_first_ever_date(source):
 def test_the_feed_reports_a_reclassified_species_under_its_current_name(source):
     heard = source(rows=_split_station(old=12, new=3))
     assert {d.scientific_name for d in heard.recent(50)} == {JACKDAW_IS}
+
+
+def test_range_scores_are_birds_likeliest_first(source):
+    scores = source().range_scores(60.39, 5.32, 19)
+    assert [score for _name, score in scores] == sorted((s for _n, s in scores), reverse=True)
+    assert {name for name, _score in scores} == set(fake.SPECIES)  # the bat, squirrel and noise go
+
+
+def test_range_scores_fold_a_reclassified_bird_under_its_current_name(monkeypatch):
+    rows = [
+        {"scientificName": JACKDAW_WAS, "score": 0.2},
+        {"scientificName": JACKDAW_IS, "score": 0.6},
+    ]
+    source = ApiSource("http://unused")
+    monkeypatch.setattr(source, "_get", lambda path, **params: {"species": rows})
+    assert source.range_scores(0, 0, 1) == [(JACKDAW_IS, 0.6)]
+
+
+def test_unreadable_range_scores_raise(monkeypatch):
+    source = ApiSource("http://unused")
+    monkeypatch.setattr(source, "_get", lambda path, **params: {"birds": []})
+    with pytest.raises(Unavailable):
+        source.range_scores(0, 0, 1)
