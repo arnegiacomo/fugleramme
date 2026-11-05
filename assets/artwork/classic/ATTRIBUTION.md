@@ -107,8 +107,8 @@ and [Metropolitan Museum of Art](https://www.metmuseum.org/art/collection) scans
 Also chromolithographs after his watercolours in the *Harriman Alaska series*
 (1904), from [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Harriman_Alaska_Expedition).
 Public domain (PD-US / PD-Art).
-And colour plates after his paintings in *Bird-Lore* (1916), Internet Archive scans
-from the Commons category [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)),
+And colour plates after his paintings in *Bird-Lore* (1916-1917), Internet Archive scans
+from the Commons categories [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)) and [Bird Lore (1917)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1917)),
 public domain (no known copyright restrictions).
 And plates after his paintings in *The Warblers of North America* by **Frank M. Chapman**
 (1907), Biodiversity Heritage Library scans on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(6308738451).jpg),
@@ -162,7 +162,7 @@ Public domain. Manifest key: `swainson`.
 
 **Sharpe** - *A Monograph of the Hirundinidae, or Family of Swallows* by
 **Richard Bowdler Sharpe** and **Claude Wilmott Wyatt** (1885-1894), from
-[Wikimedia Commons](https://commons.wikimedia.org/). Public domain. Manifest key: `sharpe`.
+[Wikimedia Commons](https://commons.wikimedia.org/) and Smithsonian Libraries scans on the [Internet Archive](https://archive.org/details/monographofhirun02sha). Public domain. Manifest key: `sharpe`.
 
 **Jardine** - *Illustrations of
 Ornithology* by **William Jardine** and **Prideaux John Selby** (1826-1835),
@@ -242,3 +242,5 @@ CC BY 2.0. Manifest key: `jardine`.
 **Brehm** - *Monographie der Papageien* (1842-1855), edited by **Christian Ludwig Brehm**, hand-coloured plates. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica); the whole work is on the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/61090). Public domain (PD-Art / PD-old-70-expired). Manifest key: `brehm`.
 
 **Nuttall** - *A Popular Handbook of the Birds of the United States and Canada* by **Thomas Nuttall**, revised and annotated by **Montague Chamberlain** (1903), chromolithographs. American Museum of Natural History Library scan via the [Internet Archive](https://archive.org/details/popularhandbook00nutt). Public domain (published in the US before 1929). Manifest key: `nuttall`.
+
+**Lilford** - *Coloured Figures of the Birds of the British Islands* issued by **Lord Lilford** (1885-1897), chromolithographs after **Archibald Thorburn** and others. American Museum of Natural History Library scans via the Biodiversity Heritage Library on the [Internet Archive](https://archive.org/details/colouredfigureso05lilf). Public domain. Manifest key: `lilford`.
