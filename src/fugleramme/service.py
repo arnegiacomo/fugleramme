@@ -20,7 +20,7 @@ import threading
 import time
 from dataclasses import replace
 
-from . import __version__, buttons, languages, modes, taxa, updates, wifi
+from . import __version__, buttons, gift, languages, modes, taxa, updates, wifi
 from .api import Configured
 from .config import Config
 from .languages import namer
@@ -119,6 +119,28 @@ def _setup_screen(state: wifi.State, settings: Settings, size: tuple[int, int]) 
     return monochrome(modes.setup_screen(state, settings, size, True)), settings.rotation
 
 
+def _gift_key(present: gift.Gift, settings: Settings, size: tuple[int, int]) -> tuple:
+    """What the splash is a function of, the frame's own look included."""
+    look = (
+        settings.margins(True),
+        settings.rotation,
+        settings.style,
+        settings.label_font,
+        settings.label_size,
+        settings.show_names,
+        settings.primary_language,
+        settings.secondary_language,
+    )
+    return ("gift", present.splash_key(), size, look)
+
+
+def _wrapped(paths: gift.Paths, present: gift.Gift) -> None:
+    """The final splash is on the glass: flush it all to the card, then say so."""
+    os.sync()
+    gift.write(paths.gift, replace(present, state=gift.WRAPPED, boot=gift.boot_id()))
+    log.info("Gift wrapped: frozen with its splash until the power goes")
+
+
 def _push(panel: Panel, frame: Frame, status: Status) -> bool:
     """Whether the frame reached the glass. A failure is retried next tick from the same image
     rather than re-rendered."""
@@ -165,6 +187,9 @@ def run(config: Config) -> None:
     log.info("Fugleramme v%s", __version__)
 
     panel = init_panel()
+    gifts = gift.Paths(data=config.config_path.parent)
+    if gift.opened(gifts, gift.read(gifts.gift), gift.boot_id()):
+        log.info("Gift opened: the detector is listening where the frame is now")
     store, source = detector(config)
     # Per-bird picks, unread since the pick went by day (#302). Remove after 2027-01-21.
     (config.config_path.parent / "artwork.json").unlink(missing_ok=True)
@@ -195,6 +220,7 @@ def run(config: Config) -> None:
         threading.Thread(
             target=buttons.watch,
             args=(panel.driver, store, config.images_dir, setup.toggle if setup else None),
+            kwargs={"frozen": lambda: gift.read(gifts.gift) is not None},
             daemon=True,
         ).start()
     log.info("Serving kiosk on http://%s:%s", config.host, config.port)
@@ -210,6 +236,48 @@ def run(config: Config) -> None:
     render_error: str | None = None
     while True:
         settings = store.get()
+        present = gift.read(gifts.gift)
+        if present is not None:
+            # The splash stands in for everything, the update and the setup screen too, and
+            # once wrapped nothing redraws it: the frame is boxed.
+            size = settings.oriented(resolution_of(panel, settings.external_panel_size))
+            key = _gift_key(present, settings, size)
+            if present.state == gift.WRAPPED and last_key and last_key[0] == "gift":
+                key = last_key
+            if panel is None:
+                if present.state == gift.WRAPPING and not present.error:
+                    gift.write(gifts.gift, replace(present, error="this frame has no panel"))
+            else:
+                if key != last_key:
+                    log.info("Showing the gift's splash at %dx%d", *size)
+                    name_of = namer(
+                        settings.primary_language,
+                        settings.secondary_language,
+                        config.config_path.parent,
+                    )
+                    try:
+                        page = modes.gift_screen(
+                            present, settings, config.images_dir, name_of, size, True
+                        )
+                        pending, last_key, last_render = (
+                            (dither(page), settings.rotation),
+                            key,
+                            None,
+                        )
+                    except Exception as exc:
+                        # Retried each tick, and told to the CLI, which may be waiting on it.
+                        error = f"the splash failed: {exc}"
+                        if present.error != error:
+                            log.exception("Gift splash failed at %dx%d", *size)
+                            gift.write(gifts.gift, replace(present, error=error))
+                        time.sleep(_POLL_SECONDS)
+                        continue
+                if pending is not None and _push(panel, pending, status):
+                    pending = None
+                if pending is None and present.state == gift.WRAPPING and not present.error:
+                    _wrapped(gifts, present)
+            time.sleep(_POLL_SECONDS)
+            continue
         if _update(status, settings.auto_update):
             return  # new code is checked out; systemd restarts us into it
         size = settings.oriented(resolution_of(panel, settings.external_panel_size))

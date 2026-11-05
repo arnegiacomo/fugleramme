@@ -166,3 +166,20 @@ def test_every_language_adds_a_dictionary_per_script_and_upstream_s_shape_does_n
         _fetch(f"{every}/species/dictionary/he", headers={"If-None-Match": headers["Etag"]})[0]
         == 304
     )
+
+
+def test_range_scores_follow_the_place_and_week(api):
+    base = api()
+    status, here = _json(f"{base}/range/species/scores?lat=60.39&lon=5.32&week=19&names=false")
+    assert status == 200 and here["week"] == 19 and here["count"] == len(fake.HEARD)
+    assert {"label", "scientificName", "commonName", "score"} <= set(here["species"][0])
+    _status, there = _json(f"{base}/range/species/scores?lat=-33.9&lon=18.4&week=19")
+    assert [r["scientificName"] for r in here["species"]] != [
+        r["scientificName"] for r in there["species"]
+    ]
+
+
+@pytest.mark.parametrize("query", ["lat=91&lon=0&week=1", "lat=0&lon=0&week=49", "lat=x"])
+def test_range_scores_refuse_what_upstream_refuses(api, query):
+    status, _body = _json(f"{api()}/range/species/scores?{query}")
+    assert status == 400
