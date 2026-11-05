@@ -1,0 +1,64 @@
+{# The Frame tab: the panel and the web view. `panel` is whether the form
+   has a panel to lay the page out for - an Inky, else the external one. Rows
+   that need one are always rendered with their declarations, and disabled
+   without one, so a save then leaves the stored values alone. #}
+{% from "macros.html" import options, checkbox, hint %}
+{% macro slider(field, caption, value) -%}
+<label><span><span class="caption">{{ caption }}</span> <small>{{ value }}%</small></span><input type="range" name="{{ field }}" min="0" max="{{ MARGIN_CEILING }}" step="1" value="{{ value }}"></label>
+{%- endmacro %}
+{% set lock = "The web view takes the panel's shape and rotation." %}
+{% set lock_off = lock ~ " Only available with an Inky Impression panel connected or the external e-ink panel enabled." %}
+<div id="tab-frame" role="tabpanel" aria-labelledby="frame-tab" hidden>
+<div class="card">
+  <h2>Margin {{ hint("Space kept clear at the edges, for a mat that overlaps the panel.\n\nWhile you set the margins, the panel and the web view show them in black until you save, or for 5 minutes, so you can line up the mat") }}</h2>
+  {# One margin, and one per edge of the glass (#184). #}
+  <div id="margin-uniform"{% if not panel %} class="off"{% endif %}>
+    {% call checkbox("margin_lock", settings.margin_lock, disabled=not panel, declared=true) %}Uniform {{ hint("The same margin on every edge of the panel") }}{% endcall %}
+  </div>
+  <div id="margin-edges"{{ flags(hidden=not panel) }}>
+    {% for edge, value in edges %}
+    {{ slider("margin_" ~ edge, edge|title, value) }}
+    {% endfor %}
+  </div>
+  <div id="margin-one">{{ slider("margin", "All edges", settings.margin) }}</div>
+</div>
+
+<div class="card">
+  <h2>Panel</h2>
+  {# Only the external panel is a setting, so only it is declared. #}
+  <div class="field" id="outputs">
+    <span>Outputs</span>
+    {% if detected %}
+    {% set inky = "Always enabled as an Inky Impression panel is currently connected." %}
+    {% else %}
+    {% set inky = "Only enabled when an Inky Impression panel is connected and detected." %}
+    {% endif %}
+    {% call checkbox("inky_impression_enable", detected, disabled=true) %}Inky Impression panel {{ hint(inky) }}{% endcall %}
+    {% call checkbox("external_panel", settings.external_panel, declared=true) %}External e-ink panel {{ hint("Serves the page to an e-ink panel driven by another device.\n\nAnyone who can reach the frame can see it. Its buttons need the admin password while sign-in is on.") }}{% endcall %}
+    <label class="sub" id="panel-size"{{ flags(hidden=not settings.external_panel) }}><small>External panel size {{ hint("The external panel's size. /frame.e6 is 13.3\" only.") }}</small>
+      <select name="external_panel_size"{{ flags(disabled=not settings.external_panel) }}>{{ options(panel_sizes, panel_size) }}</select></label>
+    {% call checkbox("web_enable", true, disabled=true) %}Web view {{ hint("Always enabled.") }}{% endcall %}
+  </div>
+  <label><span>Rotation {{ hint("How the frame hangs") }}</span>
+    <select name="rotation">{{ options(rotations, settings.rotation) }}</select></label>
+  <label><span>Refresh {{ hint("How long the panel holds a page before new birds may change it") }}</span>
+    <select name="refresh_minutes">{{ options(refreshes, settings.refresh_minutes) }}</select></label>
+</div>
+
+<div class="card">
+  <h2>Web view</h2>
+  {# Its size and, once unlocked from the panel, its own shape (#147). #}
+  <div class="field" id="web-view">
+    <span>Resolution</span>
+    <select name="web_resolution" aria-label="Resolution">{{ options(resolutions, settings.web_resolution) }}</select>
+    <div class="sub{% if not panel %} off{% endif %}" id="web-lock">
+      {# settings.js swaps the hint between the two as the form gains or loses a panel. #}
+      {% call checkbox("web_lock", settings.web_lock, disabled=not panel, declared=true) %}Lock to panel <span class="hint" id="lock-hint" data-on="{{ lock }}" data-off="{{ lock_off }}" tabindex="0" role="img" aria-label="{{ lock if panel else lock_off }}"></span>{% endcall %}
+    </div>
+    <div class="sub" id="web-shape">
+      <label><small>Aspect</small><select name="web_aspect">{{ options(aspects, settings.web_aspect) }}</select></label>
+      {% call checkbox("web_portrait", settings.web_portrait, declared=true) %}Portrait{% endcall %}
+    </div>
+  </div>
+</div>
+</div>

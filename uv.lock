@@ -360,6 +360,7 @@ source = { editable = "." }
 dependencies = [
     { name = "babel" },
     { name = "fonttools" },
+    { name = "jinja2" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pillow" },
@@ -391,6 +392,7 @@ requires-dist = [
     { name = "gpiod", marker = "extra == 'panel'", specifier = ">=2.1" },
     { name = "gpiodevice", marker = "extra == 'panel'", specifier = ">=0.0.5" },
     { name = "inky", marker = "extra == 'panel'", specifier = ">=2.6" },
+    { name = "jinja2", specifier = ">=3.1" },
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "pillow", specifier = ">=10.1" },
     { name = "segno", specifier = ">=1.6" },

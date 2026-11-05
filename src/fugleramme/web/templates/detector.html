@@ -1,0 +1,58 @@
+{# The Detector tab: the saved detector's state, and the form choosing it. #}
+{% from "macros.html" import text_field, hint, logo, stamp %}
+{% from "rows.html" import state %}
+{% set birdweather = settings.detector_kind == BIRDWEATHER %}
+<section id="tab-detector" role="tabpanel" aria-labelledby="detector-tab" hidden>
+<div class="card">
+  <h2>{{ name }}</h2>
+  <dl class="status">
+    {# BirdWeather's logos are on each station's line instead. #}
+    <dt>{{ "Detector(s)" if birdweather else "Detector" }}</dt><dd>{% if not birdweather %}{{ logo(BIRDNET_GO) }}{% endif %}<span id="detector-state">{{ row }}</span></dd>
+    <dt>Last detection</dt><dd>
+      {%- if latest %}{{ latest[0] }} · {{ stamp(latest[1]) }}
+      {%- elif outage %}{{ outage }}
+      {%- else %}none yet{% endif -%}
+    </dd>
+    <dt class="missing">Without art {{ hint("Birds your station has heard (all time) that have no artwork yet") }}</dt>
+    <dd class="missing">
+      {%- if outage %}{{ outage }}
+      {%- elif not missing %}none
+      {%- else %}
+      {%- set count = missing|length %}{{ count }} bird{{ "" if count == 1 else "s" }} <button type="button" class="copy" data-copy="{{ missing_text }}">Copy</button> · <a href="{{ issue_url }}" target="_blank" rel="noopener">Create GitHub issue</a>
+      {%- endif -%}
+    </dd>
+  </dl>
+</div>
+  {% set birdnet = chosen == BIRDNET_GO %}
+  {# A refused save comes back on the type it was refused for, with the note
+     under that type's address, since that is the field to fix. #}
+  {% set note %}{% if refusal %}<p class="note bad">Not saved. {{ refusal }}</p>{% endif %}{% endset %}
+  <form class="card block detector" id="detector" method="post" action="/admin">
+    <div class="field"><span>Type</span>
+      {%- for kind, label in kinds %}<label class="src"><input type="radio" name="detector_kind" value="{{ kind }}"{{ flags(checked=kind == chosen) }}> {{ logo(kind) }}{{ label }}</label>{% endfor -%}
+    </div>
+    {% call text_field("detector_url", settings.detector_url, url=true, kind=BIRDNET_GO, shown=birdnet) %}Address{% endcall %}
+    {% if birdnet %}{{ note }}{% endif %}
+    {% call text_field("detector_public_url", settings.detector_public_url, hint="(optional, for links to BirdNET-Go)", url=true, kind=BIRDNET_GO, shown=birdnet) %}Public address{% endcall %}
+    {# The search field has no name, so nothing of it posts. #}
+    <div class="field stations" data-kind="{{ BIRDWEATHER }}" data-most="{{ MOST_STATIONS }}"{{ flags(hidden=birdnet) }}><span>Stations <small>(ID or address)</small></span>
+      {% for typed in station_rows %}
+      <div class="station"><input type="text" name="detector_station" value="{{ typed }}"{{ flags(disabled=birdnet) }}><button type="button" class="remove" aria-label="Remove station">×</button></div>
+      {% endfor %}
+      <button type="button" class="add">+ Add station</button><button type="button" class="find">Find stations…</button>
+      <dialog class="near">
+        <header><strong>Find stations</strong><button type="button" class="close" aria-label="Close">×</button></header>
+        <input type="search" placeholder="Type a place" aria-label="Place" autofocus>
+        <ul class="places"></ul><p class="note"></p><ul class="found"></ul>
+        <a href="{{ BIRDWEATHER_SITE }}" target="_blank" rel="noopener">Browse BirdWeather's map ↗</a>
+      </dialog>
+    </div>
+    {% if not birdnet %}{{ note }}{% endif %}
+    {# A password only: the username BirdNET-Go's API insists on is a fixed client
+       id (api.CLIENT_ID). An install that changed security.basicauth.clientid
+       sets detector_username in settings.json instead. #}
+    {% call text_field("detector_password", PASSWORD_SET if settings.detector_password else "", type="password", hint="(basic authentication)", kind=BIRDNET_GO, shown=birdnet) %}Password{% endcall %}
+    <button type="button" id="test">Test connection</button>
+    <span id="test-result"></span>
+  </form>
+</section>

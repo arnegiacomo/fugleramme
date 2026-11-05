@@ -1,0 +1,99 @@
+{# The System tab: updates, the Wi-Fi setup (#308), the machine and the theme.
+   `pi` is whether this is the Pi's own service (updates.can_reboot): only it
+   may reboot or run a setup hotspot. #}
+{% from "macros.html" import checkbox, hint, radios, stamp, action %}
+{% from "rows.html" import state %}
+<section id="tab-system" role="tabpanel" aria-labelledby="system-tab" hidden>
+<div class="card">
+  <h2>Updates</h2>
+  <dl class="status">
+    <dt>Version</dt><dd><a href="{{ RELEASE_URL }}" target="_blank" rel="noopener">v{{ version }}</a></dd>
+    <dt>Update</dt><dd class="update">
+      {#- `requested` counts as installing: the loop only picks it up a tick later.
+          A phase with no percent leaves the bar valueless, which renders indeterminate. #}
+      {% if status.updating or status.update_requested %}
+      {% set percent = status.update_percent %}
+      <span id="phase">{{ status.update_phase or "installing…" }}{% if percent is not none %} {{ percent }}%{% endif %}</span><progress id="bar" max="100"{% if percent is not none %} value="{{ percent }}"{% endif %}></progress>
+      {% elif status.update_error %}
+      {{ state("bad", status.update_error) }}{{ action("check", "Retry") }}
+      {% elif status.update_available %}
+      <span class="warn">{{ status.update_available }} available</span>
+      {#- The command stands in for the button: the image is the host's to replace.
+          A phone gets the link instead, as nobody runs it there. #}
+      {% if container %}
+      ·<pre class="cmd">{{ CONTAINER_COMMAND }}</pre><a class="host" href="{{ DOCS_URL }}container/#updates" target="_blank" rel="noopener">how to update</a>
+      {% else %}
+      {{ action("update", "Install") }}
+      {% endif %}
+      {% else %}
+      <span id="state">up to date</span>{{ action("check", "Check") }}
+      {% endif -%}
+    </dd>
+  </dl>
+  {# Disabled in a container: nothing in here can pull an image, and a switch
+     that does nothing is worse than no switch. #}
+  {% if container %}
+  <div class="block off">{% call checkbox("auto_update", false, disabled=true) %}Install new releases automatically <small>· disabled in container mode</small>{% endcall %}</div>
+  {% else %}
+  <form class="block" method="post" action="/admin">
+    {% call checkbox("auto_update", settings.auto_update, declared=true) %}Install new releases automatically{% endcall %}
+  </form>
+  {% endif %}
+</div>
+{% if pi %}
+<div class="card">
+  {% set wifi = status.wifi %}
+  <h2>Wi-Fi setup</h2>
+  {% if wifi and not wifi.available %}
+  <div class="block off">
+    {% call checkbox("wifi_setup", false, disabled=true) %}Start Wi-Fi setup when the frame is offline{% endcall %}
+    {# Why the setup cannot run, as wifi.Setup.start leaves it on the state. #}
+    <p class="note warn">
+      {%- if wifi.problem == "sudo refuses nmcli" -%}
+      Fugleramme isn't allowed to change this Pi's Wi-Fi. To allow it, run this on the Pi: <code class="cmd">{{ INSTALL_COMMAND }}</code>
+      {%- elif wifi.problem == "no Wi-Fi" -%}
+      This Pi has no Wi-Fi.
+      {%- else -%}
+      {{ wifi.problem }}
+      {%- endif -%}
+    </p>
+  </div>
+  {% else %}
+  <form class="block" method="post" action="/admin">
+    {% call checkbox("wifi_setup", settings.wifi_setup, declared=true) %}Start Wi-Fi setup when the frame is offline{% endcall %}
+    <label><span>Hotspot password {{ hint("The frame creates a hotspot for Wi-Fi setup. It's open unless you set a password.") }}</span><input minlength="8" maxlength="63" type="text" name="hotspot_password" value="{{ settings.hotspot_password }}"></label>
+    {% if wifi and wifi.up %}
+    <p class="note">Wi-Fi setup is running. Join {{ wifi.name }} to use it.</p>
+    {% endif %}
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+<div class="card">
+  <h2>System</h2>
+  <dl class="status">
+    <dt>Inky panel</dt><dd>{{ "detected · %d×%d" % panel_size if detected else "not detected" }}</dd>
+    <dt>Host</dt><dd>{{ host }}</dd>
+    <dt>Internet</dt><dd>{{ state("ok", "online") if online else state("bad", "offline") }}{% if iface %} · {{ iface }}{% endif %}</dd>
+    <dt>Disk</dt><dd>{{ disk }}</dd>
+    <dt>Started</dt><dd class="action">{{ stamp(status.started_at) }}
+      {%- if pi %}{{ action("reboot", "Reboot") }}{% if status.reboot_error %}{{ state("bad", status.reboot_error) }}{% endif %}{% endif -%}
+    </dd>
+    <dt>Web view size</dt><dd>{{ "%d×%d" % web_size }}</dd>
+  </dl>
+</div>
+<div class="card">
+  <h2>Activity</h2>
+  <dl class="status">
+    <dt>Last render</dt><dd>
+      {%- if status.rendered_at %}{{ stamp(status.rendered_at) }}{% else %}not yet{% endif %}
+      {%- if status.push_error %} · panel push failing ({{ status.push_error }}){% endif -%}
+    </dd>
+  </dl>
+</div>
+{# This browser's alone, so no form holds it and nothing posts it. #}
+<div class="card">
+  <h2>Theme {{ hint("Applies immediately - this browser only") }}</h2>
+  {{ radios("theme", [("", "Auto (follows the system)"), ("light", "Light"), ("dark", "Dark")], "") }}
+</div>
+</section>

@@ -1,0 +1,63 @@
+{# The Display tab: which birds the page shows, and how. #}
+{% from "macros.html" import options, radios, checkbox, hint, fix %}
+<div id="tab-display" role="tabpanel" aria-labelledby="display-tab">
+<div class="card">
+  <h2>Birds</h2>
+  <div class="field"><span>Mode</span>{{ radios("mode", modes, settings.mode) }}</div>
+
+  <label id="lookback"{% if not windowed %} class="off"{% endif %}>
+    <span>Lookback window {{ hint("How far back the frame looks") }}</span>
+    <select name="lookback_hours"{{ flags(disabled=not windowed) }}>{{ options(lookbacks, settings.lookback_hours) }}</select></label>
+
+  {# How many species the page shows, and which ones it keeps (#53). #}
+  <div class="field" id="limit">
+    <span>Species on the page {{ hint("More than %d make the page very crowded" % DEFAULT_LIMIT) }}</span>
+    <div class="src">
+      <label class="src"><input type="radio" name="limit_mode" value="some"{{ flags(checked=limited) }}> At most</label>
+      <input type="number" name="species_limit" min="1" max="{{ LIMIT_CEILING }}" value="{{ count }}"{{ flags(disabled=not limited) }} aria-label="How many species">
+    </div>
+    <label class="src"><input type="radio" name="limit_mode" value="all"{{ flags(checked=not limited) }}> Show all</label>
+    <div class="sub" id="ranking"><small>Which ones to keep</small>{{ radios("ranking", rankings, settings.ranking) }}</div>
+    <p class="note" id="key-cap"{{ flags(hidden=not capped) }}>The numbered key shows at most {{ KEY_LIMIT }} birds.</p>
+  </div>
+</div>
+
+{# How the collage packs its birds (#47), and whether one takes the middle (#185). #}
+<div class="card" id="layout">
+  <h2>Layout {{ hint(layout_hint) }}</h2>
+  {{ radios("layout", layouts, settings.layout) }}
+  {% call checkbox("spotlight", settings.spotlight, declared=true) %}Spotlight mode {{ hint("Showcase the latest heard bird in the middle.") }}{% endcall %}
+</div>
+
+<div class="card" id="names">
+  <h2>Labels</h2>
+  {% call checkbox("show_names", settings.show_names, declared=true) %}Display bird names{% endcall %}
+  {# Why the menu holds nothing but the scientific name, so a detector that will
+     not serve its locale list reads as one to fix rather than as all the frame can do. #}
+  {% if names_failure %}
+  <p class="note bad">{{ fix("No languages: " ~ names_failure) }}</p>
+  {% endif %}
+  <div class="sub" id="name-key">
+    {% call checkbox("name_key", settings.name_key, declared=true) %}Numbered key {{ hint("Number the birds and list their names beside or below them, like a poster. Shows at most %d birds, and the list's text shrinks to fit when there are many." % KEY_LIMIT) }}{% endcall %}
+  </div>
+  <label class="sub"><small>Language</small>
+    <select name="primary_language">{{ options(languages, settings.primary_language) }}</select></label>
+  <label class="sub"><small>Second language (optional)</small>
+    <select name="secondary_language">{{ options(second_languages, settings.secondary_language) }}</select></label>
+  {# raqm is an apt package, which an update cannot install. #}
+  {% if unshaped %}
+  <p class="note warn">This Pi can't draw {{ unshaped }} yet. Run <code class="cmd">sudo apt install libfribidi0</code> and reboot.</p>
+  {% endif %}
+  {# The warning is drawn rather than the warning sign character, which some
+     systems set as a colour emoji. #}
+  <label class="sub"><small>Typeface <span class="hint caution" id="face-note" tabindex="0" role="img" aria-label="{{ face_note }}"{{ flags(hidden=not face_note) }}><svg viewBox="0 0 16 16" width="100%" height="100%" aria-hidden="true"><path d="M8 1 15.5 15H.5z" fill="currentColor"/><path d="M8 6v4.5M8 12.6v.1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></span></small>
+    <select name="label_font">{{ options(fonts, settings.label_font) }}</select></label>
+  <label class="sub"><small>Text size</small>
+    <select name="label_size">{{ options(label_sizes, settings.label_size) }}</select></label>
+</div>
+
+<div class="card">
+  <h2>Artwork</h2>
+  {{ radios("style", styles, style) }}
+</div>
+</div>
