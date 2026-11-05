@@ -19,6 +19,8 @@ cd ~/fugleramme
 uv run fugleramme-gift
 ```
 
+While the form is open the frame is yours to draw on: its own page and the admin are off, and it starts again when you quit. `sudo` may ask for your password to stop and start it.
+
 Fill in the form. Each line gets a green ✓ when you leave it, or a red ✗ with what is wrong.
 
 | Field | What to put |
@@ -37,7 +39,9 @@ The keys are along the bottom of the screen:
 - **Ctrl-W** wraps it. Press it twice: the first press says what will happen.
 - **Esc** quits without wrapping, and the frame goes back to its birds.
 
-Wrapping stops BirdNET-Go, sets aside the birds it heard at your place, writes the new location into its settings, and saves the Wi-Fi and clears the password if you asked. The frame then draws the picture one last time and says when it is done:
+If the form is cut off, say your SSH connection drops, unplug the frame and plug it in again to get its birds back. If it was part way through wrapping, connect again and run `uv run fugleramme-gift unwrap` first.
+
+Wrapping stops BirdNET-Go, **deletes the birds it heard at your place**, writes the new location into its settings, and saves the Wi-Fi and clears the password if you asked. The frame then draws the picture one last time and says when it is done:
 
 ```text
 Wrapped. Unplug it now. The splash stays without power.
@@ -48,7 +52,7 @@ Unplug it and box it.
 
 ## Changed your mind
 
-Before you unplug it, this puts everything back as it was: your birds, the location, the Wi-Fi and the admin password.
+Before you unplug it, this puts back the location, the Wi-Fi and the admin password, and starts the frame again. The birds heard at your place stay deleted.
 
 ```bash
 uv run fugleramme-gift unwrap
@@ -58,12 +62,12 @@ After it has been unplugged and started again, there is nothing to undo: it has 
 
 ## When it is opened
 
-The first time the frame starts after wrapping, gift mode is over. BirdNET-Go starts listening at the new place, the birds set aside from your place are deleted, and the picture gives way to a bare branch until the first birds it hears there.
+The first time the frame starts after wrapping, it is an ordinary frame again. BirdNET-Go starts listening at the new place, and the picture gives way to a bare branch until the first birds it hears there.
 
 If it has no Wi-Fi it knows, it opens its own [Wi-Fi setup](wifi.md) as any frame does.
 
 > [!NOTE]
-> Plugging it in again at home, even for a quick test, counts as opening it. To wrap it again, run `uv run fugleramme-gift` again.
+> Plugging it in again at home, even for a quick test, opens it: the picture goes and it starts listening at your place with the recipient's location. To wrap it again, run `uv run fugleramme-gift` again.
 
 ## When it isn't available
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from datetime import date
 from types import SimpleNamespace
 
@@ -124,7 +125,12 @@ def test_a_detector_that_does_not_answer_still_leaves_the_favourites(frame):
 def form(frame):
     nmcli = SimpleNamespace(allowed=lambda: True)
     with create_pipe_input() as pipe, create_app_session(input=pipe, output=DummyOutput()):
-        yield giftform.Form(_checks(frame), nmcli)  # type: ignore[arg-type]
+        form = giftform.Form(_checks(frame), nmcli, DRAWN.append)  # type: ignore[arg-type]
+        DRAWN.clear()
+        yield form
+
+
+DRAWN: list[gift.Splash] = []
 
 
 def _fill(form, **texts):
@@ -133,14 +139,37 @@ def _fill(form, **texts):
         form.checks.check(key, text)
 
 
-def test_draw_writes_a_preview_for_the_service(form):
+def _drawn(form):
+    while form.drawing:
+        time.sleep(0.01)
+
+
+def test_draw_puts_the_splash_on_the_panel(form):
     form._preview()
-    assert "needs a place and a date" in form.status
+    assert "needs a place and a date" in form.status and not DRAWN
     _fill(form, place="columbus", arrives="2027-05-12")
     form._preview()
-    preview = gift.read(form.checks.frame.paths.gift)
-    assert preview is not None and preview.state == gift.PREVIEW and preview.restore is None
-    assert form.status.startswith("Drawing on the frame")
+    _drawn(form)
+    assert len(DRAWN) == 1 and DRAWN[0].month == "May"
+    assert form.status == "Drawn."
+
+
+def test_a_draw_that_fails_says_why(form):
+    def broken(_splash):
+        raise OSError("panel busy")
+
+    form.draw = broken
+    _fill(form, place="columbus", arrives="2027-05-12")
+    form._preview()
+    _drawn(form)
+    assert form.status == "Could not draw it: panel busy"
+
+
+def test_one_draw_at_a_time(form):
+    form.drawing = True
+    _fill(form, place="columbus", arrives="2027-05-12")
+    form._preview()
+    assert form.status == "Still drawing the last one." and not DRAWN
 
 
 def test_wrap_asks_twice_and_typing_disarms_it(form):
@@ -157,6 +186,7 @@ def test_wrap_asks_twice_and_typing_disarms_it(form):
     form._wrap(event)
     assert exits and form.wrapping is not None
     assert (form.wrapping.place, form.wrapping.ssid) == (COLUMBUS, "Their home")
+    assert form.wrapping.splash.month == "May"
     assert not form.wrapping.clear_admin
 
 
@@ -169,7 +199,7 @@ def test_typing_clears_a_fields_mark(form):
 def test_escape_quits(frame):
     nmcli = SimpleNamespace(allowed=lambda: True)
     with create_pipe_input() as pipe, create_app_session(input=pipe, output=DummyOutput()):
-        form = giftform.Form(_checks(frame), nmcli)  # type: ignore[arg-type]
+        form = giftform.Form(_checks(frame), nmcli, DRAWN.append)  # type: ignore[arg-type]
         pipe.send_text("columbus\x1b")
         form.app.run()
     assert form.areas["place"].text == "columbus" and form.wrapping is None

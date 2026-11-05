@@ -26,12 +26,12 @@ Covers `install.sh`, `run.sh`, `updates.py` and the `Dockerfile`.
 ## Gift mode (`gift.py`, #355)
 
 - The last step on a frame that already works: install, test the panel and the mic, then wrap it. It is a CLI, never the admin: wiping the history and changing the Wi-Fi do not belong on a page that may have no password. Bundled BirdNET-Go only, by the `detector/.env` marker.
-- **The CLI never draws.** It writes `gift.json` beside `settings.json` and the service, which owns the panel, reads it every tick. No file, no change: an updated frame never sees gift mode unless someone runs the command.
-- The form is `giftform.py` (prompt_toolkit), apart from `gift.py` so the service never imports it. A note line is checked against this frame's splash: the Inky's size comes off its EEPROM (`panel.glass_size`), I2C only, since `init_panel` would claim GPIO lines the running service holds.
+- **The frame service knows nothing of it.** The CLI borrows the frame: it stops `fugleramme-frame` (sudo, asked for in the terminal if need be), drives the panel itself, and starts the service again on any exit but a wrap. A wrap leaves it stopped with the splash on the glass; the unit is still enabled, so the next boot, the recipient's, is an ordinary frame. Every failure, a dropped ssh session included, ends the same way: a reboot gives the frame back. Keep it so: a gift feature in the render loop has to freeze buttons, updates and the setup screen, and every state it adds is a way to strand a frame.
+- The form is `giftform.py` (prompt_toolkit), apart from `gift.py`. With the service stopped it owns the panel, so a note line is checked against the attached Inky's real size, turned by the frame's rotation.
 - Unheard birds only ever appear on the splash in the box, never as the page after it is opened (#347).
-- `wrapped` is frozen until the power goes: no redraw, no buttons, no self-update. The service tells a reboot from its own restart by `/proc/sys/kernel/random/boot_id`, recorded when the wrap finished, so a crash in the box does not open it. The first boot in another boot id starts the detector and deletes the set-aside history; a test boot at home spends the gift.
-- `restart: unless-stopped` does not revive a container stopped by hand across a reboot, so the service starts it on opening, and `unwrap` does before then.
-- The restore record goes into `gift.json` before each step that changes something, so `unwrap` undoes a wrap that failed half way. The place is written into `config.yaml` by line, inside `birdnet:` only, and unwrap puts back the old text exactly.
+- **Wrapping deletes the history.** The frame is being given away, and a copy set aside would need something on the recipient's frame to clean it up.
+- `restart: unless-stopped` never revives a container stopped by hand, so wrapping sets the container to `always` first (`docker update`) and BirdNET-Go comes back at the first boot with nothing else involved. The policy sticks until `run.sh` recreates the container; an update's `up -d` leaves it.
+- The undo record lives in `/dev/shm`: written before each step that changes something, so `unwrap` puts back a wrap that failed half way, and gone at the next boot with the power, so the old admin password never ships. The place is written into `config.yaml` by line, inside `birdnet:` only, and unwrap puts back the old text exactly.
 - Saving the recipient's Wi-Fi is `nmcli connection add`, which `install.sh`'s rule already allows (it names `/usr/bin/nmcli` with any arguments).
 
 ## Releases

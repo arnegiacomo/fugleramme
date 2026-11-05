@@ -1,17 +1,17 @@
-"""Gift mode (#355): ready a working frame to be given, and hold a splash on it in the box.
+"""Gift mode (#355): ready a working frame to be given, with a splash on it in the box.
 
-The last step after an install that works: `fugleramme-gift` asks where the frame is going,
-when it arrives, a note and the giver's favourite birds, and wraps it. Wrapping stops the
-bundled detector, sets this place's history aside, writes the recipient's place into
-BirdNET-Go's config, saves their Wi-Fi and can clear the admin password. The service then
-draws the splash and freezes until it is unplugged; its first boot after that ends gift mode
-and it is an ordinary frame from there, with the Wi-Fi setup if it has no network.
+The last step after an install that works. `fugleramme-gift` borrows the frame: it stops the
+frame service, asks where the frame is going, when it arrives, a note and the giver's
+favourite birds, and draws the splash on the panel itself. Wrapping deletes this place's
+history, writes the recipient's place into BirdNET-Go's config, saves their Wi-Fi, can clear
+the admin password, and leaves the frame service stopped with the splash on the glass.
 
-The CLI never draws. It writes `gift.json` beside `settings.json` and the service, which owns
-the panel, reads it on every tick. With no such file the service is exactly what it was.
+The frame service knows nothing of any of it. It is still enabled, so the next boot, at the
+recipient's, starts an ordinary frame: their birds, or the Wi-Fi setup if it has no network.
+BirdNET-Go comes back with it because wrapping sets the container to restart always.
 
-Bundled BirdNET-Go only (`detector/.env` marks an appliance): the history and the place
-being changed are its own.
+What `unwrap` needs lives in /dev/shm, which is memory: it is there until the power goes, and
+so is the undo. Bundled BirdNET-Go only (`detector/.env` marks an appliance).
 """
 
 from __future__ import annotations
@@ -23,10 +23,9 @@ import logging
 import os
 import re
 import shutil
-import sqlite3
 import subprocess
 from collections.abc import Callable, Iterable
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, field, fields
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -39,15 +38,12 @@ from .names import canonical, normalize
 
 log = logging.getLogger(__name__)
 
-PREVIEW = "preview"  # the splash is on the glass for a look; nothing else has changed
-WRAPPING = "wrapping"  # everything is done but the final draw, which the service owes
-WRAPPED = "wrapped"  # drawn and synced: frozen until the power goes
-
+UNIT = "fugleramme-frame"  # run.sh's systemd unit
+CONTAINER = "birdnet-go"  # detector/docker-compose.yml's container_name
 SPLASH_BIRDS = 8  # favourites first, then the likeliest with a plate
 SSID_BYTES = 32
 PSK_CHARS = (8, 63)  # WPA2's passphrase
 PLACES = "https://photon.komoot.io/api/?limit=5&q="  # the admin's station finder asks the same
-_BOOT_ID = Path("/proc/sys/kernel/random/boot_id")
 _DATE = re.compile(r"\d{4}-\d{2}-\d{2}")  # date.fromisoformat also takes 20270512
 _LAT_LON = re.compile(r"\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*")
 
@@ -58,19 +54,11 @@ class Paths:
 
     data: Path = DEFAULT_CONFIG_PATH.parent  # BirdNET-Go's /data, settings.json beside it
     detector: Path = REPO_ROOT / "detector"
-
-    @property
-    def gift(self) -> Path:
-        return self.data / "gift.json"
+    undo: Path = Path("/dev/shm/fugleramme-gift.json")  # memory: gone with the power
 
     @property
     def settings(self) -> Path:
         return self.data / "settings.json"
-
-    @property
-    def history(self) -> Path:
-        """This place's detections and clips while the frame is wrapped."""
-        return self.data / "gift-history"
 
     @property
     def birdnet_config(self) -> Path:
@@ -82,70 +70,61 @@ class Paths:
 
 
 @dataclass(frozen=True)
-class Restore:
-    """What `unwrap` puts back. Recorded before the step that changes it."""
+class Splash:
+    """What the splash shows."""
 
-    latitude: str = ""
-    longitude: str = ""
-    admin_password: str | None = None  # None: left alone
-    wifi: str = ""  # the profile's uuid
-    stopped: bool = False  # the detector, so unwrap starts it again
+    month: str  # the arrival's, for the subtitle
+    notes: tuple[str, ...]
+    birds: tuple[str, ...]  # scientific names, the spotlight among them
+    spotlight: str | None  # the first favourite
 
 
 @dataclass(frozen=True)
-class Gift:
-    state: str
-    month: str  # the arrival's, for the splash's subtitle
-    notes: tuple[str, ...]
-    birds: tuple[str, ...]  # scientific names, the spotlight first if there is one
-    spotlight: str | None  # the first favourite
-    error: str = ""  # the service's reason it cannot draw it
-    boot: str = ""  # the boot the wrap finished in; another one means it has been given
-    restore: Restore | None = None
+class Restore:
+    """What `unwrap` puts back, recorded before the step that changes it. The history is not
+    in it: wrapping deletes that."""
 
-    def splash_key(self) -> tuple:
-        """What the splash is a function of."""
-        return (self.month, self.notes, self.birds, self.spotlight)
+    restart: str = ""  # the container's restart policy before wrapping set it to always
+    latitude: str = ""
+    longitude: str = ""
+    wifi: str = ""  # the saved profile's uuid
+    admin_password: str | None = None  # None: left alone
 
 
-def read(path: Path) -> Gift | None:
-    """The gift on this frame, or None. An unreadable file is no gift: a frame whose file
-    broke shows its birds rather than a splash it cannot draw."""
+def read_undo(path: Path) -> Restore | None:
+    """The undo record, or None. One that is not exactly what `write_undo` writes is deleted
+    and said so: half a record would put back half a frame."""
     try:
-        raw = json.loads(path.read_text())
-        restore = raw.get("restore")
-        return Gift(
-            state=str(raw["state"]),
-            month=str(raw["month"]),
-            notes=tuple(str(n) for n in raw.get("notes", ())),
-            birds=tuple(str(b) for b in raw.get("birds", ())),
-            spotlight=raw.get("spotlight") or None,
-            error=str(raw.get("error", "")),
-            boot=str(raw.get("boot", "")),
-            restore=Restore(**restore) if isinstance(restore, dict) else None,
-        )
+        return _undo(json.loads(path.read_text()))
     except FileNotFoundError:
         return None
-    except (OSError, ValueError, TypeError, KeyError, AttributeError) as error:
-        log.warning("Ignoring %s: %s", path, error)
+    except (OSError, ValueError, TypeError) as error:
+        log.warning("Deleting %s, it is not an undo record: %s", path, error)
+        with contextlib.suppress(OSError):
+            path.unlink()
         return None
 
 
-def write(path: Path, gift: Gift) -> None:
-    """Atomic, and 0600: the restore record can hold the admin password."""
+def _undo(raw: Any) -> Restore:
+    """`write_undo`'s output read back strictly: every key, no others, each of its type."""
+    if not isinstance(raw, dict) or set(raw) != {f.name for f in fields(Restore)}:
+        raise ValueError("not the keys an undo record has")
+    password = raw.pop("admin_password")
+    if not all(isinstance(v, str) for v in raw.values()) or not isinstance(password, str | None):
+        raise TypeError("a value is not text")
+    for key in ("latitude", "longitude"):
+        if raw[key]:
+            float(raw[key])  # written back into config.yaml as it stands
+    return Restore(**raw, admin_password=password)
+
+
+def write_undo(path: Path, restore: Restore) -> None:
+    """Atomic, and 0600: it can hold the admin password."""
     tmp = path.with_name(path.name + ".tmp")
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as handle:
-        handle.write(json.dumps(asdict(gift), indent=2) + "\n")
+        handle.write(json.dumps(asdict(restore), indent=2) + "\n")
     os.replace(tmp, path)
-
-
-def boot_id() -> str:
-    """This boot's id, "" off Linux. A dev machine never sees a gift opened."""
-    try:
-        return _BOOT_ID.read_text().strip()
-    except OSError:
-        return ""
 
 
 # -- what goes on the splash -------------------------------------------------
@@ -279,7 +258,7 @@ def favourite(
     return None, f"no match - {taxa.common_of(best) or best}?"
 
 
-# -- wrapping, unwrapping and opening ----------------------------------------
+# -- wrapping and unwrapping -------------------------------------------------
 
 
 def appliance(paths: Paths) -> str:
@@ -291,18 +270,22 @@ def appliance(paths: Paths) -> str:
     return ""
 
 
-def compose(paths: Paths, *args: str) -> None:
-    """`docker compose` on the bundled detector, through sudo where the docker group has
-    not taken yet, as run.sh does."""
-    files = ["--env-file", str(paths.env), "-f", str(paths.detector / "docker-compose.yml")]
-    docker = ["docker"]
+def docker(*args: str) -> str:
+    """A docker command's output, through sudo where the docker group has not taken yet,
+    as run.sh does."""
+    command = ["docker"]
     if subprocess.run(["docker", "info"], capture_output=True, check=False).returncode != 0:
-        docker = ["sudo", "-n", "docker"]
-    done = subprocess.run(
-        [*docker, "compose", *files, *args], capture_output=True, text=True, check=False
-    )
+        command = ["sudo", "-n", "docker"]
+    done = subprocess.run([*command, *args], capture_output=True, text=True, check=False)
     if done.returncode != 0:
-        raise RuntimeError(f"docker compose {' '.join(args)}: {done.stderr.strip()}")
+        raise RuntimeError(f"docker {' '.join(args[:2])}: {done.stderr.strip()}")
+    return done.stdout.strip()
+
+
+def compose(paths: Paths, *args: str) -> str:
+    """`docker compose` on the bundled detector."""
+    files = ["--env-file", str(paths.env), "-f", str(paths.detector / "docker-compose.yml")]
+    return docker("compose", *files, *args)
 
 
 _SECTION = re.compile(r"(?m)^birdnet:[ \t]*$")
@@ -329,44 +312,12 @@ def located(text: str, latitude: str, longitude: str) -> tuple[str, str, str]:
     return text[:start] + block + text[end:], old[0], old[1]
 
 
-def _db_files(data: Path) -> list[Path]:
-    return [data / name for name in ("birdnet.db", "birdnet.db-wal", "birdnet.db-shm")]
-
-
-def set_aside(paths: Paths) -> None:
-    """Move this place's detections and clips out of the detector's sight. The database is
-    copied with sqlite's backup, which is consistent under WAL, before the files go."""
-    paths.history.mkdir(exist_ok=True)
-    db = paths.data / "birdnet.db"
-    if db.exists():
-        source = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
-        target = sqlite3.connect(paths.history / "birdnet.db")
-        try:
-            source.backup(target)
-        finally:
-            target.close()
-            source.close()
-        for path in _db_files(paths.data):
-            path.unlink(missing_ok=True)
-    clips = paths.data / "clips"
-    if clips.exists():
-        clips.rename(paths.history / "clips")
-
-
-def put_back(paths: Paths) -> None:
-    """`set_aside` undone, over anything the detector wrote meanwhile."""
-    if not paths.history.exists():
-        return
-    kept = paths.history / "birdnet.db"
-    if kept.exists():
-        for path in _db_files(paths.data):
-            path.unlink(missing_ok=True)
-        kept.rename(paths.data / "birdnet.db")
-    clips = paths.history / "clips"
-    if clips.exists():
-        shutil.rmtree(paths.data / "clips", ignore_errors=True)
-        clips.rename(paths.data / "clips")
-    shutil.rmtree(paths.history)
+def forget_history(paths: Paths) -> None:
+    """Delete this place's detections and clips, with the detector stopped. BirdNET-Go
+    starts an empty database at the recipient's."""
+    for name in ("birdnet.db", "birdnet.db-wal", "birdnet.db-shm"):
+        (paths.data / name).unlink(missing_ok=True)
+    shutil.rmtree(paths.data / "clips", ignore_errors=True)
 
 
 @dataclass(frozen=True)
@@ -374,10 +325,7 @@ class Wrapping:
     """What the form hands `wrap`, every field already checked."""
 
     place: Place
-    month: str
-    notes: tuple[str, ...]
-    birds: tuple[str, ...]
-    spotlight: str | None
+    splash: Splash
     ssid: str = ""
     password: str = ""
     clear_admin: bool = False
@@ -391,56 +339,55 @@ def wrap(
     wrapping: Wrapping,
     save_wifi: Callable[[str, str], str],
     clear_admin: Callable[[], str],
+    draw: Callable[[Splash], None],
     done: Step = lambda line: None,
 ) -> None:
-    """Everything but the final draw, which the service does on reading WRAPPING. The
-    restore record is written before each step that changes something, so `unwrap` can
-    undo a wrap that fails half way. `save_wifi` returns the profile's uuid, `clear_admin`
-    the password it cleared."""
-    gift = Gift(
-        PREVIEW,
-        wrapping.month,
-        wrapping.notes,
-        wrapping.birds,
-        wrapping.spotlight,
-        restore=Restore(),
-    )
+    """Ready the frame for its new home and draw the splash, with the frame service already
+    stopped. The undo record is written before each step that changes something, so
+    `unwrap` can put back what a wrap that failed half way had done. `save_wifi` returns the
+    profile's uuid, `clear_admin` the password it cleared."""
+    restore = Restore()
 
     def record(**changes: Any) -> None:
-        nonlocal gift
-        assert gift.restore is not None
-        gift = replace(gift, restore=replace(gift.restore, **changes))
-        write(paths.gift, gift)
+        nonlocal restore
+        restore = Restore(**{**asdict(restore), **changes})
+        write_undo(paths.undo, restore)
 
-    record(stopped=True)
+    # `unless-stopped` would leave a container stopped by hand stopped at every boot from
+    # here; `always` brings it back at the recipient's first one.
+    policy = docker("inspect", "-f", "{{.HostConfig.RestartPolicy.Name}}", CONTAINER)
+    record(restart=policy)
+    docker("update", "--restart", "always", CONTAINER)
     compose(paths, "stop")
-    done("Detector stopped")
-    set_aside(paths)
-    done("This place's birds set aside")
-    text = paths.birdnet_config.read_text()
+    done("Detector stopped; it starts again on the first boot")
+    forget_history(paths)
+    done("This place's birds deleted")
     place = wrapping.place
+    text = paths.birdnet_config.read_text()
     new, lat, lon = located(text, f"{place.latitude:.4f}", f"{place.longitude:.4f}")
     record(latitude=lat, longitude=lon)
     paths.birdnet_config.write_text(new)
-    done(f"Location set to {wrapping.place.label}")
+    done(f"Location set to {place.label}")
     if wrapping.ssid:
         record(wifi=save_wifi(wrapping.ssid, wrapping.password))
         done(f"Wi-Fi {wrapping.ssid} saved")
     if wrapping.clear_admin:
         record(admin_password=clear_admin())
         done("Admin password cleared")
-    write(paths.gift, replace(gift, state=WRAPPING))
+    draw(wrapping.splash)
+    os.sync()  # the card has everything before anyone pulls the plug
+    done("Splash drawn")
 
 
 def unwrap(
-    paths: Paths,
-    gift: Gift,
-    forget_wifi: Callable[[str], None],
-    restore_admin: Callable[[str], None],
-) -> None:
-    """Undo `wrap` on a frame that has not been unplugged since."""
-    restore = gift.restore or Restore()
-    put_back(paths)
+    paths: Paths, forget_wifi: Callable[[str], None], restore_admin: Callable[[str], None]
+) -> bool:
+    """Put back what `wrap` changed, before the frame is unplugged: the place, the Wi-Fi,
+    the admin password and the detector. Not the history, which is gone. False when there
+    is nothing to undo."""
+    restore = read_undo(paths.undo)
+    if restore is None:
+        return False
     if restore.latitude and restore.longitude:
         text = paths.birdnet_config.read_text()
         new, _lat, _lon = located(text, restore.latitude, restore.longitude)
@@ -449,22 +396,8 @@ def unwrap(
         forget_wifi(restore.wifi)
     if restore.admin_password is not None:
         restore_admin(restore.admin_password)
-    paths.gift.unlink(missing_ok=True)
-    if restore.stopped:
+    if restore.restart:
+        docker("update", "--restart", restore.restart, CONTAINER)
         compose(paths, "start")
-
-
-def opened(paths: Paths, gift: Gift | None, boot: str) -> bool:
-    """On the service's start: a wrapped gift in a boot other than the one it was wrapped
-    in has been given. The detector starts, the set-aside history goes, and the frame is
-    ordinary from here. True when it was opened."""
-    if gift is None or gift.state != WRAPPED or not boot or gift.boot == boot:
-        return False
-    with contextlib.suppress(OSError):
-        shutil.rmtree(paths.history)
-    paths.gift.unlink(missing_ok=True)
-    try:
-        compose(paths, "start")
-    except (RuntimeError, OSError) as error:
-        log.warning("Gift opened, but the detector did not start: %s", error)
+    paths.undo.unlink(missing_ok=True)
     return True

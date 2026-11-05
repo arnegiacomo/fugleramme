@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from fugleramme import api, gift, modes, service
+from fugleramme import api, modes, service
 from fugleramme.config import Config
 from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import MatTest, Status
@@ -461,78 +461,3 @@ def test_a_margin_test_paints_the_glass_and_goes_past_the_floor_both_ways(
     assert page.getpixel((400, 10)) != black and back.getpixel((400, 10)) != black
     assert framed[1] is framed[0]  # the test was not handed to /frame.e6
     assert status.mat_test is None
-
-
-def _config(tmp_path, images, url) -> Config:
-    return Config(
-        images_dir=images,
-        detector_url=url,
-        output_path=tmp_path / "frame.png",
-        host="127.0.0.1",
-        port=0,
-        config_path=tmp_path / "settings.json",
-    )
-
-
-_SPLASH = gift.Gift(gift.PREVIEW, "May", ("Happy birthday!",), ("Turdus merula",), "Turdus merula")
-
-
-def test_a_gift_is_previewed_wrapped_and_then_left_alone(tmp_path, images, detector):
-    """The splash replaces the birds; wrapping finishes once it is on the glass, and from
-    then on nothing redraws it, a saved setting included."""
-    url, _httpd = detector(count=4, seed=0)
-    config = _config(tmp_path, images, url)
-    path = tmp_path / "gift.json"
-    pushed: list[Image.Image] = []
-    panel = SimpleNamespace(
-        resolution=(800, 480), driver="", push=lambda image, _rotation: pushed.append(image)
-    )
-    ticks = 0
-
-    def sleep(_seconds):
-        nonlocal ticks
-        ticks += 1
-        if ticks == 1:
-            gift.write(path, _SPLASH)
-        if ticks == 2:
-            gift.write(path, replace(_SPLASH, state=gift.WRAPPING))
-        if ticks == 3:
-            SettingsStore(config.config_path, Settings(detector_url=url)).update(rotation=180)
-        if ticks == 5:
-            raise _Stop
-
-    with (
-        patch.object(service.updates, "available", return_value=None),
-        patch.object(service, "init_panel", return_value=panel),
-        patch.object(service.buttons, "watch"),
-        patch.object(service.gift, "boot_id", return_value="boot-1"),
-        patch.object(service.time, "sleep", sleep),
-        pytest.raises(_Stop),
-    ):
-        service.run(config)
-
-    birds, splash = pushed  # the wrap and the saved rotation drew nothing more
-    assert birds.tobytes() != splash.tobytes()
-    wrapped = gift.read(path)
-    assert wrapped is not None and (wrapped.state, wrapped.boot) == (gift.WRAPPED, "boot-1")
-
-
-def test_a_frame_without_a_panel_says_it_cannot_wrap(tmp_path, images, detector):
-    url, _httpd = detector(count=4, seed=0)
-    path = tmp_path / "gift.json"
-    gift.write(path, replace(_SPLASH, state=gift.WRAPPING))
-
-    def sleep(_seconds):
-        raise _Stop
-
-    with (
-        patch.object(service.updates, "available", return_value=None),
-        patch.object(service, "init_panel", return_value=None),
-        patch.object(service.time, "sleep", sleep),
-        pytest.raises(_Stop),
-    ):
-        service.run(_config(tmp_path, images, url))
-
-    told = gift.read(path)
-    assert told is not None and told.state == gift.WRAPPING
-    assert told.error == "this frame has no panel"
