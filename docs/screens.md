@@ -198,6 +198,21 @@ already dithered and rotated as necessary.
 Choose your panel size under **External panel size**. **Rotation**, **Margin** and
 **Panel refresh** all apply to it. Until you choose one, it gets the same as the Inky connected to this frame, or a 13.3" page if there is none.
 
+### Buttons
+
+An external panel's buttons work just like the [frame's own](operations.md#buttons), through a form `POST` to `/press`:
+
+```bash
+curl -X POST http://<host>.local:8080/press -d button=A -d password=<admin password>
+```
+
+- `button` - `A`, `B`, `C` or `D` (there is no 5 second hold for the Wi-Fi setup)
+- `password` - only needed if the admin page requires sign-in
+
+Responses: `204` on success, `400` for an unknown button, `401` for a wrong or missing password, `429` after too many attempts, and `404` if **External e-ink panel** is not enabled.
+
+The password is sent unencrypted over plain HTTP. If the frame is reachable from the internet or an unsafe network, serve it over HTTPS [behind a reverse proxy](operations.md#behind-a-reverse-proxy).
+
 ### Inky example code
 
 [`examples/inky/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/inky/main.py)
@@ -205,11 +220,7 @@ is a Python program for a Pi with an Inky Impression, acting as a client of a
 remote Fugleramme. It checks `/frame.png` every 5 seconds and downloads it only
 if it has changed. If the frame can't be reached, the panel keeps showing its
 last page. The panel's buttons trigger the corresponding actions on the remote
-frame via the `/press` endpoint.
-
-If the frame requires sign-in for its admin page, `/press` requires the admin
-password too. It is sent with every press over plain HTTP, so if the frame is
-reachable from the internet, put HTTPS in front of it.
+frame via [`/press`](#buttons).
 
 Tick **External e-ink panel** on the frame's admin page and set **External panel size** to match your panel, then on the Pi with the Inky, one command:
 
