@@ -1,20 +1,19 @@
 """The admin page: everything at `/admin` that is not HTTP.
 
-Markup, style and behaviour live in `static/admin.{html,css,js}`; this fills the
-template's slots. Pure string builders, so none of it needs a server to test.
+The markup is in `templates/`, a template per tab; this works out what each
+one shows. A function per tab renders it, so none of it needs a server to test.
 """
 
 from __future__ import annotations
 
-import html
-import json
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
-from string import Template
 from typing import Any
 from urllib.parse import urlencode, urlparse
 
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 from PIL.ImageFont import FreeTypeFont
 
 from .. import __version__, birdweather, modes, updates
@@ -72,12 +71,17 @@ from ..source import (
 )
 from ..status import Status
 from ..taxa import common_of
-from . import LOGIN, LOGOUT, STATIC_DIR, hostinfo
+from . import LOGIN, LOGOUT, TEMPLATES_DIR, hostinfo
 
 CHECKBOXES = "checkboxes"  # hidden field naming the checkboxes a form carries
 
 # No stored password reaches the page; posting this back unchanged means "leave it alone".
-PASSWORD_SET = "\u2022" * 8
+PASSWORD_SET = "•" * 8
+
+# The install writes the sudo rule the Wi-Fi setup needs, and is safe to run again.
+INSTALL_COMMAND = (
+    "curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install.sh | bash"
+)
 
 _LOOPBACK = ("127.0.0.1", "localhost", "::1", "0.0.0.0")
 
@@ -92,6 +96,68 @@ _NAMES = {
 }
 
 
+def _flags(**on: bool) -> Markup:
+    """Boolean attributes, ` checked disabled`, for the ones that are on."""
+    return Markup("".join(f" {name}" for name, value in on.items() if value))
+
+
+def _duration(seconds: int) -> str:
+    for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
+        if seconds >= size:
+            return f"{seconds // size}{unit}"
+    return f"{seconds}s"
+
+
+def _ago(dt: datetime) -> str:
+    return f"{_duration(int((datetime.now(UTC) - dt).total_seconds()))} ago"
+
+
+def _clock(dt: datetime) -> str:
+    local = dt.astimezone()
+    today = local.date() == datetime.now().astimezone().date()
+    return local.strftime("%H:%M" if today else "%-d %b %H:%M")
+
+
+# StrictUndefined: a value a template names and nobody passed is an error, not a blank.
+_ENV = Environment(
+    loader=FileSystemLoader(TEMPLATES_DIR),
+    autoescape=True,
+    undefined=StrictUndefined,
+    trim_blocks=True,
+    lstrip_blocks=True,
+)
+_ENV.filters.update(ago=_ago, clock=_clock)
+_ENV.globals.update(
+    flags=_flags,
+    version=__version__,
+    BUG_URL=f"{NEW_ISSUE_URL}?{urlencode({'template': 'bug_report.yml', 'version': f'v{__version__}'})}",
+    RELEASE_URL=f"https://github.com/arnegiacomo/fugleramme/releases/tag/v{__version__}",
+    BIRDNET_GO=BIRDNET_GO,
+    BIRDWEATHER=BIRDWEATHER,
+    BIRDWEATHER_SITE=BIRDWEATHER_SITE,
+    CHECKBOXES=CHECKBOXES,
+    CONTAINER_COMMAND=updates.CONTAINER_COMMAND,
+    DEFAULT_LIMIT=DEFAULT_LIMIT,
+    DOCS_URL=DOCS_URL,
+    INSTALL_COMMAND=INSTALL_COMMAND,
+    KEY_LIMIT=KEY_LIMIT,
+    LIMIT_CEILING=LIMIT_CEILING,
+    LOGIN=LOGIN,
+    LOGOUT=LOGOUT,
+    MARGIN_CEILING=MARGIN_CEILING,
+    MOST_STATIONS=MOST_STATIONS,
+    PASSWORD_SET=PASSWORD_SET,
+)
+
+
+def _render(template: str, **values: Any) -> Markup:
+    return Markup(_ENV.get_template(template).render(**values))
+
+
+# rows.html's macros, for the rows the server also sends on their own.
+_ROWS: Any = _ENV.get_template("rows.html").module
+
+
 def form_changes(form: dict[str, list[str]]) -> dict:
     """Admin form to settings overrides. Unchecked checkboxes and disabled
     fields are both absent from a post, so a form declares its own checkboxes
@@ -101,7 +167,6 @@ def form_changes(form: dict[str, list[str]]) -> dict:
     changes: dict[str, str | bool | int] = {k: v[0] for k, v in form.items() if k != CHECKBOXES}
     if "detector_station" in form:  # a row per station
         changes["detector_station"] = ", ".join(form["detector_station"])
-    # Each block declares its own boxes: a dimmed block posts neither.
     for field in " ".join(form.get(CHECKBOXES, [])).split():
         changes[field] = field in form
     if changes.pop("limit_mode", None) == "all":
@@ -118,10 +183,8 @@ def form_changes(form: dict[str, list[str]]) -> dict:
 KINDS = {BIRDNET_GO: "BirdNET-Go", BIRDWEATHER: "BirdWeather station(s)"}
 
 
-def _logo(kind: str) -> str:
-    """The detector's own favicon. admin.js loads it and shows it once it has
-    arrived, so one that cannot load leaves nothing."""
-    return f'<img class="logo" data-kind="{kind}" alt="" referrerpolicy="no-referrer" hidden>'
+def _kind_name(kind: str) -> str:
+    return KINDS[kind].removesuffix(" station(s)")
 
 
 NO_STATION = "no station saved"
@@ -203,71 +266,15 @@ def request_url(species: str = "") -> str:
     return f"{NEW_ISSUE_URL}?{urlencode(query)}"
 
 
-def bug_url() -> str:
-    query = {"template": "bug_report.yml", "version": f"v{__version__}"}
-    return f"{NEW_ISSUE_URL}?{urlencode(query)}"
-
-
-MISSING = "Birds your station has heard (all time) that have no artwork yet"
-
-
-def missing_row(rows: list[tuple[str, int]]) -> str:
-    """The Without art row: a count, a copy of the list, and the issue with it filled in."""
-    if not rows:
-        return "none"
-    text = missing_text(rows)
-    filled = request_url(text)
-    url = filled if len(filled) <= MAX_URL else request_url()
-    return (
-        f"{len(rows)} bird{'' if len(rows) == 1 else 's'} "
-        f'<button type="button" class="copy" data-copy="{html.escape(text)}">Copy</button> · '
-        f'<a href="{html.escape(url)}" target="_blank" rel="noopener">Create GitHub issue</a>'
-    )
+def issue_url(rows: list[tuple[str, int]]) -> str:
+    """The Missing bird issue with `rows` filled in, while GitHub takes a URL
+    that long. Past it the issue opens empty; Copy always has the whole list."""
+    filled = request_url(missing_text(rows))
+    return filled if len(filled) <= MAX_URL else request_url()
 
 
 def _display_name(name: str) -> str:
     return _NAMES.get(name, name.replace("-", " ").title())
-
-
-def _options(values, selected, label=str) -> str:
-    return "".join(
-        f'<option value="{v}"{" selected" if v == selected else ""}>{label(v)}</option>'
-        for v in values
-    )
-
-
-def _radios(field: str, options: list[tuple[str, str]], active: str) -> str:
-    return "".join(
-        f'<label class="src"><input type="radio" name="{field}" value="{value}"'
-        f"{' checked' if value == active else ''}> {label}</label>"
-        for value, label in options
-    )
-
-
-def _checkbox(field: str, label: str, checked: bool, disabled: bool = False) -> str:
-    return (
-        f'<label class="src"><input type="checkbox" name="{field}"'
-        f"{' checked' if checked else ''}{' disabled' if disabled else ''}> {label}</label>"
-    )
-
-
-def _action(action: str, label: str) -> str:
-    return (
-        f'<form class="inline {action}" method="post" action="/admin">'
-        f'<input type="hidden" name="action" value="{action}">'
-        f'<button type="submit">{label}</button></form>'
-    )
-
-
-def _state(ok: bool, good: str, bad: str) -> str:
-    return f'<span class="{"ok" if ok else "bad"}">{good if ok else bad}</span>'
-
-
-def _fix(problem: str) -> str:
-    """A problem and the tab that fixes it, worded the same wherever it turns up."""
-    return (
-        f'{html.escape(problem)}. See <a href="#detector" data-tab="detector">the Detector tab</a>.'
-    )
 
 
 _OUTAGES = {
@@ -283,8 +290,8 @@ def _outage(state: str) -> str:
     return _OUTAGES.get(state, "detector unreachable")
 
 
-def _detector(state: str, version: str, reading: bool, names_failure: str = "") -> str:
-    """The configured BirdNET-Go's state, and the version it reports.
+def _detector(state: str, version: str, reading: bool, names_failure: str = "") -> tuple[str, str]:
+    """The configured BirdNET-Go's state, and the version it reports, as (tone, words).
 
     `state` is `/health` asked without credentials, so under PrivateMode it is
     401 for every frame alike - the ones holding a working password included.
@@ -297,12 +304,12 @@ def _detector(state: str, version: str, reading: bool, names_failure: str = "") 
     """
     if not reading:
         if state == "auth":
-            return f'<span class="bad">running · {NEEDS_PASSWORD}</span>'
-        return '<span class="bad">unreachable</span>'
+            return "bad", f"running · {NEEDS_PASSWORD}"
+        return "bad", "unreachable"
     running = "running" + (f" · {version}" if version else "")
     if names_failure == NEEDS_PASSWORD:  # the settings only: birds yes, names no
-        return f'<span class="warn">{running} · {NEEDS_PASSWORD}</span>'
-    return f'<span class="ok">{running}</span>'
+        return "warn", f"{running} · {NEEDS_PASSWORD}"
+    return "ok", running
 
 
 # A probe's answer in the test's own words, and the status row it leaves behind.
@@ -316,264 +323,84 @@ _ANSWERS = {
 }
 
 
-def _station(page: str, about: dict[str, Any] | None) -> str:
-    """One BirdWeather station's line, worded like BirdNET-Go's: its logo, name
-    and #ID, linked to its page, and when it last heard anything, bird or not,
-    or that BirdWeather does not have it. A cell each, dots included, so the
-    lines' columns line up; the logo in a cell of its own, since one that
-    cannot load is hidden and would shift the rest."""
-    id_ = f"#{html.escape(station_id(page))}"
-    if about is None:
-        tone, name, heard = "bad", "", "no such station"
-    else:
-        latest = about.get("latestDetectionAt")
-        tone, name = "ok", html.escape(str(about.get("name") or ""))
-        id_ = f'<a href="{html.escape(page, quote=True)}">{id_}</a>'
-        heard = f"latest detection {_stamp(datetime.fromisoformat(latest))}" if latest else ""
-    cells = (name, "·" if name else "", id_, "·", heard or "nothing heard yet")
-    return f"<span>{_logo(BIRDWEATHER)}</span>" + "".join(
-        f'<span class="{tone}">{cell}</span>' for cell in cells
-    )
+def _station(page: str, about: dict[str, Any] | None) -> dict[str, Any]:
+    """One BirdWeather station's line: its name, #ID and page, and when it last
+    heard anything, bird or not - or that BirdWeather does not have it."""
+    found = about is not None
+    latest = (about or {}).get("latestDetectionAt")
+    return {
+        "id": station_id(page),
+        "page": page,
+        "missing": not found,
+        "name": str((about or {}).get("name") or ""),
+        "heard": datetime.fromisoformat(latest) if latest else None,
+    }
 
 
-def _stations(url: str, state: str, about: dict[str, dict[str, Any] | None], reading: bool) -> str:
+def _stations(
+    url: str, state: str, about: dict[str, dict[str, Any] | None], reading: bool
+) -> Markup:
     """The BirdWeather stations `url` lists, a line each. `state` and `about` are
     `hostinfo.stations`'; `reading` says whether the page's own reads came back,
     which they cannot while BirdWeather has none of the stations."""
     if state == "missing":
-        return '<span class="bad">no such station</span>'
+        return _ROWS.state("bad", "no such station")
     if state != "ok" or (any(about.values()) and not reading):
-        return '<span class="bad">unreachable</span>'
-    lines = "".join(_station(page, about[station_id(page)]) for page in station_pages(url))
-    return f'<span class="stations">{lines}</span>'
+        return _ROWS.state("bad", "unreachable")
+    return _ROWS.stations([_station(page, about[station_id(page)]) for page in station_pages(url)])
 
 
 # `_ANSWERS`' leads for BirdWeather. Its row names the stations, so it is built per answer.
 _STATION_LEADS = {"ok": "connected", "partial": "connected", "unreachable": "unreachable"}
 
 
-def _status_row(settings: Settings, reading: bool, names_failure: str) -> tuple[str, str]:
+def _status_row(settings: Settings, reading: bool, names_failure: str) -> tuple[str, Markup]:
     """The saved detector's state and its Detector row. BirdWeather with no
     station saved has nothing to ask, so it says so."""
     if settings.detector_kind != BIRDWEATHER:
         state, version = hostinfo.detector(settings.detector_url)
-        return state, _detector(state, version, reading, names_failure)
+        return state, _ROWS.state(*_detector(state, version, reading, names_failure))
     if not settings.detector_station:
-        return "unset", f'<span class="bad">{NO_STATION}</span>'
+        return "unset", _ROWS.state("bad", NO_STATION)
     state, about = hostinfo.stations(settings.detector_station)
     row = _stations(settings.detector_station, state, about, reading)
     return ("missing" if state == "ok" and not any(about.values()) else state), row
 
 
-def _duration(seconds: int) -> str:
-    for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
-        if seconds >= size:
-            return f"{seconds // size}{unit}"
-    return f"{seconds}s"
-
-
-def _ago(dt: datetime) -> str:
-    return f"{_duration(int((datetime.now(UTC) - dt).total_seconds()))} ago"
-
-
-def _stamp(dt: datetime) -> str:
-    local = dt.astimezone()
-    fmt = "%H:%M" if local.date() == datetime.now().astimezone().date() else "%-d %b %H:%M"
-    return f'<time title="{_ago(dt)}">{local.strftime(fmt)}</time>'
-
-
-def _species_li(scientific: str, label: str, source: str | None, url: str) -> str:
-    # Marks species counted in the window but omitted from the collage (#9); else
-    # names the plate the artwork was cut from, per the style's manifest.
-    # admin.js adds the href: only the browser knows BirdNET-Go's address.
-    name = f'<a data-species="{html.escape(scientific)}" target="_blank" rel="noopener">{label}</a>'
-    if source is None:
-        return f'<li class="noart">{name} <small>no art</small></li>'
-    plate = _display_name(source)
-    if url:
-        plate = f'<a href="{html.escape(url)}" target="_blank" rel="noopener">{plate}</a>'
-    return f"<li>{name} <small>{plate}</small></li>"
+def _species_rows(
+    species: list[tuple[str, str | None, str]], name_of: Namer
+) -> list[tuple[str, str, str | None, str]]:
+    """`subjects` as rows.species lists them: the plate by its display name."""
+    return [
+        (name, name_of.inline(name), None if source is None else _display_name(source), url)
+        for name, source, url in species
+    ]
 
 
 def species_html(species: list[tuple[str, str | None, str]], name_of: Namer) -> str:
-    return (
-        "".join(
-            _species_li(name, name_of.inline(name), source, url) for name, source, url in species
-        )
-        or '<li class="empty">none yet</li>'
-    )
+    return str(_ROWS.species(_species_rows(species, name_of)))
 
 
-def _language_select(
-    field: str, languages: list[tuple[str, str]], selected: str, optional: bool = False
-) -> str:
+def _language_options(
+    languages: list[tuple[str, str]], selected: str, optional: bool = False
+) -> list[tuple[str, str]]:
     """A language dropdown, BirdNET-Go's offering in preference order. A saved code
     it is not serving stays selectable, so an outage cannot quietly reset the
     frame's language on the next Save."""
     items = [(NONE, "None")] if optional else []
     items += [(code, name) for code, name in languages if code != NONE]
-    if selected not in dict(items):
-        shown = STATION_NAME if selected == STATION else selected
-        items.append((selected, f"{shown} (unavailable)"))
-    labels = dict(items)
-    codes = [code for code, _ in items]
-    return f'<select name="{field}">{_options(codes, selected, labels.get)}</select>'
-
-
-def _update(status: Status) -> str:
-    # `requested` counts as installing: the loop only picks it up a tick later.
-    if status.updating or status.update_requested:
-        # A phase with no percent leaves the bar valueless, which renders indeterminate.
-        label, value = status.update_phase or "installing…", ""
-        if status.update_percent is not None:
-            label, value = f"{label} {status.update_percent}%", f' value="{status.update_percent}"'
-        return f'<span id="phase">{label}</span><progress id="bar" max="100"{value}></progress>'
-    if status.update_error:
-        return f'<span class="bad">{status.update_error}</span>{_action("check", "Retry")}'
-    if status.update_available:
-        # The command stands in for the button: the image is the host's to replace.
-        # A phone gets the link instead, as nobody runs it there.
-        install = (
-            f'·<pre class="cmd">{html.escape(updates.CONTAINER_COMMAND)}</pre>'
-            f'<a class="host" href="{DOCS_URL}container/#updates" target="_blank" rel="noopener">'
-            "how to update</a>"
-            if updates.in_container()
-            else _action("update", "Install")
-        )
-        return f'<span class="warn">{status.update_available} available</span>{install}'
-    return f'<span id="state">up to date</span>{_action("check", "Check")}'
-
-
-def _reboot(status: Status) -> str:
-    """The Reboot button beside when the frame started, on the Pi alone
-    (`updates.can_reboot`)."""
-    if not updates.can_reboot():
-        return ""
-    failed = (
-        f'<span class="bad">{html.escape(status.reboot_error)}</span>'
-        if status.reboot_error
-        else ""
-    )
-    return f"{_action('reboot', 'Reboot')}{failed}"
-
-
-def _auto_update(settings: Settings) -> str:
-    """The auto-install toggle, shown disabled in a container: nothing in here can
-    pull an image, and a switch that does nothing is worse than no switch."""
-    if updates.in_container():
-        label = "Install new releases automatically <small>· disabled in container mode</small>"
-        return f'<div class="block off">{_checkbox("auto_update", label, False, True)}</div>'
-    return (
-        '<form class="block" method="post" action="/admin">'
-        f'<input type="hidden" name="{CHECKBOXES}" value="auto_update">'
-        f"{_checkbox('auto_update', 'Install new releases automatically', settings.auto_update)}"
-        '<button type="submit">Save</button></form>'
-    )
-
-
-HOTSPOT_PASSWORD = (
-    "The frame creates a hotspot for Wi-Fi setup. It's open unless you set a password."
-)
-
-# The install writes the sudo rule the Wi-Fi setup needs, and is safe to run again.
-INSTALL_COMMAND = (
-    "curl -fsSL https://raw.githubusercontent.com/arnegiacomo/fugleramme/main/install.sh | bash"
-)
-
-# Why the Wi-Fi setup cannot run, as wifi.Setup.start leaves it on the state. HTML.
-_WIFI_PROBLEMS = {
-    "sudo refuses nmcli": (
-        "Fugleramme isn't allowed to change this Pi's Wi-Fi. To allow it, run this on the Pi: "
-        f'<code class="cmd">{INSTALL_COMMAND}</code>'
-    ),
-    "no Wi-Fi": "This Pi has no Wi-Fi.",
-}
-
-
-def _wifi_problem(status: Status) -> str:
-    """Why this frame cannot open a setup hotspot, as HTML, or "" if it can."""
-    state = status.wifi
-    if state is None or state.available:
-        return ""
-    return _WIFI_PROBLEMS.get(state.problem, html.escape(state.problem))
-
-
-def _wifi_field(settings: Settings, status: Status) -> str:
-    """The Wi-Fi setup (#308): its switch and the hotspot's password. Only the Pi's own
-    service runs one, so anywhere else there is nothing to offer."""
-    if not updates.can_reboot():
-        return ""
-    problem = _wifi_problem(status)
-    label = "Start Wi-Fi setup when the frame is offline"
-    if problem:
-        return (
-            "<h2>Wi-Fi setup</h2>"
-            f'<div class="block off">{_checkbox("wifi_setup", label, False, True)}'
-            f'<p class="note warn">{problem}</p></div>'
-        )
-    state = status.wifi
-    open_now = (
-        f'<p class="note">Wi-Fi setup is running. Join {html.escape(state.name)} to use it.</p>'
-        if state and state.up
-        else ""
-    )
-    password = _text_field(
-        "hotspot_password",
-        f"Hotspot password {_hint(HOTSPOT_PASSWORD)}",
-        settings.hotspot_password,
-    ).replace("<input ", '<input minlength="8" maxlength="63" ', 1)
-    return (
-        "<h2>Wi-Fi setup</h2>"
-        '<form class="block" method="post" action="/admin">'
-        f'<input type="hidden" name="{CHECKBOXES}" value="wifi_setup">'
-        f"{_checkbox('wifi_setup', label, settings.wifi_setup)}{password}{open_now}"
-        '<button type="submit">Save</button></form>'
-    )
-
-
-NAME_KEY = (
-    "Number the birds and list their names beside or below them, like a poster. "
-    f"Shows at most {KEY_LIMIT} birds, and the list's text shrinks to fit when there are many."
-)
-
-
-def _names_field(
-    settings: Settings,
-    languages: list[tuple[str, str]],
-    failure: str,
-    face_notes: dict[str, dict[str, str]],
-) -> str:
-    """The names block. `failure` says why the menu holds nothing but the
-    scientific name, so a detector that will not serve its locale list reads as
-    one to fix rather than as all the frame can do."""
-    note = f'<p class="note bad">{_fix(f"No languages: {failure}")}</p>' if failure else ""
-    said = face_notes.get(settings.label_font, {})
-    face_note = said.get(settings.primary_language) or said.get(settings.secondary_language, "")
-    return (
-        f'<div class="field" id="names"><span>Labels</span>'
-        f"{_checkbox('show_names', 'Display bird names', settings.show_names)}"
-        f"{note}"
-        f'<div class="sub" id="name-key"><input type="hidden" name="{CHECKBOXES}" value="name_key">'
-        f"{_checkbox('name_key', f'<span>Numbered key {_hint(NAME_KEY)}</span>', settings.name_key)}</div>"
-        f'<label class="sub"><small>Language</small>'
-        f"{_language_select('primary_language', languages, settings.primary_language)}</label>"
-        f'<label class="sub"><small>Second language (optional)</small>'
-        f"{_language_select('secondary_language', languages, settings.secondary_language, optional=True)}</label>"
-        f"{_shaping_note(settings)}"
-        f'<label class="sub"><small>Typeface {_warning(face_note)}</small><select name="label_font">'
-        f"{_options(FONTS, settings.label_font, lambda k: FONTS[k][0])}</select></label>"
-        f'<label class="sub"><small>Text size</small><select name="label_size">'
-        f"{_options(LABEL_SIZES, settings.label_size, lambda k: LABEL_SIZES[k][0])}</select></label>"
-        f"</div>"
-    )
+    if selected in dict(items):
+        return items
+    shown = STATION_NAME if selected == STATION else selected
+    return [*items, (selected, f"{shown} (unavailable)")]
 
 
 # A script is judged on a date in it: the CJK subset holds every date, but not "日本語".
 _SAMPLE_DAY = datetime(2026, 10, 6, 12, tzinfo=UTC)
 
 
-def _shaping_note(settings: Settings) -> str:
-    """Said while a chosen language waits on raqm, which an update cannot install."""
+def _unshaped(settings: Settings) -> str:
+    """The chosen languages waiting on raqm, as the shaping note names them, or ""."""
     station = station_locale()
     waiting = [
         english_name(station if code == STATION else code)
@@ -581,12 +408,7 @@ def _shaping_note(settings: Settings) -> str:
         if code not in (SCIENTIFIC, NONE)
         and needs_shaping(Namer(code, NONE, {}, (), station).date(_SAMPLE_DAY))
     ]
-    if not waiting:
-        return ""
-    return (
-        f'<p class="note warn">This Pi can\'t draw {html.escape(" or ".join(waiting))} yet. '
-        'Run <code class="cmd">sudo apt install libfribidi0</code> and reboot.</p>'
-    )
+    return " or ".join(waiting)
 
 
 def _face_notes(codes: set[str]) -> dict[str, dict[str, str]]:
@@ -615,46 +437,6 @@ def _fallback(sample: str, font: FreeTypeFont) -> str:
     return "" if used is font else str(used.getname()[0])
 
 
-def _text_field(field: str, label: str, value: str, kind: str = "text", hint: str = "") -> str:
-    return (
-        f"<label><span>{label}{f' <small>{hint}</small>' if hint else ''}</span>"
-        f'<input type="{kind}" name="{field}" value="{html.escape(value, quote=True)}"></label>'
-    )
-
-
-def _shown(field: str, kind: str, shown: bool) -> str:
-    """A `_text_field` belonging to one type, hidden and disabled while the other
-    is chosen: it posts nothing, so a save leaves its stored value alone."""
-    field = field.replace("<label>", f'<label data-kind="{kind}"{"" if shown else " hidden"}>', 1)
-    return field if shown else field.replace("<input ", "<input disabled ", 1)
-
-
-def _stations_field(settings: Settings, shown: bool) -> str:
-    """BirdWeather's stations, a row each with an × to remove it, a button
-    adding one up to `MOST_STATIONS`, and a dialog listing the stations nearest
-    a place (admin.js). With none saved, one empty row. Text inputs, since a
-    bare ID is no URL. The search posts nothing: its field has no name."""
-    off = "" if shown else " disabled"
-    rows = "".join(
-        f'<div class="station"><input type="text" name="detector_station"'
-        f' value="{html.escape(_typed(page), quote=True)}"{off}>'
-        '<button type="button" class="remove" aria-label="Remove station">×</button></div>'
-        for page in station_pages(settings.detector_station) or [""]
-    )
-    return (
-        f'<div class="field stations" data-kind="{BIRDWEATHER}" data-most="{MOST_STATIONS}"'
-        f"{'' if shown else ' hidden'}><span>Stations <small>(ID or address)</small></span>"
-        f'{rows}<button type="button" class="add">+ Add station</button>'
-        '<button type="button" class="find">Find stations…</button>'
-        '<dialog class="near"><header><strong>Find stations</strong>'
-        '<button type="button" class="close" aria-label="Close">×</button></header>'
-        '<input type="search" placeholder="Type a place" aria-label="Place" autofocus>'
-        '<ul class="places"></ul><p class="note"></p><ul class="found"></ul>'
-        f'<a href="{BIRDWEATHER_SITE}" target="_blank" rel="noopener">'
-        "Browse BirdWeather's map ↗</a></dialog></div>"
-    )
-
-
 def _typed(page: str) -> str:
     """A saved station as its row shows it: BirdWeather's own by its ID alone,
     which a page that long would scroll out of the input. Saving reads it back."""
@@ -662,121 +444,10 @@ def _typed(page: str) -> str:
     return found if page == f"{BIRDWEATHER_SITE}/stations/{found}" else page
 
 
-def _detector_field(settings: Settings, refused: str, stations: str) -> str:
-    """Which kind of detector the frame reads, and each kind's own fields:
-    BirdNET-Go's address and password, BirdWeather's stations. Only the chosen
-    kind's are shown; admin.js swaps them as the type changes. `refused` is the
-    type a save was just refused for and `stations` what it held: the form
-    comes back on that type, with the note under its address, since that is
-    the field to fix.
-
-    A password only: the username BirdNET-Go's API insists on is a fixed client
-    id (`api.CLIENT_ID`). An install that changed `security.basicauth.clientid`
-    sets `detector_username` in settings.json instead.
-    """
-    chosen = refused if refused in DETECTOR_KINDS else settings.detector_kind
-    birdnet = chosen == BIRDNET_GO
-    said = refusal(refused, stations)[1] if refused in DETECTOR_KINDS else ""
-    note = f'<p class="note bad">{html.escape(f"Not saved. {said}")}</p>' if said else ""
-    kinds = [(kind, f"{_logo(kind)}{KINDS[kind]}") for kind in DETECTOR_KINDS]
-    # Text, not a url input: the browser would refuse an address with no scheme,
-    # which settings read as http://.
-    address = _text_field("detector_url", "Address", settings.detector_url).replace(
-        "<input ", '<input inputmode="url" ', 1
-    )
-    public = _text_field(
-        "detector_public_url",
-        "Public address",
-        settings.detector_public_url,
-        hint="(optional, for links to BirdNET-Go)",
-    ).replace("<input ", '<input inputmode="url" ', 1)
-    password = _text_field(
-        "detector_password",
-        "Password",
-        PASSWORD_SET if settings.detector_password else "",
-        "password",
-        "(basic authentication)",
-    )
-    return (
-        _radio_field("Type", "detector_kind", kinds, chosen)
-        + _shown(address, BIRDNET_GO, birdnet)
-        + (note if birdnet else "")
-        + _shown(public, BIRDNET_GO, birdnet)
-        + _stations_field(settings, not birdnet)
-        + ("" if birdnet else note)
-        + _shown(password, BIRDNET_GO, birdnet)
-    )
-
-
-def _access_note(settings: Settings) -> str:
-    """What the switch and the password add up to, in the state they are in."""
-    if not settings.require_sign_in and settings.admin_password:
-        return '<p class="note warn">Sign-in is off, so anyone on the network can change the frame.</p>'
-    if not settings.require_sign_in:
-        return '<p class="note">Anyone on the network can change the frame.</p>'
-    if not settings.admin_password:
-        return '<p class="note warn">No password saved, so the admin is still open.</p>'
-    return '<p class="note">Anyone can still view the kiosk - password used only by the admin page.</p>'
-
-
-# Said where the password is typed, because it is the only place the answer
-# changes what someone types.
-EXPOSED = (
-    "If the frame can be reached from the internet, use a strong password "
-    "that you use nowhere else."
-)
-
-
-# Keep short, the rest is in the docs
-PROXY = (
-    "A proxy hands every visitor to the frame the same address, so a stranger's "
-    "wrong passwords could block you too. With this on, the frame tells visitors apart "
-    "by the address the proxy passes on."
-)
-
-
-def _access_field(settings: Settings) -> str:
-    """The door (#52): the switch, the password behind it, and where that leaves things."""
-    field = _text_field(
-        "admin_password",
-        f"Admin password {_hint(EXPOSED)}",
-        PASSWORD_SET if settings.admin_password else "",
-        "password",
-    )
-    return (
-        _checkbox("require_sign_in", "Require sign-in for the admin page", settings.require_sign_in)
-        + field
-        # Filled in by admin.js as it is typed; the stored password never reaches here.
-        + '<p class="strength" id="strength" hidden><span></span><small></small></p>'
-        + _access_note(settings)
-        # The bubble hangs off a span of its own, as it does on a text field's label.
-        + _checkbox(
-            "behind_proxy",
-            f"<span>The frame is behind a reverse proxy {_hint(PROXY)}</span>",
-            settings.behind_proxy,
-        )
-    )
-
-
-def _signout(settings: Settings) -> str:
-    """Only worth offering where there is a session to end."""
-    if not settings.admin_locked:
-        return ""
-    # The class keeps admin.js out: signing out is not a save, so unsaved edits
-    # still have to be warned about.
-    return (
-        f'<form class="inline signout" method="post" action="{LOGOUT}">'
-        f'<button type="submit">Sign out</button></form>'
-    )
-
-
 def login_page(error: str = "") -> str:
     """The door (#52). Rendered by the frame, styled like the admin behind it -
     the browser's own credential prompt is nobody's idea of this product."""
-    note = f'<p class="note bad">{html.escape(error)}</p>' if error else ""
-    return Template((STATIC_DIR / "login.html").read_text()).substitute(
-        version=__version__, action=LOGIN, error=note
-    )
+    return _render("login.html", error=error)
 
 
 def birdnet_link(url: str, kind: str = BIRDNET_GO, public_url: str = "") -> tuple[str, int | None]:
@@ -784,7 +455,7 @@ def birdnet_link(url: str, kind: str = BIRDNET_GO, public_url: str = "") -> tupl
     this page's host on). A loopback address is loopback from the Pi only, so a
     remote browser cannot follow it; anything else, a BirdWeather station's page
     included, is reached exactly as configured. No station yet is BirdWeather's
-    own front page, and several are the first's (`_detector_link` lists them).
+    own front page, and several are the first's (`_nav_stations` lists them).
     A public address, when one is set, is reached exactly as configured."""
     if kind == BIRDWEATHER:
         return (station_pages(url) or [BIRDWEATHER_SITE])[0], None
@@ -796,58 +467,50 @@ def birdnet_link(url: str, kind: str = BIRDNET_GO, public_url: str = "") -> tupl
     return url, None
 
 
-def _detector_link(settings: Settings) -> str:
-    """The nav link to the detector's own pages, which admin.js points at
-    `birdnet_link`. Several stations have no page between them, so the link
-    opens a list of them instead."""
-    name = KINDS[settings.detector_kind].removesuffix(" station(s)")
+def _nav_stations(settings: Settings) -> list[tuple[str, str]]:
+    """Each station's page and name, for the nav to list while there are
+    several, which have no page between them. Otherwise none: the nav's one
+    link is `birdnet_link`'s."""
     pages = (
         station_pages(settings.detector_station) if settings.detector_kind == BIRDWEATHER else []
     )
     if len(pages) < 2:
-        return f'<a id="birdnet" href="#" title="detection &amp; stats">{name}</a>'
+        return []
     about = hostinfo.stations(settings.detector_station)[1]
-    named = {
-        page: (about.get(station_id(page)) or {}).get("name") or station_id(page) for page in pages
-    }
-    links = "".join(
-        f'<a href="{html.escape(page, quote=True)}">{html.escape(str(name))}</a>'
-        for page, name in named.items()
-    )
-    return (
-        '<button type="button" class="link" popovertarget="stations" title="detection &amp; stats">'
-        f'{name}</button><div id="stations" popover>{links}</div>'
-    )
+    return [
+        (page, str((about.get(station_id(page)) or {}).get("name") or station_id(page)))
+        for page in pages
+    ]
 
 
 def connection(form: dict[str, list[str]], settings: Settings) -> dict:
     """The connection test, over the values the form is holding rather than the
     saved ones - validated and placeholder-resolved exactly as Save would.
 
-    `status` is the row `_detector` would render for the same answer, so a test
-    and a page load can never describe one detector differently. A working
-    station's row is `hostinfo`'s, which is what a page load shows; JS only
-    puts it up for the saved values, and those are the ones `hostinfo` holds."""
+    A working station's row is `hostinfo`'s, which is what a page load shows;
+    the script only puts it up for the saved values, and those are the ones
+    `hostinfo` holds."""
     changes = form_changes(form)
     wrong = refused(changes)
     if wrong:
         short, said = refusal(wrong, str(changes.get("detector_station", "")))
-        return {"state": "refused", "text": said, "status": f'<span class="bad">{short}</span>'}
+        return {"state": "refused", "text": said, "status": str(_ROWS.state("bad", short))}
     tried = merged(settings, **changes)
     kind, url = tried.detector_kind, tried.detector_address
     if not url:
-        row = f'<span class="bad">{NO_STATION}</span>'
-        return {"state": "unset", "text": "no station entered", "status": row}
+        row = _ROWS.state("bad", NO_STATION)
+        return {"state": "unset", "text": "no station entered", "status": str(row)}
     state, detail = probe(url, tried.detector_username, tried.detector_password, kind)
     if kind == BIRDWEATHER:
         lead = _STATION_LEADS.get(state, "")
         row = _stations(url, *hostinfo.stations(url), reading=state != "unreachable")
     else:
-        lead, row = _ANSWERS[state]
+        lead, answer = _ANSWERS[state]
+        row = _ROWS.state(*answer)
     return {
         "state": state,
         "text": " · ".join(part for part in (lead, detail) if part),
-        "status": row,
+        "status": str(row),
     }
 
 
@@ -862,76 +525,66 @@ def stations_near(lat: float, lon: float) -> dict:
     return {"stations": [station._asdict() for station in found], "text": text}
 
 
-def _lookbacks(settings: Settings) -> str:
+def _lookbacks(settings: Settings) -> list[tuple[float, str]]:
     # A hand-edited non-preset value stays selectable so Save doesn't drop it.
     labels = dict(LOOKBACK_OPTIONS)
     labels.setdefault(settings.lookback_hours, f"{settings.lookback_hours} hours")
-    return _options(sorted(labels, key=lookback_order), settings.lookback_hours, labels.get)
+    return [(hours, labels[hours]) for hours in sorted(labels, key=lookback_order)]
 
 
-def _refreshes(settings: Settings) -> str:
+def _refreshes(settings: Settings) -> list[tuple[int, str]]:
     labels = dict(REFRESH_OPTIONS)
     labels.setdefault(settings.refresh_minutes, f"At most every {settings.refresh_minutes} minutes")
-    return _options(sorted(labels), settings.refresh_minutes, labels.get)
+    return sorted(labels.items())
 
 
-def _hint(text: str) -> str:
-    """The note beside a field label. A span, not a button: a <label> may hold
-    only one labelable element and that is the select. admin.css draws the
-    bubble from `aria-label`, so one attribute is both the text and the name."""
-    note = html.escape(text, quote=True)
-    return f'<span class="hint" tabindex="0" role="img" aria-label="{note}"></span>'
+def _attached(
+    settings: Settings, panel_size: tuple[int, int], detected: bool
+) -> tuple[int, int] | None:
+    """The panel the page is laid out for: an Inky, else the external one, else none."""
+    return panel_size if detected or settings.external_panel else None
 
 
-# Drawn rather than the warning sign character, which some systems set as a colour emoji.
-_TRIANGLE = (
-    '<svg viewBox="0 0 16 16" width="100%" height="100%" aria-hidden="true">'
-    '<path d="M8 1 15.5 15H.5z" fill="currentColor"/>'
-    '<path d="M8 6v4.5M8 12.6v.1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>'
-)
-
-
-def _warning(text: str) -> str:
-    """The Typeface warning, hidden while empty. admin.js updates it as the form changes."""
-    note = html.escape(text, quote=True)
-    hidden = "" if text else " hidden"
-    return (
-        f'<span class="hint caution" id="face-note" tabindex="0" role="img" aria-label="{note}"'
-        f"{hidden}>{_TRIANGLE}</span>"
+def display_tab(
+    ctx: modes.Context,
+    settings: Settings,
+    languages: list[tuple[str, str]],
+    names_failure: str,
+    face_notes: dict[str, dict[str, str]],
+) -> Markup:
+    """The Display tab. `names_failure` says why the language menu holds nothing
+    but the scientific name; `face_notes` is `_face_notes`'."""
+    limited = settings.species_limit != NO_LIMIT
+    count = settings.species_limit if limited else DEFAULT_LIMIT
+    said = face_notes.get(settings.label_font, {})
+    return _render(
+        "display.html",
+        settings=settings,
+        modes=[(key, mode.label) for key, mode in MODES.items()],
+        windowed=modes.mode_of(settings.mode).windowed,
+        lookbacks=_lookbacks(settings),
+        limited=limited,
+        count=count,
+        capped=settings.show_names and settings.name_key and not (limited and count <= KEY_LIMIT),
+        rankings=list(RANKINGS.items()),
+        layouts=[(key, layout.label) for key, layout in LAYOUTS.items()],
+        layout_hint="\n\n".join(f"{layout.label}: {layout.blurb}" for layout in LAYOUTS.values()),
+        names_failure=names_failure,
+        languages=_language_options(languages, settings.primary_language),
+        second_languages=_language_options(languages, settings.secondary_language, optional=True),
+        unshaped=_unshaped(settings),
+        face_note=said.get(settings.primary_language) or said.get(settings.secondary_language, ""),
+        fonts=[(key, font[0]) for key, font in FONTS.items()],
+        label_sizes=[(key, size[0]) for key, size in LABEL_SIZES.items()],
+        styles=[(style, _display_name(style)) for style in available_styles(ctx.images_dir)],
+        style=ctx.style,
     )
 
 
-def _panel_hint(id: str, on: str, off: str, panel: bool) -> str:
-    """A hint admin.js swaps between `on` and `off` as the form gains or loses a panel."""
-    texts = {"on": on, "off": off}
-    data = "".join(f' data-{k}="{html.escape(v, quote=True)}"' for k, v in texts.items())
-    return _hint(on if panel else off).replace('class="hint"', f'class="hint" id="{id}"{data}', 1)
-
-
-LOCK = "The web view takes the panel's shape and rotation."
-LOCK_OFF = (
-    f"{LOCK} Only available with an Inky Impression panel connected "
-    "or the external e-ink panel enabled."
-)
-
-
-EDGES = "The same margin on every edge of the panel"
-
-
-EXTERNAL = (
-    "Serves the page to an e-ink panel driven by another device."
-    "\n\nAnyone who can reach the frame can see it. Its buttons need the admin password "
-    "while sign-in is on."
-)
-
-PANEL_SIZE = "The external panel's size. /frame.e6 is 13.3\" only."
-
-
-def _output_field(settings: Settings, detected: bool) -> str:
-    # Only the external panel is a setting; the disabled rows post nothing, so declare none.
-    # Its size shows while the box is ticked; admin.js follows the form. Following the
-    # Inky is only offered while there is one to follow.
-    sizes = {s: '{}" ({}×{})'.format(s, *PANEL_SIZES[s]) for s in PANEL_SIZES}
+def frame_tab(settings: Settings, panel_size: tuple[int, int], detected: bool) -> Markup:
+    """The Frame tab."""
+    attached = _attached(settings, panel_size, detected)
+    sizes = {size: '{}" ({}×{})'.format(size, *PANEL_SIZES[size]) for size in PANEL_SIZES}
     if detected:
         sizes = {SAME_AS_INKY: "Same as this frame's Inky", **sizes}
     picked = (
@@ -939,147 +592,82 @@ def _output_field(settings: Settings, detected: bool) -> str:
         if detected
         else settings.external_panel_size or DEFAULT_PANEL_SIZE
     )
-    off = "" if settings.external_panel else " disabled"
-    inky = (
-        "Always enabled as an Inky Impression panel is currently connected."
-        if detected
-        else "Only enabled when an Inky Impression panel is connected and detected."
-    )
-    return (
-        '<div class="field" id="outputs"><span>Outputs</span>'
-        + _checkbox(
-            "inky_impression_enable",
-            f"<span>Inky Impression panel {_hint(inky)}</span>",
-            checked=detected,
-            disabled=True,
-        )
-        + f'<input type="hidden" name="{CHECKBOXES}" value="external_panel">'
-        + _checkbox(
-            "external_panel",
-            f"<span>External e-ink panel {_hint(EXTERNAL)}</span>",
-            checked=settings.external_panel,
-        )
-        + f'<label class="sub" id="panel-size"{"" if settings.external_panel else " hidden"}>'
-        f'<small>External panel size {_hint(PANEL_SIZE)}</small><select name="external_panel_size"{off}>'
-        f"{_options(sizes, picked, sizes.get)}</select></label>"
-        + _checkbox(
-            "web_enable",
-            f"<span>Browser kiosk {_hint('Web access is always enabled.')}</span>",
-            checked=True,
-            disabled=True,
-        )
-        + "</div>"
+    resolutions = [
+        (r, "{} ({}×{})".format(r, *replace(settings, web_resolution=r).web_size(attached)))
+        for r in WEB_HEIGHTS
+    ]
+    return _render(
+        "frame.html",
+        settings=settings,
+        panel=attached is not None,
+        detected=detected,
+        edges=list(zip(("top", "right", "bottom", "left"), settings.glass_margins(), strict=True)),
+        panel_sizes=list(sizes.items()),
+        panel_size=picked,
+        rotations=[(r, f"{r}° {_ASPECT[r % 180]}") for r in ROTATIONS],
+        refreshes=_refreshes(settings),
+        resolutions=resolutions,
+        aspects=[(aspect, aspect) for aspect in WEB_ASPECTS],
     )
 
 
-def _slider(field: str, caption: str, value: int) -> str:
-    return (
-        f'<label><span><span class="caption">{caption}</span> <small>{value}%</small></span>'
-        f'<input type="range" name="{field}" min="0" max="{MARGIN_CEILING}" step="1" value="{value}">'
-        "</label>"
+def detector_tab(
+    settings: Settings,
+    row: Markup,
+    outage: str,
+    latest: tuple[str, datetime] | None,
+    without: list[tuple[str, int]],
+    refused: str = "",
+    stations: str = "",
+) -> Markup:
+    """The Detector tab. `row` is `_status_row`'s, `outage` what the page says in
+    place of the birds when the detector could not be read, `latest` the last
+    bird heard and when, and `without` `missing`'s. `refused` is the type a save
+    was just refused for and `stations` what it held: the form comes back on that
+    type, with the note under its address."""
+    chosen = refused if refused in DETECTOR_KINDS else settings.detector_kind
+    return _render(
+        "detector.html",
+        settings=settings,
+        name=_kind_name(settings.detector_kind),
+        row=row,
+        outage=outage,
+        latest=latest,
+        missing=without,
+        missing_text=missing_text(without),
+        issue_url=issue_url(without),
+        chosen=chosen,
+        refusal=refusal(refused, stations)[1] if refused in DETECTOR_KINDS else "",
+        kinds=list(KINDS.items()),
+        station_rows=[_typed(page) for page in station_pages(settings.detector_station)] or [""],
     )
 
 
-def _margin_field(settings: Settings, panel: bool) -> str:
-    """One margin, and one per edge of the glass (#184). The edges are always
-    rendered: admin.js offers them while the form has a panel."""
-    one = f'<div id="margin-one">{_slider("margin", "All edges", settings.margin)}</div>'
-    edges = "".join(
-        _slider(f"margin_{edge}", edge.title(), value)
-        for edge, value in zip(
-            ("top", "right", "bottom", "left"), settings.glass_margins(), strict=True
-        )
-    )
-    lock = _checkbox(
-        "margin_lock", f"<span>Uniform {_hint(EDGES)}</span>", settings.margin_lock, not panel
-    )
-    off = "" if panel else " disabled"
-    dimmed = "" if panel else ' class="off"'
-    return (
-        f'<div id="margin-uniform"{dimmed}>'
-        f'<input type="hidden" name="{CHECKBOXES}" value="margin_lock"{off}>{lock}</div>'
-        f'<div id="margin-edges"{"" if panel else " hidden"}>{edges}</div>{one}'
-    )
+def security_tab(settings: Settings) -> Markup:
+    """The Security tab: the switch, the password and what the two add up to."""
+    return _render("security.html", settings=settings)
 
 
-def _web_field(settings: Settings, panel: tuple[int, int] | None) -> str:
-    """The web view's size and, once unlocked from the panel, its own shape (#147).
-    The lock is always declared: admin.js enables it, declaration and all, while
-    the form has a panel, so ticking the external panel offers it before a save."""
-    off = "" if panel else " disabled"
-    hint = _panel_hint("lock-hint", LOCK, LOCK_OFF, bool(panel))
-    lock = _checkbox("web_lock", f"<span>Lock to panel {hint}</span>", settings.web_lock, not panel)
-    resolutions = _options(
-        WEB_HEIGHTS,
-        settings.web_resolution,
-        lambda r: "{} ({}×{})".format(r, *replace(settings, web_resolution=r).web_size(panel)),
-    )
-    return (
-        f'<div class="field" id="web-view"><span>Resolution</span>'
-        f'<select name="web_resolution" aria-label="Resolution">{resolutions}</select>'
-        f'<div class="sub{"" if panel else " off"}" id="web-lock">'
-        f'<input type="hidden" name="{CHECKBOXES}" value="web_lock"{off}>{lock}</div>'
-        f'<div class="sub" id="web-shape">'
-        f'<input type="hidden" name="{CHECKBOXES}" value="web_portrait">'
-        f'<label><small>Aspect</small><select name="web_aspect">'
-        f"{_options(WEB_ASPECTS, settings.web_aspect)}</select></label>"
-        f"{_checkbox('web_portrait', 'Portrait', settings.web_portrait)}"
-        f"</div></div>"
-    )
-
-
-def _species_field(settings: Settings) -> str:
-    """How many species the collage shows, and which ones it keeps (#53).
-
-    The count is disabled under "Show all", so it posts nothing - `form_changes`
-    reads the radio instead.
-    """
-    limited = settings.species_limit != NO_LIMIT
-    count = settings.species_limit if limited else DEFAULT_LIMIT
-    capped = settings.show_names and settings.name_key and not (limited and count <= KEY_LIMIT)
-    return (
-        f'<div class="field" id="limit">'
-        f"<span>Species on the page "
-        f"{_hint(f'More than {DEFAULT_LIMIT} make the page very crowded')}</span>"
-        f'<div class="src"><label class="src"><input type="radio" name="limit_mode"'
-        f' value="some"{" checked" if limited else ""}> At most</label>'
-        f'<input type="number" name="species_limit" min="1" max="{LIMIT_CEILING}"'
-        f' value="{count}"{"" if limited else " disabled"}'
-        f' aria-label="How many species"></div>'
-        f'<label class="src"><input type="radio" name="limit_mode" value="all"'
-        f"{'' if limited else ' checked'}> Show all</label>"
-        f'<div class="sub" id="ranking"><small>Which ones to keep</small>'
-        f"{_radios('ranking', list(RANKINGS.items()), settings.ranking)}</div>"
-        f'<p class="note" id="key-cap"{"" if capped else " hidden"}>'
-        f"The numbered key shows at most {KEY_LIMIT} birds.</p>"
-        f"</div>"
-    )
-
-
-def _radio_field(
-    label: str, name: str, options: list[tuple[str, str]], active: str, id: str = ""
-) -> str:
-    tag = f' id="{id}"' if id else ""
-    return f'<div class="field"{tag}><span>{label}</span>{_radios(name, options, active)}</div>'
-
-
-SPOTLIGHT = "Showcase the latest heard bird in the middle."
-
-
-def _layout_field(settings: Settings) -> str:
-    """How the collage packs its birds (#47), and whether one takes the middle
-    (#185). Dimmed with the lookback for the modes that draw one bird."""
-    hint = "\n\n".join(f"{layout.label}: {layout.blurb}" for layout in LAYOUTS.values())
-    options = [(k, layout.label) for k, layout in LAYOUTS.items()]
-    spotlight = _checkbox(
-        "spotlight",
-        f"<span>Spotlight mode {_hint(SPOTLIGHT)}</span>",
-        settings.spotlight,
-    )
-    return (
-        f'<div class="field" id="layout"><span>Layout {_hint(hint)}</span>'
-        f"{_radios('layout', options, settings.layout)}"
-        f'<input type="hidden" name="{CHECKBOXES}" value="spotlight">{spotlight}</div>'
+def system_tab(
+    settings: Settings, status: Status, panel_size: tuple[int, int], detected: bool, data_dir: Path
+) -> Markup:
+    """The System tab: updates, the Wi-Fi setup, the machine and the theme."""
+    online, iface = hostinfo.online()
+    container = updates.in_container()
+    return _render(
+        "system.html",
+        settings=settings,
+        status=status,
+        container=container,
+        update_command=updates.update_command(),
+        pi=updates.can_reboot(),
+        panel_size=panel_size,
+        detected=detected,
+        host=hostinfo.lan_address(container),
+        online=online,
+        iface=iface,
+        disk=hostinfo.disk_free(data_dir),
+        web_size=settings.web_size(_attached(settings, panel_size, detected)),
     )
 
 
@@ -1109,96 +697,39 @@ def page(
     try:
         latest, rows, without = ctx.source.latest(), subjects(ctx), missing(ctx)
     except Unavailable:
-        latest, rows, without = None, None, None
+        latest, rows, without = None, None, []
     detector_state, detector_row = _status_row(settings, rows is not None, names_failure)
-    windowed = modes.mode_of(settings.mode).windowed
-    online, iface = hostinfo.online()
-    rendered = _stamp(status.rendered_at) if status.rendered_at else "not yet"
-    if status.push_error:
-        rendered += f" · panel push failing ({status.push_error})"
-    # With no Inky connected to this frame, the external e-ink panel is the
-    # one the page is laid out for.
-    paneled = detected or settings.external_panel
-    attached = panel_size if paneled else None
-    w, h = settings.web_size(attached)
-    glass = f"{panel_size[0]}×{panel_size[1]}"
+    outage = "" if rows is not None else _outage(detector_state)
+    heard = (ctx.namer.inline(latest.scientific_name), latest.detected_at) if latest else None
     birdnet_url, birdnet_port = birdnet_link(
         settings.detector_address, settings.detector_kind, settings.detector_public_url
     )
-    return Template((STATIC_DIR / "admin.html").read_text()).substitute(
-        version=__version__,
-        docs_url=DOCS_URL,
-        bug_url=html.escape(bug_url()),
-        checkboxes=CHECKBOXES,
-        config=json.dumps(
-            {
-                "birdnetUrl": birdnet_url,
-                "birdnetPort": birdnet_port,
-                "kind": settings.detector_kind,
-                "version": __version__,
-                "passwordSet": PASSWORD_SET,
-                "windowedModes": [k for k, m in MODES.items() if m.windowed],
-                "keyLimit": KEY_LIMIT,
-                "webHeights": WEB_HEIGHTS,  # so the Resolution labels follow the form
-                # Landscape, as oriented() reads it: the Inky's while one is detected,
-                # else the external panel's.
-                "panel": [max(panel_size), min(panel_size)],
-                "detected": detected,
-                "panelSizes": PANEL_SIZES,  # so the page follows the external panel size picked
-                "faceNotes": face_notes,  # so the Typeface warning follows the form
-            }
-        ),
-        mode_field=_radio_field(
-            "Mode", "mode", [(k, m.label) for k, m in MODES.items()], settings.mode
-        ),
-        web_field=_web_field(settings, attached),
-        rotations=_options(ROTATIONS, settings.rotation, lambda r: f"{r}° {_ASPECT[r % 180]}"),
-        output_field=_output_field(settings, detected),
-        margin_field=_margin_field(settings, paneled),
-        refreshes=_refreshes(settings),
-        lookback_off="" if windowed else ' class="off"',
-        lookback_disabled="" if windowed else " disabled",
-        lookbacks=_lookbacks(settings),
-        limit_field=_species_field(settings),
-        layout_field=_layout_field(settings),
-        names_field=_names_field(settings, languages, names_failure, face_notes),
-        style_field=_radio_field(
-            "Artwork style",
-            "style",
-            [(s, _display_name(s)) for s in available_styles(ctx.images_dir)],
-            ctx.style,
-        ),
-        species_count=len(rows) if rows is not None else 0,
-        species_rows=(
-            species_html(rows, ctx.namer)
-            if rows is not None
-            else f'<li class="problem">{_fix(_outage(detector_state))}</li>'
-        ),
-        update=_update(status),
-        auto_update=_auto_update(settings),
-        wifi=_wifi_field(settings, status),
-        panel=f"detected · {glass}" if detected else "not detected",
-        detector_name=KINDS[settings.detector_kind].removesuffix(" station(s)"),
-        detector_link=_detector_link(settings),
-        # Each station's line carries its own.
-        detector_logo="" if settings.detector_kind == BIRDWEATHER else _logo(BIRDNET_GO),
-        detector_label="Detector(s)" if settings.detector_kind == BIRDWEATHER else "Detector",
-        birdnet=detector_row,
-        detector_field=_detector_field(settings, refused, stations),
-        access_field=_access_field(settings),
-        signout=_signout(settings),
-        host=hostinfo.lan_address(updates.in_container()),
-        online=_state(online, "online", "offline") + (f" · {iface}" if iface else ""),
-        disk=hostinfo.disk_free(names_dir),
-        started=_stamp(status.started_at),
-        reboot=_reboot(status),
-        kiosk_size=f"{w}×{h}",
-        rendered=rendered,
-        latest=(
-            f"{ctx.namer.inline(latest.scientific_name)} · {_stamp(latest.detected_at)}"
-            if latest
-            else ("none yet" if rows is not None else _outage(detector_state))
-        ),
-        missing_hint=_hint(MISSING),
-        missing=missing_row(without) if without is not None else _outage(detector_state),
+    return _render(
+        "admin.html",
+        settings=settings,
+        detector_name=_kind_name(settings.detector_kind),
+        nav_stations=_nav_stations(settings),
+        species=None if rows is None else _species_rows(rows, ctx.namer),
+        outage=outage,
+        display=display_tab(ctx, settings, languages, names_failure, face_notes),
+        frame=frame_tab(settings, panel_size, detected),
+        detector=detector_tab(settings, detector_row, outage, heard, without, refused, stations),
+        security=security_tab(settings),
+        system=system_tab(settings, status, panel_size, detected, names_dir),
+        config={
+            "birdnetUrl": birdnet_url,
+            "birdnetPort": birdnet_port,
+            "kind": settings.detector_kind,
+            "version": __version__,
+            "passwordSet": PASSWORD_SET,
+            "windowedModes": [k for k, m in MODES.items() if m.windowed],
+            "keyLimit": KEY_LIMIT,
+            "webHeights": WEB_HEIGHTS,  # so the Resolution labels follow the form
+            # The Inky's, landscape as oriented() reads it; the external panel's
+            # size comes from panelSizes instead.
+            "panel": [max(panel_size), min(panel_size)],
+            "detected": detected,
+            "panelSizes": PANEL_SIZES,  # so the page follows the external panel size picked
+            "faceNotes": face_notes,  # so the Typeface warning follows the form
+        },
     )

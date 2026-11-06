@@ -587,6 +587,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILittle_Owl.jpg"
   },
+  "birds/aythya-collaris-2.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n422/mode/1up"
+  },
+  "birds/aythya-collaris.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:255._The_Bastard_Broadbill_(Fuligula_rufitorques)._256._The_Canvass-back_(Fuligula_varisneria)_(NYPL_b14505696-113657).tiff"
+  },
   "birds/aythya-ferina-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00157.jpg"
@@ -634,6 +642,10 @@
   "birds/aythya-nyroca.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVWhite-eyed_Duck.jpg"
+  },
+  "birds/aythya-valisineria.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:255._The_Bastard_Broadbill_(Fuligula_rufitorques)._256._The_Canvass-back_(Fuligula_varisneria)_(NYPL_b14505696-113657).tiff"
   },
   "birds/baeolophus-bicolor-2.webp": {
     "source": "werner",
@@ -2851,6 +2863,10 @@
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof18dres/page/n531/mode/1up"
   },
+  "birds/leiothlypis-celata.webp": {
+    "source": "dawson",
+    "url": "https://archive.org/details/birdsofcaliforni01daws/page/n656/mode/1up"
+  },
   "birds/leiothlypis-peregrina.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-154-tennessee-warbler.jpg"
@@ -3030,6 +3046,10 @@
   "birds/manorina-melanophrys.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14010"
+  },
+  "birds/mareca-americana.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n343/mode/1up"
   },
   "birds/mareca-penelope-2.webp": {
     "source": "vonwright",
@@ -3662,6 +3682,10 @@
   "birds/pernis-apivorus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIHoney_Buzzard.jpg"
+  },
+  "birds/petrochelidon-pyrrhonota-2.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird-lore_(1917)_(14755722715).jpg"
   },
   "birds/petrochelidon-pyrrhonota.webp": {
     "source": "sharpe",
@@ -4371,6 +4395,10 @@
     "source": "vonwright",
     "url": "https://www.rawpixel.com/image/8864541/sand-martin-1828-magnus-von-wright"
   },
+  "birds/riparia-riparia-4.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird-lore_(1917)_(14755722715).jpg"
+  },
   "birds/riparia-riparia.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIISand_Martin.jpg"
@@ -4719,6 +4747,18 @@
     "source": "siebold",
     "url": "https://commons.wikimedia.org/wiki/File:Sturnus_cineraceus_-_1833-1850_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15800089.tif"
   },
+  "birds/stelgidopteryx-serripennis-2.webp": {
+    "source": "sharpe",
+    "url": "https://archive.org/details/monographofhirun02sha/page/n256/mode/1up"
+  },
+  "birds/stelgidopteryx-serripennis-3.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird-lore_(1917)_(14755722715).jpg"
+  },
+  "birds/stelgidopteryx-serripennis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Rough-winged_Swallow_(NYPL_b13559627-108308).tiff"
+  },
   "birds/stercorarius-longicaudus.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00043.jpg"
@@ -4907,6 +4947,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:98_White-bellied_Swallow.jpg"
   },
+  "birds/tachycineta-thalassina-2.webp": {
+    "source": "fuertes",
+    "url": "https://commons.wikimedia.org/wiki/File:Bird-lore_(1917)_(14755722715).jpg"
+  },
   "birds/tachycineta-thalassina.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:385_I._Bank_Swallow_-_2._Violet-green_Swallow.jpg"
@@ -5083,9 +5127,21 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVSpotted_Redshank.jpg"
   },
+  "birds/tringa-flavipes-2.webp": {
+    "source": "lilford",
+    "url": "https://archive.org/details/colouredfigureso05lilf/page/n230/mode/1up"
+  },
+  "birds/tringa-flavipes.webp": {
+    "source": "dresser",
+    "url": "https://archive.org/details/historyofbirdsof19dres/page/n573/mode/1up"
+  },
   "birds/tringa-glareola.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00086.jpg"
+  },
+  "birds/tringa-melanoleuca.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr05audu/page/n454/mode/1up"
   },
   "birds/tringa-nebularia-2.webp": {
     "source": "vonwright",

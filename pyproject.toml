@@ -11,6 +11,8 @@ dependencies = [
     "babel>=2.17",
     # Which characters a typeface has, to pick a label line's fallback face.
     "fonttools>=4.60",
+    # The admin's templates, escaped by default by the MarkupSafe it brings, which admin.py uses too.
+    "jinja2>=3.1",
     "numpy>=2.4.6",
     # 10.1 for a scalable load_default(), which sets the Wi-Fi setup screen.
     "pillow>=10.1",

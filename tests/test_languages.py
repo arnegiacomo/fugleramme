@@ -28,7 +28,7 @@ from fugleramme.languages import (
 )
 from fugleramme.settings import Settings, SettingsStore
 from fugleramme.source import BIRDNET_GO, BIRDWEATHER
-from fugleramme.web.admin import _language_select
+from fugleramme.web.admin import _language_options
 
 NB = "nb"  # the fake's own dictionary code
 # Before any detector answers, and after one that only answered, with STATION
@@ -198,13 +198,9 @@ def test_a_language_birdnet_go_is_not_serving_stays_selectable():
     # A stopped container must not silently reset the frame's saved language.
     offered = [(SCIENTIFIC, "Scientific")]
 
-    assert 'value="nb" selected>nb (unavailable)' in _language_select(
-        "primary_language", offered, "nb"
-    )
-    assert 'value=""' not in _language_select("primary_language", offered, SCIENTIFIC)
-    assert '<option value="" selected>None' in _language_select(
-        "secondary_language", offered, NONE, optional=True
-    )
+    assert ("nb", "nb (unavailable)") in _language_options(offered, "nb")
+    assert NONE not in dict(_language_options(offered, SCIENTIFIC))
+    assert (NONE, "None") in _language_options(offered, NONE, optional=True)
 
 
 def test_names_come_through_the_detectors_own_session(detector, tmp_path):
@@ -574,8 +570,8 @@ def test_the_fake_serves_its_own_species_language(detector, tmp_path):
 
 
 def test_an_unoffered_station_language_keeps_its_name():
-    select = _language_select("primary_language", [(SCIENTIFIC, "Scientific")], STATION)
-    assert f"{STATION_NAME} (unavailable)" in select
+    options = _language_options([(SCIENTIFIC, "Scientific")], STATION)
+    assert (STATION, f"{STATION_NAME} (unavailable)") in options
 
 
 # -- BirdWeather ------------------------------------------------------------------

@@ -121,7 +121,7 @@ BROWSER = {"Accept": "text/html,application/xhtml+xml"}
         ("/", "text/html; charset=utf-8"),
         ("/index.html", "text/html; charset=utf-8"),
         ("/admin.css", "text/css; charset=utf-8"),
-        ("/admin.js", "text/javascript; charset=utf-8"),
+        ("/admin/main.js", "text/javascript; charset=utf-8"),
         ("/admin", "text/html; charset=utf-8"),
         ("/collage.png", "image/png"),
         ("/preview.png", "image/png"),
@@ -439,7 +439,7 @@ def test_a_refused_station_is_named_on_the_page_it_comes_back_to(frame, tmp_path
     assert SettingsStore(tmp_path / SETTINGS).get().detector_station == ""
 
     _status, _headers, page = _fetch(frame + headers["Location"])
-    assert b"Not saved. &quot;nest box&quot; is not a BirdWeather station." in page
+    assert b"Not saved. &#34;nest box&#34; is not a BirdWeather station." in page
 
 
 def test_a_station_is_saved_from_its_id(frame, tmp_path):
@@ -499,11 +499,11 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
         Status(),
     )
     known = set(server.FILES) | set(handler.ROUTES) | {"/detector"}  # /detector is POST-only
-    assert known - server.GATED == {
+    scripts = {route for route in server.FILES if route.startswith("/admin/")}
+    assert scripts and known - server.GATED - scripts == {
         "/",
         "/index.html",
         "/admin.css",
-        "/admin.js",
         "/apple-touch-icon.png",
         "/icon-512.png",
         "/favicon.png",

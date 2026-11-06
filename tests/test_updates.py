@@ -5,7 +5,6 @@ storm against a broken release would restart the frame every five seconds."""
 
 from __future__ import annotations
 
-import html
 import io
 import json
 import re
@@ -19,6 +18,7 @@ from pathlib import Path
 from unittest.mock import DEFAULT, patch
 
 import pytest
+from markupsafe import escape
 
 from fugleramme import service, updates
 from fugleramme.api import ApiSource
@@ -432,16 +432,58 @@ def test_auto_update_in_a_container_checks_but_never_installs(_in_a_container):
         assert not status.update_error  # refusing is not a failure to report
 
 
-def test_the_admin_offers_the_pull_instead_of_an_install_button(_in_a_container):
+def _system_tab(status: Status, data_dir: Path) -> str:
+    return admin.system_tab(Settings(), status, (1600, 1200), True, data_dir)
+
+
+def test_the_admin_offers_the_pull_instead_of_an_install_button(_in_a_container, tmp_path):
     status = Status()
     status.update_available = "v0.2.0"
-    row = admin._update(status)
+    tab = _system_tab(status, tmp_path)
+    row = re.search(r'<dd class="update">(.*?)</dd>', tab, re.DOTALL).group(1)
     assert "v0.2.0 available" in row
-    assert html.escape(updates.CONTAINER_COMMAND) in row
+    assert str(escape(updates.CONTAINER_COMMAND)) in row
     assert 'value="update"' not in row
 
     # Nothing in here installs one on a schedule either.
-    assert "disabled" in admin._auto_update(Settings())
+    assert 'name="auto_update" disabled' in tab
+
+
+# An install that is not the image (the Proxmox LXC) names its own update command.
+
+
+def test_the_update_command_is_the_pull_unless_the_install_names_its_own(monkeypatch):
+    monkeypatch.delenv("FUGLERAMME_UPDATE_COMMAND", raising=False)
+    assert updates.update_command() == updates.CONTAINER_COMMAND
+    monkeypatch.setenv("FUGLERAMME_UPDATE_COMMAND", "  ")
+    assert updates.update_command() == updates.CONTAINER_COMMAND
+    monkeypatch.setenv("FUGLERAMME_UPDATE_COMMAND", "update")
+    assert updates.update_command() == "update"
+
+
+def test_refusing_names_the_installs_own_command(_in_a_container, monkeypatch):
+    monkeypatch.setenv("FUGLERAMME_UPDATE_COMMAND", "update")
+    with (
+        patch.object(updates, "_run") as run,
+        pytest.raises(RuntimeError, match="update with `update`"),
+    ):
+        updates.apply("v0.2.0")
+    assert not run.called
+
+
+def test_the_admin_shows_the_installs_own_command_without_the_image_docs(
+    _in_a_container, monkeypatch, tmp_path
+):
+    monkeypatch.setenv("FUGLERAMME_UPDATE_COMMAND", "update")
+    status = Status()
+    status.update_available = "v0.2.0"
+    row = re.search(
+        r'<dd class="update">(.*?)</dd>', _system_tab(status, tmp_path), re.DOTALL
+    ).group(1)
+    assert '<pre class="cmd own">update</pre>' in row
+    assert "docker compose" not in row
+    assert "container/#updates" not in row
+    assert 'value="update"' not in row
 
 
 def test_a_containers_host_row_is_not_dressed_up_as_an_address(monkeypatch):
@@ -490,8 +532,9 @@ def test_the_reboot_button_reboots_only_where_it_may(tmp_path, monkeypatch):
         with patch.object(server.updates, "reboot", side_effect=refused):
             _post(url, "action=reboot")
         assert status.reboot_error == "sudo: a password is required"
-        assert "a password is required" in admin._reboot(status)
+        assert "a password is required" in _system_tab(status, tmp_path)
         monkeypatch.setattr(updates, "can_reboot", lambda: False)
-        assert admin._reboot(status) == ""
+        tab = _system_tab(status, tmp_path)
+        assert "Reboot" not in tab and "a password is required" not in tab
     finally:
         httpd.shutdown()
