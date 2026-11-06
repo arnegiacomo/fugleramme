@@ -34,7 +34,7 @@ Heard nothing at all in the lookback window? The page draws a bare perch.
 How far back the collage looks, from the last 15 minutes to all time. Default is
 **Last 24 hours**.
 
-**Today (Since midnight)** starts over at midnight, in the frame's own time zone.
+**Today (since midnight)** starts over at midnight, in the frame's own time zone.
 
 **All time** never drops a species, so the page only grows.
 

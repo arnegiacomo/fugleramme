@@ -63,7 +63,7 @@ LOOKBACK_OPTIONS = (
     (3, "Last 3 hours"),
     (6, "Last 6 hours"),
     (12, "Last 12 hours"),
-    (TODAY, "Today (Since midnight)"),
+    (TODAY, "Today (since midnight)"),
     (24, "Last 24 hours"),
     (72, "Last 3 days"),
     (168, "Last week"),

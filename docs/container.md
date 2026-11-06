@@ -43,7 +43,7 @@ volumes:
 ```
 
 `docker compose up -d`, then the kiosk is on `:8080` and the admin on
-`:8080/admin`. `TZ` sets the frame's date on a plate, and defaults to UTC.
+`:8080/admin`. `TZ` sets the frame's date on a plate and when **Today (since midnight)** begins, and defaults to UTC.
 
 > [!NOTE]
 > `127.0.0.1` inside a container is the container itself. Point it at your
