@@ -36,6 +36,14 @@ def images(tmp_path):
     return tmp_path / "images"
 
 
+@pytest.fixture(autouse=True)
+def no_wifi_setup():
+    """Where sudo works, as on a CI runner, service.run starts the Wi-Fi thread, and its
+    subprocess calls poll the time.sleep these tests replace."""
+    with patch.object(service, "_wifi_setup", return_value=None):
+        yield
+
+
 def test_the_loop_holds_its_last_page_when_the_detector_goes_away(
     tmp_path, images, detector, monkeypatch, caplog
 ):
