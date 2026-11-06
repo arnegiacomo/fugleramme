@@ -28,6 +28,7 @@ from fugleramme.settings import (
     LOOKBACK_OPTIONS,
     MARGIN_CEILING,
     ROTATIONS,
+    TODAY,
     Settings,
     SettingsStore,
     from_env,
@@ -309,9 +310,23 @@ def test_all_time_is_a_lookback_the_admin_offers(tmp_path):
     assert SettingsStore(path).get().lookback_hours == ALL_TIME
 
 
-def test_all_time_sorts_as_the_longest_window():
+def test_the_windows_sort_as_the_admin_lists_them():
     hours = [h for h, _ in LOOKBACK_OPTIONS]
-    assert sorted(hours, key=lookback_order) == sorted(h for h in hours if h) + [ALL_TIME]
+    assert sorted(hours, key=lookback_order) == hours
+    assert hours[-1] == ALL_TIME
+    assert hours.index(TODAY) == hours.index(24) - 1
+
+
+def test_today_survives_the_form_and_the_file(tmp_path):
+    store = SettingsStore(tmp_path / "settings.json")
+    assert store.update(lookback_hours=str(TODAY)).lookback_hours == TODAY
+    assert json.loads(store.path.read_text())["lookback_hours"] == TODAY
+
+
+def test_today_looks_back_to_midnight():
+    hours = Settings(lookback_hours=TODAY).window_hours()
+    assert 0 < hours <= 25  # a day that falls back an hour is 25 long
+    assert Settings(lookback_hours=12).window_hours() == 12
 
 
 def test_a_window_of_minutes_survives_the_form_and_the_file(tmp_path):

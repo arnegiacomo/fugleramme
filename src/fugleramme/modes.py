@@ -101,7 +101,7 @@ def context(
         resolution=resolution,
         show_names=settings.show_names,
         name_key=keyed,
-        lookback_hours=settings.lookback_hours,
+        lookback_hours=settings.window_hours(),
         font_key=settings.label_font,
         label_size=settings.label_size,
         species_limit=_key_limit(settings.species_limit) if keyed else settings.species_limit,
