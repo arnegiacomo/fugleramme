@@ -110,8 +110,6 @@ packages = ["src/fugleramme"]
 dev = [
     "mypy>=1.15",
     "pytest>=8.0",
-    # CI passes --timeout, so a hung test fails by name instead of stalling the job.
-    "pytest-timeout>=2.3",
     "ruff>=0.14",
     "watchfiles>=0.24",
 ]
