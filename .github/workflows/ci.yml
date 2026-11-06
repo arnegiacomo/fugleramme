@@ -29,7 +29,9 @@ jobs:
       - run: uv run ruff format --check
       - run: uv run ruff check
       - run: uv run mypy
-      - run: uv run pytest -q
+      # Prints a hung test's stack after 120s.
+      - run: uv run pytest -q -o faulthandler_timeout=120
+        timeout-minutes: 15
       # The panel extra is Pi-only, so nothing here touches inky, gpiod or SPI.
 
   shell:
