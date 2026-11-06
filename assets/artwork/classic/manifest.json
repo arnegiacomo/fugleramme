@@ -1739,9 +1739,13 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIAzure_Tit.jpg"
   },
+  "birds/cyanocitta-cristata-2.webp": {
+    "source": "vieillot",
+    "url": "https://commons.wikimedia.org/wiki/File:Cyanurus_cristatus_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15700031.tif"
+  },
   "birds/cyanocitta-cristata.webp": {
     "source": "audubon",
-    "url": "https://media.audubon.org/boa_illustration/plate-102-blue-jay.jpg"
+    "url": "https://commons.wikimedia.org/wiki/File:102_Blue_Jay.jpg"
   },
   "birds/cyanocitta-stelleri-2.webp": {
     "source": "hines",
