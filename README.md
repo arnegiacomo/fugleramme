@@ -21,7 +21,7 @@ Bird frame for Raspberry Pi or your homelab - real-time bird detection by audio,
 <p align="center">
   <a href="https://spotlight.gosim.org/shenzhen2026/"><img src="docs/assets/gosim-spotlight.svg" alt="Featured in the GOSIM Spotlight, Shenzhen 2026" width="250" height="55"></a>
   <a href="https://trendshift.io/repositories/204367?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-204367"><img src="https://trendshift.io/api/badge/repositories/204367" alt="arnegiacomo%2Ffugleramme | Trendshift" width="250" height="55"></a>
-  <a href="https://news.ycombinator.com/item?id=49711544"><img src="docs/assets/hacker-news.svg" alt="Hacker News: #1 post of the month, 2,391 points, September 2026" width="250" height="55"></a>
+  <a href="https://hackergit.org/r/arnegiacomo/fugleramme"><img src="https://hackergit.org/badge/arnegiacomo/fugleramme.svg?style=rank" alt="Hacker News" width="250" height="55"></a>
 </p>
 
 Live demo: **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** shows the birds heard in my garden in Bergen, Norway, right now. More frames around the world in the [Showcase](https://arnegiacomo.dev/fugleramme/showcase/). Full docs: **[arnegiacomo.dev/fugleramme](https://arnegiacomo.dev/fugleramme/)**
