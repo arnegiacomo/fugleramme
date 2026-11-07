@@ -4523,6 +4523,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg"
   },
+  "birds/seiurus-aurocapilla-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:102._The_Oven-bird_(Seiurus_aurocapillus)._103._The_Myrtle-bird_(Sylvicola_coronata)_(NYPL_b14505696-113588).tiff"
+  },
   "birds/seiurus-aurocapilla.webp": {
     "source": "wilson",
     "url": "https://archive.org/details/Wilson5896-v2"
@@ -4568,12 +4572,12 @@
     "url": "https://www.audubon.org/art/birds-of-america/hooded-warbler"
   },
   "birds/setophaga-coronata-2.webp": {
-    "source": "audubon",
-    "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
-  },
-  "birds/setophaga-coronata-3.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(6308738451).jpg"
+  },
+  "birds/setophaga-coronata-3.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:102._The_Oven-bird_(Seiurus_aurocapillus)._103._The_Myrtle-bird_(Sylvicola_coronata)_(NYPL_b14505696-113588).tiff"
   },
   "birds/setophaga-coronata.webp": {
     "source": "audubon",
