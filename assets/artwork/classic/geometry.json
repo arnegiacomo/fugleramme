@@ -3191,6 +3191,18 @@
    1200
   ]
  },
+ "birds/campylorhynchus-brunneicapillus.webp": {
+  "box": [
+   0.10078952861597318,
+   0.19433141343390697,
+   0.798023683054323,
+   0.6926392405435067
+  ],
+  "cut": [
+   1200,
+   1109
+  ]
+ },
  "birds/canachites-canadensis.webp": {
   "box": [
    0.017221204902196054,
