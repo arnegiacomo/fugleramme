@@ -263,9 +263,21 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00028.jpg"
   },
+  "birds/anas-platyrhynchos-5.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:240._The_Mallard_(Anas_boschas)._241._The_Black_Duck_(Anas_obscura)_(NYPL_b14505696-113650).tiff"
+  },
   "birds/anas-platyrhynchos.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVCommon_Wild_Duck.jpg"
+  },
+  "birds/anas-rubripes-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:240._The_Mallard_(Anas_boschas)._241._The_Black_Duck_(Anas_obscura)_(NYPL_b14505696-113650).tiff"
+  },
+  "birds/anas-rubripes.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n322/mode/1up"
   },
   "birds/anas-zonorhyncha.webp": {
     "source": "siebold",
@@ -1927,6 +1939,10 @@
     "source": "fuertes",
     "url": "https://www.flickr.com/photos/internetarchivebookimages/18425305152/"
   },
+  "birds/dumetella-carolinensis-3.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
+  },
   "birds/dumetella-carolinensis.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-128-cat-bird.jpg"
@@ -2414,6 +2430,10 @@
   "birds/geothlypis-formosa.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/kentucky-warbler"
+  },
+  "birds/geothlypis-philadelphia.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
   },
   "birds/geothlypis-trichas.webp": {
     "source": "audubon",
@@ -4499,6 +4519,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg"
   },
+  "birds/seiurus-aurocapilla.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
+  },
   "birds/selasphorus-platycercus-2.webp": {
     "source": "swainson",
     "url": "https://commons.wikimedia.org/wiki/File:Selasphorus_platycercus_1841.jpg"
@@ -4522,6 +4546,10 @@
   "birds/setophaga-caerulescens.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:155_Black-throated_Blue_Warbler.jpg"
+  },
+  "birds/setophaga-castanea.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
   },
   "birds/setophaga-citrina-2.webp": {
     "source": "audubon",
@@ -4566,6 +4594,10 @@
   "birds/setophaga-pensylvanica-3.webp": {
     "source": "dekay",
     "url": "https://commons.wikimedia.org/wiki/File:134._The_Chestnut-sided_Warbler_(Sylvicola_icterocephala)._135._The_Hemlock_Warbler_(Sylvicola_parus)._136._The_Pine_Finch_(Carduelis_pinus)_(NYPL_b14505696-113601).tiff"
+  },
+  "birds/setophaga-pensylvanica-4.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
   },
   "birds/setophaga-pensylvanica.webp": {
     "source": "audubon",
@@ -4690,6 +4722,14 @@
   "birds/spatula-cyanoptera.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00158.jpg"
+  },
+  "birds/spatula-discors-2.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n379/mode/1up"
+  },
+  "birds/spatula-discors.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:313_Blue-Winged_Teal.jpg"
   },
   "birds/spatula-querquedula-2.webp": {
     "source": "vonwright",
@@ -5119,6 +5159,10 @@
     "source": "fuertes",
     "url": "https://www.flickr.com/photos/internetarchivebookimages/18425305152/"
   },
+  "birds/toxostoma-rufum-3.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
+  },
   "birds/toxostoma-rufum.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Robert_Havell_after_John_James_Audubon,_Ferruginous_Thrush,_1831,_NGA_32257.jpg"
@@ -5430,6 +5474,10 @@
   "birds/zapornia-pusilla.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVBaillons_Crake.jpg"
+  },
+  "birds/zenaida-asiatica.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr07audu/page/n515/mode/1up"
   },
   "birds/zenaida-macroura.webp": {
     "source": "audubon",
