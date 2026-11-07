@@ -59,6 +59,11 @@ def _labels() -> dict[str, str]:
     return {normalize(row[0]): row[-1] if len(row) > 1 else "" for row in rows}
 
 
+def labels() -> dict[str, str]:
+    """Every v2.4 label as an artwork key, against its English common name."""
+    return dict(_labels())
+
+
 def common_of(scientific_name: str) -> str:
     """The label's own English common name, or "" for a name v2.4 never emitted.
     Needs no detector and no dictionary, unlike every other name here."""

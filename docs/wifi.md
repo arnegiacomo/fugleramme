@@ -23,7 +23,7 @@ The hotspot closes and the frame will join the Wi-Fi. When the birds come back o
 and the frame's page is at `http://<host>.local:8080`. If the setup screen comes back
 with *Couldn't join <network>*, join the hotspot again and check the password.
 
-Gifting the frame to someone? Set it up on your own network as usual. In its new home it should begin the setup after a few minutes and these steps are all the new owner needs.
+Gifting the frame to someone? Set it up on your own network as usual, then [wrap it](gift.md). In its new home it should begin the setup after a few minutes and these steps are all the new owner needs.
 
 > [!NOTE]
 > The setup page is tested on iPhone. It should open the same way on Android - if it

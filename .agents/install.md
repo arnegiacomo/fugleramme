@@ -23,6 +23,17 @@ Covers `install.sh`, `run.sh`, `updates.py` and the `Dockerfile`.
 - BirdNET-Go must run with the host user's UID and GID so its mounted config and data remain writable without changing checkout ownership.
 - USB gadget access is documented in troubleshooting; do not assume `10.12.194.1` when macOS Internet Sharing may assign a leased address.
 
+## Gift mode (`gift.py`, #355)
+
+- The last step on a frame that already works: install, test the panel and the mic, then wrap it. It is a CLI, never the admin: wiping the history and changing the Wi-Fi do not belong on a page that may have no password. Bundled BirdNET-Go only, by the `detector/.env` marker.
+- **The frame service knows nothing of it.** The CLI borrows the frame: it stops `fugleramme-frame` (sudo, asked for in the terminal if need be), drives the panel itself, and starts the service again on any exit but a wrap. A wrap leaves it stopped with the splash on the glass; the unit is still enabled, so the next boot, the recipient's, is an ordinary frame. Every failure, a dropped ssh session included, ends the same way: a reboot gives the frame back. Keep it so: a gift feature in the render loop has to freeze buttons, updates and the setup screen, and every state it adds is a way to strand a frame.
+- The form is `giftform.py` (prompt_toolkit), apart from `gift.py`. With the service stopped it owns the panel, so a note line is checked against the attached Inky's real size, turned by the frame's rotation.
+- Unheard birds only ever appear on the splash in the box, never as the page after it is opened (#347).
+- **Wrapping deletes the history.** The frame is being given away, and a copy set aside would need something on the recipient's frame to clean it up.
+- `restart: unless-stopped` never revives a container stopped by hand, so wrapping sets the container to `always` first (`docker update`) and BirdNET-Go comes back at the first boot with nothing else involved. The policy sticks until `run.sh` recreates the container; an update's `up -d` leaves it.
+- The undo record lives in `/dev/shm`: written before each step that changes something, so `unwrap` puts back a wrap that failed half way, and gone at the next boot with the power, so the old admin password never ships. The place is written into `config.yaml` by line, inside `birdnet:` only, and unwrap puts back the old text exactly.
+- Saving the recipient's Wi-Fi is `nmcli connection add`, which `install.sh`'s rule already allows (it names `/usr/bin/nmcli` with any arguments).
+
 ## Releases
 
 - Cut by hand: `release.yml`'s `workflow_dispatch` runs python-semantic-release on `main` once its ci is green, bumping by the commit types since the last tag (`CONTRIBUTING.md`). Its `force` input bumps when only `chore` is queued.

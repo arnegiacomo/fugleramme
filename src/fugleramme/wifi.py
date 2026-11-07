@@ -275,8 +275,24 @@ class Nmcli:
         uuid = found.group(1)
         if self._ok("nmcli", "--wait", str(JOIN_SECONDS), "connection", "up", "uuid", uuid):
             return True
-        self._ok("nmcli", "connection", "delete", "uuid", uuid)
+        self.forget(uuid)
         return False
+
+    def save(self, device: str, ssid: str, password: str) -> str:
+        """Save a WPA2 or open network for later without joining it, as a gift's Wi-Fi is
+        out of range until it arrives. Its uuid, or "" when NetworkManager refused."""
+        args = ["type", "wifi", "ifname", device, "con-name", ssid, "ssid", ssid]
+        if password:
+            args += ["wifi-sec.key-mgmt", "wpa-psk", "wifi-sec.psk", password]
+        added = self._run(["nmcli", "connection", "add", *args], None)
+        found = re.search(r"\(([0-9a-f-]{36})\)", added.stdout)
+        if added.returncode != 0 or not found:
+            log.warning("Could not save %s: %s", ssid, added.stderr.strip())
+            return ""
+        return found.group(1)
+
+    def forget(self, uuid: str) -> None:
+        self._ok("nmcli", "connection", "delete", "uuid", uuid)
 
 
 @dataclass(frozen=True)

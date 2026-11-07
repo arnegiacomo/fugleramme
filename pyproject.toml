@@ -16,6 +16,8 @@ dependencies = [
     "numpy>=2.4.6",
     # 10.1 for a scalable load_default(), which sets the Wi-Fi setup screen.
     "pillow>=10.1",
+    # The gift command's full-screen form: fields, Tab and colour. Pure python.
+    "prompt-toolkit>=3.0",
     # The Wi-Fi setup screen's QR code. Pure python, no dependencies.
     "segno>=1.6",
 ]
@@ -28,6 +30,8 @@ fugleramme-dev = "fugleramme.dev:main"
 fugleramme-fake-detector = "fugleramme.fake:main"
 # Whether a detector answers everything the frame needs. The fake or a real one.
 fugleramme-check = "fugleramme.check:main"
+# Ready a working frame to be given: a splash in the box, the recipient's place and Wi-Fi.
+fugleramme-gift = "fugleramme.giftform:main"
 
 [project.optional-dependencies]
 # Pi-only hardware. Not installed on the dev loop; the frame service
