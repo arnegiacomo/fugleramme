@@ -17,8 +17,8 @@ jobs:
   python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       # --locked fails on a lock that has drifted from pyproject.toml. The next
@@ -37,6 +37,6 @@ jobs:
   shell:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # install.sh is curl'able and neither script is reachable from pytest.
       - run: shellcheck install.sh run.sh examples/wallpaper-macos.sh examples/inky/install.sh .claude/skills/pi-test/scripts/pi.sh
