@@ -12,6 +12,8 @@ Never opened a PR before? [First Contributions](https://github.com/firstcontribu
 
 The one thing worth asking about first is a big feature or change - start it in Discussions so you don't spend a weekend on something that's already half-designed or deliberately out of scope.
 
+Everyone taking part in the project agrees to follow the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## Running it without a Pi
 
 Everything except the panel, the buttons and the mic runs on a workstation:
