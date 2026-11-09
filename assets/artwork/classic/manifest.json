@@ -599,6 +599,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILittle_Owl.jpg"
   },
+  "birds/aythya-affinis.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n416/mode/1up"
+  },
   "birds/aythya-collaris-2.webp": {
     "source": "audubon",
     "url": "https://archive.org/details/birdsofamericafr06audu/page/n422/mode/1up"
@@ -978,6 +982,14 @@
   "birds/calidris-minuta.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Sandpiper.jpg"
+  },
+  "birds/calidris-minutilla-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:207,_208._Wilson%27s_Sandpiper_(Tringa_pusilla)_(NYPL_b14505696-113634).tiff"
+  },
+  "birds/calidris-minutilla.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:207,_208._Wilson%27s_Sandpiper_(Tringa_pusilla)_(NYPL_b14505696-113634).tiff"
   },
   "birds/calidris-pugnax-2.webp": {
     "source": "vonwright",
@@ -1631,6 +1643,10 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Birds_of_New_York_(Plate_72)_(6901490174).jpg"
   },
+  "birds/coturnicops-noveboracensis.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:225.The_New_York_Rail_(Ortygometra_noveboracensis)._226._The_Brown_Pelican_(Pelecanus_fuscus)_(NYPL_b14505696-113643).tiff"
+  },
   "birds/coturnix-coturnix-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00096.jpg"
@@ -2102,6 +2118,10 @@
   "birds/estrilda-astrild.webp": {
     "source": "keulemans",
     "url": "https://archive.org/details/onzevogelsinhuis01keul/page/n299/mode/1up"
+  },
+  "birds/eudocimus-albus.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n80/mode/1up"
   },
   "birds/eudromias-morinellus-2.webp": {
     "source": "vonwright",
@@ -3215,6 +3235,10 @@
     "source": "hines",
     "url": "https://commons.wikimedia.org/wiki/File:Melospiza_melodiaFJ03P03CA.JPG"
   },
+  "birds/melozone-crissalis.webp": {
+    "source": "elliot",
+    "url": "https://archive.org/details/newheretoforeun1elli/page/n96/mode/1up"
+  },
   "birds/mergellus-albellus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00257.jpg"
@@ -3674,6 +3698,14 @@
   "birds/pelecanus-crispus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14564052228).jpg"
+  },
+  "birds/pelecanus-occidentalis-2.webp": {
+    "source": "vieillot",
+    "url": "https://commons.wikimedia.org/wiki/File:Pelecanus_fuscus_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18000179.tif"
+  },
+  "birds/pelecanus-occidentalis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:251_Brown_Pelican.jpg"
   },
   "birds/pellorneum-rostratum.webp": {
     "source": "keulemans",
