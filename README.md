@@ -29,8 +29,8 @@ Live demo: **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** 
 ## Inspiration
 
 A [WWF Verdens naturfond poster by Axel Thorenfeldt](https://www.axelthorenfeldt.com/news/wwf-verdens-naturfonds-fugleskole)
-hangs on my wall, and I wanted a version of it showing the actual birds in my garden. Teddy Warner's
-[AvianVisitors](https://theodore.net/projects/AvianVisitors/) gave me the idea of the live e-ink frame.
+hangs on my wall, and I wanted a version of it showing the actual birds in my garden. The idea of a live bird
+collage on an e-ink frame came from Teddy Warner's [AvianVisitors](https://theodore.net/projects/AvianVisitors/).
 
 ## How it works
 
@@ -175,13 +175,12 @@ See **[Contributing](CONTRIBUTING.md)** for more info. For anything else, you ca
 
 ## Similar projects
 
-- [AvianVisitors](https://github.com/Twarner491/AvianVisitors) - BirdNET-Pi, AI-generated illustrations and photo cutouts, also sold as [kits](https://theodore.net/store/)
-- [inky-bird-frame](https://github.com/veteranbv/inky-bird-frame) - BirdNET, field-journal illustrations on an Inky panel
+- [AvianVisitors](https://github.com/Twarner491/AvianVisitors) - the original live bird collage, on BirdNET-Pi with AI-generated illustrations, also sold as [kits](https://theodore.net/store/)
+- [inky-bird](https://github.com/veteranbv/inky-bird) - BirdNET, field-journal illustrations on an Inky panel
 - [HABirdDashboard](https://github.com/adamoberley/HABirdDashboard) - BirdNET-Go, a collage card for Home Assistant
 - [belkins-birdnet](https://github.com/Belkins/belkins-birdnet) - BirdNET-Pi, AI-generated kachō-e style illustrations
 - [featherframe](https://github.com/wr/featherframe) - BirdNET-Pi, Audubon plates on an ESP32 e-ink panel
 - [birdframe](https://github.com/simenf/birdframe) - BirdNET-Go, several art styles on a Samsung Frame TV
-- [Plate197](https://github.com/kevinl95/Plate197) - BirdNET, Audubon plates on a Raspberry Pi touchscreen
 - [Backyard Birds](https://github.com/dmellok/tesserae-widget-backyard-birds) - BirdNET-Go, natural-history plates as a [Tesserae](https://github.com/dmellok/tesserae) widget for several e-ink panels
 
 Fugleramme shares no code or art with them.
@@ -190,9 +189,8 @@ Fugleramme shares no code or art with them.
 
 - [tesserae-widget-fugleramme](https://github.com/dmellok/tesserae-widget-fugleramme) - fugleramme modes and art as a widget for Tesserae
 - [fugleramme-samsung-frame](https://github.com/conradj/fugleramme-samsung-frame) - sends the collage to a Samsung Frame TV in Art Mode
-- [birdnet-frame](https://github.com/icecoldfire/birdnet-frame) - a Docker container that sends the collage to a Samsung Frame TV in Art Mode
-- [birdnet_eink](https://github.com/Sidiox/birdnet_eink) - the artwork on a LilyGO T5 4.7" ESP32 e-ink display
 - [birdframe](https://github.com/ben-gy/birdframe) - the collage in greyscale on a QuirkLogic Papyr 13.3" e-ink tablet
+- [birdsong](https://github.com/dopeytree/birdsong) - the classic artwork as one plate of the birds heard, sized by calls, with a card for each bird
 - [Cobalt Birds](https://github.com/BandarLabs/Cobalt/tree/main/apps/birds) - the collage on a Kobo e-reader running Cobalt
 
 ## License
