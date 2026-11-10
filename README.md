@@ -55,7 +55,7 @@ No mic or few birds in your area? Point it at a public [BirdWeather](docs/operat
 > [!TIP]
 > The e-ink panel on a Pi is what makes it a picture frame, but neither is required. Fugleramme also runs in a
 > container on basically anything - a homelab, a NAS, an old laptop - and the page takes the shape of whatever
-> shows it: a TV, an HDMI display, an external e-ink panel, any browser, or your desktop wallpaper. With BirdNET-Go,
+> shows it: a TV, an HDMI display, [an external e-ink panel](#on-other-devices), any browser, or your desktop wallpaper. With BirdNET-Go,
 > everything runs on your own hardware and works fully offline. See [Container](docs/container.md) and
 > [Screens](docs/screens.md).
 
@@ -132,8 +132,13 @@ On the Proxmox host's shell:
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/dmellok/proxmox-fugleramme/main/ct/fugleramme.sh)"
 ```
 
-It creates an LXC, installs the latest release in it and starts the frame on `:8080`. Point it at
-your BirdNET-Go on `:8080/admin`. See **[Proxmox](docs/proxmox.md)** for more info.
+See **[Proxmox](docs/proxmox.md)** for more info.
+
+## On other devices
+
+Like building your own stuff, or got old hardware gathering dust? Fugleramme serves its page over HTTP, so almost anything with a screen and a network connection can show your birds. Hang a battery-powered e-ink frame anywhere in Wi-Fi range, with no wires, or give an old e-reader a second life.
+
+**[fugleramme/clients](https://github.com/fugleramme/clients)** collects programs and setups for other devices, made by the community. Got Fugleramme running on something cool? Share it there!
 
 ## Run locally (for development)
 

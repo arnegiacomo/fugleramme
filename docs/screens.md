@@ -235,40 +235,12 @@ Logs: `journalctl -u fugleramme-client -f`
 Contributed by [MT Lewis](https://github.com/mtlewis). Tested on a 13.3"
 panel with a Pi Zero 2 W.
 
-### EE02 example code
+### Other devices
 
-[`examples/ee02/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee02/main.py)
-is a MicroPython program for the XIAO EE02, which runs from a battery and can
-hang anywhere in Wi-Fi range. It wakes for the interval the page's header
-carries in its **Panel refresh** setting. So a 10 minute setting has it fetch
-every 10 minutes, and it never fetches more often than its own 5 minute floor,
-even when **Panel refresh** is off. It downloads the page only if it has
-changed, and redraws the panel only once the download checks out. If something
-goes wrong, it writes an error message on the panel instead.
-
-1. Install MicroPython on the board (e.g.
-   [for the XIAO EE02](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
-2. Set your Wi-Fi credentials and Fugleramme host in `config.py`. A
-   frame served over HTTPS on port 443 is fetched over TLS.
-3. Upload `main.py`, `boot.py` and `config.py` to the board (e.g. with
-   [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html))
-
-`boot.py` runs on every boot before `main.py`. It is what lets the panel
-update its own program: set `FIRMWARE` in `config.py` to a URL serving the
-panel's latest program (as plain file, no sign-in or redirect), and the panel
-checks it on its wakes. A new program is staged, and after a restart it gets
-one trial wake; if the panel reaches the frame cleanly on it, the update is
-kept, otherwise the board goes back to the program it had before.
-Leave `FIRMWARE` at `None` and nothing is downloaded.
-
-Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on
-a 13.3" panel with a XIAO EE02.
-
-Much of the program is generic and reusable, but the connection to the 13.3"
-panel and the controller board is specific. Running a smaller panel or another
-board? A program for it, and the packing it needs, would make a welcome
-contribution - see
-[Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
+Programs for other devices, like a battery-powered XIAO EE02 or EE04 driving an
+e-ink panel, live in [fugleramme/clients](https://github.com/fugleramme/clients).
+They are made and maintained by the community, each with its own install
+instructions. Got Fugleramme running on something new? Add your program there!
 
 ### E6 file format
 

@@ -83,6 +83,7 @@ This setup swaps the Raspberry Pi for a small, power-efficient microcontroller t
 | Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) |
 
 - Seeed Studio also sells the board and panel together as a [kit](https://www.seeedstudio.com/XIAO-ePaper-DIY-Kit-EE02-for-13-3-Spectratm-6-E-Ink.html).
+- See [fugleramme/clients](https://github.com/fugleramme/clients) for the firmware.
 
 ## Microphones
 
