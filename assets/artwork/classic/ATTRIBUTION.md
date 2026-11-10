@@ -107,8 +107,8 @@ and [Metropolitan Museum of Art](https://www.metmuseum.org/art/collection) scans
 Also chromolithographs after his watercolours in the *Harriman Alaska series*
 (1904), from [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Harriman_Alaska_Expedition).
 Public domain (PD-US / PD-Art).
-And colour plates after his paintings in *Bird-Lore* (1916-1917), Internet Archive scans
-from the Commons categories [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)) and [Bird Lore (1917)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1917)),
+And colour plates after his paintings in *Bird-Lore* (1913-1921), Internet Archive scans,
+some from the Commons categories [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)) and [Bird Lore (1917)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1917)),
 public domain (no known copyright restrictions).
 And plates after his paintings in *The Warblers of North America* by **Frank M. Chapman**
 (1907), Biodiversity Heritage Library scans on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(6308738451).jpg),
@@ -156,7 +156,7 @@ Public domain. Manifest key: `legge`.
 
 **Swainson** - *Zoological Illustrations* by
 **William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I);
-and his plates for *A Fasciculus of the Birds of China* by **G. R. Gray** (1871), Cornell University Library and Museums Victoria scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) and the Internet Archive, and *Fauna Boreali-Americana* with **John Richardson** (1831), Smithsonian Libraries scans on the [Internet Archive](https://archive.org/details/faunaborealiamer22rich);
+and his plates for *A Fasciculus of the Birds of China* by **G. R. Gray** (1871), Cornell University Library and Museums Victoria scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) and the Internet Archive, and *Fauna Boreali-Americana* with **John Richardson** (1831), Smithsonian Libraries and University of Toronto scans on the [Internet Archive](https://archive.org/details/faunaborealiamer22rich);
 and *A Selection of the Birds of Brazil and Mexico* (1841), from [Wikimedia Commons](https://commons.wikimedia.org/).
 Public domain. Manifest key: `swainson`.
 
@@ -207,7 +207,7 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Bonaparte** - *Iconografia della fauna italica per le quattro classi degli animali vertebrati* by **Charles Lucien Bonaparte** (1832-1841), hand-coloured lithographs, via the [Internet Archive](https://archive.org/details/Iconografiadellt1c1Bona). Public domain. Manifest key: `bonaparte`.
 
-**Smit** - a plate by **Joseph Smit** from *The Ibis* (1894), printed by **Mintern Bros.**, via the [Internet Archive](https://archive.org/details/ibis661894188994brit). Public domain (Smit died 1929). Manifest key: `smit`.
+**Smit** - plates by **Joseph Smit** from *The Ibis* (1894), printed by **Mintern Bros.**, via the [Internet Archive](https://archive.org/details/ibis661894188994brit), and from the *Proceedings of the Zoological Society of London* (1883), via the [Internet Archive](https://archive.org/details/proceedingsofgen83zool). Public domain (Smit died 1929). Manifest key: `smit`.
 
 **Emory** - *Report on the United States and Mexican boundary survey* (1857-1859), directed by **William H. Emory**, with ornithology by **Spencer Fullerton Baird**. Missouri Botanical Garden Library scan via [Internet Archive / BHL](https://archive.org/details/mobot31753002023650). Public domain. Manifest key: `emory`.
 

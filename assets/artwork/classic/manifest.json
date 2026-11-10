@@ -211,6 +211,10 @@
     "source": "fuertes",
     "url": "https://archive.org/details/annualreport6631912newy/page/n706/mode/1up"
   },
+  "birds/amphispiza-bilineata.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
+  },
   "birds/anarhynchus-alexandrinus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00332.jpg"
@@ -558,6 +562,10 @@
   "birds/artamus-leucorynchus.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/15042"
+  },
+  "birds/artemisiospiza-nevadensis.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
   },
   "birds/asio-flammeus-2.webp": {
     "source": "vonwright",
@@ -1967,6 +1975,10 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-128-cat-bird.jpg"
   },
+  "birds/egretta-caerulea.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n198/mode/1up"
+  },
   "birds/egretta-garzetta.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Egret.jpg"
@@ -2151,9 +2163,25 @@
     "source": "martinet",
     "url": "https://commons.wikimedia.org/wiki/File:Eudynamys_horonata_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18800311.tif"
   },
+  "birds/euphagus-carolinus-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore23nati/page/n305/mode/1up"
+  },
   "birds/euphagus-carolinus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-157-rusty-grakle.jpg"
+  },
+  "birds/euphagus-cyanocephalus-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore23nati/page/n305/mode/1up"
+  },
+  "birds/euphagus-cyanocephalus-3.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore23nati/page/n305/mode/1up"
+  },
+  "birds/euphagus-cyanocephalus.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr07audu/page/n499/mode/1up"
   },
   "birds/euplectes-orix.webp": {
     "source": "hahn",
@@ -2350,6 +2378,10 @@
   "birds/galerida-theklae.webp": {
     "source": "whitaker",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Tunisia%3B_being_a_history_of_the_birds_found_in_the_regency_of_Tunis_(1905)_(20358881726).jpg"
+  },
+  "birds/gallinago-delicata-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:219._The_Willet_(Totanus_semipalmatus)._220._The_American_Snipe_(Scolopax_wilsoni)_(NYPL_b14505696-113640).tiff"
   },
   "birds/gallinago-delicata.webp": {
     "source": "fuertes",
@@ -3227,9 +3259,21 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/wild-turkey"
   },
+  "birds/melospiza-georgiana-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
+  },
   "birds/melospiza-georgiana.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/swamp-sparrow"
+  },
+  "birds/melospiza-lincolnii-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
+  },
+  "birds/melospiza-lincolnii.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:193_Lincoln_Finch.jpg"
   },
   "birds/melospiza-melodia.webp": {
     "source": "hines",
@@ -3698,6 +3742,10 @@
   "birds/pelecanus-crispus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14564052228).jpg"
+  },
+  "birds/pelecanus-erythrorhynchos.webp": {
+    "source": "smit",
+    "url": "https://archive.org/details/proceedingsofgen83zool/page/n587/mode/1up"
   },
   "birds/pelecanus-occidentalis-2.webp": {
     "source": "vieillot",
@@ -5274,6 +5322,14 @@
   "birds/tringa-ochropus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVGreen_Sandpiper_Wood_Sandpiper.jpg"
+  },
+  "birds/tringa-semipalmata-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:219._The_Willet_(Totanus_semipalmatus)._220._The_American_Snipe_(Scolopax_wilsoni)_(NYPL_b14505696-113640).tiff"
+  },
+  "birds/tringa-semipalmata.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer02rich_0/page/n551/mode/1up"
   },
   "birds/tringa-solitaria.webp": {
     "source": "audubon",
