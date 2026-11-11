@@ -1947,6 +1947,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIILesser_Spotted_Woodpecker.jpg"
   },
+  "birds/dryobates-nuttallii.webp": {
+    "source": "emory",
+    "url": "https://www.biodiversitylibrary.org/page/28878984"
+  },
   "birds/dryobates-pubescens.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-112-downy-woodpecker.jpg"
@@ -2951,6 +2955,10 @@
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof18dres/page/n531/mode/1up"
   },
+  "birds/leiothlypis-celata-2.webp": {
+    "source": "horsfall",
+    "url": "https://archive.org/details/warblersofnortha00chap/page/n116/mode/1up"
+  },
   "birds/leiothlypis-celata.webp": {
     "source": "dawson",
     "url": "https://archive.org/details/birdsofcaliforni01daws/page/n656/mode/1up"
@@ -3278,6 +3286,10 @@
   "birds/melospiza-melodia.webp": {
     "source": "hines",
     "url": "https://commons.wikimedia.org/wiki/File:Melospiza_melodiaFJ03P03CA.JPG"
+  },
+  "birds/melozone-crissalis-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/cu31924090257605/page/n42/mode/1up"
   },
   "birds/melozone-crissalis.webp": {
     "source": "elliot",
@@ -4718,6 +4730,10 @@
   "birds/setophaga-tigrina.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-414-golden-winged-warbler.jpg"
+  },
+  "birds/setophaga-townsendi.webp": {
+    "source": "fuertes",
+    "url": "https://www.biodiversitylibrary.org/page/9165834"
   },
   "birds/setophaga-virens.webp": {
     "source": "audubon",

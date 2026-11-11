@@ -113,6 +113,11 @@ public domain (no known copyright restrictions).
 And plates after his paintings in *The Warblers of North America* by **Frank M. Chapman**
 (1907), Biodiversity Heritage Library scans on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(6308738451).jpg),
 public domain.
+And colour illustrations in *The Book of Birds: Common Birds of Town and Country
+and American Game Birds* (National Geographic Society, 1918), with text by
+**Henry W. Henshaw** and others, Cornell University Library scans via the
+[Internet Archive](https://archive.org/details/cu31924090257605), public domain
+(US copyright expired; Fuertes died in 1927).
 Also his plates for **F. E. L. Beal**'s *Birds of California in Relation to the Fruit Industry*,
 Parts I and II (U.S. Biological Survey Bulletins 30 and 34, 1907-1910), via the Internet Archive
 ([Part I](https://archive.org/details/birdsofcaliforni30beal), [Part II](https://archive.org/details/bulletinbiologic3238unit)).
@@ -237,7 +242,7 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Catesby** - *The Natural History of Carolina, Florida and the Bahama Islands* by **Mark Catesby** (1754 edition), hand-coloured etchings after his own drawings. Missouri Botanical Garden scans via the Biodiversity Heritage Library on the [Internet Archive](https://archive.org/details/mobot31753000502945); and plates after him, engraved by **Johann Michael Seligmann** for a German edition of his work, with scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain. Manifest key: `catesby`.
 
-**Horsfall** - plates by **Robert Bruce Horsfall** in *The Warblers of North America* by **Frank M. Chapman** (1907), American Museum of Natural History Library scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/8683) on Wikimedia Commons. Public domain. Manifest key: `horsfall`.
+**Horsfall** - plates by **Robert Bruce Horsfall** in *The Warblers of North America* by **Frank M. Chapman** (1907), American Museum of Natural History Library scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/8683) on Wikimedia Commons and the [Internet Archive](https://archive.org/details/warblersofnortha00chap). Public domain. Manifest key: `horsfall`.
 
 **Brehm** - *Monographie der Papageien* (1842-1855), edited by **Christian Ludwig Brehm**, hand-coloured plates. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica); the whole work is on the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/61090). Public domain (PD-Art / PD-old-70-expired). Manifest key: `brehm`.
 
