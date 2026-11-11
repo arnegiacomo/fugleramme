@@ -2,6 +2,124 @@
 
 <!-- version list -->
 
+## v0.32.0 (2026-11-11)
+
+### Chores
+
+- Add HN badge to README ([#374](https://github.com/arnegiacomo/fugleramme/pull/374),
+  [`40f31ea`](https://github.com/arnegiacomo/fugleramme/commit/40f31ea463c1fefdddf1e3c3677463fa8c2074ab))
+
+- Rebox motacilla-cinerea
+  ([`edcc9a5`](https://github.com/arnegiacomo/fugleramme/commit/edcc9a578fdc25f6a35d072291947f4f3079d81e))
+
+- **assets**: #198 add Horornis diphone ([#377](https://github.com/arnegiacomo/fugleramme/pull/377),
+  [`9a54d3b`](https://github.com/arnegiacomo/fugleramme/commit/9a54d3b9ad102fdab3444d8bff9b4ab78c90cea8))
+
+- **assets**: #33 add 10 North American birds
+  ([`d748aa6`](https://github.com/arnegiacomo/fugleramme/commit/d748aa635b0fbcb8ed6aceaac71d28947189c197))
+
+- **assets**: #33 add 10 North American birds
+  ([`2208cb3`](https://github.com/arnegiacomo/fugleramme/commit/2208cb3252d3ebf580829b8c72e820d8c17c6d36))
+
+- **assets**: #33 add 2 DeKay birds, recut Buteo lineatus and drop a Setophaga coronata variant
+  ([`321b12c`](https://github.com/arnegiacomo/fugleramme/commit/321b12cc87319f2adf58e8921f32438a508ca685))
+
+- **assets**: #33 add 4 new North American birds and 2 variants
+  ([#385](https://github.com/arnegiacomo/fugleramme/pull/385),
+  [`a767551`](https://github.com/arnegiacomo/fugleramme/commit/a7675512a6bb90bddf6836200e9c29406a5c3823))
+
+- **assets**: #33 add 4 North American birds
+  ([#367](https://github.com/arnegiacomo/fugleramme/pull/367),
+  [`6c2a751`](https://github.com/arnegiacomo/fugleramme/commit/6c2a751c1467a1c83a1fe8ed69a7fe5e3f8429e4))
+
+- **assets**: #33 add 5 North American birds
+  ([`59b26c8`](https://github.com/arnegiacomo/fugleramme/commit/59b26c8325e03020a913ce33e8f823ebc657fefc))
+
+- **assets**: #33 add 5 North American birds
+  ([#363](https://github.com/arnegiacomo/fugleramme/pull/363),
+  [`4c9935b`](https://github.com/arnegiacomo/fugleramme/commit/4c9935b8d125c50c4fd444ffa94e648f7a2cbffa))
+
+- **assets**: #33 add 6 North American birds
+  ([`f4cc264`](https://github.com/arnegiacomo/fugleramme/commit/f4cc264b380f4b5db07efe5f2ac527f5bd75c81a))
+
+- **assets**: #33 add 6 North American birds and 4 variants
+  ([`c450235`](https://github.com/arnegiacomo/fugleramme/commit/c450235c567614b5c728df42cbe01d18da8e3460))
+
+- **assets**: #33 add Campylorhynchus brunneicapillus
+  ([#381](https://github.com/arnegiacomo/fugleramme/pull/381),
+  [`6e8e559`](https://github.com/arnegiacomo/fugleramme/commit/6e8e559fa64d51b67cc052c2d48b8ca534a2c1ff))
+
+- **assets**: #33 add Leucophaeus atricilla
+  ([#335](https://github.com/arnegiacomo/fugleramme/pull/335),
+  [`e6c1859`](https://github.com/arnegiacomo/fugleramme/commit/e6c18592994f1672498bfd8f1b80999daf766939))
+
+- **assets**: #33 add Quiscalus major ([#331](https://github.com/arnegiacomo/fugleramme/pull/331),
+  [`f622833`](https://github.com/arnegiacomo/fugleramme/commit/f622833dee5e2ec760a358920bcea76494263208))
+
+- **assets**: #33 link the octavo cormorant plates
+  ([`6b82162`](https://github.com/arnegiacomo/fugleramme/commit/6b82162af6752a45d0e5c892191d9fd6d3061291))
+
+- **assets**: Add 4 southern African birds
+  ([#366](https://github.com/arnegiacomo/fugleramme/pull/366),
+  [`af01fc7`](https://github.com/arnegiacomo/fugleramme/commit/af01fc7bcc3657d95c85f6e5c85e550c004e065d))
+
+- **assets**: Add add'l art for Icterus galbula
+  ([#378](https://github.com/arnegiacomo/fugleramme/pull/378),
+  [`c71f648`](https://github.com/arnegiacomo/fugleramme/commit/c71f648c018c9b463933b704eb0247043d0560e0))
+
+- **assets**: Recut the Blue Jay from the whole Havell plate and add a Vieillot variant
+  ([`2d4943f`](https://github.com/arnegiacomo/fugleramme/commit/2d4943f100519c26ac1f8859a6c23e6bbb724687))
+
+- **assets**: Recut the Gould Phalacrocorax carbo plate
+  ([`7037547`](https://github.com/arnegiacomo/fugleramme/commit/7037547efc813b53cf1b3782399997144f0bef60))
+
+- **ci**: Print a hung test's stack and time out the pytest step
+  ([#373](https://github.com/arnegiacomo/fugleramme/pull/373),
+  [`09b908a`](https://github.com/arnegiacomo/fugleramme/commit/09b908a45dba3cdff76fe3d88fe5014d543e2e5f))
+
+- **deps**: Bump the actions group with 9 updates
+  ([#380](https://github.com/arnegiacomo/fugleramme/pull/380),
+  [`e9670ca`](https://github.com/arnegiacomo/fugleramme/commit/e9670ca8c3099a0c24190e665ddc655a767e42f2))
+
+- **docs**: Update HN badge ([#382](https://github.com/arnegiacomo/fugleramme/pull/382),
+  [`00b443d`](https://github.com/arnegiacomo/fugleramme/commit/00b443df4e716dd24465628cc799e1788b153f6c))
+
+### Documentation
+
+- #368 point docs at fugleramme/clients and remove examples/ee02
+  ([`ca0b6a1`](https://github.com/arnegiacomo/fugleramme/commit/ca0b6a14bb0414fe17ad501cab3befffed0511b5))
+
+- #375 document /press for external panels
+  ([`6347348`](https://github.com/arnegiacomo/fugleramme/commit/63473485eb3c207b92e2cabf9dd33eb2f2c0b78f))
+
+- Add code of conduct and security policy
+  ([`78c2b9c`](https://github.com/arnegiacomo/fugleramme/commit/78c2b9ced90396cb5124dad3f8ad49064fb7a87d))
+
+- Run on Proxmox ([#370](https://github.com/arnegiacomo/fugleramme/pull/370),
+  [`8a80d51`](https://github.com/arnegiacomo/fugleramme/commit/8a80d5152c35b993a24b7a0f2d950b1000cbbc34))
+
+- Update similar and built-on projects
+  ([`2017ba1`](https://github.com/arnegiacomo/fugleramme/commit/2017ba1b456049b3891210d1e6842e887301dd75))
+
+### Features
+
+- #359 rework the admin
+  ([`85d544e`](https://github.com/arnegiacomo/fugleramme/commit/85d544eefc7da0697fa2e0490bf843e5bf55582e))
+
+- An install's own update command in FUGLERAMME_UPDATE_COMMAND
+  ([#371](https://github.com/arnegiacomo/fugleramme/pull/371),
+  [`0c783aa`](https://github.com/arnegiacomo/fugleramme/commit/0c783aa5ea78b1075df9ffe23751cb4649730f5c))
+
+- **admin**: Add 'since midnight' option to lookback window
+  ([#376](https://github.com/arnegiacomo/fugleramme/pull/376),
+  [`e757a18`](https://github.com/arnegiacomo/fugleramme/commit/e757a1841b5761d25f5d940260db4d1134823105))
+
+### Testing
+
+- Stub the Wi-Fi thread in the service tests
+  ([`ad00eef`](https://github.com/arnegiacomo/fugleramme/commit/ad00eefec7508e01b515396ed161003823acddb2))
+
+
 ## v0.31.1 (2026-11-04)
 
 ### Bug Fixes
