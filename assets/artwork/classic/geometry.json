@@ -2039,6 +2039,18 @@
    1200
   ]
  },
+ "birds/baeolophus-inornatus.webp": {
+  "box": [
+   0.161905,
+   0.109938,
+   0.761111,
+   0.699208
+  ],
+  "cut": [
+   1200,
+   1083
+  ]
+ },
  "birds/bartramia-longicauda.webp": {
   "box": [
    0.1893242073059082,
