@@ -156,8 +156,8 @@ def _log_artless(ctx: modes.Context, last: list[str] | None) -> list[str]:
 
 
 def run(config: Config) -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    # Ours only: PIL's debug level is a line per PNG chunk.
+    logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(levelname)s %(message)s")
+    # Ours only: PIL's debug level is a line per PNG chunk, fontTools' info a line per subset step.
     logging.getLogger("fugleramme").setLevel(os.environ.get("FUGLERAMME_LOG_LEVEL", "INFO"))
     # `kill -USR1 <pid>` dumps every thread's stack to the journal - for when it wedges.
     faulthandler.register(signal.SIGUSR1, all_threads=True)
