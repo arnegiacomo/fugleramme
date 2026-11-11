@@ -28,13 +28,17 @@ from collections.abc import Callable, Iterable
 from dataclasses import asdict, dataclass, field, fields
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
 from urllib.request import urlopen
 
 from . import languages, taxa
 from .config import DEFAULT_CONFIG_PATH, REPO_ROOT
 from .names import canonical, normalize
+from .source import Unavailable
+
+if TYPE_CHECKING:
+    from .api import ApiSource
 
 log = logging.getLogger(__name__)
 
@@ -45,7 +49,7 @@ SSID_BYTES = 32
 PSK_CHARS = (8, 63)  # WPA2's passphrase
 PLACES = "https://photon.komoot.io/api/?limit=5&q="  # the admin's station finder asks the same
 _DATE = re.compile(r"\d{4}-\d{2}-\d{2}")  # date.fromisoformat also takes 20270512
-_LAT_LON = re.compile(r"\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*")
+LAT_LON = re.compile(r"\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*")
 
 
 @dataclass(frozen=True)
@@ -161,7 +165,7 @@ class Place:
 def find_place(text: str, fetch: Callable[[str], Any] | None = None) -> Place | None:
     """A typed `lat, lon`, else the first place Photon has by that name. Raises OSError
     when Photon cannot be asked."""
-    typed = _LAT_LON.fullmatch(text)
+    typed = LAT_LON.fullmatch(text)
     if typed:
         lat, lon = float(typed[1]), float(typed[2])
         return Place(text.strip(), lat, lon) if abs(lat) <= 90 and abs(lon) <= 180 else None
@@ -169,7 +173,7 @@ def find_place(text: str, fetch: Callable[[str], Any] | None = None) -> Place | 
     if not features:
         return None
     props, (lon, lat) = features[0]["properties"], features[0]["geometry"]["coordinates"]
-    parts = [props.get("name"), props.get("city") or props.get("county"), props.get("state")]
+    parts = [props.get("name"), props.get("city"), props.get("state")]
     label = ", ".join(dict.fromkeys(p for p in [*parts, props.get("country")] if p))
     return Place(label, float(lat), float(lon))
 
@@ -181,21 +185,24 @@ def _photon(text: str) -> Any:
 
 def arrival(text: str, today: date) -> tuple[date | None, str]:
     if not _DATE.fullmatch(text.strip()):
-        return None, "use YYYY-MM-DD"
+        return None, f"Use YYYY-MM-DD, like {today.isoformat()}."
     try:
         day = date.fromisoformat(text.strip())
     except ValueError:
-        return None, "not a date"
-    return (None, "in the past") if day < today else (day, "")
+        return None, "There is no such day."
+    return (None, "That day has passed.") if day < today else (day, "")
 
 
 def ssid_problem(name: str) -> str:
-    return "too long" if len(name.encode()) > SSID_BYTES else ""
+    too_long = len(name.encode()) > SSID_BYTES
+    return f"Too long: a Wi-Fi name is at most {SSID_BYTES} bytes." if too_long else ""
 
 
 def password_problem(password: str) -> str:
     low, high = PSK_CHARS
-    return "" if not password or low <= len(password) <= high else f"WPA2 needs {low}-{high}"
+    if not password or low <= len(password) <= high:
+        return ""
+    return f"A Wi-Fi password is {low} to {high} characters; this is {len(password)}."
 
 
 @dataclass(frozen=True)
@@ -212,7 +219,7 @@ class Names:
         scientific = {_scientific(key): _scientific(key) for key in taxa.labels()}
         local, _version = languages.dictionary(language, cache_dir)
         by_name = {**{n: s for s, n in local.items()}, **english, **scientific}
-        return cls({_folded(name): canonical(sci) for name, sci in by_name.items()})
+        return cls({folded(name): canonical(sci) for name, sci in by_name.items()})
 
 
 def _scientific(key: str) -> str:
@@ -220,21 +227,28 @@ def _scientific(key: str) -> str:
     return key.replace("-", " ").capitalize()
 
 
-def _folded(name: str) -> str:
+def folded(name: str) -> str:
     """Case, apostrophes and hyphens are not worth a ✗: "stellers jay" is Steller's Jay."""
     return re.sub(r"[\s\-]+", " ", re.sub(r"['’]", "", name.lower())).strip()
 
 
-def favourite(
-    text: str, names: Names, drawable: set[str], scores: dict[str, float]
-) -> tuple[str | None, str]:
-    """(scientific name, problem). A typo gets the likeliest bird with a plate it could
-    mean, by the range model's score where the frame is going: "robin" is an American
-    Robin in Ohio, not a Rose Robin."""
-    typed = _folded(text)
+@dataclass(frozen=True)
+class Favourite:
+    name: str | None  # scientific, when it matched
+    problem: str = ""
+    guess: str = ""  # the common name it likely meant, offered in its place
+
+
+def favourite(text: str, names: Names, drawable: set[str], scores: dict[str, float]) -> Favourite:
+    """A typed favourite matched, or why not. A typo gets the likeliest bird with a plate
+    it could mean, by the range model's score where the frame is going: "robin" is an
+    American Robin in Ohio, not a Rose Robin."""
+    typed = folded(text)
     exact = names.by_name.get(typed)
     if exact:
-        return (exact, "") if normalize(exact) in drawable else (None, f"no plate for {text}")
+        if normalize(exact) in drawable:
+            return Favourite(exact)
+        return Favourite(None, f"There is no picture of {text} in this style.")
     near = difflib.get_close_matches(typed, names.by_name, n=20, cutoff=0.6)
     # Word by word too, or "cardnal" never reaches "northern cardinal" as a whole.
     vocabulary = {word for name in names.by_name for word in name.split()}
@@ -253,9 +267,10 @@ def favourite(
         if normalize(names.by_name[name]) in drawable
     ]
     if not guesses:
-        return None, f"no bird called {text}"
+        return Favourite(None, f"No bird called {text}.")
     best = max(guesses, key=lambda sci: scores.get(sci, 0.0))
-    return None, f"no match - {taxa.common_of(best) or best}?"
+    guess = taxa.common_of(best) or best
+    return Favourite(None, f"No bird called {text}. {guess}?", guess)
 
 
 # -- wrapping and unwrapping -------------------------------------------------
@@ -314,10 +329,46 @@ def located(text: str, latitude: str, longitude: str) -> tuple[str, str, str]:
 
 def forget_history(paths: Paths) -> None:
     """Delete this place's detections and clips, with the detector stopped. BirdNET-Go
-    starts an empty database at the recipient's."""
-    for name in ("birdnet.db", "birdnet.db-wal", "birdnet.db-shm"):
-        (paths.data / name).unlink(missing_ok=True)
+    starts an empty database at the recipient's. The glob takes the update's
+    `birdnet.db.bak` and SQLite's -wal and -shm with the database."""
+    for path in paths.data.glob("birdnet.db*"):
+        path.unlink(missing_ok=True)
     shutil.rmtree(paths.data / "clips", ignore_errors=True)
+
+
+@dataclass(frozen=True)
+class Heard:
+    """What wrapping deletes, to say so before it does. None where BirdNET-Go would not
+    say."""
+
+    detections: int | None
+    species: int | None
+    since: date | None
+    clips: int
+    clip_bytes: int
+
+
+def heard(paths: Paths, source: ApiSource) -> Heard:
+    """Counted while the detector still runs: its summary for the birds, the disk for the
+    clips."""
+    clips = [p for p in (paths.data / "clips").rglob("*") if p.is_file()]
+    size = sum(p.stat().st_size for p in clips)
+    try:
+        stats = source.stats()
+        first = min((s.first_seen for s in source.life_list()), default=None)
+    except Unavailable:
+        return Heard(None, None, None, len(clips), size)
+    return Heard(stats["total"], stats["species"], first and first.date(), len(clips), size)
+
+
+def _write(path: Path, text: str) -> None:
+    """Whole or not at all: a half-written config.yaml would keep BirdNET-Go from starting."""
+    tmp = path.with_name(path.name + ".tmp")
+    with tmp.open("w") as handle:
+        handle.write(text)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp, path)
 
 
 @dataclass(frozen=True)
@@ -355,18 +406,17 @@ def wrap(
 
     # `unless-stopped` would leave a container stopped by hand stopped at every boot from
     # here; `always` brings it back at the recipient's first one.
+    place = wrapping.place
+    new, lat, lon = located(
+        paths.birdnet_config.read_text(), f"{place.latitude:.4f}", f"{place.longitude:.4f}"
+    )  # before anything changes: a config it cannot read stops the wrap here
     policy = docker("inspect", "-f", "{{.HostConfig.RestartPolicy.Name}}", CONTAINER)
     record(restart=policy)
     docker("update", "--restart", "always", CONTAINER)
     compose(paths, "stop")
-    done("Detector stopped; it starts again on the first boot")
-    forget_history(paths)
-    done("This place's birds deleted")
-    place = wrapping.place
-    text = paths.birdnet_config.read_text()
-    new, lat, lon = located(text, f"{place.latitude:.4f}", f"{place.longitude:.4f}")
+    done("Detector stopped")
     record(latitude=lat, longitude=lon)
-    paths.birdnet_config.write_text(new)
+    _write(paths.birdnet_config, new)
     done(f"Location set to {place.label}")
     if wrapping.ssid:
         record(wifi=save_wifi(wrapping.ssid, wrapping.password))
@@ -375,8 +425,11 @@ def wrap(
         record(admin_password=clear_admin())
         done("Admin password cleared")
     draw(wrapping.splash)
+    # Last, so a step above that fails leaves everything `unwrap` can put back.
+    forget_history(paths)
+    done("Birds heard here deleted")
     os.sync()  # the card has everything before anyone pulls the plug
-    done("Splash drawn")
+    done("Written to the card")
 
 
 def unwrap(
@@ -391,7 +444,7 @@ def unwrap(
     if restore.latitude and restore.longitude:
         text = paths.birdnet_config.read_text()
         new, _lat, _lon = located(text, restore.latitude, restore.longitude)
-        paths.birdnet_config.write_text(new)
+        _write(paths.birdnet_config, new)
     if restore.wifi:
         forget_wifi(restore.wifi)
     if restore.admin_password is not None:

@@ -14,7 +14,7 @@ from pathlib import Path
 
 from PIL import Image, ImageFont
 
-from . import fonts
+from . import fonts, packing
 from .collage import render_collage
 from .page import Edges, stamp, text_mask
 
@@ -59,6 +59,8 @@ def splash(
     label_text: Callable[[str], str] = str,
     show_names: bool = True,
     textured: bool = True,
+    layout: str = packing.DEFAULT_LAYOUT,
+    name_key: bool = False,
 ) -> Image.Image:
     """`textured`: paper grain and antialiased words for a browser, flat paper and one-bit
     words for the panel, as the collage draws its labels."""
@@ -82,6 +84,8 @@ def splash(
         label_text=label_text,
         margin=Edges(margin.top + head, margin.right, margin.bottom + foot, margin.left),
         spotlight=spotlight,
+        layout=layout,
+        name_key=name_key,
     )
     x0, y0, x1, y1 = margin.window(resolution)
     middle = (x0 + x1) // 2

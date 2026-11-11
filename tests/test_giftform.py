@@ -1,26 +1,48 @@
-"""The gift form: what each field says, what ^P and ^W write, and that Esc leaves no trace."""
+"""The gift questions: each asked again until it is right, the summary, the confirm."""
 
 from __future__ import annotations
 
-import time
+from dataclasses import replace
 from datetime import date
-from types import SimpleNamespace
+from functools import partial
 
 import pytest
-from prompt_toolkit.application import create_app_session
-from prompt_toolkit.input import create_pipe_input
-from prompt_toolkit.output import DummyOutput
+from prompt_toolkit.document import Document
 
 from fugleramme import gift, giftform
 from fugleramme.config import REPO_ROOT
 from fugleramme.names import drawable_keys
 from fugleramme.render.page import Edges
 from fugleramme.settings import Settings
-from fugleramme.source import Unavailable
 
 TODAY = date(2026, 11, 5)
 COLUMBUS = gift.Place("Columbus, Ohio, United States", 39.96, -82.99)
 SCORES = [("Turdus migratorius", 0.9), ("Cardinalis cardinalis", 0.8), ("Zenaida macroura", 0.7)]
+HEARD = gift.Heard(2847, 61, date(2026, 9, 14), 412, 1_300_000_000)
+ENTER = None  # takes what is offered
+
+
+class Script:
+    """The giver, as a list of answers; out of answers is Ctrl-D."""
+
+    def __init__(self, *answers: str | None):
+        self.answers = list(answers)
+        self.said: list[tuple[str, str]] = []
+        self.offered: list[str] = []
+
+    def ask(self, default="", label="> ", completer=None):
+        self.offered.append(default)
+        if not self.answers:
+            raise EOFError
+        answer = self.answers.pop(0)
+        return default if answer is ENTER else answer
+
+    def say(self, text="", style=""):
+        self.said.append((text, style))
+
+    def text(self) -> str:
+        """All it said, unwrapped."""
+        return " ".join(" ".join(text for text, _style in self.said).split())
 
 
 @pytest.fixture(scope="module")
@@ -41,165 +63,141 @@ def frame(tmp_path, names):
     )
 
 
-def _checks(frame, scores=lambda *_where: SCORES):
+def _questions(frame, io, scores=lambda *_where: SCORES):
     def find(text):
         return COLUMBUS if text == "columbus" else None
 
-    return giftform.Checks(frame, TODAY, scores, find)
+    return giftform.Questions(io, frame, TODAY, scores, find)
 
 
-def test_each_field_gets_a_tick_or_a_reason(frame):
-    checks = _checks(frame)
-    checks.check("place", "columbus")
-    checks.check("arrives", "2027-05-12")
-    checks.check("note1", "Happy birthday!")
-    checks.check("note2", "Happy birthday! " * 8)
-    checks.check("favourites", "Steller's Jay, cardnal")
-    checks.check("ssid", "x" * 40)
-    checks.check("password", "short")
-    assert checks.marks == {
-        "place": (True, "Columbus, Ohio, United States"),
-        "arrives": (True, ""),
-        "note1": (True, ""),
-        "note2": (False, checks.marks["note2"][1]),
-        "favourites": (False, "no match - Northern Cardinal?"),
-        "ssid": (False, "too long"),
-        "password": (False, "WPA2 needs 8-63"),
-    }
-    assert checks.marks["note2"][1].startswith("too long by ")
+def test_each_answer_is_asked_again_until_it_is_right(frame):
+    io = Script(
+        "nowhere",  # no such place
+        "columbus",
+        "24/12/2026",  # not YYYY-MM-DD
+        "2026-12-24",
+        "Stellers jay, cardnal",  # a typo: offered back as Northern Cardinal
+        ENTER,
+        "Happy birthday! " * 12,  # too long for the panel
+        "Happy birthday!",
+        "",
+        "Their home",
+        "short",  # not a WPA2 password
+        "their-password",
+        ENTER,  # clear the admin password: yes
+    )
+    q = _questions(frame, io)
+    g = giftform.Gift()
+    for _label, step in q.steps():
+        g = step(g)
+
+    assert g == giftform.Gift(
+        COLUMBUS,
+        date(2026, 12, 24),
+        ("Cyanocitta stelleri", "Cardinalis cardinalis"),
+        ("Happy birthday!",),
+        "Their home",
+        "their-password",
+        clear_admin=True,
+    )
+    assert "Steller's Jay, Northern Cardinal" in io.offered
+    marks = [text for text, style in io.said if style == "bad" and "✗" in text]
+    assert len(marks) == 5
+    for mark, start in zip(
+        marks,
+        ["No place called nowhere", "Use YYYY-MM-DD", "No bird called cardnal", "", "A Wi-Fi"],
+        strict=True,
+    ):
+        assert mark.startswith(f"  ✗ {start}")
+    assert "characters too long" in marks[3]
 
 
-def test_an_empty_optional_field_has_no_mark_and_a_required_one_does(frame):
-    checks = _checks(frame)
-    checks.check("note1", "")
-    checks.check("place", "")
-    assert checks.marks == {"place": (False, "no place called ")}
-
-
-def test_a_place_the_search_cannot_reach_says_so(frame):
+def test_a_place_search_that_does_not_answer_names_the_way_out(frame):
     def offline(_text):
-        raise OSError("no network")
+        raise OSError("down")
 
-    checks = giftform.Checks(frame, TODAY, lambda *_w: SCORES, offline)
-    checks.check("place", "columbus")
-    assert checks.marks["place"] == (False, "the place search did not answer")
-
-
-def test_a_wrap_needs_the_place_and_the_date(frame):
-    checks = _checks(frame)
-    assert checks.problems() == ["Place: not checked yet", "Arrives: not checked yet"]
-    checks.check("place", "columbus")
-    checks.check("arrives", "2026-11-04")
-    assert checks.problems() == ["Arrives: in the past"]
+    io = Script("columbus", "39.96, -82.99")
+    find = partial(gift.find_place, fetch=offline)
+    q = giftform.Questions(io, frame, TODAY, lambda *_w: SCORES, find)
+    assert q.place(giftform.Gift()).place == gift.Place("39.96, -82.99", 39.96, -82.99)
+    assert "latitude, longitude from a maps app" in io.text()
 
 
-def test_the_splash_leads_with_the_favourite_and_leaves_out_what_failed(frame):
-    checks = _checks(frame)
-    assert checks.splash(("", "", "")) is None
-    checks.check("place", "columbus")
-    checks.check("arrives", "2027-05-12")
-    checks.check("favourites", "Steller's Jay")
-    checks.check("note1", "Happy birthday!")
-    checks.check("note2", "Happy birthday! " * 8)
-    splash = checks.splash(("Happy birthday!", "Happy birthday! " * 8, ""))
-    assert splash is not None
-    assert splash.spotlight == "Cyanocitta stelleri"
-    assert splash.birds[:2] == ("Cyanocitta stelleri", "Turdus migratorius")
-    assert splash.notes == ("Happy birthday!",)
-    assert splash.month == "May"
+def test_the_admin_question_is_asked_only_where_there_is_a_password(frame):
+    bare = giftform.Questions(Script(), replace(frame, settings=Settings()), TODAY, lambda *_w: [])
+    assert [label for label, _s in bare.steps()][-1] == "Wi-Fi"
 
 
-def test_a_detector_that_does_not_answer_still_leaves_the_favourites(frame):
-    def down(*_where):
-        raise Unavailable("stopped")
-
-    checks = _checks(frame, down)
-    checks.check("place", "columbus")
-    checks.check("arrives", "2027-05-12")
-    checks.check("favourites", "Steller's Jay")
-    splash = checks.splash(("", "", ""))
-    assert splash is not None and splash.birds == ("Cyanocitta stelleri",)
+GIFT = giftform.Gift(COLUMBUS, date(2026, 12, 24), ("Cyanocitta stelleri",), ("Happy birthday!",))
 
 
-@pytest.fixture
-def form(frame):
-    nmcli = SimpleNamespace(allowed=lambda: True)
-    with create_pipe_input() as pipe, create_app_session(input=pipe, output=DummyOutput()):
-        form = giftform.Form(_checks(frame), nmcli, DRAWN.append)  # type: ignore[arg-type]
-        DRAWN.clear()
-        yield form
+def test_the_splash_leads_with_the_favourite_then_the_likeliest_there(frame):
+    shown = _questions(frame, Script()).splash(GIFT)
+    assert shown.month == "December" and shown.spotlight == "Cyanocitta stelleri"
+    assert shown.birds[:2] == ("Cyanocitta stelleri", "Turdus migratorius")
 
 
-DRAWN: list[gift.Splash] = []
+def test_the_summary_draws_once_and_redraws_after_a_change(frame):
+    drawn: list[gift.Splash] = []
+    io = Script("4", "Merry Christmas!", "", "w", ENTER, "q")  # change the note, then back out
+    q = _questions(frame, io)
+    preview = giftform.Preview(drawn.append, io)
+    assert giftform.review(io, q, GIFT, preview, lambda: HEARD) is None
+    preview.settle()
+    assert [s.notes for s in drawn] == [("Happy birthday!",), ("Merry Christmas!",)]
 
 
-def _fill(form, **texts):
-    for key, text in texts.items():
-        form.areas[key].text = text
-        form.checks.check(key, text)
+def test_the_confirm_says_what_is_deleted_in_red_and_defaults_to_no(frame):
+    io = Script(ENTER)
+    assert not giftform.confirm(io, GIFT, HEARD)
+    said = {style: text for text, style in io.said if style in ("bad", "loss")}
+    assert "2,847 detections of 61 species heard here since 14 Sep" in io.text()
+    assert "412 clips (1.3 GB)" in io.text()
+    assert said["loss"].strip() == "They do not come back."
+    assert giftform.confirm(Script("y"), GIFT, HEARD)
 
 
-def _drawn(form):
-    while form.drawing:
-        time.sleep(0.01)
+def test_a_detector_that_does_not_answer_still_says_the_birds_go(frame):
+    io = Script("n")
+    giftform.confirm(io, GIFT, gift.Heard(None, None, None, 0, 0))
+    assert "every bird BirdNET-Go heard here." in io.text()
 
 
-def test_draw_puts_the_splash_on_the_panel(form):
-    form._preview()
-    assert "needs a place and a date" in form.status and not DRAWN
-    _fill(form, place="columbus", arrives="2027-05-12")
-    form._preview()
-    _drawn(form)
-    assert len(DRAWN) == 1 and DRAWN[0].month == "May"
-    assert form.status == "Drawn."
+def test_wrapping_does_not_draw_again_what_the_glass_holds():
+    drawn: list[gift.Splash] = []
+    preview = giftform.Preview(drawn.append, Script())
+    shown = gift.Splash("May", (), ("Cyanocitta stelleri",), None)
+    preview.show(shown)
+    preview.final(shown)
+    assert drawn == [shown]
 
 
-def test_a_draw_that_fails_says_why(form):
+def test_a_draw_that_fails_says_why(frame):
     def broken(_splash):
-        raise OSError("panel busy")
+        raise RuntimeError("SPI busy")
 
-    form.draw = broken
-    _fill(form, place="columbus", arrives="2027-05-12")
-    form._preview()
-    _drawn(form)
-    assert form.status == "Could not draw it: panel busy"
-
-
-def test_one_draw_at_a_time(form):
-    form.drawing = True
-    _fill(form, place="columbus", arrives="2027-05-12")
-    form._preview()
-    assert form.status == "Still drawing the last one." and not DRAWN
+    io = Script("x", "q")  # a wrong key shows the summary again, after the draw
+    giftform.review(io, _questions(frame, io), GIFT, giftform.Preview(broken, io), lambda: HEARD)
+    assert "Could not draw it: SPI busy" in io.text()
+    assert io.text().count("Drawing it on the frame") == 1  # not tried again unchanged
 
 
-def test_wrap_asks_twice_and_typing_disarms_it(form):
-    exits = []
-    event = SimpleNamespace(app=SimpleNamespace(exit=lambda: exits.append(True)))
-    form._wrap(event)
-    assert form.status.startswith("Not yet.")
-    _fill(form, place="columbus", arrives="2027-05-12", ssid="Their home", password="long enough")
-    form._wrap(event)
-    assert form.armed and not exits
-    form.areas["note1"].text = "Hi"  # a change after the first ^W
-    assert not form.armed
-    form._wrap(event)
-    form._wrap(event)
-    assert exits and form.wrapping is not None
-    assert (form.wrapping.place, form.wrapping.ssid) == (COLUMBUS, "Their home")
-    assert form.wrapping.splash.month == "May"
-    assert not form.wrapping.clear_admin
+def test_tab_completes_the_name_after_the_last_comma():
+    birds = giftform.Birds(["Eurasian Hoopoe", "European Robin", "Northern Cardinal"])
+    found = birds.get_completions(Document("Northern Cardinal, eur"), None)  # type: ignore[arg-type]
+    assert [c.text for c in found] == ["Eurasian Hoopoe", "European Robin"]
 
 
-def test_typing_clears_a_fields_mark(form):
-    _fill(form, place="columbus")
-    form.areas["place"].text = "columbu"
-    assert "place" not in form.checks.marks
-
-
-def test_escape_quits(frame):
-    nmcli = SimpleNamespace(allowed=lambda: True)
-    with create_pipe_input() as pipe, create_app_session(input=pipe, output=DummyOutput()):
-        form = giftform.Form(_checks(frame), nmcli, DRAWN.append)  # type: ignore[arg-type]
-        pipe.send_text("columbus\x1b")
-        form.app.run()
-    assert form.areas["place"].text == "columbus" and form.wrapping is None
+def test_the_start_says_which_admin_settings_draw_it(frame, monkeypatch):
+    monkeypatch.setattr(giftform.languages, "catalog", lambda _dir: {"en": "English"})
+    named = replace(
+        frame, settings=Settings(primary_language="en", name_key=True, rotation=90, margin=6)
+    )
+    assert dict(giftform.look(named)) == {
+        "Names": "English, numbered in a key",
+        "Labels": "Gentium Book Plus, Medium",
+        "Artwork": f"{giftform.resolve('', giftform.IMAGES)}, Spiral layout",
+        "Panel": "turned 90°, 6% margin",
+    }
+    bare = dict(giftform.look(replace(frame, settings=Settings(show_names=False))))
+    assert bare["Names"] == "off"

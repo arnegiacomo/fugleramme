@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
@@ -13,6 +13,7 @@ from fugleramme.config import REPO_ROOT
 from fugleramme.names import drawable_keys
 from fugleramme.render.gift import overflow, splash
 from fugleramme.render.page import Edges
+from fugleramme.source import Species, Unavailable
 
 TEMPLATE = (REPO_ROOT / "detector" / "config" / "config.yaml.template").read_text()
 DRAWABLE = drawable_keys(REPO_ROOT / "assets" / "artwork", "classic")
@@ -36,9 +37,9 @@ def test_the_week_is_birdnets_48_week_year(day, week):
     ("typed", "problem"),
     [
         ("2027-05-12", ""),
-        ("20270512", "use YYYY-MM-DD"),  # date.fromisoformat would take it
-        ("2027-02-30", "not a date"),
-        ("2026-11-04", "in the past"),
+        ("20270512", "Use YYYY-MM-DD, like 2026-11-05."),  # date.fromisoformat would take it
+        ("2027-02-30", "There is no such day."),
+        ("2026-11-04", "That day has passed."),
         ("2026-11-05", ""),
     ],
 )
@@ -47,10 +48,10 @@ def test_the_arrival_is_a_day_from_today_on(typed, problem):
 
 
 def test_wifi_is_checked_for_shape_only():
-    assert gift.ssid_problem("x" * 32) == "" and gift.ssid_problem("x" * 33) == "too long"
-    assert gift.ssid_problem("æ" * 17) == "too long"  # bytes, not characters
+    assert gift.ssid_problem("x" * 32) == "" and gift.ssid_problem("x" * 33)
+    assert gift.ssid_problem("æ" * 17)  # bytes, not characters
     assert gift.password_problem("") == ""  # open
-    assert gift.password_problem("short") == "WPA2 needs 8-63"
+    assert gift.password_problem("short").endswith("this is 5.")
     assert gift.password_problem("x" * 63) == "" and gift.password_problem("x" * 64)
 
 
@@ -93,24 +94,27 @@ def names():
 
 
 @pytest.mark.parametrize(
-    ("typed", "found", "problem"),
+    ("typed", "found", "guess"),
     [
         ("Steller's Jay", "Cyanocitta stelleri", ""),
         ("stellers jay", "Cyanocitta stelleri", ""),
         ("cyanocitta stelleri", "Cyanocitta stelleri", ""),
-        ("stellar jay", None, "no match - Steller's Jay?"),
-        ("cardnal", None, "no match - Northern Cardinal?"),
-        ("robin", None, "no match - American Robin?"),  # the likeliest robin where it goes
-        ("zzzz", None, "no bird called zzzz"),
+        ("stellar jay", None, "Steller's Jay"),
+        ("cardnal", None, "Northern Cardinal"),
+        ("robin", None, "American Robin"),  # the likeliest robin where it goes
+        ("zzzz", None, ""),
     ],
 )
-def test_a_favourite_is_matched_or_a_likely_one_suggested(names, typed, found, problem):
+def test_a_favourite_is_matched_or_a_likely_one_suggested(names, typed, found, guess):
     scores = {"Turdus migratorius": 0.9, "Cardinalis cardinalis": 0.8}
-    assert gift.favourite(typed, names, DRAWABLE, scores) == (found, problem)
+    match = gift.favourite(typed, names, DRAWABLE, scores)
+    assert (match.name, match.guess) == (found, guess)
+    assert bool(match.problem) == (found is None)
 
 
 def test_a_favourite_without_a_plate_says_so(names):
-    assert gift.favourite("Steller's Jay", names, set(), {}) == (None, "no plate for Steller's Jay")
+    match = gift.favourite("Steller's Jay", names, set(), {})
+    assert match == gift.Favourite(None, "There is no picture of Steller's Jay in this style.")
 
 
 def test_the_place_is_written_into_birdnets_section_alone():
@@ -151,7 +155,7 @@ def frame(tmp_path, calls) -> gift.Paths:
     paths.birdnet_config.parent.mkdir(parents=True)
     paths.birdnet_config.write_text(TEMPLATE)
     paths.env.write_text("")
-    for name in ("birdnet.db", "birdnet.db-wal"):
+    for name in ("birdnet.db", "birdnet.db-wal", "birdnet.db.bak"):  # .bak: an update's
         (paths.data / name).write_bytes(b"detections")
     (paths.data / "clips").mkdir()
     (paths.data / "clips" / "merula.mp3").write_bytes(b"song")
@@ -209,9 +213,36 @@ def test_a_wrap_that_fails_half_way_can_still_be_unwrapped(frame, calls):
 
     with pytest.raises(RuntimeError):
         gift.wrap(frame, WRAPPING, no_wifi, lambda: "old-secret", lambda _s: None)
+    assert (frame.data / "birdnet.db").exists()  # deleted last, so still here
     assert gift.unwrap(frame, lambda _uuid: None, lambda _pw: None)
     assert frame.birdnet_config.read_text() == TEMPLATE
     assert _plain(calls)[-1] == ("compose", "start")
+
+
+def test_a_config_it_cannot_read_stops_the_wrap_before_anything_changes(frame, calls):
+    frame.birdnet_config.write_text("logging:\n  default_level: info\n")
+    with pytest.raises(ValueError):
+        gift.wrap(frame, WRAPPING, lambda *_a: "uuid", lambda: "", lambda _s: None)
+    assert calls == [] and not frame.undo.exists() and (frame.data / "birdnet.db").exists()
+
+
+def test_what_wrapping_deletes_is_counted_first(frame):
+    class Source:
+        def stats(self):
+            return {"total": 2847, "species": 61}
+
+        def life_list(self):
+            return [Species("Turdus merula", datetime(2026, 9, 14, 6, tzinfo=UTC))]
+
+    assert gift.heard(frame, Source()) == gift.Heard(2847, 61, date(2026, 9, 14), 1, 4)
+
+
+def test_a_detector_that_does_not_answer_still_counts_the_clips(frame):
+    class Down:
+        def stats(self):
+            raise Unavailable("down")
+
+    assert gift.heard(frame, Down()) == gift.Heard(None, None, None, 1, 4)
 
 
 def test_the_undo_record_is_private(frame):
