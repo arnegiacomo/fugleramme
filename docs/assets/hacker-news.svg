@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 53" width="250" height="55" role="img" aria-label="Hacker News: #1 post of the month, 2,391 points, September 2026">
+  <rect x="0.5" y="0.5" width="249" height="53" rx="10" fill="#FFFFFF" stroke="#FF6600"/>
+  <rect x="9" y="4" width="45" height="45" rx="8" fill="#FF6600"/>
+  <text x="31.5" y="36" font-family="Verdana, Geneva, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF" text-anchor="middle">Y</text>
+  <text x="64" y="16" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#FF6600">HACKER NEWS</text>
+  <text x="64" y="33" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#0B2240">#1 post of the month</text>
+  <text x="64" y="45" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#59636E">2,391 points · September 2026</text>
+</svg>

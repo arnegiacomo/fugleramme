@@ -1,0 +1,48 @@
+{# The rows the server also sends on their own, for the script to put up: the
+   species under the preview (/species) and a test's Detector row (/detector). #}
+{% from "macros.html" import logo, stamp %}
+
+{# A word or two in the tone of what it says: ok, warn or bad. #}
+{% macro state(tone, text) -%}
+<span class="{{ tone }}">{{ text }}</span>
+{%- endmacro %}
+
+{# A line per species. The script adds the href: only the browser knows
+   BirdNET-Go's address. One with no artwork is marked (#9); the rest name
+   their plate. #}
+{% macro species(rows) -%}
+{% for scientific, label, plate, url in rows %}
+{% set name %}<a data-species="{{ scientific }}" target="_blank" rel="noopener">{{ label }}</a>{% endset %}
+{% if plate is none %}
+<li class="noart">{{ name }} <small>no art</small></li>
+{% elif url %}
+<li>{{ name }} <small><a href="{{ url }}" target="_blank" rel="noopener">{{ plate }}</a></small></li>
+{% else %}
+<li>{{ name }} <small>{{ plate }}</small></li>
+{% endif %}
+{% else %}
+<li class="empty">none yet</li>
+{%- endfor %}
+{%- endmacro %}
+
+{# A line per BirdWeather station, worded like BirdNET-Go's row: its logo, name
+   and #ID, linked to its page, and when it last heard anything, bird or not.
+   A cell each, dots included, so the lines' columns line up; the logo in a cell
+   of its own, since one that cannot load is hidden and would shift the rest. #}
+{% macro stations(lines) -%}
+<span class="stations">
+{%- for line in lines %}
+{% set tone = "bad" if line.missing else "ok" %}
+<span>{{ logo(BIRDWEATHER) }}</span>
+<span class="{{ tone }}">{{ line.name }}</span>
+<span class="{{ tone }}">{{ "·" if line.name else "" }}</span>
+<span class="{{ tone }}">{% if line.missing %}#{{ line.id }}{% else %}<a href="{{ line.page }}">#{{ line.id }}</a>{% endif %}</span>
+<span class="{{ tone }}">·</span>
+<span class="{{ tone }}">
+{%- if line.missing %}no such station
+{%- elif line.heard %}latest detection {{ stamp(line.heard) }}
+{%- else %}nothing heard yet
+{%- endif %}</span>
+{% endfor -%}
+</span>
+{%- endmacro %}

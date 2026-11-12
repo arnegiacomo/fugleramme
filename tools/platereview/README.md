@@ -61,7 +61,8 @@ slider before reading red as a fault. `scan.png` and `plate.png` are PNG so that
 here is reading JPEG artifacts.
 
 Verdicts and notes live in the browser and survive a rebuild. "Copy review notes" gives you
-the lot as text.
+the lot as text. "Hide passed" leaves passed plates out of the strip and of stepping, for a
+later round; the notes still list every plate.
 
 ## The crop preview
 

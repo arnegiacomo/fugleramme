@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fugleramme admin</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="stylesheet" href="/admin.css?v={{ version }}">
+{# Inline and before the body, so a page with a theme picked never flashes the other one. #}
+<script>try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch (e) {}</script>
+</head>
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>

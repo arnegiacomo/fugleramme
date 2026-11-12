@@ -104,7 +104,7 @@ Already using `:8080` for BirdNET-Go? The installer lets you put the frame on [a
 
 ## Where are the settings?
 
-On `http://<host>.local:8080/admin`. The root path is the kiosk, which is deliberately just the picture.
+On `http://<host>.local:8080/admin`. The root path is the kiosk, which is deliberately just the picture. Tap it or move the mouse, and the gear icon in the top right corner opens the settings.
 
 ## What's planned?
 

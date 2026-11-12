@@ -30,6 +30,7 @@ import io
 import json
 import logging
 import secrets
+import socket
 import threading
 import time
 from dataclasses import replace
@@ -39,14 +40,16 @@ from pathlib import Path
 from typing import ClassVar
 from urllib.parse import parse_qs, urlencode, urlparse
 
-from .. import __version__, buttons, e6, modes, updates
+from .. import __version__, buttons, e6, modes, updates, wifi
 from ..languages import namer
 from ..panel import Panel, resolution_of, to_glass
+from ..render.fonts import cut
+from ..render.page import banded
 from ..render.paper import paper_tile
 from ..settings import Settings, SettingsStore, merged
 from ..source import Source, Unavailable
-from ..status import Frame, Status
-from . import LOGIN, LOGOUT, STATIC_DIR, admin
+from ..status import MAT_TEST_SECONDS, Frame, MatTest, Status, under_test
+from . import LOGIN, LOGOUT, STATIC_DIR, admin, portal
 
 log = logging.getLogger(__name__)
 
@@ -58,7 +61,16 @@ JSON = "application/json"
 # What a password covers (#52). The kiosk stays open whatever is set: it is the
 # product, and the demo page and the container's healthcheck read it as strangers.
 GATED = frozenset(
-    {"/admin", "/preview.png", "/species", "/stations", "/update", "/detector", LOGOUT}
+    {
+        "/admin",
+        "/preview.png",
+        "/species",
+        "/stations",
+        "/update",
+        "/detector",
+        "/mat-test",
+        LOGOUT,
+    }
 )
 
 COOKIE = "fugleramme_session"
@@ -79,14 +91,22 @@ FILES = {
     "/": ("kiosk.html", HTML),
     "/index.html": ("kiosk.html", HTML),
     "/admin.css": ("admin.css", "text/css; charset=utf-8"),
-    "/admin.js": ("admin.js", "text/javascript; charset=utf-8"),
     # What a phone or tablet saves to its home screen. iOS asks for the touch icon
     # at the root even on a page that does not link it.
     "/apple-touch-icon.png": ("apple-touch-icon.png", "image/png"),
     "/icon-512.png": ("icon-512.png", "image/png"),
     "/favicon.png": ("favicon.png", "image/png"),
     "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),
+} | {  # the admin's script, a module per section
+    f"/admin/{js.name}": (f"admin/{js.name}", "text/javascript; charset=utf-8")
+    for js in sorted((STATIC_DIR / "admin").glob("*.js"))
 }
+
+
+def _title_font() -> bytes:
+    """The title face of the portal and the admin: Cormorant Garamond, the plates'
+    engraved display italic, cut to the one word it sets."""
+    return cut("cormorant", portal.TITLE)
 
 
 @functools.cache
@@ -131,12 +151,22 @@ def _set_cookie(value: str, seconds: int) -> str:
     return f"{COOKIE}={value}; Max-Age={seconds}; Path=/; HttpOnly; SameSite=Lax"
 
 
+def _banded_png(ctx: modes.Context) -> bytes:
+    """The kiosk's page under a margin test, rendered past the page cache so the band
+    never lands in it."""
+    buffer = io.BytesIO()
+    banded(modes.render(ctx).convert("RGB"), ctx.margin, (0, 0, 0)).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 def make_handler(
     source: Source,
     images_dir: Path,
     store: SettingsStore,
     panel: Panel | None,
     status: Status,
+    setup: wifi.Setup | None = None,
+    home: str = "",
 ):
     def glass(settings: Settings) -> tuple[int, int] | None:
         """The panel the page is laid out for, or None: nothing for the kiosk to lock to."""
@@ -340,6 +370,34 @@ def make_handler(
                 del attempts[next(iter(attempts))]  # insertion order: the oldest first
             return len(attempts.get(client, [])) >= TRIES
 
+        def _on_hotspot(self) -> bool:
+            """A phone on the Wi-Fi setup hotspot, which only ever gets the portal (#308).
+            The subnet alone is not enough: Kubernetes' default pod CIDR is the same
+            10.42.0.0/24, so a reverse proxy there would otherwise get the portal."""
+            state = status.wifi
+            return state is not None and state.up and wifi.on_hotspot(self.client_address[0])
+
+        def _portal(self, form: dict[str, list[str]] | None = None):
+            # Whether a phone's network check reaches the frame is what decides if the portal
+            # opens by itself, and nothing else shows it.
+            log.info(
+                "Portal: %s %s %s%s",
+                self.client_address[0],
+                self.command,
+                self.headers.get("Host", ""),
+                urlparse(self.path).path,
+            )
+            state = status.wifi or wifi.State()
+            picked = portal.parse(form) if form is not None else None
+            if picked is None or setup is None:
+                networks = [(n.ssid, n.secure) for n in state.networks]
+                error = state.error or ("Pick a network." if form is not None else "")
+                page = portal.choose(state.name, networks, error, _title_font())
+                self._send(200, page.encode(), HTML)
+                return
+            setup.join(*picked)
+            self._send(200, portal.joining(picked[0], home, _title_font()).encode(), HTML)
+
         def _query(self) -> dict[str, list[str]]:
             return parse_qs(urlparse(self.path).query, keep_blank_values=True)
 
@@ -359,12 +417,30 @@ def make_handler(
             preview and its listing show a change before Save."""
             return merged(store.get(), **admin.form_changes(self._query()))
 
+        def _setup_shown(self) -> wifi.State | None:
+            """The hotspot's state while the setup screen stands in for the page (#308). The
+            frame is offline then, so only a browser on the Pi itself or over USB sees it."""
+            state = status.wifi
+            return state if state is not None and state.up else None
+
         def _page_png(self):
             nonlocal last_page, last_from
+            shown = self._setup_shown()
+            if shown is not None:
+                settings = store.get()
+                page = modes.setup_screen(
+                    shown, settings, settings.web_size(glass(settings)), False
+                )
+                buffer = io.BytesIO()
+                page.save(buffer, format="PNG")
+                self._send_cached(buffer.getvalue(), "image/png")
+                return
             if source.base_url != last_from:
                 last_page, last_from = None, source.base_url
+            test = status.testing()
             try:
-                last_page = modes.png_bytes(self._context(store.get()))
+                ctx = self._context(under_test(store.get(), test))
+                last_page = modes.png_bytes(ctx) if test is None else _banded_png(ctx)
             except Unavailable as exc:
                 if last_page is None:
                     raise
@@ -416,7 +492,24 @@ def make_handler(
 
         def _state(self):
             # Cheap enough to poll: one grouped query, no render.
-            token = modes.token(modes.state_key(self._context(store.get())))
+            settings = store.get()
+            shown = self._setup_shown()
+            key = (
+                (
+                    "wifi",
+                    shown.name,
+                    shown.password,
+                    shown.error,
+                    settings.web_size(glass(settings)),
+                    settings.margin,
+                )
+                if shown is not None
+                else (
+                    modes.state_key(self._context(under_test(settings, status.testing()))),
+                    status.mat_test is not None,
+                )
+            )
+            token = modes.token(key)
             self._send(200, json.dumps({"token": token}).encode(), JSON)
 
         def _species(self):
@@ -470,6 +563,9 @@ def make_handler(
         def _paper(self):
             self._send_cached(paper_png(), "image/png")
 
+        def _title(self):
+            self._send_cached(_title_font(), "font/ttf")
+
         def _health(self):
             self._send(200, b"ok", "text/plain")
 
@@ -480,6 +576,7 @@ def make_handler(
             "/preview.png": _preview_png,
             "/state": _state,
             "/paper.png": _paper,
+            "/title.ttf": _title,
             "/species": _species,
             "/stations": _stations,
             "/admin": _admin,
@@ -488,6 +585,9 @@ def make_handler(
         }
 
         def do_GET(self):
+            if self._on_hotspot():
+                self._portal()
+                return
             route = urlparse(self.path).path
             if route == LOGIN:
                 if self._allowed():
@@ -544,6 +644,9 @@ def make_handler(
             # keep_blank_values: an emptied field is a change, not an absent one.
             # "None" for the second language and a cleared credential both post blank.
             form = parse_qs(body, keep_blank_values=True)
+            if self._on_hotspot():
+                self._portal(form)
+                return
             if route == LOGIN:
                 self._sign_in(form)
                 return
@@ -578,6 +681,12 @@ def make_handler(
                 answer = admin.connection(form, store.get())
                 self._send(200, json.dumps(answer).encode(), JSON)
                 return
+            if route == "/mat-test":
+                edited = merged(store.get(), **admin.form_changes(form))
+                until = time.monotonic() + MAT_TEST_SECONDS
+                status.mat_test = MatTest(edited.margin, edited.glass_margins(), until)
+                self._send(204, b"", "text/plain")
+                return
             if route != "/admin":
                 self._send(404, b"not found", "text/plain")
                 return
@@ -606,6 +715,7 @@ def make_handler(
                 if password is not None and password != store.get().admin_password:
                     changes["session_secret"] = secrets.token_urlsafe(32)
                 store.update(**changes)
+                status.mat_test = None
             self._redirect("/admin")
 
     return Handler
@@ -619,10 +729,13 @@ def serve(
     store: SettingsStore,
     panel: Panel | None = None,
     status: Status | None = None,
+    setup: wifi.Setup | None = None,
 ) -> ThreadingHTTPServer:
     """Start the kiosk on a daemon thread. Port 0 asks the OS for one - read it
     back from `server_address[1]`."""
-    handler = make_handler(source, images_dir, store, panel, status or Status())
+    # Where a phone finds the frame once the setup hotspot has put it on a network.
+    home = f"http://{socket.gethostname()}.local:{port}"
+    handler = make_handler(source, images_dir, store, panel, status or Status(), setup, home)
     httpd = ThreadingHTTPServer((host, port), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd

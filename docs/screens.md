@@ -38,6 +38,8 @@ On a tablet, add the page to the home screen and it opens like an app, with its 
 
 ## On HDMI, Raspberry Pi OS Desktop
 
+When the frame can't connect to a network, the screen shows the [Wi-Fi setup](wifi.md).
+
 The desktop OS already has a browser and a session to run it in:
 
 ```bash
@@ -67,6 +69,33 @@ ssh <user>@<host>.local
 sudo apt install --no-install-recommends chromium cage
 ```
 
+`cage` draws a mouse pointer in the middle of the screen, even with no mouse
+plugged in, and the page can't hide it. A cursor theme whose cursors are a
+single transparent pixel does:
+
+```bash
+sudo mkdir -p /usr/share/icons/invisible/cursors
+sudo python3 - <<'EOF'
+import struct
+# An Xcursor file: a header, one table-of-contents entry and one transparent 1x1 image.
+IMAGE, SIZE = 0xFFFD0002, 1
+header = b"Xcur" + struct.pack("<III", 16, 0x10000, 1)
+toc = struct.pack("<III", IMAGE, SIZE, 28)
+chunk = struct.pack("<IIIIIIIII", 36, IMAGE, SIZE, 1, 1, 1, 0, 0, 0) + struct.pack("<I", 0)
+open("/usr/share/icons/invisible/cursors/default", "wb").write(header + toc + chunk)
+EOF
+for name in left_ptr arrow pointer hand1 hand2 text xterm watch wait progress crosshair grab grabbing; do
+  sudo ln -sf default /usr/share/icons/invisible/cursors/$name
+done
+printf '[Icon Theme]\nName=invisible\n' | sudo tee /usr/share/icons/invisible/index.theme
+mkdir -p ~/.icons/default
+ln -sfn /usr/share/icons/invisible/cursors ~/.icons/default/cursors
+```
+
+The browser picks the theme up through `XCURSOR_THEME` in the service below.
+`cage` loads the theme called `default` no matter what that says, which is
+what the last two lines are for.
+
 Then a service, so it comes up with the Pi. `PAMName` and `TTYPath` are what
 give the browser a login session and a seat on the screen, which is the part
 that is missing on Lite:
@@ -85,7 +114,7 @@ TTYPath=/dev/tty1
 TTYReset=yes
 TTYVHangup=yes
 StandardInput=tty-force
-Environment=XDG_RUNTIME_DIR=/run/user/%U
+Environment=XCURSOR_THEME=invisible
 ExecStart=/usr/bin/cage -- /usr/bin/chromium --kiosk --ozone-platform=wayland --noerrdialogs --disable-infobars http://localhost:8080/
 Restart=always
 RestartSec=5
@@ -173,6 +202,21 @@ already dithered and rotated as necessary.
 Choose your panel size under **External panel size**. **Rotation**, **Margin** and
 **Panel refresh** all apply to it. Until you choose one, it gets the same as the Inky connected to this frame, or a 13.3" page if there is none.
 
+### Buttons
+
+An external panel's buttons work just like the [frame's own](operations.md#buttons), through a form `POST` to `/press`:
+
+```bash
+curl -X POST http://<host>.local:8080/press -d button=A -d password=<admin password>
+```
+
+- `button` - `A`, `B`, `C` or `D` (there is no 5 second hold for the Wi-Fi setup)
+- `password` - only needed if the admin page requires sign-in
+
+Responses: `204` on success, `400` for an unknown button, `401` for a wrong or missing password, `429` after too many attempts, and `404` if **External e-ink panel** is not enabled.
+
+The password is sent unencrypted over plain HTTP. If the frame is reachable from the internet or an unsafe network, serve it over HTTPS [behind a reverse proxy](operations.md#behind-a-reverse-proxy).
+
 ### Inky example code
 
 [`examples/inky/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/inky/main.py)
@@ -180,11 +224,7 @@ is a Python program for a Pi with an Inky Impression, acting as a client of a
 remote Fugleramme. It checks `/frame.png` every 5 seconds and downloads it only
 if it has changed. If the frame can't be reached, the panel keeps showing its
 last page. The panel's buttons trigger the corresponding actions on the remote
-frame via the `/press` endpoint.
-
-If the frame requires sign-in for its admin page, `/press` requires the admin
-password too. It is sent with every press over plain HTTP, so if the frame is
-reachable from the internet, put HTTPS in front of it.
+frame via [`/press`](#buttons).
 
 Tick **External e-ink panel** on the frame's admin page and set **External panel size** to match your panel, then on the Pi with the Inky, one command:
 
@@ -199,64 +239,12 @@ Logs: `journalctl -u fugleramme-client -f`
 Contributed by [MT Lewis](https://github.com/mtlewis). Tested on a 13.3"
 panel with a Pi Zero 2 W.
 
-### EE02 example code
+### Other devices
 
-[`examples/ee02/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee02/main.py)
-is a MicroPython program for the XIAO EE02, which runs from a battery and can
-hang anywhere in Wi-Fi range. It wakes for the interval the page's header
-carries in its **Panel refresh** setting. So a 10 minute setting has it fetch
-every 10 minutes, and it never fetches more often than its own 5 minute floor,
-even when **Panel refresh** is off. It downloads the page only if it has
-changed, and redraws the panel only once the download checks out. If something
-goes wrong, it writes an error message on the panel instead.
-
-1. Install MicroPython on the board (e.g.
-   [for the XIAO EE02](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
-2. Set your Wi-Fi credentials and Fugleramme host in `config.py`. A
-   frame served over HTTPS on port 443 is fetched over TLS.
-3. Upload `main.py`, `boot.py` and `config.py` to the board (e.g. with
-   [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html))
-
-`boot.py` runs on every boot before `main.py`. It is what lets the panel
-update its own program: set `FIRMWARE` in `config.py` to a URL serving the
-panel's latest program (as plain file, no sign-in or redirect), and the panel
-checks it on its wakes. A new program is staged, and after a restart it gets
-one trial wake; if the panel reaches the frame cleanly on it, the update is
-kept, otherwise the board goes back to the program it had before.
-Leave `FIRMWARE` at `None` and nothing is downloaded.
-
-Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on
-a 13.3" panel with a XIAO EE02.
-
-### EE04 example code
-
-[`examples/ee04/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee04/main.py)
-is a MicroPython program for the XIAO EE04 with the 7.3" panel. It fetches,
-sleeps and writes its error messages on the panel like the EE02 program, but
-it has no `boot.py` and does not update itself.
-
-1. Tick **External e-ink panel** on the frame's admin page and set
-   **External panel size** to 7.3".
-2. With the board unplugged, move its jumper cap to cover **50 PIN** and
-   **GND**, then connect the panel's ribbon and the antenna that comes with
-   the XIAO. Without the antenna, the board barely picks up a network.
-3. Install MicroPython on the board (e.g.
-   [for the XIAO EE04](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
-4. Set your Wi-Fi credentials and Fugleramme host in `config.py`. A
-   frame served over HTTPS on port 443 is fetched over TLS.
-5. Upload `main.py` and `config.py` to the board (e.g. with
-   [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html)).
-   The board sleeps between wakes, and its USB port is only there while it is
-   awake: start the upload, then press **RESET**.
-
-Contributed by [Travis Cole](https://github.com/tcole333), adapted from the
-EE02 program. Tested on a 7.3" panel with a XIAO EE04.
-
-Much of each program is generic and reusable, but the connection to the panel
-and the controller board is specific. Running another panel or board? A
-program for it, and the packing it needs, would make a welcome contribution -
-see
-[Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
+Programs for other devices, like a battery-powered XIAO EE02 or EE04 driving an
+e-ink panel, live in [fugleramme/clients](https://github.com/fugleramme/clients).
+They are made and maintained by the community, each with its own install
+instructions. Got Fugleramme running on something new? Add your program there!
 
 ### E6 file format
 

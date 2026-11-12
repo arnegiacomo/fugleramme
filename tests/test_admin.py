@@ -1,14 +1,14 @@
 """Admin page invariants. The markup, the style and the script are files of
-their own now, so only a render proves that the template's slots, the page's
-asset links and the values admin.js reads still line up."""
+their own, so only a render proves that the templates, the page's asset links
+and the values the script reads still line up."""
 
 from __future__ import annotations
 
-import html
 import json
 import re
 
 import pytest
+from markupsafe import escape
 from PIL import features
 
 from fugleramme import fake, languages, modes
@@ -34,9 +34,16 @@ def _page(
         namer("sci", "", tmp_path),
         settings.web_size(PANEL if detected else None),
     )
-    return admin.page(
+    page = admin.page(
         ctx, settings, Status(), PANEL, detected, names_dir or tmp_path, refused, stations
     )
+    return _joined(page)
+
+
+def _joined(html: str) -> str:
+    """Markup with the templates' line breaks between tags taken out, so a test
+    can read a row as one line. A space between tags stays: it is rendered."""
+    return re.sub(r">\s*\n\s*<", "><", html)
 
 
 def _config(page: str) -> dict:
@@ -48,19 +55,18 @@ def _config(page: str) -> dict:
 def test_the_page_renders_before_anything_has_written_to_the_data_dir(tmp_path, source):
     # A fresh checkout has no detector/data: nothing has saved settings or
     # a dictionary yet, and the admin is where the frame is first reached (#43).
-    assert "$" not in _page(tmp_path, source(), names_dir=tmp_path / "data")
+    assert "</html>" in _page(tmp_path, source(), names_dir=tmp_path / "data")
 
 
 @pytest.mark.parametrize("mode", list(modes.MODES))
-def test_every_slot_in_the_template_is_filled(tmp_path, source, mode):
-    # substitute raises on a slot with no value; a leftover $ is the other way round.
-    assert "$" not in _page(tmp_path, source(), mode=mode)
+def test_the_page_renders_in_every_mode(tmp_path, source, mode):
+    """The templates render under StrictUndefined, so a value one names and the
+    page does not pass fails the render rather than leaving a blank."""
+    assert "</html>" in _page(tmp_path, source(), mode=mode)
 
 
-def test_the_page_still_fills_every_slot_with_the_detector_gone(tmp_path, source):
-    page = _page(tmp_path, source(down=True))
-    assert "$" not in page
-    assert "detector unreachable" in page
+def test_the_page_renders_with_the_detector_gone(tmp_path, source):
+    assert "detector unreachable" in _page(tmp_path, source(down=True))
 
 
 def test_the_detector_tab_counts_every_bird_heard_without_art(tmp_path, source):
@@ -72,14 +78,28 @@ def test_the_detector_tab_counts_every_bird_heard_without_art(tmp_path, source):
 
 def test_every_asset_the_page_links_is_one_the_server_serves(tmp_path, source):
     linked = set(re.findall(r'(?:href|src)="(/[^"?]*)', _page(tmp_path, source())))
-    assert linked == {"/", "/admin.css", "/admin.js", "/favicon.png"}
+    assert linked == {"/", "/admin.css", "/admin/main.js", "/favicon.png"}
     assert linked <= set(server.FILES)
 
 
-def test_the_config_blob_carries_everything_admin_js_reads(tmp_path, source):
+SCRIPTS = sorted((STATIC_DIR / "admin").glob("*.js"))
+
+
+def test_every_module_the_script_imports_is_one_the_server_serves():
+    imported = {
+        f"/admin/{name}"
+        for script in SCRIPTS
+        for name in re.findall(r'from "\./([\w.]+)"|import "\./([\w.]+)"', script.read_text())
+        for name in name
+        if name
+    }
+    assert imported and imported <= set(server.FILES)
+
+
+def test_the_config_blob_carries_everything_the_script_reads(tmp_path, source):
     """The script is static, so this blob is its only channel from the frame."""
     blob = _config(_page(tmp_path, source()))
-    used = set(re.findall(r"\bcfg\.(\w+)", (STATIC_DIR / "admin.js").read_text()))
+    used = {name for script in SCRIPTS for name in re.findall(r"\bcfg\.(\w+)", script.read_text())}
     assert used and used <= set(blob)
 
 
@@ -101,16 +121,24 @@ def test_a_bird_without_art_is_a_line_the_issue_form_takes():
 
 
 def test_the_issue_carries_the_list_while_github_takes_it():
-    short = admin.missing_row([("Sturnus unicolor", 1204)])
-    assert short.startswith("1 bird <button") and "species=Sturnus+unicolor" in short
+    assert "species=Sturnus+unicolor" in admin.issue_url([("Sturnus unicolor", 1204)])
+    assert "species=" not in admin.issue_url([(f"Sturnus unicolor{i}", 1204) for i in range(300)])
 
-    long = admin.missing_row([(f"Sturnus unicolor{i}", 1204) for i in range(300)])
-    assert "species=" not in long
-    assert long.count(" detections") == 300  # Copy always has the whole list
+
+def test_the_without_art_row_counts_the_birds_and_copies_the_whole_list():
+    rows = [(f"Sturnus unicolor{i}", 1204) for i in range(300)]
+    tab = _detector_tab(without=rows)
+    assert '<dd class="missing">300 birds <button' in tab
+    assert tab.count(" detections") == 300  # past what GitHub takes, Copy still has them all
+    assert '<dd class="missing">1 bird <button' in _detector_tab(without=rows[:1])
 
 
 def test_a_station_with_art_for_every_bird_says_so():
-    assert admin.missing_row([]) == "none"
+    assert '<dd class="missing">none</dd>' in _detector_tab(without=[])
+
+
+def _detector_tab(without: list[tuple[str, int]]) -> str:
+    return _joined(admin.detector_tab(Settings(), "", "", None, without))
 
 
 def test_a_plate_with_a_citation_links_to_it(tmp_path):
@@ -127,46 +155,49 @@ def test_every_species_name_carries_its_scientific_name_for_the_birdnet_link(tmp
     assert 'data-species="Corvus cornix"' in html
 
 
-def test_the_update_row_offers_the_install_only_once_a_release_is_known():
+def test_the_update_row_offers_the_install_only_once_a_release_is_known(tmp_path):
+    def row(status: Status) -> str:
+        tab = admin.system_tab(Settings(), status, PANEL, True, tmp_path)
+        return re.search(r'<dd class="update">(.*?)</dd>', tab, re.DOTALL).group(1)
+
     status = Status()
-    assert "Check" in admin._update(status)
+    assert "Check" in row(status)
 
     status.update_available = "v9.9.9"
-    assert "Install" in admin._update(status)
+    assert "Install" in row(status)
 
     status.update_available, status.updating = None, True
-    assert "<progress" in admin._update(status)  # no button while it installs
+    assert "<progress" in row(status)  # no button while it installs
 
 
 def test_the_detector_row_carries_the_version_it_reports():
     """The version has to survive a detector that answers without one."""
-    assert "20260823" in admin._detector("ok", "20260823", True)
-    assert admin._detector("ok", "", True) == admin._state(True, "running", "unreachable")
-    assert "unreachable" in admin._detector("down", "", False)
+    assert admin._detector("ok", "20260823", True) == ("ok", "running · 20260823")
+    assert admin._detector("ok", "", True) == ("ok", "running")
+    assert admin._detector("down", "", False) == ("bad", "unreachable")
 
 
 def test_the_detector_row_says_a_password_is_wanted_rather_than_unreachable():
     # PrivateMode with no password: /health is gated, and the page read nothing.
-    row = admin._detector("auth", "", False)
-    assert row == '<span class="bad">running · needs a password</span>'
+    assert admin._detector("auth", "", False) == ("bad", "running · needs a password")
 
     # Only the settings gated: /health answers, and the locale list is what did not.
     row = admin._detector("ok", "20260823", True, NEEDS_PASSWORD)
-    assert row == '<span class="warn">running · 20260823 · needs a password</span>'
-    assert "needs a password" not in admin._detector("ok", "20260823", True)
+    assert row == ("warn", "running · 20260823 · needs a password")
+    assert "needs a password" not in admin._detector("ok", "20260823", True)[1]
 
 
 def test_a_working_password_is_not_reported_as_a_missing_one():
     """/health is asked without credentials, so PrivateMode answers 401 to every
     frame alike - the ones holding a working password included."""
-    assert admin._detector("auth", "", True) == '<span class="ok">running</span>'
+    assert admin._detector("auth", "", True) == ("ok", "running")
 
 
 def test_the_detector_password_says_what_it_is_for(tmp_path, source):
     """It is BirdNET-Go's Basic Authentication password, not the admin's own."""
     page = _page(tmp_path, source())
     assert "Password <small>(basic authentication)</small>" in page
-    access = re.search(r'<form class="block access".*?</form>', page, re.DOTALL).group(0)
+    access = _form(page, "card block access")
     assert "basic authentication" not in access  # the admin's own password is nothing of the sort
 
 
@@ -241,9 +272,9 @@ def test_the_access_switches_are_declared_so_unticking_one_is_a_change(tmp_path,
     """An unticked box posts nothing at all, so the form has to name its own
     boxes - undeclared, turning a switch off would read as leaving it alone."""
     page = _page(tmp_path, source(), **{field: True})
-    form = re.search(r'<form class="block access".*?</form>', page, re.DOTALL).group(0)
+    form = _form(page, "card block access")
     assert f'name="{field}" checked' in form
-    declared = re.search(rf'name="{admin.CHECKBOXES}" value="([^"]*)"', form).group(1)
+    (declared,) = _declared(form)
     assert field in declared.split()
     assert admin.form_changes({admin.CHECKBOXES: [declared]})[field] is False
 
@@ -263,7 +294,7 @@ def test_the_collage_fields_render_and_a_plate_mode_save_leaves_the_layout_alone
     page = _page(tmp_path, source())
     assert f'name="margin" min="0" max="{MARGIN_CEILING}"' in page and 'name="layout"' in page
 
-    # admin.js disables the collage-only fields outside the collage mode, so a
+    # settings.js disables the collage-only fields outside the collage mode, so a
     # plate-mode post carries no layout - and a field that is absent keeps its value.
     store = SettingsStore(tmp_path / "s.json")
     store.update(layout="voids", spotlight=True)
@@ -284,6 +315,10 @@ def _declared(html: str) -> list[str]:
     return re.findall(rf'name="{admin.CHECKBOXES}" value="([^"]*)"', html)
 
 
+def _form(page: str, classes: str) -> str:
+    return re.search(rf'<form class="{classes}".*?</form>', page, re.DOTALL).group(0)
+
+
 def test_the_resolution_names_the_size_the_kiosk_renders_locked_or_not(tmp_path, source):
     locked = _page(tmp_path, source(), web_resolution="4K", web_aspect="16:9")
     unlocked = _page(tmp_path, source(), web_resolution="4K", web_aspect="16:9", web_lock=False)
@@ -294,7 +329,7 @@ def test_the_resolution_names_the_size_the_kiosk_renders_locked_or_not(tmp_path,
 
 def test_the_kiosk_shape_switches_are_declared_so_unticking_one_is_a_change(tmp_path, source):
     page = _page(tmp_path, source(), web_lock=True, web_portrait=True)
-    form = re.search(r'<form class="settings".*?</form>', page, re.DOTALL).group(0)
+    form = _form(page, "settings")
     assert 'name="web_lock" checked' in form and 'name="web_portrait" checked' in form
     declared = _declared(form)
     changes = admin.form_changes({admin.CHECKBOXES: declared})
@@ -302,7 +337,7 @@ def test_the_kiosk_shape_switches_are_declared_so_unticking_one_is_a_change(tmp_
 
 
 def test_a_dimmed_portrait_box_keeps_its_saved_value(tmp_path):
-    """Locked, admin.js disables the shape block, its declaration included, so
+    """Locked, settings.js disables the shape block, its declaration included, so
     the portrait box posts nothing and is not read as unticked."""
     store = SettingsStore(tmp_path / "s.json")
     store.update(web_lock=False, web_portrait=True)
@@ -312,12 +347,12 @@ def test_a_dimmed_portrait_box_keeps_its_saved_value(tmp_path):
 
 
 def test_with_no_panel_the_lock_is_disabled_declaration_and_all(tmp_path, source):
-    """admin.js enables it once the external panel is ticked; until then a save
+    """settings.js enables it once the external panel is ticked; until then a save
     leaves the stored lock alone."""
     page = _page(tmp_path, source(), detected=False, web_lock=True)
     assert '<input type="checkbox" name="web_lock" checked disabled>' in page
     assert f'name="{admin.CHECKBOXES}" value="web_lock" disabled>' in page
-    assert f'aria-label="{html.escape(admin.LOCK_OFF, quote=True)}"' in page
+    assert "Only available with an Inky Impression panel connected" in page
     assert "no panel detected" not in page
     assert _config(page)["detected"] is False  # the preview box takes the web view's shape
     assert _config(page)["webHeights"]["4K"] == 2160  # the Resolution labels follow the form
@@ -331,14 +366,10 @@ def test_the_panel_has_a_title_over_its_outputs(tmp_path, source):
 
 
 def test_the_external_panel_size_is_offered_while_the_external_panel_is_ticked(tmp_path, source):
-    offered = (
-        '<label class="sub" id="panel-size"><small>External panel size '
-        f"{admin._hint(admin.PANEL_SIZE)}</small>"
-        '<select name="external_panel_size">'
-    )
+    offered = '<label class="sub" id="panel-size"><small>External panel size <span class="hint"'
     page = _page(tmp_path, source(), detected=False, external_panel=True, external_panel_size="5.7")
     assert offered in page
-    assert '<option value="5.7" selected>5.7" (600×448)</option>' in page
+    assert '<option value="5.7" selected>5.7&#34; (600×448)</option>' in page
     assert _config(page)["panelSizes"]["13.3"] == [1600, 1200]  # the preview follows the pick
     assert offered in _page(tmp_path, source(), detected=True, external_panel=True)
     page = _page(tmp_path, source(), external_panel=False)
@@ -348,14 +379,14 @@ def test_the_external_panel_size_is_offered_while_the_external_panel_is_ticked(t
 
 
 def test_following_the_inky_is_offered_only_while_there_is_one(tmp_path, source):
-    same = '<option value="" selected>Same as this frame\'s Inky</option>'
+    same = '<option value="" selected>Same as this frame&#39;s Inky</option>'
     assert same in _page(tmp_path, source(), detected=True, external_panel=True)
     page = _page(tmp_path, source(), detected=False, external_panel=True)
     assert 'value=""' not in page.split('id="panel-size"')[1].split("</select>")[0]
     assert '<option value="13.3" selected>' in page  # nothing picked, no Inky: the 13.3"
 
 
-def test_every_tab_has_the_pane_admin_js_shows(tmp_path, source):
+def test_every_tab_has_the_pane_it_shows(tmp_path, source):
     page = _page(tmp_path, source())
     for tab in re.findall(r'data-tab="([^"]+)"', page):
         assert f'id="tab-{tab}"' in page
@@ -368,7 +399,7 @@ def test_the_margin_offers_each_edge_while_there_is_a_panel(tmp_path, source):
     assert 'name="margin_top" min="0" max="25" step="1" value="12"' in page
     assert 'name="margin_left" min="0" max="25" step="1" value="6"' in page
     assert '<div id="margin-edges">' in page
-    # Rendered all the same, for admin.js to offer once the external panel is ticked.
+    # Rendered all the same, for settings.js to offer once the external panel is ticked.
     bare = _page(tmp_path, source(), detected=False, **unlocked)
     assert (
         '<div id="margin-uniform" class="off">' in bare and '<div id="margin-edges" hidden>' in bare
@@ -441,14 +472,15 @@ def test_the_connection_test_answers_in_the_status_row_s_words_too(detector):
     and the page renders the same words on load."""
     url, httpd = detector(password="hunter2")
     settings = Settings(detector_url=url, detector_password="hunter2")
-    assert admin.connection({}, settings)["status"] == admin._state(True, "running", "unreachable")
+    assert admin.connection({}, settings)["status"] == '<span class="ok">running</span>'
 
     bad = admin.connection({"detector_password": ["wrong"]}, settings)
     assert bad["status"] == f'<span class="bad">running · {NEEDS_PASSWORD}</span>'
     # PrivateMode gates /health too, so a page that read nothing reaches the same
     # answer - with no version, since that is what /health would have carried.
     assert admin._detector(*admin.hostinfo.detector(url), False) == (
-        f'<span class="bad">running · {NEEDS_PASSWORD}</span>'
+        "bad",
+        f"running · {NEEDS_PASSWORD}",
     )
 
     httpd.shutdown()
@@ -557,7 +589,7 @@ def test_the_typeface_warns_of_a_language_it_leaves_to_a_fallback(
     page = _page(tmp_path, source(), **overrides)
     warning = re.search(r'<span class="hint caution" id="face-note"[^>]*>', page).group()
     assert (" hidden" in warning) is not bool(note)
-    assert f'aria-label="{html.escape(note)}"' in warning
+    assert f'aria-label="{escape(note)}"' in warning
 
 
 def test_the_typeface_warning_is_a_triangle_not_the_info_badge(tmp_path, source):
@@ -691,7 +723,7 @@ def test_the_detector_tab_names_the_station_and_what_it_last_heard(tmp_path, sta
 
 
 def _detector_form(page: str) -> str:
-    return re.search(r'<form class="block detector".*?</form>', page, re.DOTALL).group(0)
+    return _form(page, "card block detector")
 
 
 def test_a_station_shows_its_own_field_and_keeps_birdnet_go_s(tmp_path, station):
@@ -699,7 +731,10 @@ def test_a_station_shows_its_own_field_and_keeps_birdnet_go_s(tmp_path, station)
     form = _detector_form(_page(tmp_path, source, detector_kind=BIRDWEATHER, detector_station=url))
 
     assert '<input type="radio" name="detector_kind" value="birdweather" checked>' in form
-    assert f"{admin._logo(BIRDWEATHER)}BirdWeather station(s)</label>" in form
+    assert (
+        '<img class="logo" data-kind="birdweather" alt="" referrerpolicy="no-referrer" hidden>BirdWeather station(s)</label>'
+        in form
+    )
     assert '<div class="field stations" data-kind="birdweather" data-most="5">' in form
     assert "<span>Stations <small>(ID or address)</small></span>" in form
     assert f'<input type="text" name="detector_station" value="{url}">' in form  # an ID is no URL
@@ -710,7 +745,10 @@ def test_a_station_shows_its_own_field_and_keeps_birdnet_go_s(tmp_path, station)
         f' value="{DEFAULT_DETECTOR_URL}">'
     ) in form
     assert '<label data-kind="birdnet-go" hidden><span>Password' in form
-    assert '<input disabled type="password" name="detector_password"' in form
+    assert (
+        '<input disabled autocomplete="new-password" type="password" name="detector_password"'
+        in form
+    )
 
 
 def test_birdnet_go_s_detector_form_asks_for_a_url_and_a_password(tmp_path, source):
@@ -718,7 +756,10 @@ def test_birdnet_go_s_detector_form_asks_for_a_url_and_a_password(tmp_path, sour
     form = _detector_form(page)
 
     assert '<input type="radio" name="detector_kind" value="birdnet-go" checked>' in form
-    assert f"{admin._logo(BIRDNET_GO)}BirdNET-Go</label>" in form
+    assert (
+        '<img class="logo" data-kind="birdnet-go" alt="" referrerpolicy="no-referrer" hidden>BirdNET-Go</label>'
+        in form
+    )
     assert '<label data-kind="birdnet-go"><span>Address' in form
     # Text, or the browser would refuse an address typed without http://.
     assert '<input inputmode="url" type="text" name="detector_url"' in form
@@ -750,7 +791,7 @@ def test_a_refused_save_says_it_was_not_saved(tmp_path, source):
     page = _page(tmp_path, source(), refused=BIRDNET_GO)
     assert "Not saved. That is a BirdWeather station. Choose BirdWeather" in page
     page = _page(tmp_path, source(), refused=BIRDWEATHER, stations="31086, nest box")
-    assert "Not saved. &quot;nest box&quot; is not a BirdWeather station." in page
+    assert "Not saved. &#34;nest box&#34; is not a BirdWeather station." in page
     assert "https://app.birdweather.com/stations/&lt;ID&gt;" in page
     page = _page(tmp_path, source(), refused=BIRDWEATHER, stations="1, 2, 3, 4, 5, 6")
     assert "Not saved. The frame reads at most 5 stations." in page
@@ -923,3 +964,24 @@ def test_a_station_on_birdweather_is_shown_by_its_id(tmp_path, source):
     form = _detector_form(_page(tmp_path, source(), detector_station=stations))
     assert 'name="detector_station" value="31086"' in form
     assert 'name="detector_station" value="http://127.0.0.1:8090/stations/1"' in form
+
+
+def test_the_wifi_setup_is_offered_only_on_the_pis_own_service(tmp_path, monkeypatch):
+    from fugleramme import updates, wifi
+
+    def field(settings: Settings, status: Status) -> str:
+        tab = admin.system_tab(settings, status, PANEL, True, tmp_path)
+        return tab.split("<h2>Wi-Fi setup</h2>")[1].split("<h2>")[0] if "Wi-Fi" in tab else ""
+
+    monkeypatch.setattr(updates, "can_reboot", lambda: False)
+    assert field(Settings(), Status()) == ""
+
+    monkeypatch.setattr(updates, "can_reboot", lambda: True)
+    refused = field(Settings(), Status(wifi=wifi.State(problem="sudo refuses nmcli")))
+    assert admin.INSTALL_COMMAND in refused
+    assert "disabled" in refused
+
+    ready = Status(wifi=wifi.State(available=True, up=True, name="Fugleramme-A215"))
+    offered = field(Settings(hotspot_password="birdsbirds"), ready)
+    assert 'name="hotspot_password" value="birdsbirds"' in offered
+    assert "Join Fugleramme-A215 to use it" in offered

@@ -34,6 +34,8 @@ How much space between whats rendered and the edges, as a percentage of the shor
 
 The single-bird modes have a wide border, so only 8% or above affects them.
 
+While you set the margins, the panel and the web view show them in black until you save (or for 5 minutes), so you can line up your passepartout.
+
 ### Uniform (panel only)
 
 One margin to rule them all, or one per edge. Default is **on**. Turn it off if the passepartout's window is not centred on the panel (Inky impressions are not fully centered in an A4 picture frame). Without a panel there are no edges to set, and therefore the option is disabled.

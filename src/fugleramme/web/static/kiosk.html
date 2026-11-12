@@ -28,6 +28,19 @@
   @keyframes in { from { opacity: 0; } }
   p { font: 1rem/1.5 system-ui, sans-serif; color: #8a8880; text-align: center; }
   p a { color: inherit; }
+  /* A video player's chrome: shown by a tap or a moving mouse, so the page at rest is only the picture. */
+  #controls {
+    position: fixed; inset: 0 0 auto; height: 6rem; display: flex; justify-content: flex-end; align-items: flex-start;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) calc(8px + env(safe-area-inset-right, 0px)) 0 0;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .awake #controls, #controls:focus-within { opacity: 1; }
+  .awake #settings { pointer-events: auto; }
+  html:not(.awake) { cursor: none; }
+  #settings { display: grid; place-items: center; width: 44px; height: 44px; color: #5c5a54; filter: drop-shadow(0 0 3px #f2ede2); }
+  #settings svg { width: 26px; height: 26px; }
+  #settings:focus-visible { outline: 2px solid #5c5a54; border-radius: 50%; }
+  @media (prefers-reduced-motion: reduce) { #controls { transition: none; } }
 </style>
 </head>
 <body>
@@ -35,6 +48,12 @@
 <img id="collage" src="/collage.png" alt="Birds seen recently" hidden>
 <p id="waiting" hidden>Waiting for BirdNET-Go<br><a href="/admin">Configure it in the admin panel</a></p>
 <div id="over"></div>
+<div id="controls">
+  <a id="settings" href="/admin" aria-label="Settings" title="Settings">
+    <!-- Lucide's "settings" icon (ISC licence) -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+  </a>
+</div>
 <noscript><p>Fugleramme needs JavaScript to run in a browser.</p></noscript>
 <script>
   const DELAY = 5000;  // /state is one query, no render
@@ -76,6 +95,20 @@
     next.onanimationend = () => { collage.src = next.src; collage.decode().finally(() => next.remove()); };
     over.append(next);
   };
+  const root = document.documentElement;
+  let fade;
+  const sleep = () => { clearTimeout(fade); root.classList.remove("awake"); };
+  const wake = () => {
+    root.classList.add("awake");
+    clearTimeout(fade);
+    fade = setTimeout(sleep, 3000);
+  };
+  // A mouse wakes the controls while it moves; a tap toggles them, as in a photo viewer.
+  addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") wake(); });
+  addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" || !root.classList.contains("awake")) return wake();
+    if (!e.target.closest("#settings")) sleep();
+  });
   let token = null;
   async function tick() {
     try {

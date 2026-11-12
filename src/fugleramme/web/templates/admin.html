@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "macros.html" import fix %}
+{% import "rows.html" as rows %}
+{% block body %}
+<header>
+  <h1>Fugleramme</h1>
+  <button type="button" id="menu" aria-label="Menu" aria-expanded="false" aria-controls="links">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <nav id="links">
+    <a href="/">Kiosk</a>
+    {#- Several stations have no page between them, so the link opens a list of them. #}
+    {% if not nav_stations %}
+    <a id="birdnet" href="#" title="detection &amp; stats">{{ detector_name }}</a>
+    {%- else %}
+    <button type="button" class="link" popovertarget="stations" title="detection &amp; stats">{{ detector_name }}</button>
+    <div id="stations" popover>{% for page, name in nav_stations %}<a href="{{ page }}">{{ name }}</a>{% endfor %}</div>
+    {%- endif %}
+    <a href="{{ DOCS_URL }}" target="_blank" rel="noopener">Docs</a>
+    {#- Only offered where there is a session to end. #}
+    {% if settings.admin_locked %}
+    <form class="inline signout" method="post" action="{{ LOGOUT }}"><button type="submit">Sign out</button></form>
+    {%- endif %}
+  </nav>
+</header>
+<nav class="tabs" role="tablist">
+  {% for key, label in [("display", "Display"), ("frame", "Frame"), ("detector", "Detector"), ("security", "Security"), ("system", "System")] %}
+  <button type="button" role="tab" id="{{ key }}-tab" aria-controls="tab-{{ key }}" data-tab="{{ key }}">{{ label }}</button>
+  {% endfor %}
+</nav>
+{# Display and Frame are two tabs over one form, so one preview serves both. #}
+<section id="settings" class="cols">
+  <form class="settings" method="post" action="/admin">
+    {{ display }}
+    {{ frame }}
+  </form>
+  <aside class="side">
+    <div class="preview loading" id="preview">
+      <p class="rendering"><span class="spinner"></span> Rendering…</p>
+      <img id="shot" alt="Current page">
+      <div class="mat" id="mat" hidden></div>
+      <span class="tag">Preview</span>
+    </div>
+    <div class="card info">
+      <h2>On the page (<span id="count">{{ species|length if species is not none else 0 }}</span>)</h2>
+      <ul class="species" id="species">
+        {%- if species is none %}<li class="problem">{{ fix(outage) }}</li>{% else %}{{ rows.species(species) }}{% endif -%}
+      </ul>
+    </div>
+    <button type="button" class="thumb" id="thumb" aria-label="Show the preview" hidden><img alt=""></button>
+    <dialog class="full" id="full" aria-label="Preview"><img alt="Preview"></dialog>
+  </aside>
+</section>
+{{ detector }}
+{{ security }}
+{{ system }}
+<footer>
+  <a href="{{ RELEASE_URL }}" target="_blank" rel="noopener">v{{ version }}</a>
+  <a href="https://github.com/arnegiacomo/fugleramme" target="_blank" rel="noopener">Source</a>
+  <a href="{{ BUG_URL }}" target="_blank" rel="noopener">Report a bug</a>
+  <a href="https://github.com/sponsors/arnegiacomo" target="_blank" rel="noopener">Sponsor</a>
+</footer>
+<div class="savebar" id="savebar" hidden>
+  <span class="said" role="status">Unsaved changes</span>
+  <button type="button" id="discard">Discard</button>
+  <button type="button" id="save">Save</button>
+</div>
+<script id="config" type="application/json">{{ config|tojson }}</script>
+<script type="module" src="/admin/main.js?v={{ version }}"></script>
+{% endblock %}

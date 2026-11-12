@@ -20,15 +20,16 @@ import threading
 import time
 from dataclasses import replace
 
-from . import __version__, buttons, languages, modes, taxa, updates
+from . import __version__, buttons, languages, modes, taxa, updates, wifi
 from .api import Configured
 from .config import Config
 from .languages import namer
-from .panel import external_resolution, init_panel, resolution_of
-from .render.dither import dither
+from .panel import Panel, external_resolution, init_panel, resolution_of
+from .render.dither import BLACK, dither, monochrome
+from .render.page import banded
 from .settings import Settings, SettingsStore, from_env
 from .source import Unavailable
-from .status import Status
+from .status import Frame, MatTest, Status, under_test
 from .web.server import serve
 
 log = logging.getLogger(__name__)
@@ -87,6 +88,50 @@ def _update(status: Status, auto: bool) -> bool:
         return False
 
 
+def _wifi_setup(port: int, store: SettingsStore, status: Status) -> wifi.Setup | None:
+    """The Wi-Fi setup's thread, on the Pi's own service alone: only that service may touch
+    the network, as with the reboot. It runs with no screen at all, since a phone lists the
+    hotspot by name."""
+    if not updates.can_reboot():
+        return None
+
+    def publish(state: wifi.State) -> None:
+        status.wifi = state
+
+    setup = wifi.Setup(
+        wifi.Nmcli(port),
+        enabled=lambda: store.get().wifi_setup,
+        password=lambda: store.get().hotspot_password,
+        publish=publish,
+    )
+    threading.Thread(target=setup.run, daemon=True).start()
+    return setup
+
+
+def _setup_key(state: wifi.State, settings: Settings, size: tuple[int, int]) -> tuple:
+    """What the setup screen is a function of."""
+    margins = settings.margins(True)
+    return ("wifi", state.name, state.password, state.error, size, margins, settings.rotation)
+
+
+def _setup_screen(state: wifi.State, settings: Settings, size: tuple[int, int]) -> Frame:
+    """The setup screen for the panel."""
+    return monochrome(modes.setup_screen(state, settings, size, True)), settings.rotation
+
+
+def _push(panel: Panel, frame: Frame, status: Status) -> bool:
+    """Whether the frame reached the glass. A failure is retried next tick from the same image
+    rather than re-rendered."""
+    try:
+        panel.push(*frame)
+    except Exception as exc:
+        log.exception("Panel push failed")
+        status.push_error = str(exc) or type(exc).__name__
+        return False
+    status.push_error = None
+    return True
+
+
 def _both_names(ctx: modes.Context, scientific: str) -> str:
     """`Common (Scientific)`, so a missing plate reads from the journal without a
     lookup. The admin's language, falling back to the label's English."""
@@ -111,8 +156,8 @@ def _log_artless(ctx: modes.Context, last: list[str] | None) -> list[str]:
 
 
 def run(config: Config) -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    # Ours only: PIL's debug level is a line per PNG chunk.
+    logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(levelname)s %(message)s")
+    # Ours only: PIL's debug level is a line per PNG chunk, fontTools' info a line per subset step.
     logging.getLogger("fugleramme").setLevel(os.environ.get("FUGLERAMME_LOG_LEVEL", "INFO"))
     # `kill -USR1 <pid>` dumps every thread's stack to the journal - for when it wedges.
     faulthandler.register(signal.SIGUSR1, all_threads=True)
@@ -125,6 +170,7 @@ def run(config: Config) -> None:
     (config.config_path.parent / "artwork.json").unlink(missing_ok=True)
     status = Status()
 
+    setup = _wifi_setup(config.port, store, status)
     server = serve(
         source,
         config.images_dir,
@@ -133,6 +179,7 @@ def run(config: Config) -> None:
         store,
         panel,
         status,
+        setup,
     )
 
     def _shutdown(signum: int, frame: object) -> None:
@@ -147,7 +194,7 @@ def run(config: Config) -> None:
     if panel is not None:  # the buttons are on the panel board
         threading.Thread(
             target=buttons.watch,
-            args=(panel.driver, store, config.images_dir),
+            args=(panel.driver, store, config.images_dir, setup.toggle if setup else None),
             daemon=True,
         ).start()
     log.info("Serving kiosk on http://%s:%s", config.host, config.port)
@@ -155,7 +202,7 @@ def run(config: Config) -> None:
     log.info("Reading detections from %s", source.base_url)
 
     last_key: tuple | None = None
-    last_settings: Settings | None = None
+    last_settings: tuple[Settings, MatTest | None] | None = None
     last_render: float | None = None
     last_artless: list[str] | None = None
     pending = None  # rendered but not yet on the glass; survives a failed push
@@ -166,6 +213,19 @@ def run(config: Config) -> None:
         if _update(status, settings.auto_update):
             return  # new code is checked out; systemd restarts us into it
         size = settings.oriented(resolution_of(panel, settings.external_panel_size))
+        hotspot = status.wifi
+        if panel is not None and hotspot is not None and hotspot.up:
+            # The setup screen stands in for the birds while the hotspot is up, and they come
+            # back the moment it goes, whatever the refresh floor says.
+            key = _setup_key(hotspot, settings, size)
+            if key != last_key:
+                log.info("Showing the Wi-Fi setup screen at %dx%d", *size)
+                pending = _setup_screen(hotspot, settings, size)
+                last_key, last_render = key, None
+            if pending is not None and _push(panel, pending, status):
+                pending = None
+            time.sleep(_POLL_SECONDS)
+            continue
         # The external panel's own page, rendered apart only when this frame's Inky
         # is another size.
         outside = (
@@ -173,13 +233,14 @@ def run(config: Config) -> None:
             if settings.external_panel
             else size
         )
+        test = status.testing() if panel is not None else None  # the kiosk shows its own
         name_of = namer(
             settings.primary_language, settings.secondary_language, config.config_path.parent
         )
         ctx = modes.context(
             source,
             config.images_dir,
-            settings,
+            under_test(settings, test),
             name_of,
             size,
             textured=False,
@@ -187,11 +248,19 @@ def run(config: Config) -> None:
         )
         try:
             last_artless = _log_artless(ctx, last_artless)
-            key = (modes.state_key(ctx), outside, settings.rotation)
-            # The floor paces the birds alone; a saved setting goes straight through.
-            if key != last_key and (
-                _paced(settings) != last_settings or _due(settings.refresh_minutes, last_render)
-            ):
+            key = (modes.state_key(ctx), outside, settings.rotation, test is not None)
+            # The floor paces the birds alone; a saved setting, or a test starting or
+            # ending, goes straight through.
+            paced = (_paced(settings), test)
+            due = key != last_key and (
+                paced != last_settings or _due(settings.refresh_minutes, last_render)
+            )
+            if due and test is not None:
+                # The glass's alone: /frame.e6 and /frame.png keep the page.
+                pending = (banded(dither(modes.render(ctx)), ctx.margin, BLACK), settings.rotation)
+                log.info("Showing a margin test on the panel at %dx%d", *size)
+                last_key, last_settings = key, paced
+            elif due:
                 panel_image = dither(modes.render(ctx))
                 panel_image.save(config.output_path)
                 log.info("Rendered %s for the panel at %dx%d", ctx.mode, *size)
@@ -201,7 +270,7 @@ def run(config: Config) -> None:
                     external = (dither(modes.render(replace(ctx, resolution=outside))), frame[1])
                     log.info("Rendered %s for the external panel at %dx%d", ctx.mode, *outside)
                 status.rendered(external)
-                last_key, last_settings, last_render = key, _paced(settings), time.monotonic()
+                last_key, last_settings, last_render = key, paced, time.monotonic()
                 pending = frame if panel is not None else None
             if unreachable:
                 log.info("Detector reachable again")
@@ -228,13 +297,6 @@ def run(config: Config) -> None:
                     cause,
                 )
                 render_error = cause
-        if panel is not None and pending is not None:
-            try:
-                panel.push(*pending)
-                pending = None
-                status.push_error = None
-            except Exception as exc:
-                # Retry next tick from the same image rather than re-rendering.
-                log.exception("Panel push failed")
-                status.push_error = str(exc) or type(exc).__name__
+        if panel is not None and pending is not None and _push(panel, pending, status):
+            pending = None
         time.sleep(_POLL_SECONDS)

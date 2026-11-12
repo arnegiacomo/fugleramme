@@ -1,0 +1,59 @@
+{# The widgets every tab builds its fields from. #}
+
+{% macro options(items, selected) -%}
+{% for value, label in items %}<option value="{{ value }}"{{ flags(selected=value == selected) }}>{{ label }}</option>{% endfor %}
+{%- endmacro %}
+
+{% macro radios(field, items, active) -%}
+{% for value, label in items %}<label class="src"><input type="radio" name="{{ field }}" value="{{ value }}"{{ flags(checked=value == active) }}> {{ label }}</label>{% endfor %}
+{%- endmacro %}
+
+{# The label is the call block, so it can carry a hint; the span keeps it one
+   piece beside the box. `declared` names the box in the form, so unticking it
+   reads as a change (admin.form_changes); disabled, neither posts, and the
+   stored value stands. #}
+{% macro checkbox(field, checked, disabled=false, declared=false) -%}
+<label class="src">
+  {%- if declared %}<input type="hidden" name="{{ CHECKBOXES }}" value="{{ field }}"{{ flags(disabled=disabled) }}>{% endif -%}
+  <input type="checkbox" name="{{ field }}"{{ flags(checked=checked, disabled=disabled) }}> <span>{{ caller() }}</span></label>
+{%- endmacro %}
+
+{# Names several boxes at once, for a form that declares them together. #}
+{% macro declare(fields) -%}
+<input type="hidden" name="{{ CHECKBOXES }}" value="{{ fields }}">
+{%- endmacro %}
+
+{# The label is the call block. `kind` ties the field to one detector type;
+   not `shown`, it is hidden and disabled, so it posts nothing and the stored
+   value stands for a switch back. Text, not a url input, even for an address:
+   the browser would refuse one with no scheme. `new-password` keeps the
+   browser from filling a saved login into a password the frame stores. #}
+{% macro text_field(field, value, type="text", hint="", url=false, kind="", shown=true) -%}
+<label{% if kind %} data-kind="{{ kind }}"{% endif %}{{ flags(hidden=not shown) }}><span>{{ caller() }}{% if hint %} <small>{{ hint }}</small>{% endif %}</span><input{{ flags(disabled=not shown) }}{% if url %} inputmode="url"{% endif %}{% if type == "password" %} autocomplete="new-password"{% endif %} type="{{ type }}" name="{{ field }}" value="{{ value }}"></label>
+{%- endmacro %}
+
+{# The note beside a field label. A span, not a button: a <label> may hold only
+   one labelable element and that is the select. admin.css draws the bubble from
+   `aria-label`, so one attribute is both the text and the name. #}
+{% macro hint(text) -%}
+<span class="hint" tabindex="0" role="img" aria-label="{{ text }}"></span>
+{%- endmacro %}
+
+{# A detector's favicon; common.showLogos loads it. #}
+{% macro logo(kind) -%}
+<img class="logo" data-kind="{{ kind }}" alt="" referrerpolicy="no-referrer" hidden>
+{%- endmacro %}
+
+{% macro stamp(when) -%}
+<time title="{{ when|ago }}">{{ when|clock }}</time>
+{%- endmacro %}
+
+{# A problem and the tab that fixes it, worded the same wherever it turns up. #}
+{% macro fix(problem) -%}
+{{ problem }}. See <a href="#detector" data-tab="detector">the Detector tab</a>.
+{%- endmacro %}
+
+{# A form of its own that posts one action, such as Check or Reboot. #}
+{% macro action(name, label) -%}
+<form class="inline {{ name }}" method="post" action="/admin"><input type="hidden" name="action" value="{{ name }}"><button type="submit">{{ label }}</button></form>
+{%- endmacro %}

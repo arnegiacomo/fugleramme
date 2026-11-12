@@ -1,6 +1,6 @@
 # Operations
 
-Running the frame day to day: the buttons, updates, ports, the BirdNET-Go address or BirdWeather station, sign-in and Wi-Fi.
+Running the frame day to day: the buttons, updates, ports, the BirdNET-Go address or BirdWeather station, and sign-in.
 
 ## Buttons
 
@@ -9,6 +9,7 @@ Four buttons down the back edge of the panel:
 | Button | What it does |
 | --- | --- |
 | A | Next display mode |
+| A, held for 5 seconds | Open or close the [Wi-Fi setup](wifi.md) |
 | B | Show species names on/off |
 | C | Rotate the display 90° clockwise |
 | D | Next artwork style |
@@ -137,16 +138,3 @@ visitor has the same IP, so a stranger's guesses would block you
 too. Tick **The frame is behind a reverse proxy** and the frame counts per
 visitor again. Leave it off if the frame's own port is open to
 the internet as well: anyone reaching it directly can claim any address.
-
-## Changing Wi-Fi in gadget mode (USB-C)
-
-For moving the frame to a new network, or onto one you can't reach it over yet.
-
-> [!IMPORTANT]
-> Will only be possible if gadget mode has been enabled.
-
-```bash
-ssh <user>@10.12.194.1 # or <user>@<host>.local if you've enabled internet sharing on your computer 
-nmcli device wifi list
-sudo nmcli --ask device wifi connect "<SSID>"
-```

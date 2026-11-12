@@ -16,7 +16,7 @@ screen straight from the pi - if you'd like to use HDMI with Lite see
 [On HDMI, Raspberry Pi OS Lite](screens.md#on-hdmi-raspberry-pi-os-lite).
 
 In Raspberry Pi Imager, set the hostname (e.g. `fugleramme`) and username (e.g.
-`admin`), enable SSH, and configure Wi-Fi.
+`admin`), enable SSH, and configure Wi-Fi. A frame with an Inky panel can be moved to another network, see [Wi-Fi](wifi.md).
 
 ## 2. SSH in
 

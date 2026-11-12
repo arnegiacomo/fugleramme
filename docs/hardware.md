@@ -61,9 +61,8 @@ can hang anywhere.
 | Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) |
 
 - **Any 40-pin Pi drives the panel** - thanks to Pimoroni's
-  [`inky`](https://github.com/pimoroni/inky) library. A Zero 2 W renders more
-  slowly, which you might not notice on a panel that takes half a minute anyway.
-  [Alternatives](#alternatives) says what's verified.
+  [`inky`](https://github.com/pimoroni/inky) library (a Zero 2 W works, but
+  packs the collage slowly). [Alternatives](#alternatives) says what's verified.
 - **The cooler is optional.** Nothing is classifying around the clock here, so
   the Pi pretty much idles between renders.
 - **Less storage.** No sound clips, no detection database.
@@ -78,12 +77,13 @@ This setup swaps the Raspberry Pi for a small, power-efficient microcontroller t
 
 | Part | What works |
 | --- | --- |
-| Board | [XIAO ePaper Display Board EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html) for the 13.3", [EE04](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-EE04-p-6560.html) for the 7.3" |
-| Panel | [Seeed Studio 13.3" e-ink](https://www.seeedstudio.com/13-3inch-Six-Color-eInk-ePaper-Display-with-1200x1600-Pixels-p-6569.html) (Spectra 6, 1600x1200) or [7.3" e-ink](https://www.seeedstudio.com/7-3inch-Six-Color-eInk-ePaper-Display-with-800x480-Pixels-p-6567.html) (Spectra 6, 800x480) |
+| Board | [XIAO ePaper Display Board EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html) |
+| Panel | [Seeed Studio 13.3" e-ink](https://www.seeedstudio.com/13-3inch-Six-Color-eInk-ePaper-Display-with-1200x1600-Pixels-p-6569.html) (Spectra 6, 1600x1200) |
 | Power | [Rechargeable single-cell lithium battery](https://docs.soldered.com/li-ion-battery/overview/) (3.7 V, with a JST 2.0 connector to match the XIAO board) |
-| Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) for the 13.3", [RÖDALM 8x10"](https://www.ikea.com/us/en/p/roedalm-frame-oak-effect-70566392/) for the 7.3" |
+| Frame | [IKEA RÖDALM 21x30](https://www.ikea.com/gb/en/p/roedalm-frame-oak-effect-50566393/) (A4) |
 
-- Seeed Studio also sells the EE02 and the 13.3" panel together as a [kit](https://www.seeedstudio.com/XIAO-ePaper-DIY-Kit-EE02-for-13-3-Spectratm-6-E-Ink.html), and the EE04 in a [bundle](https://www.seeedstudio.com/XIAO-ePaper-EE04-DIY-Bundle-Kit.html) where you pick the 7.3" as its panel.
+- Seeed Studio also sells the board and panel together as a [kit](https://www.seeedstudio.com/XIAO-ePaper-DIY-Kit-EE02-for-13-3-Spectratm-6-E-Ink.html).
+- See [fugleramme/clients](https://github.com/fugleramme/clients) for the firmware.
 
 ## Microphones
 
@@ -106,8 +106,7 @@ the capsule drowns out everything else).
 
 ## Alternatives
 
-- **Other boards.** A **Pi 4** and a **Pi Zero 2 W** both work - people are running them, the Zero just renders more slowly. A **Pi 5 with 1 GB** should be plenty for a frame that isn't also classifying. (None of these are officially supported
-  yet, only because I don't have units to verify on).
+- **Other boards.** A **Pi 4** and a **Pi Zero 2 W** both work - people are running them. On the Zero, packing the collage is slow and takes all of its processing power while it runs (single-bird modes are unaffected). A **Pi 5 with 1 GB** should be plenty for a frame that isn't also classifying.
 - **NVMe instead of microSD** spares the card BirdNET-Go's constant writes, but the HAT/Base adds cost, height and heat for a mostly idle workload - and the drives are crazy expensive right now.
 - **Other Inky displays** work, you just lose resolution and size. The 7.3" fits a smaller frame, see [Mounting](mounting.md). Alternatively skip the panel: the frame serves the same page as a web kiosk, on a TV, over HDMI or headless - see [Screens](screens.md).
 

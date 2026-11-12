@@ -297,6 +297,32 @@ ensure_groups() {
   done
 }
 
+# Raspberry Pi OS images from 2026-04-13 give the first user no passwordless sudo,
+# so the frame gets exactly what it runs as root: the admin's Reboot and the Wi-Fi
+# setup's network changes (wifi.py). A frame installed before has its own rule and
+# keeps it. An update cannot write this; re-running the install can.
+ensure_sudoers() {
+  local file=/etc/sudoers.d/fugleramme tmp
+  tmp="$(mktemp)"
+  cat >"$tmp" <<EOF
+$USER ALL=(root) NOPASSWD: /usr/bin/systemctl reboot, /usr/bin/nmcli, /usr/sbin/nft -f -, /usr/sbin/nft delete table ip fugleramme, /usr/bin/tee /etc/NetworkManager/dnsmasq-shared.d/fugleramme.conf
+EOF
+  if sudo cmp -s "$tmp" "$file"; then
+    rm -f "$tmp"
+    echo "   already set"
+    return 0
+  fi
+  # A broken file in sudoers.d breaks sudo itself, so it is checked before it goes in.
+  if ! sudo visudo -cqf "$tmp"; then
+    rm -f "$tmp"
+    echo "   could not write the sudo rule; Reboot and Wi-Fi setup stay unavailable"
+    return 0
+  fi
+  sudo install -m 0440 -o root -g root "$tmp" "$file"
+  rm -f "$tmp"
+  echo "   $file written"
+}
+
 # SPI for the pixels, I2C for the EEPROM inky.auto() identifies the board from.
 # Overlays and raspi-config calls mirror pimoroni/inky's own installer.
 ensure_panel_bus() {
@@ -320,13 +346,18 @@ ensure_panel_bus() {
 }
 
 ensure_gadget() {
-  if have rpi-usb-gadget; then
-    echo "   already installed"
+  # Trixie images ship the package with gadget mode off, so being installed says nothing about being on.
+  # `status` exits 0 either way; only its text tells. Not grep -q: it stops reading at the match, and under
+  # pipefail the SIGPIPE it leaves `status` with fails the check.
+  if have rpi-usb-gadget && sudo rpi-usb-gadget status 2>/dev/null | grep 'mode is on' >/dev/null; then
+    echo "   already on"
     return 0
   fi
   confirm "enable USB gadget mode (SSH over the USB-C cable)?" || { echo "   skipped"; return 0; }
-  apt_update
-  sudo apt-get install -y rpi-usb-gadget
+  if ! have rpi-usb-gadget; then
+    apt_update
+    sudo apt-get install -y rpi-usb-gadget
+  fi
   sudo rpi-usb-gadget on
   NEEDS_REBOOT=1
   cat <<'EOF'
@@ -391,6 +422,9 @@ main() {
 
   echo "==> groups"
   ensure_groups
+
+  echo "==> sudo"
+  ensure_sudoers
 
   echo "==> panel bus"
   ensure_panel_bus

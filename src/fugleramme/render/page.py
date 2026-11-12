@@ -57,6 +57,17 @@ class Edges(NamedTuple):
 NO_MARGIN = Edges(0, 0, 0, 0)
 
 
+def banded(page: Image.Image, margin: Edges, ink: int | tuple[int, int, int]) -> Image.Image:
+    """`page` with everything outside `margin` in `ink`: the line a mat's window has to land
+    on. A palette page takes an index, so no dither speckles the band."""
+    band = Image.new(page.mode, page.size, ink)
+    if page.mode == "P":
+        band.putpalette(page.getpalette() or [])
+    box = margin.window(page.size)
+    band.paste(page.crop(box), box[:2])
+    return band
+
+
 def label_px(width: int, height: int, size_key: str) -> int:
     _name, scale = fonts.LABEL_SIZES.get(size_key, fonts.LABEL_SIZES[fonts.DEFAULT_LABEL_SIZE])
     return max(MIN_LABEL_PX, round(min(width, height) * scale))

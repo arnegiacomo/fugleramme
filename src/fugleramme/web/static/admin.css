@@ -1,239 +1,373 @@
-body { font-family: system-ui, sans-serif; max-width: 56rem; margin: 3rem auto; padding: 0 1rem; }
-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;
-         gap: 0.5rem; border-bottom: 1px solid #e5e2dc; padding-bottom: 0.75rem; margin-bottom: 2rem; }
-header h1 { margin: 0; }
-header nav a { margin-left: 1.25rem; }
-#menu { display: none; background: none; border: 0; padding: 0.5rem; margin: -0.5rem; border-radius: 6px; color: #446; cursor: pointer;
-        -webkit-tap-highlight-color: transparent; }
+/* The admin and its login page. The colours are tokens, so dark mode redefines
+   them alone: following the system, unless this browser picked one (base.html). */
+:root {
+  color-scheme: light;
+  --bg: #fff;
+  --card: #fff;
+  --inset: #f4f2ee;
+  --field: #fff;
+  --text: #22211f;
+  --muted: #6b675f;
+  --faint: #9a958c;
+  --line: #e5e2dc;
+  --line-strong: #cfcac1;
+  --field-line: #8f8a81;
+  --accent: #3b5873;
+  --accent-soft: #e3e9ef;
+  --on-accent: #fff;
+  --ok: #337040;
+  --bad: #a4392f;
+  --warn: #7d6419;
+  --shadow: 0 4px 14px rgb(0 0 0 / 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #18181a;
+    --card: #1f1f22;
+    --inset: #242427;
+    --field: #18181a;
+    --text: #e9e7e2;
+    --muted: #a8a49c;
+    --faint: #7a766f;
+    --line: #313136;
+    --line-strong: #46464d;
+    --field-line: #6e6a72;
+    --accent: #8fb0cc;
+    --accent-soft: #243241;
+    --on-accent: #10171e;
+    --ok: #7bc287;
+    --bad: #ec8b80;
+    --warn: #d9b85c;
+    --shadow: 0 4px 14px rgb(0 0 0 / 0.5);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a;
+  --card: #1f1f22;
+  --inset: #242427;
+  --field: #18181a;
+  --text: #e9e7e2;
+  --muted: #a8a49c;
+  --faint: #7a766f;
+  --line: #313136;
+  --line-strong: #46464d;
+  --field-line: #6e6a72;
+  --accent: #8fb0cc;
+  --accent-soft: #243241;
+  --on-accent: #10171e;
+  --ok: #7bc287;
+  --bad: #ec8b80;
+  --warn: #d9b85c;
+  --shadow: 0 4px 14px rgb(0 0 0 / 0.5);
+}
+
+/* -- the page ---------------------------------------------------------------- */
+
+/* Whatever display a rule gives an element, `hidden` still hides it. */
+[hidden] { display: none !important; }
+body { font: 1rem/1.45 system-ui, sans-serif; color: var(--text); background: var(--bg);
+       max-width: 64rem; margin: 1.5rem auto; padding: 0 1rem; accent-color: var(--accent); }
+a { color: var(--accent); }
+/* The weight range opens the variable font's axis; without it the browser draws its default, Light. */
+@font-face { font-family: Title; src: url(/title.ttf); font-weight: 300 700; }
+h1 { font: italic 450 2.4rem/1 Title, Georgia, serif; margin: 0; }
+h2 { font-size: 1rem; font-weight: 600; margin: 0 0 0.9rem; position: relative; }  /* a hint's bubble hangs off it */
+small { color: var(--muted); font-weight: 400; }
+time { border-bottom: 1px dotted var(--faint); cursor: help; }
+
+header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;
+         padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
+/* Flex, so the template's line breaks between the links set no spaces. */
+header nav { display: flex; align-items: baseline; gap: 1.25rem; }
+#menu { display: none; background: none; border: 0; padding: 0.5rem; margin: -0.5rem; border-radius: 6px;
+        color: var(--accent); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 #menu svg { display: block; }
-#menu[aria-expanded="true"] { background: #e8e7f0; }
-footer { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 0.5rem; margin-top: 3rem; padding-top: 0.75rem;
-         border-top: 1px solid #e5e2dc; font-size: 0.85rem; }
-footer a { color: #666; white-space: nowrap; }
-/* inline-block, or the link's underline runs under the dot too. */
-footer a + a::before { content: "·"; display: inline-block; margin-right: 0.5rem; color: #aaa; }
-h2 { font-size: 1.05rem; margin: 0 0 0.5rem; }
-/* Undoes the page-wide block `span`, which would break a heading over three lines. */
-h2 span { display: inline; font-weight: inherit; margin: 0; }
-nav.tabs { display: flex; gap: 0.5rem; margin: -1rem 0 1.75rem; }
-nav.tabs button { font-size: 0.95rem; padding: 0.4rem 1rem; margin: 0; cursor: pointer;
-                  background: none; border: 0; border-bottom: 2px solid transparent; color: #446; }
-nav.tabs button[aria-selected="true"] { border-bottom-color: #446; font-weight: 600; color: inherit; }
-section[hidden] { display: none; }
-.cols { display: flex; gap: 2.5rem; align-items: flex-start; }
-form.settings { flex: 0 0 15rem; }
-aside.side { flex: 1; min-width: 0; }
-label { display: block; margin: 0 0 1.25rem; }
-label[hidden] { display: none; }  /* or the display above outranks the browser's own rule */
-span { display: block; font-weight: 600; margin-bottom: 0.25rem; }
-small { color: #666; font-weight: 400; }
-select { font-size: 1rem; padding: 0.4rem; }
-input { font-size: 1rem; padding: 0.4rem; width: 8rem; }
-input[type=range] { width: 100%; padding: 0; margin: 0; }
-/* Undoes the page-wide block `span`. */
-.caption { display: inline; margin: 0; }
-form.settings h2:not(:first-child) { margin-top: 1.75rem; }
-form.settings h2 { position: relative; }  /* the Margin hint's bubble hangs off it */
-/* Flex, so admin.js can order the edges as the frame hangs. */
-#margin-edges { display: flex; flex-direction: column; }
-#margin-edges[hidden] { display: none; }  /* or the flex above outranks it */
-#margin-edges label { margin-bottom: 0.75rem; }
-#margin-edges span { font-weight: 400; }
-.field { margin: 0 0 1.25rem; }
-.sub { display: block; margin: 0.6rem 0 0; font-weight: 400; }
-.sub small { display: block; margin-bottom: 0.15rem; }
-.sub select { width: 100%; }
-.src { display: flex; align-items: center; gap: 0.4rem; font-weight: 400; margin: 0 0 0.3rem; }
-.src input { width: auto; padding: 0; }
-.src .src { margin: 0; }  /* the row holding a radio and its number box */
-.src > span { font-weight: inherit; margin: 0; }  /* undoes the page-wide `span` weight and margin */
-.src input[type=number] { width: 3.25rem; padding: 0.25rem 0.3rem; }
-button { font-size: 1rem; padding: 0.5rem 1.25rem; margin-top: 0.5rem; }
-button:disabled { opacity: 0.45; }
-/* A setting the chosen mode does not read: shown, so its value is not a surprise on the way back. */
-.off { opacity: 0.45; }
-a { color: #446; }
-/* The bubble hangs off the label's span, not the badge, so it starts at the
-   column edge and cannot run out of the 15rem form. */
-label > span, label > small, .field > span { position: relative; }
-/* Bottom margin: `middle` aligns to the x-height, a Title Case label to the cap. */
-.hint { display: inline-flex; align-items: center; justify-content: center;
-        width: 0.9rem; height: 0.9rem; margin: 0 0 0.125rem 0.05em; vertical-align: middle;
-        font-size: 0.78rem; font-weight: 700; line-height: 1; color: #6b675f;
-        border: 1px solid #aaa59c; border-radius: 50%; cursor: help; user-select: none; }
-.hint::before { content: "i"; }
-/* `focus-visible`: a mouse click focuses the span too, and the bubble would
-   then outlive the tap that closed it. */
-.hint:hover, .hint:focus-visible, .hint.open { color: #446; border-color: #446; }
-/* The triangle inside replaces the circled "i". Not `.warn`, whose
-   `display: inline` would outrank the badge's flex. */
-.hint.caution { color: #8a6d1f; border: 0; }
-.hint.caution::before { content: none; }
-.hint[hidden] { display: none; }
-.hint::after { content: attr(aria-label); position: absolute; left: 0; top: 100%; z-index: 2;
-               width: max-content; max-width: 13rem; margin-top: 0.3rem;
-               padding: 0.35rem 0.55rem; border-radius: 4px; background: #446; color: #fff;
-               font: 400 0.85rem/1.35 system-ui, sans-serif; white-space: pre-line;
-               visibility: hidden; }
-.hint:hover::after, .hint:focus-visible::after, .hint.open::after { visibility: visible; }
-dl.status { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem;
-            background: #f4f2ee; padding: 1rem 1.25rem; border-radius: 6px; margin: 0 0 1.75rem; }
-dl.status dt { color: #666; position: relative; }  /* the Without art hint's bubble hangs off it */
-dl.status dd { margin: 0; }
-dl.status dd span { display: inline; font-weight: inherit; margin: 0; }
-dl.status dd.update, dl.status dd.action { display: flex; align-items: center; gap: 0.5rem; }
-dl.status .missing { align-self: center; }  /* the Copy button makes the row taller */
-dl.status dd.missing { display: flex; align-items: center; gap: 0.3rem; }
-dl.status dd.update button, dl.status dd.action button { margin: 0; }
-time { border-bottom: 1px dotted #bbb; cursor: help; }
-/* White, not the panel's own #f4f2ee, or the box vanishes into it. `user-select:
-   all` takes the whole command in one click - plain http has no clipboard API. */
-pre.cmd, code.cmd { font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
-                    background: #fff; border: 1px solid #e5e2dc; border-radius: 4px;
-                    padding: 0.15rem 0.5rem; margin: 0; user-select: all; overflow-x: auto; }
-/* A detector's favicon. The radio's flex gap spaces it there instead. */
-img.logo { width: 1em; height: 1em; margin-right: 0.35em; vertical-align: -0.15em; }
-.src img.logo { margin: 0; }
-.ok, .bad, .warn { display: inline; font-weight: inherit; margin: 0; }
-.ok { color: #3a7d44; }
-.bad { color: #a4392f; }
-.warn { color: #8a6d1f; }
-p.note { display: block; font-size: 0.9rem; margin: 0.6rem 0 0; }
-p.note[hidden] { display: none; }
-.block { margin: 0 0 1.75rem; }  /* the Save button carries no bottom margin of its own */
-/* Not the radios or the checkbox: it would outrank `.src input` and stretch them across the row. */
-form.detector input:not([type=radio]), form.access input[type=password] {
-  width: 100%; max-width: 22rem; box-sizing: border-box;  /* or the strength bar under it stops short */
-}
-/* The note under the password carries the gap to the button itself. */
-form.access label { margin-bottom: 0; }
-form.access label.src { margin-bottom: 1rem; }
-/* The proxy row is its own subject, so the note above it must not run into it. */
-form.access p.note + label.src { margin-top: 1.5rem; }
-/* The strength bar: the track is the block, the span is what is filled. */
-p.strength { display: block; max-width: 22rem; margin: 0.5rem 0 0; }
-p.strength[hidden] { display: none; }  /* or the display above outranks the browser's own rule */
-p.strength span { display: block; height: 3px; border-radius: 2px; background: #bbb; }
-p.strength small { display: block; margin-top: 0.3rem; }
-p.strength.weak span { background: #a4392f; }
-p.strength.fair span { background: #8a6d1f; }
-p.strength.good span, p.strength.strong span { background: #3a7d44; }
-header nav form.inline button { margin-left: 1.25rem; }
-/* The door: the admin's own card, not the browser's credential dialog. */
-form.login { max-width: 20rem; margin: 15vh auto; }
-form.login h1 { margin: 0 0 1.5rem; }
-/* border-box, or the padded input and the padded button end at different places. */
-form.login input, form.login button { width: 100%; box-sizing: border-box; }
-form.login label { margin-bottom: 0.75rem; }
-form.login .note { margin-top: 1.5rem; }
-form.detector button { margin-right: 0.5rem; }
-/* A row per BirdWeather station: its input and its ×, quiet beside the form's own buttons. */
-.stations .station { display: flex; align-items: center; gap: 0.5rem; max-width: 22rem; margin-bottom: 0.5rem; }
-form.detector .stations input { min-width: 0; }
-form.detector .stations button { margin: 0; padding: 0 0.25rem; background: none; border: 0; cursor: pointer; }
-form.detector .stations button.remove { color: #999; font-size: 1.25rem; line-height: 1; }
-form.detector .stations button.remove:hover { color: #333; }
-form.detector .stations button.add { color: LinkText; }
-form.detector .stations button.find { color: LinkText; margin-left: 1rem; }
-form.detector .stations button.add[hidden] + button.find { margin-left: 0; }
-/* Find stations: a field, the places it suggests, then the stations nearest the one picked. */
-dialog.near { width: min(34rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 1rem 1.25rem;
-              border: 1px solid #e5e2dc; border-radius: 6px; box-shadow: 0 8px 32px #0003; }
-dialog.near::backdrop { background: #0003; }
-dialog.near header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-form.detector dialog.near header button.close { color: #999; font-size: 1.25rem; line-height: 1; }
-form.detector dialog.near input { max-width: none; }
-dialog.near ul { list-style: none; padding: 0; margin: 0.5rem 0 0; font-size: 0.9rem; }
-form.detector dialog.near .places button { display: block; width: 100%; text-align: left; padding: 0.35rem 0.5rem;
-                                           border-radius: 4px; }
-form.detector dialog.near .places button:hover, form.detector dialog.near .places button:focus-visible {
-  background: #f4f2ee;
-}
-dialog.near li.credit { font-size: 0.75rem; color: #888; padding: 0.25rem 0.5rem; }
-dialog.near .note:empty { display: none; }
-/* The place a list is for reads as its caption, under the field rather than beside the rows. */
-dialog.near .note:not(.bad) { font-size: 0.8rem; color: #777; margin-top: 0.9rem; }
-/* Name, #ID, distance, Add: a column each, so the IDs and distances line up. The
-   name leads; the ID and distance are there to check against, so they recede. */
-dialog.near .found { margin-top: 0.35rem; }
-dialog.near .found li { display: grid; grid-template-columns: 1fr auto 3.5rem 3.5rem; gap: 0.75rem;
-                        align-items: center; padding: 0.45rem 0; border-top: 1px solid #eee; }
-dialog.near .found li > :nth-child(2), dialog.near .found li > :nth-child(3) {
-  font-size: 0.8rem; color: #888; font-variant-numeric: tabular-nums;
-}
-dialog.near .found li > :nth-child(3) { text-align: right; }
-dialog.near .found .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-dialog.near .found em { color: #3a7d44; font-style: normal; font-size: 0.85rem; text-align: center; }
-form.detector dialog.near .found button { font-size: 0.85rem; color: #446; background: #fff;
-                                          border: 1px solid #ccc; border-radius: 4px; padding: 0.15rem 0; }
-form.detector dialog.near .found button:hover:not(:disabled) { border-color: #446; }
-dialog.near li.full { display: block; color: #8a6d1f; font-size: 0.85rem; }
-dialog.near > a { display: inline-block; margin-top: 1rem; font-size: 0.8rem; color: #777; }
-/* The Detector row's stations, a line each, in columns: logo, name, ·, #ID, ·, latest
-   detection. The gap is a space's, so a line reads like BirdNET-Go's. */
-dl.status dd span.stations { display: grid; grid-template-columns: repeat(6, auto); justify-content: start;
-                             gap: 0.15rem 0.3em; align-items: baseline; }
-span.stations img.logo { margin: 0 0.05em 0 0; }
-span.stations a { color: inherit; }
+#menu[aria-expanded="true"] { background: var(--accent-soft); }
 /* Several stations: the nav's link is a button opening a list of them. Without
    anchor positioning the list opens in the middle of the page, as a popover does. */
-header nav button.link { font: inherit; color: LinkText; text-decoration: underline; background: none;
-                         border: 0; padding: 0; margin: 0 0 0 1.25rem; cursor: pointer; anchor-name: --stations; }
-#stations { padding: 0.35rem 0; border: 1px solid #e5e2dc; border-radius: 8px;
-            box-shadow: 0 4px 14px rgb(0 0 0 / 0.12); }
-#stations a { display: block; margin: 0; padding: 0.45rem 0.9rem; }
+header nav button.link { font: inherit; color: var(--accent); text-decoration: underline; background: none;
+                         border: 0; padding: 0; cursor: pointer; anchor-name: --stations; }
+#stations { padding: 0.35rem 0; color: var(--text); background: var(--card); border: 1px solid var(--line);
+            border-radius: 8px; box-shadow: var(--shadow); }
+#stations a { display: block; padding: 0.45rem 0.9rem; }
 @supports (position-area: bottom) {
   #stations { position-anchor: --stations; position-area: bottom span-left; inset: auto; margin: 0.25rem 0 0; }
 }
-#test-result { display: inline; }
+
+nav.tabs { display: flex; gap: 0.25rem; margin: 0 0 1.25rem; border-bottom: 1px solid var(--line); }
+nav.tabs button { font: inherit; font-size: 0.95rem; padding: 0.5rem 0.9rem; margin: 0 0 -1px; cursor: pointer;
+                  color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; }
+nav.tabs button:hover { color: var(--text); }
+/* Not bold: a wider label would shift the tabs beside it. */
+nav.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+/* A tab holding unsaved changes. In its corner, out of the flow: beside the label
+   it would widen the tab, and on a phone there is no room for it. */
+nav.tabs button { position: relative; }
+nav.tabs button.dirty::after { content: ""; position: absolute; top: 0.3rem; right: 0.3rem; width: 0.4rem; height: 0.4rem;
+                               border-radius: 50%; background: var(--accent); }
+
+footer { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.25rem 0.5rem;
+         margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; }
+footer a { color: var(--muted); white-space: nowrap; }
+/* inline-block, or the link's underline runs under the dot too. */
+footer a + a::before { content: "·"; display: inline-block; margin-right: 0.5rem; color: var(--faint); }
+
+/* -- cards and fields -------------------------------------------------------- */
+
+/* A group of fields under its heading. */
+.card { margin: 0 0 1.5rem; }
+/* Beside the preview, the long form reads in pieces: its groups and the species list are boxed. */
+#settings .card { margin-bottom: 0.75rem; padding: 0.9rem 1rem; background: var(--card);
+                  border: 1px solid var(--line); border-radius: 6px; }
+#settings .card h2 { margin-bottom: 0.6rem; }
+/* Not a setting but a reading, so it takes the status rows' fill. */
+#settings .card.info { background: var(--inset); border-color: transparent; }
+.card > :last-child { margin-bottom: 0; }
+/* Not the settings column: the other tabs' fields would run a line across the page. */
+#tab-detector, #tab-security, #tab-system { max-width: 40rem; }
+
+label, .field { display: block; margin: 0 0 0.9rem; }
+/* A field's caption. The bubble hangs off it, not the badge, so it starts at the
+   column edge and cannot run out of the column. */
+label:not(.src) > span:first-child, .field > span:first-child {
+  display: block; position: relative; font-weight: 600; margin-bottom: 0.35rem;
+}
+.sub { display: block; margin: 0.6rem 0 0; }
+.sub small { display: block; position: relative; margin-bottom: 0.2rem; }
+/* A setting that does not apply now: shown, so its value is not a surprise on the way back. */
+.off { opacity: 0.45; }
+
+input[type=text], input[type=password], input[type=search], input[type=number], select {
+  font: inherit; font-size: 0.95rem; color: var(--text); background: var(--field);
+  border: 1px solid var(--field-line); border-radius: 4px; padding: 0.4rem 0.5rem; box-sizing: border-box;
+}
+input[type=text], input[type=password], input[type=search], select { width: 100%; }
+input[type=number] { width: 4.5rem; }
+input[type=range] { width: 100%; margin: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* A radio or checkbox and its label, a row each. */
+.src { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.3rem; }
+.src > span { position: relative; }  /* a hint's bubble hangs off the label */
+.src input { flex: none; margin: 0; }
+.src .src { margin: 0; }  /* the row holding a radio and its number box */
+
+button { font: inherit; font-size: 0.95rem; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer;
+         color: var(--text); background: var(--inset); border: 1px solid var(--line-strong); }
+button:hover:not(:disabled) { border-color: var(--muted); }
+button:disabled { opacity: 0.45; cursor: default; }
+.card > button { margin-top: 0.4rem; }
+/* One action of its own, such as Check or Reboot: quiet beside the row it is on. */
 form.inline { display: inline; }
-form.inline button { font-size: 0.8rem; padding: 0.1rem 0.5rem; margin: 0 0 0 0.5rem; }
-button.copy { font-size: 0.8rem; padding: 0.1rem 0.5rem; margin: 0; }
-ul.species { list-style: none; padding: 0; margin: 0 0 1.75rem;
-             display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, max-content));
-             justify-content: start; gap: 0.15rem 2.5rem; }
-ul.species li { padding: 0.1rem 0; }
-ul.species li.noart { color: #aaa; }
-ul.species li.noart small { color: #aaa; }
-ul.species a { color: inherit; text-decoration-color: #bbb; }
-ul.species a[data-species] { text-decoration: none; }
-ul.species a:hover { color: #446; text-decoration: underline; text-decoration-color: currentColor; }
-ul.species li.empty { color: #999; }
-/* An empty list because something is wrong, not because no bird has called yet. */
-ul.species li.problem { color: #a4392f; }
-.preview img { display: block; width: 100%; height: 100%; box-sizing: border-box;
-               border: 1px solid #ddd; border-radius: 6px; }
-.rendering { display: none; align-items: center; justify-content: center; gap: 0.6rem;
-             color: #666; }
+form.inline button { font-size: 0.8rem; padding: 0.1rem 0.5rem; }
+button.copy { font-size: 0.8rem; padding: 0.15rem 0.6rem; }
+
+/* Bottom margin: `middle` aligns to the x-height, a capitalised label to the cap. */
+.hint { display: inline-flex; align-items: center; justify-content: center;
+        width: 0.9rem; height: 0.9rem; margin: 0 0 0.125rem 0.2em; vertical-align: middle;
+        font-size: 0.72rem; font-weight: 700; line-height: 1; color: var(--muted);
+        border: 1px solid var(--faint); border-radius: 50%; cursor: help; user-select: none; }
+.hint::before { content: "i"; }
+/* `focus-visible`: a mouse click focuses the span too, and the bubble would
+   then outlive the tap that closed it. */
+.hint:hover, .hint:focus-visible, .hint.open { color: var(--accent); border-color: var(--accent); }
+/* The triangle inside replaces the circled "i". */
+.hint.caution { color: var(--warn); border: 0; }
+.hint.caution::before { content: none; }
+.hint::after { content: attr(aria-label); position: absolute; left: 0; top: 100%; z-index: 2;
+               width: max-content; max-width: 15rem; margin-top: 0.3rem;
+               padding: 0.4rem 0.6rem; border-radius: 6px; background: var(--accent); color: var(--on-accent);
+               font: 400 0.85rem/1.35 system-ui, sans-serif; white-space: pre-line; visibility: hidden; }
+.hint:hover::after, .hint:focus-visible::after, .hint.open::after { visibility: visible; }
+
+.ok { color: var(--ok); }
+.bad { color: var(--bad); }
+.warn { color: var(--warn); }
+p.note { font-size: 0.9rem; margin: 0.6rem 0 0; }
+/* `user-select: all` takes the whole command in one click - plain http has no clipboard API. */
+pre.cmd, code.cmd { font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text);
+                    background: var(--inset); border: 1px solid var(--line); border-radius: 4px;
+                    padding: 0.15rem 0.5rem; margin: 0; user-select: all; overflow-x: auto; }
+/* Inline code can't scroll, so wrap it. */
+code.cmd { overflow-wrap: anywhere; }
+/* A detector's favicon. The radio's flex gap spaces it there instead. */
+img.logo { width: 1em; height: 1em; margin-right: 0.35em; vertical-align: -0.15em; }
+.src img.logo { margin: 0; }
+.spinner { display: inline-block; width: 1.1rem; height: 1.1rem; border: 2px solid var(--line);
+           border-top-color: var(--muted); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.spinner.inline { vertical-align: -0.15rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+/* -- the status rows --------------------------------------------------------- */
+
+dl.status { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1.25rem; margin: 0 0 1.25rem;
+            padding: 1rem 1.25rem; background: var(--inset); border-radius: 6px; }
+dl.status dt { color: var(--muted); position: relative; }  /* the Without art hint's bubble hangs off it */
+dl.status dd { margin: 0; min-width: 0; }
+dl.status dd.update, dl.status dd.action, dl.status dd.missing { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; }
+dl.status .missing { align-self: center; }  /* the Copy button makes the row taller */
+dl.status dd.update a.host { display: none; }
+#bar { width: 7rem; height: 0.55rem; }
+/* Six columns, a cell of rows.stations each. The gap is a space's, so a line reads like BirdNET-Go's. */
+dl.status span.stations { display: grid; grid-template-columns: repeat(6, auto); justify-content: start;
+                          gap: 0.15rem 0.3em; align-items: baseline; }
+span.stations img.logo { margin: 0 0.05em 0 0; }
+span.stations a { color: inherit; }
+
+/* -- the Display and Frame tabs ---------------------------------------------- */
+
+.cols { display: flex; gap: 1.5rem; align-items: flex-start; }
+form.settings { flex: 0 0 23rem; min-width: 0; }
+/* Beside the form, so the preview stays in sight while the form scrolls; a long
+   species list scrolls within it. */
+aside.side { flex: 1; min-width: 0; position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+/* Flex, so the script can order the edges as the frame hangs. */
+#margin-edges { display: flex; flex-direction: column; }
+#margin-edges label { margin-bottom: 0.75rem; }
+#margin-edges label > span:first-child { font-weight: 400; }
+#margin-one label { margin-bottom: 0; }
+
 /* The box is the page's own shape - --aspect is the panel turned by the rotation
    in the form - so a re-render moves the list under it only when the page would. */
 .preview { --aspect: 4 / 3; aspect-ratio: var(--aspect);
            width: min(100%, calc(60vh * var(--aspect)));
            display: flex; align-items: center; justify-content: center;
-           margin: 0 0 1.75rem; position: relative; }
+           margin: 0 0 0.75rem; position: relative; }
+.preview img { display: block; width: 100%; height: 100%; box-sizing: border-box;
+               border: 1px solid var(--line); border-radius: 8px; }
+.rendering { display: none; align-items: center; justify-content: center; gap: 0.6rem; color: var(--muted); }
+.preview.loading .rendering { display: flex; }
+/* In its corner, not a heading. On the page's own paper, light in either theme, so its ink is fixed. */
+.preview .tag { position: absolute; top: 0.6rem; left: 0.75rem; pointer-events: none;
+                font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+                color: rgb(40 35 30 / 0.5); }
+.preview.loading img, .preview.loading .tag { display: none; }
 /* The band a mat would cover, shaded over the page while the margin is dragged. */
 .mat { position: absolute; inset: 0; pointer-events: none;
-       border: 0 solid rgba(70, 60, 50, 0.45); border-radius: 6px; }
-.preview.loading .rendering { display: flex; }
-.preview.loading img { display: none; }
-/* margin: undoes the page-wide `span` rule, which offsets it from the caption. */
-.spinner { width: 1.1rem; height: 1.1rem; margin: 0; border: 2px solid #ddd;
-           border-top-color: #888; border-radius: 50%; animation: spin 0.8s linear infinite; }
-.spinner.inline { display: inline-block; vertical-align: -0.15rem; }
-#bar { width: 7rem; height: 0.55rem; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+       border: 0 solid rgba(70, 60, 50, 0.45); border-radius: 8px; }
+ul.species { list-style: none; padding: 0; margin: 0;
+             display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, max-content));
+             justify-content: start; gap: 0.15rem 2.5rem; }
+ul.species li { padding: 0.1rem 0; }
+ul.species li.noart, ul.species li.noart small, ul.species li.empty { color: var(--muted); }
+ul.species a { color: inherit; text-decoration-color: var(--line-strong); }
+ul.species a[data-species] { text-decoration: none; }
+ul.species a:hover { color: var(--accent); text-decoration: underline; text-decoration-color: currentColor; }
+/* An empty list because something is wrong, not because no bird has called yet. */
+ul.species li.problem { color: var(--bad); }
+
+/* The preview's stand-in once it has scrolled out of sight, and the whole of it on a tap. */
+.thumb { position: fixed; right: 1rem; bottom: 1rem; z-index: 3; width: min(32vw, 9rem); padding: 0; overflow: hidden;
+         background: var(--card); border: 1px solid var(--line-strong); border-radius: 6px; box-shadow: var(--shadow); }
+.thumb img { display: block; width: 100%; }
+.thumb.stale img { opacity: 0.5; }
+dialog.full { padding: 0; border: 0; background: none; max-width: 100vw; max-height: 100vh; }
+dialog.full::backdrop { background: rgb(0 0 0 / 0.85); }
+dialog.full img { display: block; max-width: 100vw; max-height: 100vh; object-fit: contain; }
+
+/* -- the save bar ------------------------------------------------------------ */
+
+.savebar { position: fixed; left: 50%; bottom: 1rem; z-index: 4; transform: translateX(-50%);
+           width: min(28rem, calc(100% - 2rem)); box-sizing: border-box;
+           display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.5rem 0.5rem 1rem;
+           background: var(--card); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
+.savebar .said { margin-right: auto; color: var(--muted); font-size: 0.9rem; }
+.savebar .said.bad { color: var(--bad); }
+#save { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+/* Room under the page, so the bar never covers its last field; the thumbnail sits above it. */
+body:has(.savebar:not([hidden])) { padding-bottom: 5rem; }
+body:has(.savebar:not([hidden])) .thumb { bottom: 5rem; }
+body:has(.savebar:not([hidden])) aside.side { max-height: calc(100vh - 6rem); }
+
+/* -- the Detector tab -------------------------------------------------------- */
+
+form.detector input[type=text], form.detector input[type=password], form.access input[type=password] { max-width: 26rem; }
+form.detector > button { margin-right: 0.5rem; }
+/* A row per BirdWeather station: its input and its ×, quiet beside the form's own buttons. */
+.stations .station { display: flex; align-items: center; gap: 0.5rem; max-width: 26rem; margin-bottom: 0.5rem; }
+.stations .station input { min-width: 0; }
+.stations > button, .station button, dialog.near button.close {
+  margin: 0; padding: 0 0.25rem; color: var(--accent); background: none; border: 0;
+}
+.station button.remove, dialog.near button.close { color: var(--muted); font-size: 1.25rem; line-height: 1; }
+.station button.remove:hover, dialog.near button.close:hover { color: var(--text); }
+.stations button.find { margin-left: 1rem; }
+.stations button.add[hidden] + button.find { margin-left: 0; }
+/* Find stations: a field, the places it suggests, then the stations nearest the one picked. */
+dialog.near { width: min(34rem, calc(100vw - 2rem)); box-sizing: border-box; padding: 1rem 1.25rem;
+              color: var(--text); background: var(--card);
+              border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+dialog.near::backdrop { background: rgb(0 0 0 / 0.3); }
+dialog.near header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 0; }
+dialog.near ul { list-style: none; padding: 0; margin: 0.5rem 0 0; font-size: 0.9rem; }
+dialog.near .places button { display: block; width: 100%; text-align: left; padding: 0.35rem 0.5rem;
+                             color: var(--text); background: none; border: 0; border-radius: 4px; }
+dialog.near .places button:hover, dialog.near .places button:focus-visible { background: var(--inset); }
+dialog.near li.credit { font-size: 0.75rem; color: var(--muted); padding: 0.25rem 0.5rem; }
+dialog.near .note:empty { display: none; }
+/* The place a list is for reads as its caption, under the field rather than beside the rows. */
+dialog.near .note:not(.bad) { font-size: 0.8rem; color: var(--muted); margin-top: 0.9rem; }
+/* Name, #ID, distance, Add: a column each, so the IDs and distances line up. The
+   name leads; the ID and distance are there to check against, so they recede. */
+dialog.near .found { margin-top: 0.35rem; }
+dialog.near .found li { display: grid; grid-template-columns: 1fr auto 3.5rem 3.5rem; gap: 0.75rem;
+                        align-items: center; padding: 0.45rem 0; border-top: 1px solid var(--line); }
+dialog.near .found li > :nth-child(2), dialog.near .found li > :nth-child(3) {
+  font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+dialog.near .found li > :nth-child(3) { text-align: right; }
+dialog.near .found .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+dialog.near .found em { color: var(--ok); font-style: normal; font-size: 0.85rem; text-align: center; }
+dialog.near .found button { font-size: 0.85rem; padding: 0.15rem 0; color: var(--accent);
+                            background: var(--card); border: 1px solid var(--line-strong); border-radius: 4px; }
+dialog.near li.full { display: block; color: var(--warn); font-size: 0.85rem; }
+dialog.near > a { display: inline-block; margin-top: 1rem; font-size: 0.8rem; color: var(--muted); }
+
+/* -- the Security tab -------------------------------------------------------- */
+
+/* The note under the password carries the gap to the switch below it. */
+form.access label:not(.src) { margin-bottom: 0; }
+/* The strength bar: the track is the block, the span is what is filled. */
+p.strength { max-width: 26rem; margin: 0.5rem 0 0; }
+p.strength span { display: block; height: 3px; border-radius: 2px; background: var(--line-strong); }
+p.strength small { display: block; margin-top: 0.3rem; }
+p.strength.weak span { background: var(--bad); }
+p.strength.fair span { background: var(--warn); }
+p.strength.good span, p.strength.strong span { background: var(--ok); }
+/* The proxy row is its own subject, so the note above it must not run into it. */
+form.access p.note + label.src { margin-top: 1.5rem; }
+
+/* -- the login page ---------------------------------------------------------- */
+
+form.login { max-width: 20rem; margin: 15vh auto; }
+form.login h1 { margin: 0 0 1.5rem; }
+form.login button { width: 100%; }
+form.login label { margin-bottom: 0.75rem; }
+form.login .note { margin-top: 1.5rem; }
+
+/* -- a phone ----------------------------------------------------------------- */
+
 @media (max-width: 40rem) {
+  body { margin-top: 1.5rem; }
   header { position: relative; align-items: center; }
   #menu { display: block; }
-  header nav { display: none; position: absolute; right: 0; top: 100%; z-index: 1; flex-direction: column;
-               align-items: flex-start; min-width: 10rem; padding: 0.35rem 0; background: #fff;
-               border: 1px solid #e5e2dc; border-radius: 8px; box-shadow: 0 4px 14px rgb(0 0 0 / 0.12); }
+  header nav { display: none; position: absolute; right: 0; top: 100%; z-index: 3; flex-direction: column;
+               align-items: stretch; gap: 0; min-width: 10rem; padding: 0.35rem 0; background: var(--card);
+               border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
   #menu[aria-expanded="true"] + nav { display: flex; }
-  header nav a, header nav button.link { margin: 0; padding: 0.55rem 0.9rem; text-decoration: none; }
+  header nav a, header nav button.link { padding: 0.55rem 0.9rem; text-decoration: none; text-align: left; }
   header nav form.inline button { margin: 0.35rem 0.9rem; }
   nav.tabs { gap: 0; }
-  nav.tabs button { flex: 1; font-size: 0.9rem; padding: 0.4rem 0.25rem; }
-  .cols { flex-direction: column; }
-  form.settings { flex: none; }
+  nav.tabs button { flex: 1; font-size: 0.9rem; padding: 0.5rem 0.25rem; }
+  /* The preview above the form, the species list under it. */
+  .cols { flex-direction: column; align-items: stretch; gap: 0; }
+  aside.side { display: contents; }
+  .preview { order: -1; }
+  form.settings { flex: none; width: 100%; }
+  dl.status { grid-template-columns: auto 1fr; gap: 0.35rem 0.9rem; }
+  dl.status dd.update pre.cmd:not(.own) { display: none; }
+  dl.status dd.update a.host { display: inline; }
 }

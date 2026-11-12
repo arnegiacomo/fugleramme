@@ -43,7 +43,7 @@ volumes:
 ```
 
 `docker compose up -d`, then the kiosk is on `:8080` and the admin on
-`:8080/admin`. `TZ` sets the frame's date on a plate, and defaults to UTC.
+`:8080/admin`. `TZ` sets the frame's date on a plate and when **Today (since midnight)** begins, and defaults to UTC.
 
 > [!NOTE]
 > `127.0.0.1` inside a container is the container itself. Point it at your
@@ -70,7 +70,7 @@ Every setting on the admin page can be seeded with `FUGLERAMME_<NAME>`:
       FUGLERAMME_ROTATION: 0                         # 0 | 90 | 180 | 270
       FUGLERAMME_EXTERNAL_PANEL: "false"             # serve /frame.e6 for an external e-ink panel
       FUGLERAMME_EXTERNAL_PANEL_SIZE: "13.3"         # 4 | 5.7 | 7.3 | 13.3 inches
-      FUGLERAMME_LOOKBACK_HOURS: 24                  # 0.25 … 720, or 0 for all time
+      FUGLERAMME_LOOKBACK_HOURS: 24                  # 0.25 … 720, -1 since midnight, or 0 for all time
       FUGLERAMME_REFRESH_MINUTES: 0                  # 0 | 5 | 10 | 15 | 30 | 60
       FUGLERAMME_SPECIES_LIMIT: 40                   # 0 for no limit
       FUGLERAMME_RANKING: heard                      # heard | rarest | rarest_ever

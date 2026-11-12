@@ -16,9 +16,9 @@ from fugleramme.api import ApiSource
 from fugleramme.languages import NONE, STATION, Namer, namer, numeric
 from fugleramme.names import normalize
 from fugleramme.render.collage import KEY_LIMIT, NO_LIMIT
-from fugleramme.render.page import NEW
+from fugleramme.render.page import NEW, NO_MARGIN
 from fugleramme.render.paper import PANEL_PAPER
-from fugleramme.render.plate import effective_margin
+from fugleramme.render.plate import effective_margin, render_plate
 from fugleramme.settings import MARGIN_CEILING, Settings
 
 NOW = datetime.now().astimezone()
@@ -218,6 +218,19 @@ def test_a_plate_keeps_to_its_window_and_its_own_floor_on_each_edge(tmp_path, im
     x0, y0, x1, y1 = effective_margin(ctx.margin).window((400, 300))
     assert (x0, y0, x1, y1) == (24, 75, 376, 276)
     page[y0:y1, x0:x1] = PANEL_PAPER
+    assert (page == PANEL_PAPER).all()
+
+
+def test_a_long_plate_caption_shrinks_into_its_window(tmp_path, images):
+    """#293: a two-language name at Extra large on a portrait 7.3" page."""
+    name = "Northern Rough-winged Swallow\n(Stelgidopteryx serripennis)"
+    art = images / "classic" / "birds" / "turdus-merula.png"
+    size = (480, 800)
+    page = np.asarray(
+        render_plate(art, name, "14:05", size, textured=False, label_size="xlarge")
+    ).copy()
+    x0, _, x1, _ = effective_margin(NO_MARGIN).window(size)
+    page[:, x0:x1] = PANEL_PAPER
     assert (page == PANEL_PAPER).all()
 
 

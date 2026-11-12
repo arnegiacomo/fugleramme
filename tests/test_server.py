@@ -14,6 +14,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+from dataclasses import replace
 from http.server import ThreadingHTTPServer
 from types import SimpleNamespace
 
@@ -121,7 +122,7 @@ BROWSER = {"Accept": "text/html,application/xhtml+xml"}
         ("/", "text/html; charset=utf-8"),
         ("/index.html", "text/html; charset=utf-8"),
         ("/admin.css", "text/css; charset=utf-8"),
-        ("/admin.js", "text/javascript; charset=utf-8"),
+        ("/admin/main.js", "text/javascript; charset=utf-8"),
         ("/admin", "text/html; charset=utf-8"),
         ("/collage.png", "image/png"),
         ("/preview.png", "image/png"),
@@ -448,7 +449,7 @@ def test_a_refused_station_is_named_on_the_page_it_comes_back_to(frame, tmp_path
     assert SettingsStore(tmp_path / SETTINGS).get().detector_station == ""
 
     _status, _headers, page = _fetch(frame + headers["Location"])
-    assert b"Not saved. &quot;nest box&quot; is not a BirdWeather station." in page
+    assert b"Not saved. &#34;nest box&#34; is not a BirdWeather station." in page
 
 
 def test_a_station_is_saved_from_its_id(frame, tmp_path):
@@ -508,11 +509,11 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
         Status(),
     )
     known = set(server.FILES) | set(handler.ROUTES) | {"/detector"}  # /detector is POST-only
-    assert known - server.GATED == {
+    scripts = {route for route in server.FILES if route.startswith("/admin/")}
+    assert scripts and known - server.GATED - scripts == {
         "/",
         "/index.html",
         "/admin.css",
-        "/admin.js",
         "/apple-touch-icon.png",
         "/icon-512.png",
         "/favicon.png",
@@ -522,6 +523,7 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
         "/frame.png",
         "/state",
         "/paper.png",
+        "/title.ttf",
         "/health",
     }
 
@@ -935,3 +937,110 @@ def test_a_press_without_a_password_is_not_a_guess(locked_panel):
     for _ in range(server.TRIES):
         assert _post(locked_panel + "/press", {"button": "B"})[0] == 401
     assert _post(locked_panel + "/press", {"button": "B", "password": PASSWORD})[0] == 204
+
+
+def test_a_phone_on_the_setup_hotspot_only_ever_gets_the_portal(tmp_path, source, monkeypatch):
+    """#308: the hotspot serves the portal, never the admin or the kiosk, and the portal's
+    post hands the network to the Wi-Fi setup."""
+    from fugleramme import wifi
+
+    joined = []
+    status = Status(wifi=wifi.State(available=True, up=True, name="Fugleramme-A215"))
+    handler = server.make_handler(
+        source(count=5, seed=0),
+        tmp_path / "images",
+        SettingsStore(tmp_path / SETTINGS),
+        None,
+        status,
+        SimpleNamespace(join=lambda *picked: joined.append(picked)),
+        "http://crow.local:8080",
+    )
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
+    base = f"http://127.0.0.1:{httpd.server_address[1]}"
+    try:
+        monkeypatch.setattr(wifi, "on_hotspot", lambda address: True)
+        for path in ("/admin", "/", "/hotspot-detect.html", "/frame.png"):
+            code, _headers, body = _fetch(base + path)
+            assert code == 200
+            assert b"Connect the frame to Wi-Fi" in body
+        code, _headers, body = _post(base + "/join", {"ssid": "Home", "password": "pw"})
+        assert code == 200
+        assert b"http://crow.local:8080" in body
+        assert joined == [("Home", "pw", False)]
+
+        # Kubernetes' default pod CIDR is 10.42.0.0/24: a reverse proxy there is not a phone.
+        status.wifi = None
+        code, _headers, body = _fetch(base + "/admin")
+        assert code == 200
+        assert b"Connect the frame to Wi-Fi" not in body
+
+        monkeypatch.setattr(wifi, "on_hotspot", lambda address: False)
+        code, _headers, body = _fetch(base + "/admin")
+        assert b"Connect the frame to Wi-Fi" not in body
+    finally:
+        httpd.shutdown()
+
+
+def test_the_kiosk_shows_the_setup_screen_while_the_hotspot_is_up(tmp_path, source):
+    """#308: an HDMI screen on the Pi reads the kiosk from localhost, which is not the hotspot."""
+    from fugleramme import wifi
+
+    status = Status()
+    handler = server.make_handler(
+        source(count=5, seed=0),
+        tmp_path / "images",
+        SettingsStore(tmp_path / SETTINGS),
+        None,
+        status,
+    )
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=lambda: httpd.serve_forever(poll_interval=0.01), daemon=True).start()
+    base = f"http://127.0.0.1:{httpd.server_address[1]}"
+    try:
+        birds = json.loads(_fetch(base + "/state")[2])["token"]
+        status.wifi = wifi.State(available=True, up=True, name="Fugleramme-A215")
+        assert json.loads(_fetch(base + "/state")[2])["token"] != birds
+        code, _headers, body = _fetch(base + "/collage.png")
+        assert code == 200
+        assert Image.open(io.BytesIO(body)).mode == "LA"  # ink over the kiosk's paper
+
+        status.wifi = replace(status.wifi, up=False)
+        assert json.loads(_fetch(base + "/state")[2])["token"] == birds
+    finally:
+        httpd.shutdown()
+
+
+@pytest.fixture
+def inky(tmp_path, source):
+    """A frame with an Inky attached."""
+    store = SettingsStore(tmp_path / SETTINGS)
+    status = Status()
+    panel = SimpleNamespace(resolution=(800, 480))
+    for base in _serve(tmp_path, source(count=40, seed=0), store, panel, status):
+        yield SimpleNamespace(base=base, store=store, status=status)
+
+
+def test_a_margin_test_takes_the_form_s_edges_without_saving_them(inky):
+    form = {admin.CHECKBOXES: "margin_lock", "margin_top": "12"}  # Uniform unticked
+    assert _post(inky.base + "/mat-test", form)[0] == 204
+    assert inky.status.mat_test is not None
+    assert inky.status.mat_test.edges == (12, 4, 4, 4)
+    assert inky.store.get().margin_lock
+
+
+def test_a_save_ends_the_margin_test(inky):
+    _post(inky.base + "/mat-test", {"margin": "10"})
+    _post(inky.base + "/admin", {"margin": "10"})
+    assert inky.status.mat_test is None
+    assert inky.store.get().margin == 10
+
+
+def test_a_margin_test_paints_the_kiosk_and_moves_its_token(frame):
+    """A frame with no Inky tests on its web view; the kiosk reloads on the token."""
+    token = json.loads(_fetch(frame + "/state")[2])["token"]
+    assert _post(frame + "/mat-test", {"margin": "20"})[0] == 204
+    assert json.loads(_fetch(frame + "/state")[2])["token"] != token
+    page = Image.open(io.BytesIO(_fetch(frame + "/collage.png")[2])).convert("RGB")
+    assert page.getpixel((5, 5)) == (0, 0, 0)
+    assert page.getpixel((page.width // 2, page.height // 2)) != (0, 0, 0)

@@ -46,6 +46,11 @@ and fits the frame.
 > Cut against the steel ruler in several light passes rather than one hard one -
 > and buy a spare mat or two or three (recommended from experience).
 
+Once it's in, set the [margin](frame.md#margin) to match. Move the sliders under
+**Frame** in the admin and the panel shows the margins in black - stop where a thin
+line of black still shows on every side, and save. That line becomes a strip of
+paper inside the passepartout, so the birds never touch the edges. (Adjust as you please.)
+
 ## 7.3" in a RÖDALM 13x18
 
 The [Inky Impression 7.3"](https://shop.pimoroni.com/discount/ARNE?redirect=/products/inky-impression)
@@ -63,15 +68,6 @@ The frame's included passepartout fits the 7.3" panel as it is.
 > notch in the frame, so it fits.
 
 ![The 7.3" panel and the Pi in the printed insert, inside a RÖDALM 13x18, seen from the back](assets/inky-7.3-insert.jpg)
-
-## Seeed 7.3" in a RÖDALM 8x10"
-
-The [Seeed Studio 7.3" panel](https://www.seeedstudio.com/7-3inch-Six-Color-eInk-ePaper-Display-with-800x480-Pixels-p-6567.html)
-of a [battery-powered frame](hardware.md#battery-powered-frame-external-fugleramme)
-fits an IKEA [RÖDALM 8x10"](https://www.ikea.com/us/en/p/roedalm-frame-oak-effect-70566392/),
-a size sold in the US. The frame's included passepartout, cut for a 5x7"
-picture, fits the panel as it is: the panel goes behind it, and the board tucks
-in behind the panel.
 
 ## Airflow
 

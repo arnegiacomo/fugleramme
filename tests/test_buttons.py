@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-from fugleramme.buttons import changes_for, pins_for, press
+from fugleramme.buttons import HOLD, Presses, changes_for, pins_for, press
 from fugleramme.modes import MODES
 from fugleramme.settings import Settings, SettingsStore
 
@@ -74,3 +74,35 @@ def test_a_press_persists(tmp_path, images_dir):
     press("B", store, images_dir)
     assert store.get().show_names is False
     assert SettingsStore(tmp_path / "settings.json").get().show_names is False
+
+
+def test_a_button_presses_when_it_is_let_go():
+    presses = Presses(hold=True)
+    presses.down("B", 0.0)
+    assert presses.up("B")
+    assert not presses.up("B")  # a release with no press before it
+
+
+def test_holding_a_fires_once_while_held_and_its_release_does_nothing():
+    presses = Presses(hold=True)
+    presses.down("A", 10.0)
+    assert presses.wait(12.0) == HOLD - 2
+    assert not presses.held(14.9)
+    assert presses.held(15.0)
+    assert not presses.held(16.0)
+    assert presses.wait(16.0) is None
+    assert not presses.up("A")
+
+
+def test_a_short_press_on_a_still_changes_the_mode():
+    presses = Presses(hold=True)
+    presses.down("A", 0.0)
+    assert presses.up("A")
+
+
+def test_without_a_hold_a_long_press_on_a_is_a_press():
+    presses = Presses(hold=False)
+    presses.down("A", 0.0)
+    assert presses.wait(60.0) is None
+    assert not presses.held(60.0)
+    assert presses.up("A")

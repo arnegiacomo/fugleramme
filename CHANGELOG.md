@@ -2,6 +2,226 @@
 
 <!-- version list -->
 
+## v0.32.0 (2026-11-11)
+
+### Chores
+
+- Add HN badge to README ([#374](https://github.com/arnegiacomo/fugleramme/pull/374),
+  [`40f31ea`](https://github.com/arnegiacomo/fugleramme/commit/40f31ea463c1fefdddf1e3c3677463fa8c2074ab))
+
+- Rebox motacilla-cinerea
+  ([`edcc9a5`](https://github.com/arnegiacomo/fugleramme/commit/edcc9a578fdc25f6a35d072291947f4f3079d81e))
+
+- **assets**: #198 add Horornis diphone ([#377](https://github.com/arnegiacomo/fugleramme/pull/377),
+  [`9a54d3b`](https://github.com/arnegiacomo/fugleramme/commit/9a54d3b9ad102fdab3444d8bff9b4ab78c90cea8))
+
+- **assets**: #33 add 10 North American birds
+  ([`d748aa6`](https://github.com/arnegiacomo/fugleramme/commit/d748aa635b0fbcb8ed6aceaac71d28947189c197))
+
+- **assets**: #33 add 10 North American birds
+  ([`2208cb3`](https://github.com/arnegiacomo/fugleramme/commit/2208cb3252d3ebf580829b8c72e820d8c17c6d36))
+
+- **assets**: #33 add 2 DeKay birds, recut Buteo lineatus and drop a Setophaga coronata variant
+  ([`321b12c`](https://github.com/arnegiacomo/fugleramme/commit/321b12cc87319f2adf58e8921f32438a508ca685))
+
+- **assets**: #33 add 4 new North American birds and 2 variants
+  ([#385](https://github.com/arnegiacomo/fugleramme/pull/385),
+  [`a767551`](https://github.com/arnegiacomo/fugleramme/commit/a7675512a6bb90bddf6836200e9c29406a5c3823))
+
+- **assets**: #33 add 4 North American birds
+  ([#367](https://github.com/arnegiacomo/fugleramme/pull/367),
+  [`6c2a751`](https://github.com/arnegiacomo/fugleramme/commit/6c2a751c1467a1c83a1fe8ed69a7fe5e3f8429e4))
+
+- **assets**: #33 add 5 North American birds
+  ([`59b26c8`](https://github.com/arnegiacomo/fugleramme/commit/59b26c8325e03020a913ce33e8f823ebc657fefc))
+
+- **assets**: #33 add 5 North American birds
+  ([#363](https://github.com/arnegiacomo/fugleramme/pull/363),
+  [`4c9935b`](https://github.com/arnegiacomo/fugleramme/commit/4c9935b8d125c50c4fd444ffa94e648f7a2cbffa))
+
+- **assets**: #33 add 6 North American birds
+  ([`f4cc264`](https://github.com/arnegiacomo/fugleramme/commit/f4cc264b380f4b5db07efe5f2ac527f5bd75c81a))
+
+- **assets**: #33 add 6 North American birds and 4 variants
+  ([`c450235`](https://github.com/arnegiacomo/fugleramme/commit/c450235c567614b5c728df42cbe01d18da8e3460))
+
+- **assets**: #33 add Campylorhynchus brunneicapillus
+  ([#381](https://github.com/arnegiacomo/fugleramme/pull/381),
+  [`6e8e559`](https://github.com/arnegiacomo/fugleramme/commit/6e8e559fa64d51b67cc052c2d48b8ca534a2c1ff))
+
+- **assets**: #33 add Leucophaeus atricilla
+  ([#335](https://github.com/arnegiacomo/fugleramme/pull/335),
+  [`e6c1859`](https://github.com/arnegiacomo/fugleramme/commit/e6c18592994f1672498bfd8f1b80999daf766939))
+
+- **assets**: #33 add Quiscalus major ([#331](https://github.com/arnegiacomo/fugleramme/pull/331),
+  [`f622833`](https://github.com/arnegiacomo/fugleramme/commit/f622833dee5e2ec760a358920bcea76494263208))
+
+- **assets**: #33 link the octavo cormorant plates
+  ([`6b82162`](https://github.com/arnegiacomo/fugleramme/commit/6b82162af6752a45d0e5c892191d9fd6d3061291))
+
+- **assets**: Add 4 southern African birds
+  ([#366](https://github.com/arnegiacomo/fugleramme/pull/366),
+  [`af01fc7`](https://github.com/arnegiacomo/fugleramme/commit/af01fc7bcc3657d95c85f6e5c85e550c004e065d))
+
+- **assets**: Add add'l art for Icterus galbula
+  ([#378](https://github.com/arnegiacomo/fugleramme/pull/378),
+  [`c71f648`](https://github.com/arnegiacomo/fugleramme/commit/c71f648c018c9b463933b704eb0247043d0560e0))
+
+- **assets**: Recut the Blue Jay from the whole Havell plate and add a Vieillot variant
+  ([`2d4943f`](https://github.com/arnegiacomo/fugleramme/commit/2d4943f100519c26ac1f8859a6c23e6bbb724687))
+
+- **assets**: Recut the Gould Phalacrocorax carbo plate
+  ([`7037547`](https://github.com/arnegiacomo/fugleramme/commit/7037547efc813b53cf1b3782399997144f0bef60))
+
+- **ci**: Print a hung test's stack and time out the pytest step
+  ([#373](https://github.com/arnegiacomo/fugleramme/pull/373),
+  [`09b908a`](https://github.com/arnegiacomo/fugleramme/commit/09b908a45dba3cdff76fe3d88fe5014d543e2e5f))
+
+- **deps**: Bump the actions group with 9 updates
+  ([#380](https://github.com/arnegiacomo/fugleramme/pull/380),
+  [`e9670ca`](https://github.com/arnegiacomo/fugleramme/commit/e9670ca8c3099a0c24190e665ddc655a767e42f2))
+
+- **docs**: Update HN badge ([#382](https://github.com/arnegiacomo/fugleramme/pull/382),
+  [`00b443d`](https://github.com/arnegiacomo/fugleramme/commit/00b443df4e716dd24465628cc799e1788b153f6c))
+
+### Documentation
+
+- #368 point docs at fugleramme/clients and remove examples/ee02
+  ([`ca0b6a1`](https://github.com/arnegiacomo/fugleramme/commit/ca0b6a14bb0414fe17ad501cab3befffed0511b5))
+
+- #375 document /press for external panels
+  ([`6347348`](https://github.com/arnegiacomo/fugleramme/commit/63473485eb3c207b92e2cabf9dd33eb2f2c0b78f))
+
+- Add code of conduct and security policy
+  ([`78c2b9c`](https://github.com/arnegiacomo/fugleramme/commit/78c2b9ced90396cb5124dad3f8ad49064fb7a87d))
+
+- Run on Proxmox ([#370](https://github.com/arnegiacomo/fugleramme/pull/370),
+  [`8a80d51`](https://github.com/arnegiacomo/fugleramme/commit/8a80d5152c35b993a24b7a0f2d950b1000cbbc34))
+
+- Update similar and built-on projects
+  ([`2017ba1`](https://github.com/arnegiacomo/fugleramme/commit/2017ba1b456049b3891210d1e6842e887301dd75))
+
+### Features
+
+- #359 rework the admin
+  ([`85d544e`](https://github.com/arnegiacomo/fugleramme/commit/85d544eefc7da0697fa2e0490bf843e5bf55582e))
+
+- An install's own update command in FUGLERAMME_UPDATE_COMMAND
+  ([#371](https://github.com/arnegiacomo/fugleramme/pull/371),
+  [`0c783aa`](https://github.com/arnegiacomo/fugleramme/commit/0c783aa5ea78b1075df9ffe23751cb4649730f5c))
+
+- **admin**: Add 'since midnight' option to lookback window
+  ([#376](https://github.com/arnegiacomo/fugleramme/pull/376),
+  [`e757a18`](https://github.com/arnegiacomo/fugleramme/commit/e757a1841b5761d25f5d940260db4d1134823105))
+
+### Testing
+
+- Stub the Wi-Fi thread in the service tests
+  ([`ad00eef`](https://github.com/arnegiacomo/fugleramme/commit/ad00eefec7508e01b515396ed161003823acddb2))
+
+
+## v0.31.1 (2026-11-04)
+
+### Bug Fixes
+
+- Hotspot mode detection when running in k8s
+  ([#365](https://github.com/arnegiacomo/fugleramme/pull/365),
+  [`19bc241`](https://github.com/arnegiacomo/fugleramme/commit/19bc241bc6afebed9c18fe664005c14dd5133107))
+
+
+## v0.31.0 (2026-11-03)
+
+### Bug Fixes
+
+- #293 fit long names on the single-bird page, found by @erendrake
+  ([`4efacf4`](https://github.com/arnegiacomo/fugleramme/commit/4efacf485261aab872aec65a7f83d2f47b4c69b4))
+
+- #31 show a settings gear on the kiosk on tap or mouse move
+  ([`dddf2d2`](https://github.com/arnegiacomo/fugleramme/commit/dddf2d2e0ef10678f2704093ba973cfcdbd7fc4f))
+
+- #352 install the python headers spidev builds against for inky
+  ([#353](https://github.com/arnegiacomo/fugleramme/pull/353),
+  [`5250be5`](https://github.com/arnegiacomo/fugleramme/commit/5250be53afca7988f67f51476e21f80c20a1de7f))
+
+- Link how to update instead of the docker command on phones
+  ([`a67ed3e`](https://github.com/arnegiacomo/fugleramme/commit/a67ed3e959007ff0dfa481bd7f26eeb2368a9919))
+
+- Set the admin title in the portal's title face
+  ([`3cc8cb6`](https://github.com/arnegiacomo/fugleramme/commit/3cc8cb6c57390887e4b2d565083bf9f0520cedd6))
+
+- Turn on USB gadget mode when the image already ships the package
+  ([`c3759d0`](https://github.com/arnegiacomo/fugleramme/commit/c3759d00e90696172fd25e1063cfdef06600504e))
+
+### Chores
+
+- Add dependabot for actions and uv
+  ([`223889c`](https://github.com/arnegiacomo/fugleramme/commit/223889c40d6c35b352fcc4792aa6d2ca46ba7b82))
+
+- Describe the container image on GHCR
+  ([`3e26c1d`](https://github.com/arnegiacomo/fugleramme/commit/3e26c1de73dc97bd63a57058585803b408af31d5))
+
+- Lead the release notes with new and fixed
+  ([`263df59`](https://github.com/arnegiacomo/fugleramme/commit/263df5914b19e3b23029f9c97b1676136a62933d))
+
+- **assets**: #33 add Icterus galbula, Tachycineta bicolor, Vireo gilvus and Vireo olivaceus
+  ([#286](https://github.com/arnegiacomo/fugleramme/pull/286),
+  [`f7863f5`](https://github.com/arnegiacomo/fugleramme/commit/f7863f56bcc761d936d6474dde39c4c22abcdfa8))
+
+- **assets**: #344 add Pachycephala pectoralis, Pachycephala rufiventris and Colluricincla harmonica
+  ([#348](https://github.com/arnegiacomo/fugleramme/pull/348),
+  [`4e4f4b4`](https://github.com/arnegiacomo/fugleramme/commit/4e4f4b48e4430916803515c6d91e1391523287ff))
+
+- **assets**: #356 add 10 Michigan birds and 4 variants
+  ([`971bb69`](https://github.com/arnegiacomo/fugleramme/commit/971bb6901d3dc51713b5048ecf39b2f78d8f17b5))
+
+- **assets**: #357 add Porzana carolina, Rallus limicola and Phoenicopterus ruber
+  ([`8ff7c54`](https://github.com/arnegiacomo/fugleramme/commit/8ff7c54401307b015e1c64ce9c38d624f0a12ae1))
+
+- **assets**: Add Diopsittaca nobilis ([#280](https://github.com/arnegiacomo/fugleramme/pull/280),
+  [`14ac612`](https://github.com/arnegiacomo/fugleramme/commit/14ac6122ecaadad9faa99e43a4f438de31d053e8))
+
+- **assets**: Rebox troglodytes-troglodytes-2 so the wren draws smaller
+  ([`f46e263`](https://github.com/arnegiacomo/fugleramme/commit/f46e26363d08f65906cd1cead1d9c4510a5ba556))
+
+- **ci**: Fetch release history without blobs
+  ([`b1f9a17`](https://github.com/arnegiacomo/fugleramme/commit/b1f9a17fdf4f05f90e7cfe52c8e853d0e7e0b4bf))
+
+- **deps**: Update the lock
+  ([`1929b1e`](https://github.com/arnegiacomo/fugleramme/commit/1929b1ef607f1311919164597449d38c8642a2d6))
+
+- **platereview**: Hide passed plates and serve the review uncached
+  ([`a9991d3`](https://github.com/arnegiacomo/fugleramme/commit/a9991d3e3097aea95b933cfdb6ef3653f7c3a278))
+
+### Documentation
+
+- #31 point to the kiosk's settings gear in the FAQ
+  ([`f26ebf5`](https://github.com/arnegiacomo/fugleramme/commit/f26ebf50547404bb9fcf3641861ae7a03b716a08))
+
+- Drop the wrong XDG_RUNTIME_DIR from the HDMI kiosk unit
+  ([`2ecb543`](https://github.com/arnegiacomo/fugleramme/commit/2ecb543207b6ee14b4a860c63866c72d0f344346))
+
+- Hide the mouse pointer on the HDMI kiosk
+  ([`d1a01bb`](https://github.com/arnegiacomo/fugleramme/commit/d1a01bbbd619055f05f0e91e94d5d244492c7022))
+
+- Link fugleramme-artkit from Adding artwork
+  ([#354](https://github.com/arnegiacomo/fugleramme/pull/354),
+  [`13bfc27`](https://github.com/arnegiacomo/fugleramme/commit/13bfc276cbd15d9eecaad0b1b17a582dca61d3d6))
+
+- Note the slow collage packing on a Pi Zero 2 W
+  ([`61a1086`](https://github.com/arnegiacomo/fugleramme/commit/61a1086c02c5529bb3a27839be22b6e63c7e5e19))
+
+### Features
+
+- #308 set up Wi-Fi through hotspot on frames without an Inky
+  ([`d1c5800`](https://github.com/arnegiacomo/fugleramme/commit/d1c5800df0b10b7b436b4b4e5ca23dd3711e1b85))
+
+- #308 set up Wi-Fi through hotspot on the Inky frame
+  ([`2e1cdb6`](https://github.com/arnegiacomo/fugleramme/commit/2e1cdb6a9a9942c27d38301bbbc5112383f26fe3))
+
+- Show the margins in black on the panel and web view while they change
+  ([`09f0436`](https://github.com/arnegiacomo/fugleramme/commit/09f04369e5d3a05d007808585bbceb095ffb240f))
+
+
 ## v0.30.0 (2026-10-29)
 
 ### Bug Fixes

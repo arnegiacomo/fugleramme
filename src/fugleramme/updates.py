@@ -80,6 +80,12 @@ def in_container() -> bool:
     )
 
 
+def update_command() -> str:
+    """What updates a frame that cannot update itself: the image's pull, unless the
+    install that launched it names its own in FUGLERAMME_UPDATE_COMMAND."""
+    return os.environ.get("FUGLERAMME_UPDATE_COMMAND", "").strip() or CONTAINER_COMMAND
+
+
 def can_reboot() -> bool:
     """Whether the admin may reboot the machine: only the Pi's systemd service,
     which sets INVOCATION_ID. An image's host and a dev run's workstation are not
@@ -108,7 +114,7 @@ def apply(tag: str, progress: Progress | None = None) -> None:
     """Move the checkout onto `tag`. Raises on failure; the caller exits on success."""
     if in_container():
         # Handing the frame the docker socket is the only way round this, for a button.
-        raise RuntimeError(f"Running in a container: update with `{CONTAINER_COMMAND}`")
+        raise RuntimeError(f"Running in a container: update with `{update_command()}`")
     previous = _head()
     # One tag, shallow: a full fetch would pull every past version of the artwork.
     _run(

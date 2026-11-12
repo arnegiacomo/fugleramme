@@ -1,0 +1,25 @@
+{# The Security tab: the door (#52), the switch and the password behind it, and
+   what the two add up to in the state they are in. Either half alone is an
+   open admin (Settings.admin_locked). #}
+{% from "macros.html" import checkbox, declare, text_field, hint %}
+<section id="tab-security" role="tabpanel" aria-labelledby="security-tab" hidden>
+  <form class="card block access" method="post" action="/admin">
+    <h2>Admin access</h2>
+    {{ declare("require_sign_in behind_proxy") }}
+    {% call checkbox("require_sign_in", settings.require_sign_in) %}Require sign-in for the admin page{% endcall %}
+    {# Said where the password is typed, the only place it changes what someone types. #}
+    {% call text_field("admin_password", PASSWORD_SET if settings.admin_password else "", type="password") %}Admin password {{ hint("If the frame can be reached from the internet, use a strong password that you use nowhere else.") }}{% endcall %}
+    <p class="strength" id="strength" hidden><span></span><small></small></p>
+    {% if not settings.require_sign_in and settings.admin_password %}
+    <p class="note warn">Sign-in is off, so anyone on the network can change the frame.</p>
+    {% elif not settings.require_sign_in %}
+    <p class="note">Anyone on the network can change the frame.</p>
+    {% elif not settings.admin_password %}
+    <p class="note warn">No password saved, so the admin is still open.</p>
+    {% else %}
+    <p class="note">Anyone can still view the kiosk - password used only by the admin page.</p>
+    {% endif %}
+    {# Keep the hint short, the rest is in the docs. #}
+    {% call checkbox("behind_proxy", settings.behind_proxy) %}The frame is behind a reverse proxy {{ hint("A proxy hands every visitor to the frame the same address, so a stranger's wrong passwords could block you too. With this on, the frame tells visitors apart by the address the proxy passes on.") }}{% endcall %}
+  </form>
+</section>

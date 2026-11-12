@@ -4,12 +4,18 @@ The inky library has no button API - they are plain GPIO lines on the panel
 board, read here with gpiod. A press is nothing but a settings write, so no
 state crosses threads and presses during the slow e-ink refresh coalesce into
 one re-render.
+
+A press fires on release, so holding A for `HOLD` can open or close the Wi-Fi
+setup (#308) without also changing the mode. The hold fires while A is still down.
 """
 
 from __future__ import annotations
 
 import logging
+import time
+from collections.abc import Callable
 from datetime import timedelta
+from functools import partial
 from pathlib import Path
 
 from .modes import MODES
@@ -25,6 +31,8 @@ _PINS = (5, 6, 16, 24)
 _PINS_13_3 = (5, 6, 25, 24)
 
 _DEBOUNCE = timedelta(milliseconds=50)
+
+HOLD = 5.0  # seconds A is held to open or close the Wi-Fi setup
 
 
 def pins_for(driver: str) -> tuple[int, ...]:
@@ -63,8 +71,49 @@ def press(label: str, store: SettingsStore, images_dir: Path) -> None:
     log.info("Button %s: %s", label, changes)
 
 
-def watch(driver: str, store: SettingsStore, images_dir: Path) -> None:
-    """Block on button edges forever. Returns at once if the GPIO lines are unusable."""
+class Presses:
+    """Which edges make a press, apart from the GPIO so a test can drive it. A button
+    presses when it is let go; A held past HOLD fires its hold instead, once, while still
+    held, and its release then does nothing. Without a hold, A presses like the others."""
+
+    def __init__(self, hold: bool):
+        self._hold = hold
+        self._down: dict[str, float] = {}
+        self._held = False
+
+    def down(self, label: str, at: float) -> None:
+        self._down[label] = at
+
+    def up(self, label: str) -> bool:
+        """Whether this release is a press."""
+        pressed = self._down.pop(label, None) is not None
+        if label == "A" and self._held:
+            self._held = False
+            return False
+        return pressed
+
+    def wait(self, now: float) -> float | None:
+        """Seconds until A's hold is due, or None while there is nothing to wait for."""
+        if not self._hold or self._held or "A" not in self._down:
+            return None
+        return max(0.0, self._down["A"] + HOLD - now)
+
+    def held(self, now: float) -> bool:
+        """Whether A's hold fires now."""
+        if self.wait(now) != 0.0:
+            return False
+        self._held = True
+        return True
+
+
+def watch(
+    driver: str,
+    store: SettingsStore,
+    images_dir: Path,
+    hold: Callable[[], None] | None = None,
+) -> None:
+    """Block on button edges forever. Returns at once if the GPIO lines are unusable.
+    `hold` is what holding A does, if anything."""
     try:
         import gpiod
         import gpiodevice
@@ -82,7 +131,7 @@ def watch(driver: str, store: SettingsStore, images_dir: Path) -> None:
             gpiod.LineSettings(
                 direction=Direction.INPUT,
                 bias=Bias.PULL_UP,
-                edge_detection=Edge.FALLING,
+                edge_detection=Edge.BOTH,
                 debounce_period=_DEBOUNCE,
             ),
         )
@@ -92,10 +141,23 @@ def watch(driver: str, store: SettingsStore, images_dir: Path) -> None:
         return
 
     log.info("Buttons ready: %s", dict(zip(LABELS, pins, strict=True)))
+    presses = Presses(hold is not None)
     while True:
-        for event in request.read_edge_events():
-            label = LABELS[offsets.index(event.line_offset)]
-            try:
-                press(label, store, images_dir)
-            except Exception:  # a failed write must not take the thread with it
-                log.exception("Button %s failed", label)
+        if request.wait_edge_events(presses.wait(time.monotonic())):
+            for event in request.read_edge_events():
+                label = LABELS[offsets.index(event.line_offset)]
+                # Pulled up, so a press pulls the line down.
+                if event.event_type == gpiod.EdgeEvent.Type.FALLING_EDGE:
+                    presses.down(label, time.monotonic())
+                elif presses.up(label):
+                    _safely(label, partial(press, label, store, images_dir))
+        if hold is not None and presses.held(time.monotonic()):
+            log.info("Button A held")
+            _safely("A", hold)
+
+
+def _safely(label: str, action: Callable[[], None]) -> None:
+    try:
+        action()
+    except Exception:  # a failed write must not take the thread with it
+        log.exception("Button %s failed", label)

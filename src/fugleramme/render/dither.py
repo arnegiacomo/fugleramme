@@ -24,6 +24,8 @@ from .paper import PANEL_PAPER, _reach
 _DESATURATED = [(0, 0, 0), (255, 255, 255), (255, 255, 0), (255, 0, 0), (0, 0, 255), (0, 255, 0)]
 _SATURATED = [(0, 0, 0), (161, 164, 165), (208, 190, 71), (156, 72, 75), (61, 59, 94), (58, 91, 70)]
 
+BLACK = 0  # the index, for painting straight onto a dithered page
+
 # Matches the inky default. Raising it dithers against duller targets, which
 # spreads more ink; the blend must stay nearest-neighbour to _DESATURATED or the
 # driver's remap will land on the wrong color.
@@ -72,3 +74,9 @@ def _pop(image: Image.Image) -> Image.Image:
 def dither(image: Image.Image) -> Image.Image:
     """Quantize an RGB image to the 6-color panel palette (returns mode "P")."""
     return _pop(image).quantize(palette=_palette_image(), dither=Image.Dither.FLOYDSTEINBERG)
+
+
+def monochrome(image: Image.Image) -> Image.Image:
+    """A black and white page onto the panel palette as it is, undithered: the setup screen's
+    QR code stops scanning once it is smeared."""
+    return image.convert("RGB").quantize(palette=_palette_image(), dither=Image.Dither.NONE)

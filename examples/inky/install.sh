@@ -52,6 +52,17 @@ ensure_panel_bus() {
   done
 }
 
+# spidev has no wheel for every Python and arch, so uv may build it from source,
+# which needs the Python headers Raspberry Pi OS Lite leaves out.
+ensure_build_deps() {
+  have apt-get || return 0
+  local missing=()
+  dpkg -s python3-dev >/dev/null 2>&1 || missing+=("python3-dev")
+  have gcc || missing+=("build-essential")
+  (( ${#missing[@]} )) || return 0 # avoid running if nothing is missing.
+  sudo apt-get update -q && sudo apt-get install -y -q "${missing[@]}"
+}
+
 [[ "$(uname -s)" == Linux ]] || { echo "This sets up a Raspberry Pi." >&2; exit 1; }
 
 echo "==> files in $DIR"
@@ -79,6 +90,7 @@ echo "==> panel"
 ensure_panel_bus
 
 echo "==> python"
+ensure_build_deps
 have uv || curl -fsSL https://astral.sh/uv/install.sh | sh
 [[ -d "$DIR/.venv" ]] || uv venv -q "$DIR/.venv"
 uv pip install -q --python "$DIR/.venv/bin/python" "inky>=2.6" "gpiod>=2.1" "gpiodevice>=0.0.5" pillow

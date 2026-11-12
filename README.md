@@ -21,6 +21,7 @@ Bird frame for Raspberry Pi or your homelab - real-time bird detection by audio,
 <p align="center">
   <a href="https://spotlight.gosim.org/shenzhen2026/"><img src="docs/assets/gosim-spotlight.svg" alt="Featured in the GOSIM Spotlight, Shenzhen 2026" width="250" height="55"></a>
   <a href="https://trendshift.io/repositories/204367?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-204367"><img src="https://trendshift.io/api/badge/repositories/204367" alt="arnegiacomo%2Ffugleramme | Trendshift" width="250" height="55"></a>
+  <a href="https://hackergit.org/r/arnegiacomo/fugleramme"><img src="https://hackergit.org/badge/arnegiacomo/fugleramme.svg?style=rank&rank=year" alt="Hacker News" width="250" height="55"></a>
 </p>
 
 Live demo: **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** shows the birds heard in my garden in Bergen, Norway, right now. More frames around the world in the [Showcase](https://arnegiacomo.dev/fugleramme/showcase/). Full docs: **[arnegiacomo.dev/fugleramme](https://arnegiacomo.dev/fugleramme/)**
@@ -28,8 +29,8 @@ Live demo: **[fugleramme.arnegiacomo.dev](https://fugleramme.arnegiacomo.dev)** 
 ## Inspiration
 
 A [WWF Verdens naturfond poster by Axel Thorenfeldt](https://www.axelthorenfeldt.com/news/wwf-verdens-naturfonds-fugleskole)
-hangs on my wall, and I wanted a version of it showing the actual birds in my garden. Teddy Warner's
-[AvianVisitors](https://theodore.net/projects/AvianVisitors/) gave me the idea of the live e-ink frame.
+hangs on my wall, and I wanted a version of it showing the actual birds in my garden. The idea of a live bird
+collage on an e-ink frame came from Teddy Warner's [AvianVisitors](https://theodore.net/projects/AvianVisitors/).
 
 ## How it works
 
@@ -54,7 +55,7 @@ No mic or few birds in your area? Point it at a public [BirdWeather](docs/operat
 > [!TIP]
 > The e-ink panel on a Pi is what makes it a picture frame, but neither is required. Fugleramme also runs in a
 > container on basically anything - a homelab, a NAS, an old laptop - and the page takes the shape of whatever
-> shows it: a TV, an HDMI display, an external e-ink panel, any browser, or your desktop wallpaper. With BirdNET-Go,
+> shows it: a TV, an HDMI display, [an external e-ink panel](#on-other-devices), any browser, or your desktop wallpaper. With BirdNET-Go,
 > everything runs on your own hardware and works fully offline. See [Container](docs/container.md) and
 > [Screens](docs/screens.md).
 
@@ -123,6 +124,22 @@ docker compose up -d
 
 See **[Container](docs/container.md)** for more info.
 
+## Run on Proxmox
+
+On the Proxmox host's shell:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/dmellok/proxmox-fugleramme/main/ct/fugleramme.sh)"
+```
+
+See **[Proxmox](docs/proxmox.md)** for more info.
+
+## On other devices
+
+Like building your own stuff, or got old hardware gathering dust? Fugleramme serves its page over HTTP, so almost anything with a screen and a network connection can show your birds. Hang a battery-powered e-ink frame anywhere in Wi-Fi range, with no wires, or give an old e-reader a second life.
+
+**[fugleramme/clients](https://github.com/fugleramme/clients)** collects programs and setups for other devices, made by the community. Got Fugleramme running on something cool? Share it there!
+
 ## Run locally (for development)
 
 ```bash
@@ -158,13 +175,12 @@ See **[Contributing](CONTRIBUTING.md)** for more info. For anything else, you ca
 
 ## Similar projects
 
-- [AvianVisitors](https://github.com/Twarner491/AvianVisitors) - BirdNET-Pi, AI-generated illustrations and photo cutouts, also sold as [kits](https://theodore.net/store/)
-- [inky-bird-frame](https://github.com/veteranbv/inky-bird-frame) - BirdNET, field-journal illustrations on an Inky panel
+- [AvianVisitors](https://github.com/Twarner491/AvianVisitors) - the original live bird collage, on BirdNET-Pi with AI-generated illustrations, also sold as [kits](https://theodore.net/store/)
+- [inky-bird](https://github.com/veteranbv/inky-bird) - BirdNET, field-journal illustrations on an Inky panel
 - [HABirdDashboard](https://github.com/adamoberley/HABirdDashboard) - BirdNET-Go, a collage card for Home Assistant
 - [belkins-birdnet](https://github.com/Belkins/belkins-birdnet) - BirdNET-Pi, AI-generated kachō-e style illustrations
 - [featherframe](https://github.com/wr/featherframe) - BirdNET-Pi, Audubon plates on an ESP32 e-ink panel
 - [birdframe](https://github.com/simenf/birdframe) - BirdNET-Go, several art styles on a Samsung Frame TV
-- [Plate197](https://github.com/kevinl95/Plate197) - BirdNET, Audubon plates on a Raspberry Pi touchscreen
 - [Backyard Birds](https://github.com/dmellok/tesserae-widget-backyard-birds) - BirdNET-Go, natural-history plates as a [Tesserae](https://github.com/dmellok/tesserae) widget for several e-ink panels
 
 Fugleramme shares no code or art with them.
@@ -173,9 +189,8 @@ Fugleramme shares no code or art with them.
 
 - [tesserae-widget-fugleramme](https://github.com/dmellok/tesserae-widget-fugleramme) - fugleramme modes and art as a widget for Tesserae
 - [fugleramme-samsung-frame](https://github.com/conradj/fugleramme-samsung-frame) - sends the collage to a Samsung Frame TV in Art Mode
-- [birdnet-frame](https://github.com/icecoldfire/birdnet-frame) - a Docker container that sends the collage to a Samsung Frame TV in Art Mode
-- [birdnet_eink](https://github.com/Sidiox/birdnet_eink) - the artwork on a LilyGO T5 4.7" ESP32 e-ink display
 - [birdframe](https://github.com/ben-gy/birdframe) - the collage in greyscale on a QuirkLogic Papyr 13.3" e-ink tablet
+- [birdsong](https://github.com/dopeytree/birdsong) - the classic artwork as one plate of the birds heard, sized by calls, with a card for each bird
 - [Cobalt Birds](https://github.com/BandarLabs/Cobalt/tree/main/apps/birds) - the collage on a Kobo e-reader running Cobalt
 
 ## License

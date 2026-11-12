@@ -24,14 +24,16 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PIL import Image
+from PIL import Image, ImageOps
 
+from . import wifi
 from .languages import STATION, Drawable, Namer, english_name, station_locale
 from .names import drawable_keys, image_for, normalize, perches_for, resolve
 from .render import fonts
 from .render.collage import KEY_LIMIT, NO_LIMIT, gather_entries, render_collage, selected_species
 from .render.page import NEW, Edges, day_ordinal
 from .render.plate import effective_margin, render_plate
+from .render.setup import setup_page
 from .source import Source, Species
 
 if TYPE_CHECKING:
@@ -99,7 +101,7 @@ def context(
         resolution=resolution,
         show_names=settings.show_names,
         name_key=keyed,
-        lookback_hours=settings.lookback_hours,
+        lookback_hours=settings.window_hours(),
         font_key=settings.label_font,
         label_size=settings.label_size,
         species_limit=_key_limit(settings.species_limit) if keyed else settings.species_limit,
@@ -387,6 +389,28 @@ def render(ctx: Context) -> Image.Image:
 def subjects(ctx: Context) -> list[str]:
     """The species the current page is about."""
     return mode_of(ctx.mode).subjects(ctx)
+
+
+def setup_screen(
+    state: wifi.State, settings: Settings, size: tuple[int, int], panel: bool
+) -> Image.Image:
+    """The Wi-Fi setup screen in place of the page: 1-bit with the panel's margins for the
+    panel. For a browser, black ink with the page's margin on nothing, so the kiosk's paper
+    shows through."""
+    top, right, bottom, left = settings.margins(panel)
+    page = setup_page(
+        size,
+        (top / 100, right / 100, bottom / 100, left / 100),
+        state.name,
+        state.password,
+        f"http://{wifi.ADDRESS}",
+        state.error,
+        str(fonts.FONTS_DIR / fonts.FONTS["cormorant"][1]),  # the plates' engraved display italic
+        "1" if panel else "L",
+    )
+    if panel:
+        return page
+    return Image.merge("LA", (Image.new("L", size, 0), ImageOps.invert(page)))
 
 
 _cache: tuple[tuple, bytes] | None = None

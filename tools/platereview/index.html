@@ -81,6 +81,7 @@
   <button data-key="j" id="next"><span class="lab">Next &rarr;</span></button>
   <span class="spacer"></span>
   <span class="count" id="tally"></span>
+  <label title="Leave passed plates out of the strip and of stepping"><input type="checkbox" id="hidepassed"> hide passed</label>
   <button data-key="c" id="copy"><span class="lab">Copy review notes</span></button>
 </header>
 <main>
@@ -259,12 +260,23 @@ function show(i) {
   $("pass").classList.toggle("on", saved.verdict === "pass"); $("fail").classList.toggle("on", saved.verdict === "fail");
   strip();
 }
+const hiding = () => $("hidepassed").checked;
+const passed = i => store.get(BIRDS[i].id).verdict === "pass";
+// Steps to the next bird in direction d, past passed ones while they are hidden; stays put when
+// every other bird has passed.
+function step(d) {
+  for (let n = 1; n < BIRDS.length; n++) {
+    const i = (at + d * n + BIRDS.length) % BIRDS.length;
+    if (!hiding() || !passed(i)) return show(i);
+  }
+}
 function strip() {
   $("strip").innerHTML = "";
   let pass = 0, fail = 0;
   BIRDS.forEach((b, i) => {
     const v = store.get(b.id).verdict, btn = document.createElement("button");
     if (v === "pass") pass++; if (v === "fail") fail++;
+    if (hiding() && v === "pass" && i !== at) return;
     btn.className = (i === at ? "cur " : "") + (v || ""); btn.title = b.name;
     btn.innerHTML = `<img src="img/${b.id}/thumb.jpg" alt="${b.name}">`; btn.onclick = () => show(i); $("strip").append(btn);
   });
@@ -367,6 +379,11 @@ $("stage").addEventListener("mousemove", e => {
 });
 $("speed").oninput = () => play(playing);
 $("showmarks").onchange = e => document.body.classList.toggle("hide-marks", !e.target.checked);
+try { $("hidepassed").checked = localStorage.getItem("plate-review-hide-passed") === "1"; } catch {}
+$("hidepassed").onchange = e => {
+  try { localStorage.setItem("plate-review-hide-passed", e.target.checked ? "1" : ""); } catch {}
+  if (e.target.checked && passed(at)) step(1); else strip();
+};
 function toggleBox() { document.body.classList.toggle("hide-box"); }
 function copyNotes() {
   const lines = BIRDS.map(b => {
@@ -380,8 +397,8 @@ function copyNotes() {
 // Every button carries its key, and the key is what runs: one table, so the chip on the
 // button and the shortcut cannot drift apart.
 const keys = {
-  j: () => show(at + 1), ArrowRight: () => show(at + 1),
-  k: () => show(at - 1), ArrowLeft: () => show(at - 1),
+  j: () => step(1), ArrowRight: () => step(1),
+  k: () => step(-1), ArrowLeft: () => step(-1),
   " ": () => play(!playing),
   1: () => { play(false); setMode("scan"); }, 2: () => { play(false); setMode("plate"); },
   3: () => { play(false); setMode("flags"); }, 4: () => { play(false); setMode("diff"); },
@@ -404,7 +421,7 @@ addEventListener("keydown", e => {
   keys[e.key]();
 });
 addEventListener("resize", () => { setView(1, 0, 0); layout(); });
-if (BIRDS.length) { show(0); play(true); }
+if (BIRDS.length) { show(0); if (hiding() && passed(0)) step(1); play(true); }
 else $("name").textContent = "No birds.js beside this page - run build.py on the review folder first.";
 </script>
 </body>

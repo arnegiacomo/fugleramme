@@ -62,23 +62,13 @@ def render_plate(
         draw_perch(canvas, perches, day_ordinal() if day is None else day, textured)
         return canvas
 
+    x0, y0, x1, y1 = effective_margin(margin).window(resolution)
     name_px = round(label_px(width, height, label_size) * _NAME_SCALE)
-    lines: list[tuple[Image.Image, int]] = []  # mask, gap above it
-    if show_names and name:
-        flat = not textured
-        lines.append(
-            (text_mask(name, fonts.load(font_key, name_px), flat), round(name_px * _NAME_GAP))
-        )
-        if note:
-            lines.append(
-                (
-                    text_mask(note, fonts.load(font_key, round(name_px * _NOTE_SCALE)), flat),
-                    round(name_px * _NOTE_GAP),
-                )
-            )
+    lines = (
+        _fitted(name, note, name_px, font_key, not textured, x1 - x0) if show_names and name else []
+    )
     caption = sum(mask.height + gap for mask, gap in lines)
 
-    x0, y0, x1, y1 = effective_margin(margin).window(resolution)
     art = fit(trim(art_path), (x1 - x0, max(1, y1 - y0 - caption)))
 
     y = y0 + (y1 - y0 - art.height - caption) // 2
@@ -92,3 +82,30 @@ def render_plate(
         stamp(canvas, mask, (x0 + (x1 - x0 - mask.width) // 2, y), textured)
         y += mask.height
     return canvas
+
+
+def _caption(
+    name: str, note: str, name_px: int, font_key: str, flat: bool
+) -> list[tuple[Image.Image, int]]:
+    """The name and the note under it, each mask with the gap above it."""
+    lines = [(text_mask(name, fonts.load(font_key, name_px), flat), round(name_px * _NAME_GAP))]
+    if not note:
+        return lines
+    note_mask = text_mask(note, fonts.load(font_key, round(name_px * _NOTE_SCALE)), flat)
+    return [*lines, (note_mask, round(name_px * _NOTE_GAP))]
+
+
+def _fitted(
+    name: str, note: str, name_px: int, font_key: str, flat: bool, width: int
+) -> list[tuple[Image.Image, int]]:
+    """The caption at `name_px`, or shrunk as one until its widest line fits
+    `width`. A face's advance is not exactly proportional to its size, so the
+    scaled guess is stepped down until it fits."""
+    lines = _caption(name, note, name_px, font_key, flat)
+    widest = max(mask.width for mask, _ in lines)
+    px = name_px * width // widest
+    while widest > width and px > 1:
+        lines = _caption(name, note, px, font_key, flat)
+        widest = max(mask.width for mask, _ in lines)
+        px -= 1
+    return lines

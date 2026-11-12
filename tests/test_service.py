@@ -18,7 +18,7 @@ from PIL import Image
 from fugleramme import api, modes, service
 from fugleramme.config import Config
 from fugleramme.settings import Settings, SettingsStore
-from fugleramme.status import Status
+from fugleramme.status import MatTest, Status
 
 
 class _Stop(Exception):
@@ -34,6 +34,14 @@ def images(tmp_path):
     (style / "perches").mkdir()
     Image.new("RGBA", (80, 60), (20, 20, 20, 255)).save(style / "perches" / "twig.png")
     return tmp_path / "images"
+
+
+@pytest.fixture(autouse=True)
+def no_wifi_setup():
+    """Where sudo works, as on a CI runner, service.run starts the Wi-Fi thread, and its
+    subprocess calls poll the time.sleep these tests replace."""
+    with patch.object(service, "_wifi_setup", return_value=None):
+        yield
 
 
 def test_the_loop_holds_its_last_page_when_the_detector_goes_away(
@@ -407,3 +415,57 @@ def test_signal_runs_the_shutdown_handler(tmp_path, images, detector, signal_cod
 
     assert mock_server.shutdown_calls == 1
     assert mock_server.server_close_calls == 1
+
+
+def test_a_margin_test_paints_the_glass_and_goes_past_the_floor_both_ways(
+    tmp_path, images, detector
+):
+    """The test reaches the glass at once and so does the page after it, whatever the
+    floor says, and the external panel's page never sees it."""
+    url, _httpd = detector(count=4, seed=0)
+    config = Config(
+        images_dir=images,
+        detector_url=url,
+        output_path=tmp_path / "frame.png",
+        host="127.0.0.1",
+        port=0,
+        config_path=tmp_path / "settings.json",
+    )
+    store = SettingsStore(config.config_path, Settings(detector_url=url))
+    store.update(refresh_minutes=10)
+    status = Status()
+    pushed: list[Image.Image] = []
+    framed: list[Image.Image] = []
+    panel = SimpleNamespace(
+        resolution=(800, 480), driver="", push=lambda image, _rotation: pushed.append(image)
+    )
+    ticks = 0
+
+    def sleep(_seconds):
+        nonlocal ticks
+        ticks += 1
+        assert status.frame is not None
+        framed.append(status.frame[0])
+        if ticks == 1:
+            status.mat_test = MatTest(4, (20, 0, 0, 0), service.time.monotonic() + 60)
+        if ticks == 2:
+            status.mat_test = MatTest(4, (20, 0, 0, 0), service.time.monotonic() - 1)
+        if ticks == 3:
+            raise _Stop
+
+    with (
+        patch.object(service.updates, "available", return_value=None),
+        patch.object(service, "init_panel", return_value=panel),
+        patch.object(service.buttons, "watch"),
+        patch.object(service, "Status", return_value=status),
+        patch.object(service.time, "sleep", sleep),
+        pytest.raises(_Stop),
+    ):
+        service.run(config)
+
+    page, tested, back = pushed
+    black = 0  # the driver's index
+    assert tested.getpixel((400, 10)) == black and tested.getpixel((400, 470)) != black
+    assert page.getpixel((400, 10)) != black and back.getpixel((400, 10)) != black
+    assert framed[1] is framed[0]  # the test was not handed to /frame.e6
+    assert status.mat_test is None

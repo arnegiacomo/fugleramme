@@ -12,10 +12,12 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import re
 import threading
 from dataclasses import asdict, dataclass, fields
+from datetime import date, datetime, time
 from pathlib import Path
 
 from .config import (
@@ -50,6 +52,9 @@ ROTATIONS = (0, 90, 180, 270)
 # keeps growing. Sorts last despite being the smallest number - see `lookback_order`.
 ALL_TIME = 0
 
+# Not a fixed window either: back to the frame's own midnight. See `window_hours`.
+TODAY = -1
+
 # Lookback windows offered in the admin UI, as (hours, label), shortest-first.
 LOOKBACK_OPTIONS = (
     (0.25, "Last 15 minutes"),
@@ -58,7 +63,8 @@ LOOKBACK_OPTIONS = (
     (3, "Last 3 hours"),
     (6, "Last 6 hours"),
     (12, "Last 12 hours"),
-    (24, "Today (24 hours)"),
+    (TODAY, "Today (since midnight)"),
+    (24, "Last 24 hours"),
     (72, "Last 3 days"),
     (168, "Last week"),
     (720, "Last 30 days"),
@@ -90,8 +96,11 @@ MARGIN_CEILING = 25
 
 
 def lookback_order(hours: float) -> float:
-    """Sort key: ALL_TIME is the longest window, not the shortest."""
-    return float("inf") if hours == ALL_TIME else hours
+    """Sort key: ALL_TIME is the longest window, not the shortest, and TODAY
+    sits just under the full day it can grow to."""
+    if hours == ALL_TIME:
+        return float("inf")
+    return math.nextafter(24, 0) if hours == TODAY else hours
 
 
 @dataclass(frozen=True)
@@ -164,6 +173,11 @@ class Settings:
     # Behind a reverse proxy every request arrives from the proxy, so the sign-in
     # limiter has to key on the address the proxy reports instead (#52).
     behind_proxy: bool = False
+    # Opens a setup hotspot when the frame has no network (#308). On by default, updated
+    # frames included: it only acts on a frame that is offline, which was a dead frame before.
+    wifi_setup: bool = True
+    # Makes the hotspot WPA2; empty leaves it open. 8 to 63 characters, as WPA2 asks.
+    hotspot_password: str = ""
     # Signs the admin's session cookie. Minted at the first sign-in and kept, so a
     # restart does not sign everyone out; not a setting anyone edits.
     session_secret: str = ""
@@ -178,6 +192,16 @@ class Settings:
     def detector_address(self) -> str:
         """Where the frame reads its birds: the address of `detector_kind`'s own."""
         return self.detector_station if self.detector_kind == BIRDWEATHER else self.detector_url
+
+    def window_hours(self) -> float:
+        """The lookback as hours back from now, for the source: TODAY becomes the
+        time since the frame's local midnight."""
+        if self.lookback_hours != TODAY:
+            return self.lookback_hours
+        midnight = datetime.combine(date.today(), time()).astimezone()
+        elapsed = (datetime.now().astimezone() - midnight).total_seconds() / 3600
+        # 0 would read as ALL_TIME in the first instant of the day.
+        return max(elapsed, 1 / 3600)
 
     def oriented(self, resolution: tuple[int, int]) -> tuple[int, int]:
         """Apply the rotation's aspect to a landscape-native (w, h)."""
@@ -232,9 +256,12 @@ def _as_hours(value, default: float) -> float:
     """Fractional so the admin can offer minutes; a whole number stays an int, so
     the settings file reads as plain hours."""
     try:
-        hours = max(ALL_TIME, min(24 * 30, float(value)))
+        hours = float(value)
     except (TypeError, ValueError):
         return default
+    if hours == TODAY:
+        return TODAY
+    hours = max(ALL_TIME, min(24 * 30, hours))
     return int(hours) if hours == int(hours) else hours
 
 
@@ -297,6 +324,14 @@ def _station(value, default: str) -> str:
 
 def _text(value, default: str) -> str:
     return value.strip() if isinstance(value, str) else default
+
+
+def _hotspot_password(value, default: str) -> str:
+    """A WPA2 passphrase or nothing: one outside 8 to 63 characters would keep the hotspot from
+    opening at all, which is worse than an open one."""
+    if not isinstance(value, str):
+        return default
+    return value if value == "" or 8 <= len(value) <= 63 else default
 
 
 def _secret(value, default: str) -> str:
@@ -368,6 +403,8 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         require_sign_in=_as_bool(raw.get("require_sign_in"), d.require_sign_in),
         behind_proxy=_as_bool(raw.get("behind_proxy"), d.behind_proxy),
         admin_password=_secret(raw.get("admin_password"), d.admin_password),
+        wifi_setup=_as_bool(raw.get("wifi_setup"), d.wifi_setup),
+        hotspot_password=_hotspot_password(raw.get("hotspot_password"), d.hotspot_password),
         session_secret=_text(raw.get("session_secret"), d.session_secret),
     )
 

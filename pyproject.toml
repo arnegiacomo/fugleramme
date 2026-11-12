@@ -1,6 +1,6 @@
 [project]
 name = "fugleramme"
-version = "0.30.0"
+version = "0.32.0"
 description = "E-ink bird frame: renders the latest BirdNET detection to an Inky panel and serves a stats dashboard."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -11,8 +11,13 @@ dependencies = [
     "babel>=2.17",
     # Which characters a typeface has, to pick a label line's fallback face.
     "fonttools>=4.60",
+    # The admin's templates, escaped by default by the MarkupSafe it brings, which admin.py uses too.
+    "jinja2>=3.1",
     "numpy>=2.4.6",
-    "pillow>=10.0",
+    # 10.1 for a scalable load_default(), which sets the Wi-Fi setup screen.
+    "pillow>=10.1",
+    # The Wi-Fi setup screen's QR code. Pure python, no dependencies.
+    "segno>=1.6",
 ]
 
 [project.scripts]
@@ -54,6 +59,8 @@ major_on_zero = false  # a feat on 0.x bumps the minor, not to 1.0
 match = "main"
 
 [tool.semantic_release.changelog]
+# Release notes only; CHANGELOG.md keeps the default template.
+template_dir = ".github/release"
 exclude_commit_patterns = ["^chore: release v"]
 
 [tool.ruff]
