@@ -107,15 +107,21 @@ and [Metropolitan Museum of Art](https://www.metmuseum.org/art/collection) scans
 **Naumann** - *Naturgeschichte der Vögel Mitteleuropas* by **Johann Friedrich Naumann**, revised and edited by **Carl R. Hennicke** (1897-1905), chromolithographs by **J. G. Keulemans** and others, lithographed and printed by **Fr. Eugen Köhler** in Gera-Untermhaus, Internet Archive scans from the Commons category [Naturgeschichte der Vögel Mitteleuropas](https://commons.wikimedia.org/wiki/Category:Naturgeschichte_der_V%C3%B6gel_Mitteleuropas); and the plates of *Johann Andreas Naumann's Naturgeschichte der Vögel Deutschlands* (1820-1844), hand-coloured engravings, Biodiversity Heritage Library scans via the [Internet Archive](https://archive.org/details/johannandreasnau13naum), with an original watercolour for them from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections, via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain (PD-scan / PD-old-70-expired). Manifest key: `naumann`.
 
 **Fuertes** - works with plates by **Louis Agassiz Fuertes**: *Birds of New York, Parts 1 & 2* by **Elon Howard Eaton** (New York State Museum, Memoir 12; Albany: University of the State of New York, 1910-1914), Internet Archive scans from the Commons category [Birds of New York (Eaton)](https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)), public domain (PD-scan / PD-old-70-expired); and *Birds of Massachusetts and Other New England States* by **Edward Howe Forbush** (Massachusetts Department of Agriculture, 1925-1929), Massachusetts Archives scan via Digital Commonwealth, the [DPLA](https://dp.la/) and Wikimedia Commons, public domain (No Copyright - United States). Manifest key: `fuertes`.
+Also plates in *Bird-Lore* (1915), published by the **National Association of Audubon Societies**, American Museum of Natural History Library scans through the **Biodiversity Heritage Library** on the [Internet Archive](https://archive.org/details/birdlore17nati), public domain (NOT_IN_COPYRIGHT; Fuertes died 1927).
 Also chromolithographs after his watercolours in the *Harriman Alaska series*
 (1904), from [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Harriman_Alaska_Expedition).
 Public domain (PD-US / PD-Art).
-And colour plates after his paintings in *Bird-Lore* (1916-1917), Internet Archive scans
-from the Commons categories [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)) and [Bird Lore (1917)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1917)),
+And colour plates after his paintings in *Bird-Lore* (1913-1921), Internet Archive scans,
+some from the Commons categories [Bird Lore (1916)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1916)) and [Bird Lore (1917)](https://commons.wikimedia.org/wiki/Category:Bird_Lore_(1917)),
 public domain (no known copyright restrictions).
 And plates after his paintings in *The Warblers of North America* by **Frank M. Chapman**
 (1907), Biodiversity Heritage Library scans on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:The_warblers_of_North_America_(6308738451).jpg),
 public domain.
+And colour illustrations in *The Book of Birds: Common Birds of Town and Country
+and American Game Birds* (National Geographic Society, 1918), with text by
+**Henry W. Henshaw** and others, Cornell University Library scans via the
+[Internet Archive](https://archive.org/details/cu31924090257605), public domain
+(US copyright expired; Fuertes died in 1927).
 Also his plates for **F. E. L. Beal**'s *Birds of California in Relation to the Fruit Industry*,
 Parts I and II (U.S. Biological Survey Bulletins 30 and 34, 1907-1910), via the Internet Archive
 ([Part I](https://archive.org/details/birdsofcaliforni30beal), [Part II](https://archive.org/details/bulletinbiologic3238unit)).
@@ -159,7 +165,7 @@ Public domain. Manifest key: `legge`.
 
 **Swainson** - *Zoological Illustrations* by
 **William Swainson** (1829), from the [Wikimedia Commons collection](https://commons.wikimedia.org/wiki/Category:Zoological_Illustrations_Volume_I);
-and his plates for *A Fasciculus of the Birds of China* by **G. R. Gray** (1871), Cornell University Library and Museums Victoria scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) and the Internet Archive, and *Fauna Boreali-Americana* with **John Richardson** (1831), Smithsonian Libraries scans on the [Internet Archive](https://archive.org/details/faunaborealiamer22rich);
+and his plates for *A Fasciculus of the Birds of China* by **G. R. Gray** (1871), Cornell University Library and Museums Victoria scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/) and the Internet Archive, and *Fauna Boreali-Americana* with **John Richardson** (1831), Smithsonian Libraries and University of Toronto scans on the [Internet Archive](https://archive.org/details/faunaborealiamer22rich);
 and *A Selection of the Birds of Brazil and Mexico* (1841), from [Wikimedia Commons](https://commons.wikimedia.org/).
 Public domain. Manifest key: `swainson`.
 
@@ -210,7 +216,7 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Bonaparte** - *Iconografia della fauna italica per le quattro classi degli animali vertebrati* by **Charles Lucien Bonaparte** (1832-1841), hand-coloured lithographs, via the [Internet Archive](https://archive.org/details/Iconografiadellt1c1Bona). Public domain. Manifest key: `bonaparte`.
 
-**Smit** - a plate by **Joseph Smit** from *The Ibis* (1894), printed by **Mintern Bros.**, via the [Internet Archive](https://archive.org/details/ibis661894188994brit). Public domain (Smit died 1929). Manifest key: `smit`.
+**Smit** - plates by **Joseph Smit** from *The Ibis* (1894), printed by **Mintern Bros.**, via the [Internet Archive](https://archive.org/details/ibis661894188994brit), and from the *Proceedings of the Zoological Society of London* (1883), via the [Internet Archive](https://archive.org/details/proceedingsofgen83zool). Public domain (Smit died 1929). Manifest key: `smit`.
 
 **Emory** - *Report on the United States and Mexican boundary survey* (1857-1859), directed by **William H. Emory**, with ornithology by **Spencer Fullerton Baird**. Missouri Botanical Garden Library scan via [Internet Archive / BHL](https://archive.org/details/mobot31753002023650). Public domain. Manifest key: `emory`.
 
@@ -240,12 +246,14 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Catesby** - *The Natural History of Carolina, Florida and the Bahama Islands* by **Mark Catesby** (1754 edition), hand-coloured etchings after his own drawings. Missouri Botanical Garden scans via the Biodiversity Heritage Library on the [Internet Archive](https://archive.org/details/mobot31753000502945); and plates after him, engraved by **Johann Michael Seligmann** for a German edition of his work, with scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica). Public domain. Manifest key: `catesby`.
 
-**Horsfall** - plates by **Robert Bruce Horsfall** in *The Warblers of North America* by **Frank M. Chapman** (1907), American Museum of Natural History Library scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/8683) on Wikimedia Commons. Public domain. Manifest key: `horsfall`.
+**Horsfall** - plates by **Robert Bruce Horsfall** in *The Warblers of North America* by **Frank M. Chapman** (1907), American Museum of Natural History Library scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/8683) on Wikimedia Commons and the [Internet Archive](https://archive.org/details/warblersofnortha00chap). Public domain. Manifest key: `horsfall`.
 
 **Brehm** - *Monographie der Papageien* (1842-1855), edited by **Christian Ludwig Brehm**, hand-coloured plates. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica); the whole work is on the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/61090). Public domain (PD-Art / PD-old-70-expired). Manifest key: `brehm`.
 
 **Nuttall** - *A Popular Handbook of the Birds of the United States and Canada* by **Thomas Nuttall**, revised and annotated by **Montague Chamberlain** (1903), chromolithographs. American Museum of Natural History Library scan via the [Internet Archive](https://archive.org/details/popularhandbook00nutt). Public domain (published in the US before 1929). Manifest key: `nuttall`.
 
 **Lilford** - *Coloured Figures of the Birds of the British Islands* issued by **Lord Lilford** (1885-1897), chromolithographs after **Archibald Thorburn** and others. American Museum of Natural History Library scans via the Biodiversity Heritage Library on the [Internet Archive](https://archive.org/details/colouredfigureso05lilf). Public domain. Manifest key: `lilford`.
+
+**Frohawk** - *Aves Hawaiienses: The Birds of the Sandwich Islands* by **Scott B. Wilson** and **A. H. Evans** (London: R. H. Porter, 1890-1899), plates by **Frederick William Frohawk** (1861-1946). Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/AvesHawaiienses00Wils). Public domain (PD-old-70-expired). Manifest key: `frohawk`.
 
 **Hardwicke** - *Illustrations of Indian Zoology* by **John Edward Gray** (1830-1835), from the collection of **Thomas Hardwicke**, lithographed by **Benjamin Waterhouse Hawkins** and printed by **W. Day**. Scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/172892) and the [Internet Archive](https://archive.org/details/IllustrationsIn1Gray). Public domain. Manifest key: `hardwicke`.

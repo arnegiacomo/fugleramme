@@ -24,6 +24,7 @@ Read the area's breadcrumb before changing it. Each records a constraint the cod
 - [`.agents/detector.md`](.agents/detector.md) - anything that talks to BirdNET-Go: `Unavailable` versus no birds, reclassified species, clocks, the bird filter, the language catalog
 - [`.agents/render.md`](.agents/render.md) - how the page looks or when it re-renders: panel sizing, the packers and their cache, labels, dithering, the buttons
 - [`.agents/web.md`](.agents/web.md) - the kiosk and the admin
+- [`.agents/clients.md`](.agents/clients.md) - programs that show the page on other devices: where they live, and the endpoints core promises them
 - [`.agents/artwork.md`](.agents/artwork.md) - artwork files, styles, manifests, attribution, `geometry.json`, variant picks
 - [`.agents/wifi.md`](.agents/wifi.md) - the Wi-Fi setup hotspot, its portal and setup screen, and what the Pi's radio allows
 - [`.agents/install.md`](.agents/install.md) - any default, setting or per-Pi file, the install scripts, self-update, releases, the image

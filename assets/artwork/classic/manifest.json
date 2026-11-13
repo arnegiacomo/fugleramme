@@ -211,6 +211,10 @@
     "source": "fuertes",
     "url": "https://archive.org/details/annualreport6631912newy/page/n706/mode/1up"
   },
+  "birds/amphispiza-bilineata.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
+  },
   "birds/anarhynchus-alexandrinus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00332.jpg"
@@ -559,6 +563,10 @@
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/15042"
   },
+  "birds/artemisiospiza-nevadensis.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
+  },
   "birds/asio-flammeus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00185.jpg"
@@ -598,6 +606,14 @@
   "birds/athene-noctua.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILittle_Owl.jpg"
+  },
+  "birds/aythya-affinis.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n416/mode/1up"
+  },
+  "birds/aythya-americana.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n409/mode/1up"
   },
   "birds/aythya-collaris-2.webp": {
     "source": "audubon",
@@ -666,6 +682,10 @@
   "birds/baeolophus-bicolor.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:39_Crested_Titmouse.jpg"
+  },
+  "birds/baeolophus-inornatus.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore17nati/page/n375/mode/1up"
   },
   "birds/bartramia-longicauda.webp": {
     "source": "gould",
@@ -978,6 +998,14 @@
   "birds/calidris-minuta.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Sandpiper.jpg"
+  },
+  "birds/calidris-minutilla-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:207,_208._Wilson%27s_Sandpiper_(Tringa_pusilla)_(NYPL_b14505696-113634).tiff"
+  },
+  "birds/calidris-minutilla.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:207,_208._Wilson%27s_Sandpiper_(Tringa_pusilla)_(NYPL_b14505696-113634).tiff"
   },
   "birds/calidris-pugnax-2.webp": {
     "source": "vonwright",
@@ -1643,6 +1671,10 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Birds_of_New_York_(Plate_72)_(6901490174).jpg"
   },
+  "birds/coturnicops-noveboracensis.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:225.The_New_York_Rail_(Ortygometra_noveboracensis)._226._The_Brown_Pelican_(Pelecanus_fuscus)_(NYPL_b14505696-113643).tiff"
+  },
   "birds/coturnix-coturnix-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00096.jpg"
@@ -1935,9 +1967,17 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIILesser_Spotted_Woodpecker.jpg"
   },
+  "birds/dryobates-nuttallii.webp": {
+    "source": "emory",
+    "url": "https://www.biodiversitylibrary.org/page/28878984"
+  },
   "birds/dryobates-pubescens.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-112-downy-woodpecker.jpg"
+  },
+  "birds/dryobates-scalaris.webp": {
+    "source": "emory",
+    "url": "https://www.biodiversitylibrary.org/page/28878984"
   },
   "birds/dryocopus-martius-2.webp": {
     "source": "vonwright",
@@ -1962,6 +2002,10 @@
   "birds/dumetella-carolinensis.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-128-cat-bird.jpg"
+  },
+  "birds/egretta-caerulea.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n198/mode/1up"
   },
   "birds/egretta-garzetta.webp": {
     "source": "gould",
@@ -2115,6 +2159,10 @@
     "source": "keulemans",
     "url": "https://archive.org/details/onzevogelsinhuis01keul/page/n299/mode/1up"
   },
+  "birds/eudocimus-albus.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n80/mode/1up"
+  },
   "birds/eudromias-morinellus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00335.jpg"
@@ -2143,9 +2191,25 @@
     "source": "martinet",
     "url": "https://commons.wikimedia.org/wiki/File:Eudynamys_horonata_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18800311.tif"
   },
+  "birds/euphagus-carolinus-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore23nati/page/n305/mode/1up"
+  },
   "birds/euphagus-carolinus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-157-rusty-grakle.jpg"
+  },
+  "birds/euphagus-cyanocephalus-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore23nati/page/n305/mode/1up"
+  },
+  "birds/euphagus-cyanocephalus-3.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore23nati/page/n305/mode/1up"
+  },
+  "birds/euphagus-cyanocephalus.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr07audu/page/n499/mode/1up"
   },
   "birds/euplectes-orix.webp": {
     "source": "hahn",
@@ -2343,6 +2407,10 @@
     "source": "whitaker",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Tunisia%3B_being_a_history_of_the_birds_found_in_the_regency_of_Tunis_(1905)_(20358881726).jpg"
   },
+  "birds/gallinago-delicata-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:219._The_Willet_(Totanus_semipalmatus)._220._The_American_Snipe_(Scolopax_wilsoni)_(NYPL_b14505696-113640).tiff"
+  },
   "birds/gallinago-delicata.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1909)_(14753623136).jpg"
@@ -2374,6 +2442,14 @@
   "birds/gallinula-chloropus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVCommon_Gallinule.jpg"
+  },
+  "birds/gallinula-galeata-2.webp": {
+    "source": "frohawk",
+    "url": "https://archive.org/details/AvesHawaiienses00Wils/page/n313"
+  },
+  "birds/gallinula-galeata.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr05audu/page/n184/mode/1up"
   },
   "birds/gallirallus-philippensis.webp": {
     "source": "gould",
@@ -2919,6 +2995,10 @@
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof18dres/page/n531/mode/1up"
   },
+  "birds/leiothlypis-celata-2.webp": {
+    "source": "horsfall",
+    "url": "https://archive.org/details/warblersofnortha00chap/page/n116/mode/1up"
+  },
   "birds/leiothlypis-celata.webp": {
     "source": "dawson",
     "url": "https://archive.org/details/birdsofcaliforni01daws/page/n656/mode/1up"
@@ -3227,13 +3307,33 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/wild-turkey"
   },
+  "birds/melospiza-georgiana-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
+  },
   "birds/melospiza-georgiana.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/swamp-sparrow"
   },
+  "birds/melospiza-lincolnii-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
+  },
+  "birds/melospiza-lincolnii.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:193_Lincoln_Finch.jpg"
+  },
   "birds/melospiza-melodia.webp": {
     "source": "hines",
     "url": "https://commons.wikimedia.org/wiki/File:Melospiza_melodiaFJ03P03CA.JPG"
+  },
+  "birds/melozone-crissalis-2.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/cu31924090257605/page/n42/mode/1up"
+  },
+  "birds/melozone-crissalis.webp": {
+    "source": "elliot",
+    "url": "https://archive.org/details/newheretoforeun1elli/page/n96/mode/1up"
   },
   "birds/mergellus-albellus-2.webp": {
     "source": "vonwright",
@@ -3694,6 +3794,18 @@
   "birds/pelecanus-crispus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14564052228).jpg"
+  },
+  "birds/pelecanus-erythrorhynchos.webp": {
+    "source": "smit",
+    "url": "https://archive.org/details/proceedingsofgen83zool/page/n587/mode/1up"
+  },
+  "birds/pelecanus-occidentalis-2.webp": {
+    "source": "vieillot",
+    "url": "https://commons.wikimedia.org/wiki/File:Pelecanus_fuscus_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18000179.tif"
+  },
+  "birds/pelecanus-occidentalis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:251_Brown_Pelican.jpg"
   },
   "birds/pellorneum-rostratum.webp": {
     "source": "keulemans",
@@ -4659,6 +4771,10 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-414-golden-winged-warbler.jpg"
   },
+  "birds/setophaga-townsendi.webp": {
+    "source": "fuertes",
+    "url": "https://www.biodiversitylibrary.org/page/9165834"
+  },
   "birds/setophaga-virens.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:399_I._Black-throated_green_Warbler_-_2._Blackburnian_-_3._Mourning_Warbler_(cropped).jpg#/media/File:399_I._Black-throated_green_Warbler_-_2._Blackburnian_-_3._Mourning_Warbler_(cropped).jpg"
@@ -4890,6 +5006,10 @@
   "birds/sterna-dougallii.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVRoseate_Tern.jpg"
+  },
+  "birds/sterna-forsteri.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr07audu/page/n137/mode/1up"
   },
   "birds/sterna-hirundo-2.webp": {
     "source": "vonwright",
@@ -5262,6 +5382,14 @@
   "birds/tringa-ochropus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVGreen_Sandpiper_Wood_Sandpiper.jpg"
+  },
+  "birds/tringa-semipalmata-2.webp": {
+    "source": "dekay",
+    "url": "https://commons.wikimedia.org/wiki/File:219._The_Willet_(Totanus_semipalmatus)._220._The_American_Snipe_(Scolopax_wilsoni)_(NYPL_b14505696-113640).tiff"
+  },
+  "birds/tringa-semipalmata.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer02rich_0/page/n551/mode/1up"
   },
   "birds/tringa-solitaria.webp": {
     "source": "audubon",

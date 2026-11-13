@@ -184,7 +184,11 @@ another device to render its content:
 - `/frame.e6` returns a custom image format that's convenient to use with the
   [Seeed Studio 13.3" Spectra 6 panel](https://www.seeedstudio.com/13-3inch-Six-Color-eInk-ePaper-Display-with-1200x1600-Pixels-p-6569.html)
   on a
-  [XIAO EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html).
+  [XIAO EE02](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-ESP32-S3-EE02-p-6639.html),
+  or the
+  [Seeed Studio 7.3" Spectra 6 panel](https://www.seeedstudio.com/7-3inch-Six-Color-eInk-ePaper-Display-with-800x480-Pixels-p-6567.html)
+  on a
+  [XIAO EE04](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-EE04-p-6560.html).
 
 > [!IMPORTANT]
 > Like the kiosk, `/frame.e6` and `/frame.png` need no sign-in: anyone who can
@@ -235,40 +239,12 @@ Logs: `journalctl -u fugleramme-client -f`
 Contributed by [MT Lewis](https://github.com/mtlewis). Tested on a 13.3"
 panel with a Pi Zero 2 W.
 
-### EE02 example code
+### Other devices
 
-[`examples/ee02/main.py`](https://github.com/arnegiacomo/fugleramme/blob/main/examples/ee02/main.py)
-is a MicroPython program for the XIAO EE02, which runs from a battery and can
-hang anywhere in Wi-Fi range. It wakes for the interval the page's header
-carries in its **Panel refresh** setting. So a 10 minute setting has it fetch
-every 10 minutes, and it never fetches more often than its own 5 minute floor,
-even when **Panel refresh** is off. It downloads the page only if it has
-changed, and redraws the panel only once the download checks out. If something
-goes wrong, it writes an error message on the panel instead.
-
-1. Install MicroPython on the board (e.g.
-   [for the XIAO EE02](https://micropython.org/download/SEEED_XIAO_ESP32S3/))
-2. Set your Wi-Fi credentials and Fugleramme host in `config.py`. A
-   frame served over HTTPS on port 443 is fetched over TLS.
-3. Upload `main.py`, `boot.py` and `config.py` to the board (e.g. with
-   [mpremote](https://docs.micropython.org/en/latest/reference/mpremote.html))
-
-`boot.py` runs on every boot before `main.py`. It is what lets the panel
-update its own program: set `FIRMWARE` in `config.py` to a URL serving the
-panel's latest program (as plain file, no sign-in or redirect), and the panel
-checks it on its wakes. A new program is staged, and after a restart it gets
-one trial wake; if the panel reaches the frame cleanly on it, the update is
-kept, otherwise the board goes back to the program it had before.
-Leave `FIRMWARE` at `None` and nothing is downloaded.
-
-Contributed by [Lorenz Schmid](https://github.com/lorenzschmid). Tested on
-a 13.3" panel with a XIAO EE02.
-
-Much of the program is generic and reusable, but the connection to the 13.3"
-panel and the controller board is specific. Running a smaller panel or another
-board? A program for it, and the packing it needs, would make a welcome
-contribution - see
-[Contributing](https://github.com/arnegiacomo/fugleramme/blob/main/CONTRIBUTING.md).
+Programs for other devices, like a battery-powered XIAO EE02 or EE04 driving an
+e-ink panel, live in [fugleramme/clients](https://github.com/fugleramme/clients).
+They are made and maintained by the community, each with its own install
+instructions. Got Fugleramme running on something new? Add your program there!
 
 ### E6 file format
 
@@ -291,22 +267,24 @@ pixel data.
 | 4 | 2 | Version, `1` |
 | 6 | 1 | Encoding, `1` (the colour codes below) |
 | 7 | 1 | Poll minutes, from **Panel refresh** |
-| 8 | 2 | Width, `1200` |
-| 10 | 2 | Height, `1600` |
-| 12 | 4 | Length of the pixels, `960000` |
+| 8 | 2 | Width, `1200` on the 13.3", `800` on the 7.3" |
+| 10 | 2 | Height, `1600` on the 13.3", `480` on the 7.3" |
+| 12 | 4 | Length of the pixels, `960000` on the 13.3", `192000` on the 7.3" |
 | 16 | 4 | CRC-32 of the pixels |
 
 The pixels are already oriented the way the panel's controllers read them, so
 a client only needs to stream them. Two pixels to a byte, the left one in the
 high half; black `0`, white `1`, yellow `2`, red `3`, blue `5`, green `6`. The
-panel has two controllers, one per half: the first 480000 bytes are the left
-half of every row, top to bottom, for the first controller, and the rest are
-the right halves for the second. With a different Inky connected, the file
+13.3" panel has two controllers, one per half: the first 480000 bytes are the
+left half of every row, top to bottom, for the first controller, and the rest
+are the right halves for the second. The 7.3" panel has one, which takes every
+row in turn, top to bottom. With a different Inky connected, the file
 carries that panel's page, which its width and height reveal, so check them.
 
 The response carries an `ETag`; send it back as `If-None-Match` and an
 unchanged page responds with `304` and nothing to download. `404` means the
-setting is off, and `503` that the frame has not drawn a page yet.
+setting is off or the panel size is neither 7.3" nor 13.3", and `503` that the
+frame has not drawn a page yet.
 
 ## As a desktop wallpaper and/or screensaver (MacOs)
 

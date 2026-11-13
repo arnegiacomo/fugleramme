@@ -190,6 +190,8 @@ p.note { font-size: 0.9rem; margin: 0.6rem 0 0; }
 pre.cmd, code.cmd { font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text);
                     background: var(--inset); border: 1px solid var(--line); border-radius: 4px;
                     padding: 0.15rem 0.5rem; margin: 0; user-select: all; overflow-x: auto; }
+/* Inline code can't scroll, so wrap it. */
+code.cmd { overflow-wrap: anywhere; }
 /* A detector's favicon. The radio's flex gap spaces it there instead. */
 img.logo { width: 1em; height: 1em; margin-right: 0.35em; vertical-align: -0.15em; }
 .src img.logo { margin: 0; }
