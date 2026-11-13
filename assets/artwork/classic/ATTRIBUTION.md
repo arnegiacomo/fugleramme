@@ -161,6 +161,10 @@ Public domain. Manifest key: `legge`.
 
 **Dawson** - *The Birds of California* by **William Leon Dawson** (San Diego: South Moulton Company, 1923), color plates by **Allan Brooks**, Biodiversity Heritage Library scan on the [Internet Archive](https://archive.org/details/birdsofcaliforni02daws). Public domain (published in the US before 1929; Brooks died 1946). Manifest key: `dawson`.
 
+**Malherbe** - *Monographie des picidées* by **Alfred Malherbe** (Metz, 1859-1862), hand-coloured lithographs by **Mesnel**. Harvard Museum of Comparative Zoology, Ernst Mayr Library scan via the Biodiversity Heritage Library on the [Internet Archive](https://archive.org/details/Monographiedespt418Malh). Public domain. Manifest key: `malherbe`.
+
+**Holmes** - *Birds of the West* by **Charles Edgar Holmes** (Fremont, Neb.: Hammond & Stephens, 1907), colour plates signed "B.H.", Smithsonian Libraries scan on the [Internet Archive](https://archive.org/details/birdsofwestaccou00holm). Public domain (published in the US before 1929). Manifest key: `holmes`.
+
 **Werner** - plates drawn by **Jean-Charles Werner** for his *Atlas des oiseaux d'Europe*, lithographed by **Langlumé**. Scans from the **Iconographia Zoologica** collection of the **University of Amsterdam** Special Collections (Artis Library), via the Commons category [Iconographia Zoologica](https://commons.wikimedia.org/wiki/Category:Iconographia_Zoologica), and Natural History Museum Library, London scans via the [Internet Archive](https://archive.org/details/lesoiseauxdeurop01wern). Public domain (Commons: public domain). Manifest key: `werner`.
 
 **Swainson** - *Zoological Illustrations* by

@@ -1131,9 +1131,25 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIRed-collared_Goatsucker.jpg"
   },
+  "birds/cardellina-canadensis-2.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
+  },
   "birds/cardellina-canadensis.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:5_Bonaparte%27s_Flycatcher.jpg"
+  },
+  "birds/cardellina-pusilla-2.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr02audu/page/n35/mode/1up"
+  },
+  "birds/cardellina-pusilla-3.webp": {
+    "source": "dawson",
+    "url": "https://archive.org/details/birdsofcaliforni01daws/page/n760/mode/1up"
+  },
+  "birds/cardellina-pusilla.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
   },
   "birds/cardinalis-cardinalis-2.webp": {
     "source": "audubon",
@@ -3003,9 +3019,29 @@
     "source": "dawson",
     "url": "https://archive.org/details/birdsofcaliforni01daws/page/n656/mode/1up"
   },
+  "birds/leiothlypis-peregrina-2.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer22rich/page/n334/mode/1up"
+  },
   "birds/leiothlypis-peregrina.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-154-tennessee-warbler.jpg"
+  },
+  "birds/leiothlypis-ruficapilla-2.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
+  },
+  "birds/leiothlypis-ruficapilla-3.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr02audu/page/n195/mode/1up"
+  },
+  "birds/leiothlypis-ruficapilla-4.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer22rich/page/n334/mode/1up"
+  },
+  "birds/leiothlypis-ruficapilla.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:89_Nashville_Warbler.jpg"
   },
   "birds/leucogeranus-leucogeranus.webp": {
     "source": "gould",
@@ -3246,6 +3282,14 @@
   "birds/melanerpes-erythrocephalus.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/red-headed-woodpecker"
+  },
+  "birds/melanerpes-formicivorus-2.webp": {
+    "source": "dawson",
+    "url": "https://archive.org/details/birdsofcaliforni02daws/page/n740/mode/1up"
+  },
+  "birds/melanerpes-formicivorus.webp": {
+    "source": "malherbe",
+    "url": "https://archive.org/details/Monographiedespt418Malh/page/n88/mode/1up"
   },
   "birds/melanitta-fusca-2.webp": {
     "source": "vonwright",
@@ -4691,6 +4735,10 @@
     "source": "wilson",
     "url": "https://archive.org/details/Wilson5896-v2"
   },
+  "birds/setophaga-cerulea.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
+  },
   "birds/setophaga-citrina-2.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/hooded-warbler"
@@ -4698,6 +4746,10 @@
   "birds/setophaga-citrina-3.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/hooded-warbler"
+  },
+  "birds/setophaga-citrina-4.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
   },
   "birds/setophaga-citrina.webp": {
     "source": "audubon",
@@ -4771,6 +4823,10 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-414-golden-winged-warbler.jpg"
   },
+  "birds/setophaga-townsendi-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:393_I._Townsend%27s_Warbler_-_2._Arctic_Blue-bird_-_3._Western_Blue-bird.jpg"
+  },
   "birds/setophaga-townsendi.webp": {
     "source": "fuertes",
     "url": "https://www.biodiversitylibrary.org/page/9165834"
@@ -4783,13 +4839,45 @@
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-393-townsends-warbler.jpg"
   },
+  "birds/sialia-currucoides-3.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:393_I._Townsend%27s_Warbler_-_2._Arctic_Blue-bird_-_3._Western_Blue-bird.jpg"
+  },
+  "birds/sialia-currucoides-4.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:393_I._Townsend%27s_Warbler_-_2._Arctic_Blue-bird_-_3._Western_Blue-bird.jpg"
+  },
   "birds/sialia-currucoides.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-393-townsends-warbler.jpg"
   },
+  "birds/sialia-mexicana-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:393_I._Townsend%27s_Warbler_-_2._Arctic_Blue-bird_-_3._Western_Blue-bird.jpg"
+  },
+  "birds/sialia-mexicana-3.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:393_I._Townsend%27s_Warbler_-_2._Arctic_Blue-bird_-_3._Western_Blue-bird.jpg"
+  },
+  "birds/sialia-mexicana-4.webp": {
+    "source": "dawson",
+    "url": "https://archive.org/details/birdsofcaliforni02daws/page/n390/mode/1up"
+  },
+  "birds/sialia-mexicana-5.webp": {
+    "source": "holmes",
+    "url": "https://commons.wikimedia.org/wiki/File:Birds_of_the_West,_an_account_of_the_lives_and_the_labors_of_our_feathered_friends_(1907)_(20385152745).jpg"
+  },
+  "birds/sialia-mexicana.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr02audu/page/n312/mode/1up"
+  },
   "birds/sialia-sialis-2.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-113-blue-bird.jpg"
+  },
+  "birds/sialia-sialis-3.webp": {
+    "source": "holmes",
+    "url": "https://commons.wikimedia.org/wiki/File:Birds_of_the_West,_an_account_of_the_lives_and_the_labors_of_our_feathered_friends_(1907)_(20385152745).jpg"
   },
   "birds/sialia-sialis.webp": {
     "source": "audubon",
@@ -5518,6 +5606,10 @@
   "birds/turtur-chalcospilos.webp": {
     "source": "gronvold",
     "url": "https://commons.wikimedia.org/wiki/File:ChalcopeliaGronvold.jpg"
+  },
+  "birds/tympanuchus-cupido.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
   },
   "birds/tyrannus-tyrannus.webp": {
     "source": "fuertes",
