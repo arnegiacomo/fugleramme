@@ -1087,6 +1087,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIEuropean_Goatsucker.jpg"
   },
+  "birds/caprimulgus-indicus.webp": {
+    "source": "hardwicke",
+    "url": "https://www.biodiversitylibrary.org/page/45959694"
+  },
   "birds/caprimulgus-macrurus.webp": {
     "source": "gould",
     "url": "https://www.biodiversitylibrary.org/page/48200524"
@@ -3874,10 +3878,6 @@
   "birds/phylloscopus-collybita.webp": {
     "source": "vonwright",
     "url": "https://www.rawpixel.com/image/8864154/image-public-domain-bird-animal"
-  },
-  "birds/phylloscopus-fuscatus.webp": {
-    "source": "muetzel",
-    "url": "https://www.biodiversitylibrary.org/page/35221367"
   },
   "birds/phylloscopus-humei.webp": {
     "source": "keulemans",
