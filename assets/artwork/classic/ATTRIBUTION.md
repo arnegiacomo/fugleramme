@@ -27,7 +27,8 @@ Volumes 1-5, from the Commons category
 [The Birds of Europe (Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Europe_(Gould))
 and the [Internet Archive](https://archive.org/details/birdsEuropeIVGoul), public domain (PD-old-70-expired); *The Birds of Asia*, with **Richard Bowdler
 Sharpe** (1850-1883), from the Commons category
-[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould))
+[The Birds of Asia (John Gould)](https://commons.wikimedia.org/wiki/Category:The_Birds_of_Asia_(John_Gould)),
+the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/115342)
 and the [University of Kansas](https://digital.lib.ku.edu/ku-gould),
 public domain (PD-Art, PD-old-100); *The Birds of New Guinea* (1875-1888), with
 **William Hart** and **Richard Bowdler Sharpe**, Biodiversity Heritage Library scans on
@@ -57,7 +58,9 @@ and the Internet Archive; the *Proceedings of the Zoological Society of London*
 *Lahore to Yarkand* by **George Henderson** and **Allan O. Hume** (1873); *A Monograph of the Turdidae*
 by **Henry Seebohm**, edited by **R. B. Sharpe** (1898-1902);
 *A monograph of the Capitonidæ, or scansorial barbets* by **C. H. T. Marshall** and
-**G. F. L. Marshall** (1871); and *The Birds of Australia* by **Gregory M. Mathews**, vol. 3
+**G. F. L. Marshall** (1871); *A Monograph of the Alcedinidae, or Family of Kingfishers* by
+**R. B. Sharpe** (1868-1871), Ernst Mayr Library scans via the
+[Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/137827); and *The Birds of Australia* by **Gregory M. Mathews**, vol. 3
 (1913-1914), Smithsonian Libraries scans via the
 [Internet Archive](https://archive.org/details/birdsaustralia3math).
 Public domain (PD-old-70-expired; Keulemans died 1912); the *Onze vogels* scans held
@@ -252,3 +255,5 @@ CC BY 2.0. Manifest key: `jardine`.
 **Lilford** - *Coloured Figures of the Birds of the British Islands* issued by **Lord Lilford** (1885-1897), chromolithographs after **Archibald Thorburn** and others. American Museum of Natural History Library scans via the Biodiversity Heritage Library on the [Internet Archive](https://archive.org/details/colouredfigureso05lilf). Public domain. Manifest key: `lilford`.
 
 **Frohawk** - *Aves Hawaiienses: The Birds of the Sandwich Islands* by **Scott B. Wilson** and **A. H. Evans** (London: R. H. Porter, 1890-1899), plates by **Frederick William Frohawk** (1861-1946). Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/AvesHawaiienses00Wils). Public domain (PD-old-70-expired). Manifest key: `frohawk`.
+
+**Hardwicke** - *Illustrations of Indian Zoology* by **John Edward Gray** (1830-1835), from the collection of **Thomas Hardwicke**, lithographed by **Benjamin Waterhouse Hawkins** and printed by **W. Day**. Scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/172892) and the [Internet Archive](https://archive.org/details/IllustrationsIn1Gray). Public domain. Manifest key: `hardwicke`.

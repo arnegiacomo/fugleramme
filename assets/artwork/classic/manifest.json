@@ -1099,6 +1099,10 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(Eaton)#/media/File:Annual_report_(1909)_(14776306752).jpg"
   },
+  "birds/caprimulgus-asiaticus.webp": {
+    "source": "hardwicke",
+    "url": "https://www.biodiversitylibrary.org/page/45959694"
+  },
   "birds/caprimulgus-europaeus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Magnus_von_Wright_-_Caprimulgus_europaeus,_Sphinx_ligustri.jpg"
@@ -1110,6 +1114,14 @@
   "birds/caprimulgus-europaeus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIEuropean_Goatsucker.jpg"
+  },
+  "birds/caprimulgus-indicus.webp": {
+    "source": "hardwicke",
+    "url": "https://www.biodiversitylibrary.org/page/45959694"
+  },
+  "birds/caprimulgus-macrurus.webp": {
+    "source": "gould",
+    "url": "https://www.biodiversitylibrary.org/page/48200524"
   },
   "birds/caprimulgus-pectoralis.webp": {
     "source": "levaillant",
@@ -2602,6 +2614,14 @@
   "birds/haemorhous-purpureus.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/purple-finch"
+  },
+  "birds/halcyon-smyrnensis-2.webp": {
+    "source": "gould",
+    "url": "https://www.biodiversitylibrary.org/page/37485838"
+  },
+  "birds/halcyon-smyrnensis.webp": {
+    "source": "keulemans",
+    "url": "https://www.biodiversitylibrary.org/page/43064736"
   },
   "birds/haliaeetus-albicilla-2.webp": {
     "source": "vonwright",

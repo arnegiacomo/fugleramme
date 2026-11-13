@@ -3299,6 +3299,18 @@
    1200
   ]
  },
+ "birds/caprimulgus-asiaticus.webp": {
+  "box": [
+   0.035,
+   0.035,
+   0.958,
+   0.835
+  ],
+  "cut": [
+   1200,
+   1083
+  ]
+ },
  "birds/caprimulgus-europaeus-2.webp": {
   "box": [
    0.14952336461819596,
@@ -3333,6 +3345,30 @@
   "cut": [
    1200,
    878
+  ]
+ },
+ "birds/caprimulgus-indicus.webp": {
+  "box": [
+   0.025,
+   0.03,
+   0.976,
+   0.86
+  ],
+  "cut": [
+   1185,
+   1200
+  ]
+ },
+ "birds/caprimulgus-macrurus.webp": {
+  "box": [
+   0.2146804428100586,
+   0.1368960421136085,
+   0.9730203247070313,
+   0.6086269540989653
+  ],
+  "cut": [
+   1200,
+   1128
   ]
  },
  "birds/caprimulgus-pectoralis.webp": {
@@ -7809,6 +7845,30 @@
   "cut": [
    907,
    1200
+  ]
+ },
+ "birds/halcyon-smyrnensis-2.webp": {
+  "box": [
+   0.175,
+   0.255,
+   0.915,
+   0.69
+  ],
+  "cut": [
+   793,
+   1200
+  ]
+ },
+ "birds/halcyon-smyrnensis.webp": {
+  "box": [
+   0.085,
+   0.23,
+   0.915,
+   0.76
+  ],
+  "cut": [
+   1200,
+   885
   ]
  },
  "birds/haliaeetus-albicilla-2.webp": {
