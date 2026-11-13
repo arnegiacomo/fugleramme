@@ -250,3 +250,5 @@ CC BY 2.0. Manifest key: `jardine`.
 **Nuttall** - *A Popular Handbook of the Birds of the United States and Canada* by **Thomas Nuttall**, revised and annotated by **Montague Chamberlain** (1903), chromolithographs. American Museum of Natural History Library scan via the [Internet Archive](https://archive.org/details/popularhandbook00nutt). Public domain (published in the US before 1929). Manifest key: `nuttall`.
 
 **Lilford** - *Coloured Figures of the Birds of the British Islands* issued by **Lord Lilford** (1885-1897), chromolithographs after **Archibald Thorburn** and others. American Museum of Natural History Library scans via the Biodiversity Heritage Library on the [Internet Archive](https://archive.org/details/colouredfigureso05lilf). Public domain. Manifest key: `lilford`.
+
+**Frohawk** - *Aves Hawaiienses: The Birds of the Sandwich Islands* by **Scott B. Wilson** and **A. H. Evans** (London: R. H. Porter, 1890-1899), plates by **Frederick William Frohawk** (1861-1946). Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/AvesHawaiienses00Wils). Public domain (PD-old-70-expired). Manifest key: `frohawk`.

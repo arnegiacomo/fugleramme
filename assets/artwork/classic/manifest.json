@@ -611,6 +611,10 @@
     "source": "audubon",
     "url": "https://archive.org/details/birdsofamericafr06audu/page/n416/mode/1up"
   },
+  "birds/aythya-americana.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n409/mode/1up"
+  },
   "birds/aythya-collaris-2.webp": {
     "source": "audubon",
     "url": "https://archive.org/details/birdsofamericafr06audu/page/n422/mode/1up"
@@ -2426,6 +2430,14 @@
   "birds/gallinula-chloropus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVCommon_Gallinule.jpg"
+  },
+  "birds/gallinula-galeata-2.webp": {
+    "source": "frohawk",
+    "url": "https://archive.org/details/AvesHawaiienses00Wils/page/n313"
+  },
+  "birds/gallinula-galeata.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr05audu/page/n184/mode/1up"
   },
   "birds/gallirallus-philippensis.webp": {
     "source": "gould",
@@ -4974,6 +4986,10 @@
   "birds/sterna-dougallii.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVRoseate_Tern.jpg"
+  },
+  "birds/sterna-forsteri.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr07audu/page/n137/mode/1up"
   },
   "birds/sterna-hirundo-2.webp": {
     "source": "vonwright",
