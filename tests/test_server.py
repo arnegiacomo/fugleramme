@@ -121,6 +121,7 @@ BROWSER = {"Accept": "text/html,application/xhtml+xml"}
     [
         ("/", "text/html; charset=utf-8"),
         ("/index.html", "text/html; charset=utf-8"),
+        ("/kindle", "text/html; charset=utf-8"),
         ("/admin.css", "text/css; charset=utf-8"),
         ("/admin/main.js", "text/javascript; charset=utf-8"),
         ("/admin", "text/html; charset=utf-8"),
@@ -513,6 +514,7 @@ def test_every_route_is_either_the_kiosk_or_behind_the_password(tmp_path, source
     assert scripts and known - server.GATED - scripts == {
         "/",
         "/index.html",
+        "/kindle",
         "/admin.css",
         "/apple-touch-icon.png",
         "/icon-512.png",
@@ -545,6 +547,7 @@ def test_a_password_leaves_the_kiosk_open(locked):
     """The kiosk is the product: a password must not shut strangers out of the birds."""
     for route in (
         "/",
+        "/kindle",
         "/collage.png",
         "/state",
         "/paper.png",
