@@ -2771,6 +2771,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack-headed_Gull.jpg"
   },
+  "birds/icterus-cucullatus.webp": {
+    "source": "cassin",
+    "url": "https://archive.org/details/illustrationsofb00cass/page/n70/mode/1up"
+  },
   "birds/icterus-galbula-2.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_lore_(1922)_(14747962941).jpg"
@@ -2942,6 +2946,10 @@
   "birds/larus-argentatus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVHerring_Gull.jpg"
+  },
+  "birds/larus-californicus.webp": {
+    "source": "elliot",
+    "url": "https://archive.org/details/newheretoforeun2elli/page/n100/mode/1up"
   },
   "birds/larus-canus-2.webp": {
     "source": "vonwright",
@@ -5679,6 +5687,10 @@
     "source": "gordon",
     "url": "https://commons.wikimedia.org/wiki/File:Vidua_macroura_(Dominikanerwida)_en_sprinkhaan,_RP-T-1914-17-282.jpg"
   },
+  "birds/vireo-cassinii.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n334/mode/1up"
+  },
   "birds/vireo-flavifrons.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:119_Yellow-throated_Vireo.jpg"
@@ -5691,9 +5703,17 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/white-eyed-flycatcher-or-vireo"
   },
+  "birds/vireo-huttoni.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n334/mode/1up"
+  },
   "birds/vireo-olivaceus.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:150_Red-eyed_Vireo.jpg"
+  },
+  "birds/vireo-philadelphicus.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n334/mode/1up"
   },
   "birds/vireo-solitarius.webp": {
     "source": "audubon",
