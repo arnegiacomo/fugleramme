@@ -2771,6 +2771,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack-headed_Gull.jpg"
   },
+  "birds/icterus-cucullatus.webp": {
+    "source": "cassin",
+    "url": "https://archive.org/details/illustrationsofb00cass/page/n70/mode/1up"
+  },
   "birds/icterus-galbula-2.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_lore_(1922)_(14747962941).jpg"
@@ -2943,6 +2947,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVHerring_Gull.jpg"
   },
+  "birds/larus-californicus.webp": {
+    "source": "elliot",
+    "url": "https://archive.org/details/newheretoforeun2elli/page/n100/mode/1up"
+  },
   "birds/larus-canus-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00318.jpg"
@@ -3010,6 +3018,14 @@
   "birds/larus-michahellis.webp": {
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof18dres/page/n531/mode/1up"
+  },
+  "birds/larus-occidentalis-2.webp": {
+    "source": "jasper",
+    "url": "https://archive.org/details/birdsNorthAmeri00Stud/page/n284/mode/1up"
+  },
+  "birds/larus-occidentalis.webp": {
+    "source": "reed",
+    "url": "https://archive.org/details/colorkeytonortha00chaprich/page/n65/mode/1up"
   },
   "birds/leiothlypis-celata-2.webp": {
     "source": "horsfall",
@@ -5690,6 +5706,10 @@
   "birds/vireo-griseus.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/white-eyed-flycatcher-or-vireo"
+  },
+  "birds/vireo-huttoni.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n334/mode/1up"
   },
   "birds/vireo-olivaceus.webp": {
     "source": "audubon",
