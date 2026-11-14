@@ -3019,14 +3019,6 @@
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof18dres/page/n531/mode/1up"
   },
-  "birds/larus-occidentalis-2.webp": {
-    "source": "jasper",
-    "url": "https://archive.org/details/birdsNorthAmeri00Stud/page/n284/mode/1up"
-  },
-  "birds/larus-occidentalis.webp": {
-    "source": "reed",
-    "url": "https://archive.org/details/colorkeytonortha00chaprich/page/n65/mode/1up"
-  },
   "birds/leiothlypis-celata-2.webp": {
     "source": "horsfall",
     "url": "https://archive.org/details/warblersofnortha00chap/page/n116/mode/1up"
@@ -5695,6 +5687,10 @@
     "source": "gordon",
     "url": "https://commons.wikimedia.org/wiki/File:Vidua_macroura_(Dominikanerwida)_en_sprinkhaan,_RP-T-1914-17-282.jpg"
   },
+  "birds/vireo-cassinii.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n334/mode/1up"
+  },
   "birds/vireo-flavifrons.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:119_Yellow-throated_Vireo.jpg"
@@ -5714,6 +5710,10 @@
   "birds/vireo-olivaceus.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:150_Red-eyed_Vireo.jpg"
+  },
+  "birds/vireo-philadelphicus.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n334/mode/1up"
   },
   "birds/vireo-solitarius.webp": {
     "source": "audubon",
