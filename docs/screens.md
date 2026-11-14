@@ -246,6 +246,8 @@ e-ink panel, live in [fugleramme/clients](https://github.com/fugleramme/clients)
 They are made and maintained by the community, each with its own install
 instructions. Got Fugleramme running on something new? Add your program there!
 
+![Collage on a framed Spectra 6 13.3" eInk display](assets/spectra-13_3.jpg)
+
 ### E6 file format
 
 The E6 file format is not an official standard. It simply consists of a stream
