@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<!-- For old e-readers' browsers, which run little or no script: the page reloads
+     itself, and the collage's ETag makes an unchanged one a bodyless 304. -->
+<meta http-equiv="refresh" content="300">
+<title>Fugleramme</title>
+<!-- A background rather than an img: old WebKit has no vh or object-fit, but it
+     scales a background to the window with background-size: contain. -->
+<style>
+  html, body { margin: 0; height: 100%; background: #fff; }
+  #collage {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: url(/collage.png) center no-repeat;
+    -webkit-background-size: contain;
+    background-size: contain;
+  }
+</style>
+</head>
+<body>
+<div id="collage" role="img" aria-label="Birds seen recently"></div>
+</body>
+</html>

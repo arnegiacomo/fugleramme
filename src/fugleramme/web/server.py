@@ -90,6 +90,7 @@ MAX_BODY = 1024 * 1024  # what BirdNET-Go's API takes; a settings form is bytes
 FILES = {
     "/": ("kiosk.html", HTML),
     "/index.html": ("kiosk.html", HTML),
+    "/kindle": ("kindle.html", HTML),
     "/admin.css": ("admin.css", "text/css; charset=utf-8"),
     # What a phone or tablet saves to its home screen. iOS asks for the touch icon
     # at the root even on a page that does not link it.

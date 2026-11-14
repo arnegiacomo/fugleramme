@@ -36,6 +36,8 @@ On a tablet, add the page to the home screen and it opens like an app, with its 
 > [!NOTE]
 > The icon remembers the address it was saved with, so use the hostname, or give the machine running Fugleramme a static IP lease in your router.
 
+On an old e-reader such as a Kindle, whose browser runs little or no JavaScript, open `http://<host>.local:8080/kindle` instead. It is only the picture, with no settings button, and it reloads itself every 5 minutes.
+
 ## On HDMI, Raspberry Pi OS Desktop
 
 When the frame can't connect to a network, the screen shows the [Wi-Fi setup](wifi.md).
