@@ -18,6 +18,8 @@ Covers `source.py`, `api.py`, `birdweather.py`, `taxa.py`, `languages.py` and `f
 - The endpoints disagree about time: the species summary filters on whole dates, so a window shorter than a day is counted off the feed instead. Each stamp carries the station's offset at that instant, so a feed row is read off its own `timestamp`, never one offset for all: across a daylight-saving change the older rows would land an hour out. BirdNET-Go stamped the feed bare before 20260321 and the summary before 20260712; `_aware` reads such a stamp in the frame's zone, with one warning per station.
 - **A slow station is still a station.** The all-time summary, which the life list asks on every tick, can take many seconds on a large database such as one migrated from BirdNET-Pi. So `_cached` holds an answer `_HOLD` times as long as it took, never under `_TTL`, which leaves a fast station as it was; `probe` asks `/detections/recent` for one row instead of the summary; and the timeout is 30s (`FUGLERAMME_DETECTOR_TIMEOUT`).
 
+- `range_scores` asks `/range/species/scores` for gift mode's splash: public but for PrivateMode, at any place and week (BirdNET's 48-week year, `gift.week`), with `names=false` because resolving every label's common name is upstream's slow part. It is the primary model's alone, so bats never appear in it.
+
 ## BirdWeather (`birdweather.py`)
 
 - A station BirdWeather does not have answers 404 with an HTML page (`NoSuchStation`, "no such station" everywhere, never "unreachable"), and a GraphQL error answers 200 with `errors`.

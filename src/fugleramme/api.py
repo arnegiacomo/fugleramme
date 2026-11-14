@@ -5,6 +5,7 @@ be the container beside it or an install elsewhere on the network:
 
     GET /analytics/species/summary   -> per-species aggregate, false positives dropped
     GET /detections/recent           -> the newest rows, false positives included
+    GET /range/species/scores        -> how likely each species is at a place and week
 
 Both are filtered to birds on the way in (`taxa.is_bird`), so a station that also
 classifies bats or noise offers nothing above this module that it cannot draw.
@@ -438,6 +439,22 @@ class ApiSource:
         except (KeyError, TypeError, ValueError) as error:
             raise Unavailable(f"unreadable species summary: {error}") from error
         return sorted(species, key=lambda s: (s.first_seen, s.scientific_name))
+
+    def range_scores(self, lat: float, lon: float, week: int) -> list[tuple[str, float]]:
+        """The birds BirdNET's range model expects at a place in a week of its 48-week year,
+        likeliest first. A reclassified bird is one name, at the better of its two scores."""
+        body = self._get(
+            "/range/species/scores", lat=lat, lon=lon, week=week, names="false"
+        )  # names=false: resolving common names for every label is upstream's slow part
+        scores: dict[str, float] = {}
+        try:
+            for row in body["species"]:
+                name, score = canonical(row["scientificName"]), float(row.get("score") or 0)
+                if self._is_bird(name, row.get("commonName", "")):
+                    scores[name] = max(score, scores.get(name, 0.0))
+        except (KeyError, TypeError, ValueError) as error:
+            raise Unavailable(f"unreadable range scores: {error}") from error
+        return sorted(scores.items(), key=lambda item: (-item[1], item[0]))
 
     def stats(self) -> dict:
         rows = self._summary()  # most detections first, as _merged leaves them
