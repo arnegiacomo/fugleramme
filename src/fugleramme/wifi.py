@@ -166,9 +166,9 @@ class Nmcli:
         bridges are connected too, none of them with a way out."""
         return "default" in self._look("ip", "-4", "route", "show", "default")
 
-    def saved(self) -> tuple[str, ...]:
-        """The names of the saved Wi-Fi networks."""
-        uuids = [
+    def _saved(self) -> list[str]:
+        """The uuids of the saved Wi-Fi networks."""
+        return [
             uuid
             for uuid, kind, name in (
                 (fields(line) + ["", ""])[:3]
@@ -178,12 +178,21 @@ class Nmcli:
             )
             if kind == "802-11-wireless" and name != HOTSPOT
         ]
+
+    def saved(self) -> tuple[str, ...]:
+        """The names of the saved Wi-Fi networks."""
         ssids = (
             self._look("nmcli", "-g", "802-11-wireless.ssid", "connection", "show", "uuid", uuid)
-            for uuid in uuids
+            for uuid in self._saved()
         )
         # -g escapes like -t, though there is only the one field.
         return tuple(fields(s.strip())[0] for s in ssids if s.strip())
+
+    def forget_saved(self) -> None:
+        """Delete every saved Wi-Fi network: a frame given away keeps none of its old
+        home's, and with none saved its setup opens as soon as it starts."""
+        for uuid in self._saved():
+            self._ok("nmcli", "connection", "delete", "uuid", uuid)
 
     def scan(self) -> tuple[Network, ...]:
         listing = self._out(

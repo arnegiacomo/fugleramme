@@ -38,6 +38,7 @@ Bug reports and suggestions are very welcome on
 - **[Mounting](mounting.md)** - mounting the panel and the Pi in an IKEA frame
 - **[Install](install.md)** - from a blank SD card to a running frame
 - **[Wi-Fi](wifi.md)** - connecting the frame to Wi-Fi
+- **[Giving it as a gift](gift.md)** - a custom picture on the panel, and getting the frame ready for its new owner
 - **[Configuring BirdNET-Go](birdnetgo-config.md)** - the mic, your location, and
   avoiding incorrect detections
 - **[Display](display.md)** - modes, settings and names

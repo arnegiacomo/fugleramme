@@ -107,3 +107,5 @@ If Fugleramme installed BirdNET-Go for you, next up is [setting up
 BirdNET-Go](birdnetgo-config.md), so that you can get your audio source
 connected. If you pointed the frame at a BirdNET-Go you already run, you're
 good-to-go!
+
+Giving it away? See [giving it as a gift](gift.md), once it works.
