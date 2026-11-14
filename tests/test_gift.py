@@ -1,62 +1,26 @@
-"""Gift mode (#355): what the form checks, what wrapping changes, and that it all comes back."""
+"""Gift mode (#355): what the questions check, and what wrapping changes."""
 
 from __future__ import annotations
 
-import json
-from datetime import UTC, date, datetime
+from datetime import date
 from pathlib import Path
 
 import pytest
 
 from fugleramme import gift
-from fugleramme.config import REPO_ROOT
+from fugleramme.config import PANEL_SIZES, REPO_ROOT
 from fugleramme.names import drawable_keys
-from fugleramme.render.gift import overflow, splash
+from fugleramme.render.gift import TITLE, note_font, overflow, smallest_title, splash, title_font
 from fugleramme.render.page import Edges
-from fugleramme.source import Species, Unavailable
+from fugleramme.source import Unavailable
 
 TEMPLATE = (REPO_ROOT / "detector" / "config" / "config.yaml.template").read_text()
 DRAWABLE = drawable_keys(REPO_ROOT / "assets" / "artwork", "classic")
-TODAY = date(2026, 11, 5)
-
-
-@pytest.mark.parametrize(
-    ("day", "week"),
-    [
-        (date(2027, 1, 1), 1),
-        (date(2027, 1, 31), 4),
-        (date(2027, 5, 12), 18),
-        (date(2027, 12, 31), 48),
-    ],
-)
-def test_the_week_is_birdnets_48_week_year(day, week):
-    assert gift.week(day) == week
-
-
-@pytest.mark.parametrize(
-    ("typed", "problem"),
-    [
-        ("2027-05-12", ""),
-        ("20270512", "Use YYYY-MM-DD, like 2026-11-05."),  # date.fromisoformat would take it
-        ("2027-02-30", "There is no such day."),
-        ("2026-11-04", "That day has passed."),
-        ("2026-11-05", ""),
-    ],
-)
-def test_the_arrival_is_a_day_from_today_on(typed, problem):
-    assert gift.arrival(typed, TODAY)[1] == problem
-
-
-def test_wifi_is_checked_for_shape_only():
-    assert gift.ssid_problem("x" * 32) == "" and gift.ssid_problem("x" * 33)
-    assert gift.ssid_problem("æ" * 17)  # bytes, not characters
-    assert gift.password_problem("") == ""  # open
-    assert gift.password_problem("short").endswith("this is 5.")
-    assert gift.password_problem("x" * 63) == "" and gift.password_problem("x" * 64)
+COLUMBUS = gift.Place("Columbus, Ohio", 39.96, -82.99)
 
 
 def test_a_typed_position_needs_no_search():
-    def refuse(_text):
+    def refuse(_url):
         raise AssertionError("asked Photon")
 
     assert gift.find_place("39.96, -82.99", refuse) == gift.Place("39.96, -82.99", 39.96, -82.99)
@@ -68,59 +32,114 @@ def test_a_place_takes_photons_first_answer():
         "features": [
             {
                 "geometry": {"coordinates": [-82.99, 39.96]},
-                "properties": {"name": "Columbus", "state": "Ohio", "country": "United States"},
+                "properties": {
+                    "name": "Columbus",
+                    "state": "Ohio",
+                    "country": "United States",
+                    "countrycode": "US",
+                },
             }
         ]
     }
-    place = gift.find_place("columbus", lambda _text: answer)
-    assert place == gift.Place("Columbus, Ohio, United States", 39.96, -82.99)
-    assert gift.find_place("nowhere", lambda _text: {"features": []}) is None
+    place = gift.find_place("columbus", lambda _url: answer)
+    assert place == gift.Place("Columbus, Ohio, United States", 39.96, -82.99, "US")
+    assert gift.find_place("nowhere", lambda _url: {"features": []}) is None
 
 
-def test_favourites_lead_and_birds_without_a_plate_are_left_out():
-    scores = [("Turdus migratorius", 0.9), ("Not avis", 0.8), ("Cardinalis cardinalis", 0.7)]
-    birds = gift.splash_birds(scores, ["Cyanocitta stelleri"], DRAWABLE)
-    assert birds[:3] == ("Cyanocitta stelleri", "Turdus migratorius", "Cardinalis cardinalis")
+def test_the_timezone_is_the_lookups_or_none():
+    def offline(_url):
+        raise OSError("down")
+
+    assert gift.zone_at(COLUMBUS, lambda _url: {"timezone": "America/New_York"}) == (
+        "America/New_York"
+    )
+    assert gift.zone_at(COLUMBUS, lambda _url: {"timezone": "Mars/Olympus"}) == ""
+    assert gift.zone_at(COLUMBUS, lambda _url: {}) == ""
+    assert gift.zone_at(COLUMBUS, offline) == ""
 
 
-def test_the_splash_holds_at_most_its_share():
-    scores = [(f"{key.replace('-', ' ').capitalize()}", 0.5) for key in sorted(DRAWABLE)]
-    assert len(gift.splash_birds(scores, [], DRAWABLE)) == gift.SPLASH_BIRDS
+GBIF = {
+    "facets": [
+        {
+            "counts": [
+                {"name": "Cardinalis cardinalis (Linnaeus, 1758)", "count": 900},
+                {"name": "Turdus migratorius Linnaeus, 1766", "count": 500},
+                {"name": "Anas platyrhynchos x rubripes", "count": 450},  # a hybrid
+                {"name": "Turdus migratorius migratorius", "count": 450},  # a subspecies
+                {"name": "Aves", "count": 400},
+            ]
+        }
+    ]
+}
+
+
+def test_the_birds_recorded_near_a_place_are_asked_of_gbif_for_this_month():
+    asked = []
+
+    def fetch(url):
+        asked.append(url)
+        return GBIF
+
+    names = gift.recorded(COLUMBUS, date(2026, 12, 24), fetch)
+    assert names == ["Turdus migratorius", "Cardinalis cardinalis"]  # 950 with its subspecies
+    assert "geoDistance=39.96%2C-82.99%2C50km" in asked[0]
+    assert "month=12" in asked[0] and "year=2017%2C2026" in asked[0]
+
+
+def test_a_country_has_its_birds_in_the_snapshot_most_recorded_first():
+    norway = gift.recorded_in("NO")
+    assert norway[0] == "Parus major" and len(norway) > 100
+    assert gift.recorded_in("") == [] and gift.recorded_in("XX") == []
+
+
+def test_the_country_stands_in_when_gbif_does_not_answer_or_knows_nothing():
+    def offline(_url):
+        raise OSError("down")
+
+    norway = gift.Place("Bergen", 60.39, 5.32, "NO")
+    today = date(2026, 12, 24)
+    assert gift.likely(norway, today, lambda _url: GBIF)[0] == "Turdus migratorius"
+    assert gift.likely(norway, today, offline)[0] == "Parus major"
+    assert gift.likely(norway, today, lambda _url: {"facets": []})[0] == "Parus major"
+    assert gift.likely(COLUMBUS, today, offline) == []  # a typed position has no country
+
+
+def test_the_top_birds_are_the_first_with_a_plate():
+    names = ["Turdus migratorius", "Not avis", "Cardinalis cardinalis", "Turdus migratorius"]
+    assert gift.top_birds(names, DRAWABLE) == ("Turdus migratorius", "Cardinalis cardinalis")
+    every = [key.replace("-", " ").capitalize() for key in sorted(DRAWABLE)]
+    assert len(gift.top_birds(every, DRAWABLE)) == gift.BIRDS == 20
+    assert (
+        len(gift.top_birds(every, DRAWABLE, 40)) == 40 and gift.top_birds(every, DRAWABLE, 0) == ()
+    )
 
 
 @pytest.fixture(scope="module")
 def names():
-    return gift.Names.of(Path("/nonexistent"), "sci")
+    return gift.Names.of(Path("/nonexistent"), "sci", DRAWABLE)
 
 
 @pytest.mark.parametrize(
-    ("typed", "found", "guess"),
+    ("typed", "found"),
     [
-        ("Steller's Jay", "Cyanocitta stelleri", ""),
-        ("stellers jay", "Cyanocitta stelleri", ""),
-        ("cyanocitta stelleri", "Cyanocitta stelleri", ""),
-        ("stellar jay", None, "Steller's Jay"),
-        ("cardnal", None, "Northern Cardinal"),
-        ("robin", None, "American Robin"),  # the likeliest robin where it goes
-        ("zzzz", None, ""),
+        ("Steller's Jay", "Cyanocitta stelleri"),
+        ("stellers jay", "Cyanocitta stelleri"),
+        ("cyanocitta stelleri", "Cyanocitta stelleri"),
+        ("stellar jay", None),
     ],
 )
-def test_a_favourite_is_matched_or_a_likely_one_suggested(names, typed, found, guess):
-    scores = {"Turdus migratorius": 0.9, "Cardinalis cardinalis": 0.8}
-    match = gift.favourite(typed, names, DRAWABLE, scores)
-    assert (match.name, match.guess) == (found, guess)
-    assert bool(match.problem) == (found is None)
+def test_a_bird_is_picked_by_any_of_its_names(names, typed, found):
+    assert names.match(typed) == found
 
 
-def test_a_favourite_without_a_plate_says_so(names):
-    match = gift.favourite("Steller's Jay", names, set(), {})
-    assert match == gift.Favourite(None, "There is no picture of Steller's Jay in this style.")
+def test_the_search_offers_both_names_of_birds_with_a_plate(names):
+    assert "Steller's Jay" in names.shown and "Cyanocitta stelleri" in names.shown
+    assert gift.Names.of(Path("/nonexistent"), "sci", set()).shown == ()
 
 
 def test_the_place_is_written_into_birdnets_section_alone():
     text = "realtime:\n  latitude: 1\n" + TEMPLATE
-    new, lat, lon = gift.located(text, "39.9600", "-82.9900")
-    assert (lat, lon) == ("60.39", "5.32")
+    new = gift.located(text, "39.9600", "-82.9900")
     assert "  latitude: 39.9600\n  longitude: -82.9900\n" in new
     assert new.startswith("realtime:\n  latitude: 1\n")  # another section's is left alone
     assert new.replace("39.9600", "60.39").replace("-82.9900", "5.32") == text
@@ -131,174 +150,146 @@ def test_a_config_without_the_place_is_refused():
         gift.located("logging:\n  default_level: info\n", "0", "0")
 
 
+def test_the_containers_timezone_is_the_line_run_sh_writes():
+    env = "BIRDNET_PORT=8090\nTZ=Europe/Oslo\n"
+    assert gift.zoned(env, "America/New_York") == "BIRDNET_PORT=8090\nTZ=America/New_York\n"
+    assert gift.zoned("BIRDNET_PORT=8090\n", "America/New_York") == (
+        "BIRDNET_PORT=8090\nTZ=America/New_York\n"
+    )
+
+
 @pytest.fixture
 def calls(monkeypatch) -> list[tuple[str, ...]]:
-    """docker, recorded rather than run; the container was restarting unless stopped."""
+    """docker and sudo, recorded rather than run."""
     calls: list[tuple[str, ...]] = []
 
     def docker(*args: str) -> str:
-        calls.append(args)
-        return "unless-stopped" if args[0] == "inspect" else ""
+        calls.append(args[5:] if args[0] == "compose" else args)  # past compose's files
+        return ""
+
+    def root(*command: str) -> bool:
+        calls.append(("sudo", *command))
+        return True
 
     monkeypatch.setattr(gift, "docker", docker)
+    monkeypatch.setattr(gift, "root", root)
     return calls
 
 
 @pytest.fixture
 def frame(tmp_path, calls) -> gift.Paths:
-    """An appliance's files, its undo record in a folder of its own."""
-    paths = gift.Paths(
-        data=tmp_path / "data", detector=tmp_path / "detector", undo=tmp_path / "shm" / "undo"
-    )
+    """An appliance's files."""
+    paths = gift.Paths(data=tmp_path / "data", detector=tmp_path / "detector")
     paths.data.mkdir()
-    paths.undo.parent.mkdir()
     paths.birdnet_config.parent.mkdir(parents=True)
     paths.birdnet_config.write_text(TEMPLATE)
-    paths.env.write_text("")
+    paths.env.write_text("TZ=Europe/Oslo\n")
     for name in ("birdnet.db", "birdnet.db-wal", "birdnet.db.bak"):  # .bak: an update's
         (paths.data / name).write_bytes(b"detections")
     (paths.data / "clips").mkdir()
     (paths.data / "clips" / "merula.mp3").write_bytes(b"song")
-    (paths.data / "settings.json").write_text("{}")
     return paths
 
 
-SPLASH = gift.Splash("May", ("Happy birthday!",), ("Cyanocitta stelleri",), "Cyanocitta stelleri")
-WRAPPING = gift.Wrapping(
-    place=gift.Place("Columbus, Ohio", 39.96, -82.99),
-    splash=SPLASH,
-    ssid="Their home",
-    password="their-password",
-    clear_admin=True,
-)
+def test_wrapping_readies_the_frame_for_its_new_home(frame, calls):
+    cleared, done = [], []
+    wrapping = gift.Wrapping(COLUMBUS, "America/New_York", delete=True, clear_admin=True)
+    gift.wrap(frame, wrapping, lambda: cleared.append(True), done.append)
 
-
-def _plain(calls):
-    """The docker calls without compose's file arguments."""
-    return [args if args[0] != "compose" else ("compose", args[-1]) for args in calls]
-
-
-def test_wrapping_readies_the_frame_and_unwrapping_puts_it_back(frame, calls):
-    drawn, forgotten, restored, done = [], [], [], []
-    gift.wrap(
-        frame, WRAPPING, lambda ssid, pw: "uuid-1", lambda: "old-secret", drawn.append, done.append
-    )
-
-    assert gift.read_undo(frame.undo) == gift.Restore(
-        "unless-stopped", "60.39", "5.32", "uuid-1", "old-secret"
-    )
     assert not list(frame.data.glob("birdnet.db*")) and not (frame.data / "clips").exists()
     assert "latitude: 39.9600" in frame.birdnet_config.read_text()
-    assert drawn == [SPLASH] and len(done) == 6
-    # Stopped by hand, it comes back at the first boot only if it restarts always.
-    assert _plain(calls)[1:] == [
-        ("update", "--restart", "always", "birdnet-go"),
-        ("compose", "stop"),
+    assert frame.env.read_text() == "TZ=America/New_York\n"
+    assert cleared == [True]
+    assert done == [
+        "BirdNET-Go stopped",
+        "Location set to Columbus, Ohio",
+        "Timezone set to America/New_York",
+        "Admin password removed",
+        "Detections and clips deleted",
+        "BirdNET-Go started",
+    ]
+    # Stopped by hand it would stay stopped at every boot, so it is brought back up.
+    assert calls == [
+        ("stop",),
+        ("sudo", "timedatectl", "set-timezone", "America/New_York"),
+        ("up", "-d"),
     ]
 
-    assert gift.unwrap(frame, forgotten.append, restored.append)
-    assert frame.birdnet_config.read_text() == TEMPLATE
-    assert (forgotten, restored) == (["uuid-1"], ["old-secret"])
-    assert _plain(calls)[3:] == [
-        ("update", "--restart", "unless-stopped", "birdnet-go"),
-        ("compose", "start"),
-    ]
-    assert not frame.undo.exists()
-    assert not gift.unwrap(frame, forgotten.append, restored.append)  # nothing left to undo
+
+def test_a_wrap_changes_only_what_it_was_asked_to(frame, calls):
+    def never():
+        raise AssertionError("cleared the admin password")
+
+    gift.wrap(frame, gift.Wrapping(COLUMBUS), never)
+    assert (frame.data / "birdnet.db").exists() and (frame.data / "clips").exists()
+    assert frame.env.read_text() == "TZ=Europe/Oslo\n"
+    assert calls == [("stop",), ("up", "-d")]
 
 
-def test_a_wrap_that_fails_half_way_can_still_be_unwrapped(frame, calls):
-    def no_wifi(_ssid, _password):
-        raise RuntimeError("nmcli refused")
-
-    with pytest.raises(RuntimeError):
-        gift.wrap(frame, WRAPPING, no_wifi, lambda: "old-secret", lambda _s: None)
+def test_a_wrap_that_fails_half_way_still_starts_birdnet_go(frame, calls, monkeypatch):
+    monkeypatch.setattr(gift, "root", lambda *_command: False)
+    with pytest.raises(RuntimeError, match="timezone"):
+        gift.wrap(frame, gift.Wrapping(COLUMBUS, "America/New_York", delete=True), lambda: None)
+    assert calls[-1] == ("up", "-d")
     assert (frame.data / "birdnet.db").exists()  # deleted last, so still here
-    assert gift.unwrap(frame, lambda _uuid: None, lambda _pw: None)
-    assert frame.birdnet_config.read_text() == TEMPLATE
-    assert _plain(calls)[-1] == ("compose", "start")
+
+
+def test_a_frame_without_its_own_birdnet_go_keeps_its_place_and_birds(frame, calls):
+    frame.env.unlink()  # reads BirdWeather, or a BirdNET-Go elsewhere
+    cleared, done = [], []
+    wrapping = gift.Wrapping(None, "America/New_York", clear_admin=True)
+    gift.wrap(frame, wrapping, lambda: cleared.append(True), done.append)
+    assert frame.birdnet_config.read_text() == TEMPLATE and (frame.data / "birdnet.db").exists()
+    assert calls == [("sudo", "timedatectl", "set-timezone", "America/New_York")]  # no docker
+    assert cleared == [True]
+    assert done == ["Timezone set to America/New_York", "Admin password removed"]
+    assert not frame.env.exists()
 
 
 def test_a_config_it_cannot_read_stops_the_wrap_before_anything_changes(frame, calls):
     frame.birdnet_config.write_text("logging:\n  default_level: info\n")
     with pytest.raises(ValueError):
-        gift.wrap(frame, WRAPPING, lambda *_a: "uuid", lambda: "", lambda _s: None)
-    assert calls == [] and not frame.undo.exists() and (frame.data / "birdnet.db").exists()
+        gift.wrap(frame, gift.Wrapping(COLUMBUS, delete=True), lambda: None)
+    assert calls == [] and (frame.data / "birdnet.db").exists()
 
 
-def test_what_wrapping_deletes_is_counted_first(frame):
+def test_what_wrapping_can_delete_is_counted_first():
     class Source:
         def stats(self):
             return {"total": 2847, "species": 61}
 
-        def life_list(self):
-            return [Species("Turdus merula", datetime(2026, 9, 14, 6, tzinfo=UTC))]
-
-    assert gift.heard(frame, Source()) == gift.Heard(2847, 61, date(2026, 9, 14), 1, 4)
-
-
-def test_a_detector_that_does_not_answer_still_counts_the_clips(frame):
     class Down:
         def stats(self):
             raise Unavailable("down")
 
-    assert gift.heard(frame, Down()) == gift.Heard(None, None, None, 1, 4)
+    assert gift.heard(Source()) == 2847  # type: ignore[arg-type]
+    assert gift.heard(Down()) is None  # type: ignore[arg-type]
 
 
-def test_the_undo_record_is_private(frame):
-    gift.write_undo(frame.undo, gift.Restore("unless-stopped"))
-    assert frame.undo.stat().st_mode & 0o777 == 0o600
-
-
-_GOOD = gift.Restore("unless-stopped", "60.39", "5.32", "uuid-1", "secret")
-
-
-def _broken(text: str):
-    return lambda raw: text
-
-
-def _with(**changes):
-    return lambda raw: json.dumps({**raw, **changes})
-
-
-@pytest.mark.parametrize(
-    "spoil",
-    [
-        _broken(""),
-        _broken("{not json"),
-        _broken("[]"),
-        _broken("null"),
-        _with(restart=None),
-        _with(latitude="north"),
-        _with(longitude=5.32),
-        _with(wifi=["uuid-1"]),
-        _with(admin_password=1),
-        _with(extra="key"),
-        lambda raw: json.dumps({k: v for k, v in raw.items() if k != "wifi"}),
-    ],
-)
-def test_an_undo_record_with_anything_wrong_is_deleted_and_logged(tmp_path, caplog, spoil):
-    path = tmp_path / "undo.json"
-    gift.write_undo(path, _GOOD)
-    assert gift.read_undo(path) == _GOOD
-    path.write_text(spoil(json.loads(path.read_text())))
-    assert gift.read_undo(path) is None
-    assert not path.exists()
-    assert gift.read_undo(path) is None
-    warned = [r for r in caplog.records if r.getMessage().startswith("Deleting")]
-    assert len(warned) == 1
-
-
-def test_a_note_line_too_wide_for_the_panel_says_by_how_much():
-    small = (800, 480)
-    assert overflow("Happy birthday!", "gentium", small, Edges.even(0.04)) == 0
-    assert overflow("Happy birthday! " * 8, "gentium", small, Edges.even(0.04)) > 0
+def test_a_line_too_wide_for_the_panel_says_by_how_much():
+    small, margin = (800, 480), Edges.even(0.04)
+    font = note_font("gentium", min(small))
+    assert overflow("Happy birthday!", font, small, margin) == 0
+    assert overflow("", font, small, margin) == 0
+    assert overflow("Happy birthday! " * 8, font, small, margin) > 0
     # The 13.3" sets the same line at the same share of its width.
-    assert overflow("Happy birthday! " * 8, "gentium", (1600, 1200), Edges.even(0.04)) > 0
+    large = (1600, 1200)
+    assert overflow("Happy birthday! " * 8, note_font("gentium", 1200), large, margin) > 0
+
+
+@pytest.mark.parametrize("panel", PANEL_SIZES.values())
+def test_the_title_shrinks_to_fit_a_narrow_panel(panel):
+    margin = Edges.even(0.08)
+    full = title_font("Birds", panel, margin).size
+    for size in (panel, panel[::-1]):
+        font = title_font(TITLE, size, margin)
+        assert overflow(TITLE, font, size, margin) == 0
+        assert smallest_title(min(size)).size < font.size <= full
+    assert title_font(TITLE, panel, margin).size == full  # landscape has the room
 
 
 def test_the_splash_fills_the_panel():
     birds = REPO_ROOT / "assets" / "artwork" / "classic" / "birds"
     entries = [("Cyanocitta stelleri", birds / "cyanocitta-stelleri.webp")]
-    page = splash(entries, "Cyanocitta stelleri", "May", ("Hi",), (800, 480), Edges.even(0.04))
+    page = splash(entries, TITLE, ("Hi",), (800, 480), Edges.even(0.04))
     assert page.size == (800, 480)

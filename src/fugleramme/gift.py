@@ -1,35 +1,34 @@
 """Gift mode (#355): ready a working frame to be given, with a splash on it in the box.
 
 The last step after an install that works. `fugleramme-gift` borrows the frame: it stops the
-frame service, asks where the frame is going, when it arrives, a note and the giver's
-favourite birds, and draws the splash on the panel itself. Wrapping deletes this place's
-history, writes the recipient's place into BirdNET-Go's config, saves their Wi-Fi, can clear
-the admin password, and leaves the frame service stopped with the splash on the glass.
+frame service, asks where the frame is going, which birds go on the splash, a note and a
+title, and draws the splash on the panel itself. Wrapping writes the recipient's place
+into BirdNET-Go's config, sets their timezone, can delete this place's history, forget its
+Wi-Fi networks and clear the admin password, and powers the Pi off with the splash on the
+glass.
 
 The frame service knows nothing of any of it. It is still enabled, so the next boot, at the
 recipient's, starts an ordinary frame: their birds, or the Wi-Fi setup if it has no network.
-BirdNET-Go comes back with it because wrapping sets the container to restart always.
 
-What `unwrap` needs lives in /dev/shm, which is memory: it is there until the power goes, and
-so is the undo. Bundled BirdNET-Go only (`detector/.env` marks an appliance).
+A frame that reads BirdWeather, or a BirdNET-Go elsewhere, has no place or history of its own:
+it is wrapped without those two (`detector/.env` marks a BirdNET-Go on this Pi).
 """
 
 from __future__ import annotations
 
-import contextlib
-import difflib
 import json
-import logging
 import os
 import re
 import shutil
 import subprocess
+import sys
+import zoneinfo
 from collections.abc import Callable, Iterable
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 from urllib.request import urlopen
 
 from . import languages, taxa
@@ -40,16 +39,17 @@ from .source import Unavailable
 if TYPE_CHECKING:
     from .api import ApiSource
 
-log = logging.getLogger(__name__)
-
 UNIT = "fugleramme-frame"  # run.sh's systemd unit
-CONTAINER = "birdnet-go"  # detector/docker-compose.yml's container_name
-SPLASH_BIRDS = 8  # favourites first, then the likeliest with a plate
-SSID_BYTES = 32
-PSK_CHARS = (8, 63)  # WPA2's passphrase
+BIRDS = 20  # on a splash, unless the giver asks for another number
+MOST_BIRDS = 40  # the frame's own page ships limited to as many
+NEAR_KM = 50  # how far from the place a record still counts as there
 PLACES = "https://photon.komoot.io/api/?limit=5&q="  # the admin's station finder asks the same
-_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")  # date.fromisoformat also takes 20270512
+ZONES = "https://api.open-meteo.com/v1/forecast?latitude={:.2f}&longitude={:.2f}&timezone=auto"
+RECORDS = "https://api.gbif.org/v1/occurrence/search?"
+SNAPSHOT = REPO_ROOT / "hooks" / "species_by_country.json"  # the species page's, by country
 LAT_LON = re.compile(r"\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*")
+_BINOMIAL = re.compile(r"[A-Z][a-z]+ [a-z-]+")
+_HYBRID = re.compile(r" x |×")
 
 
 @dataclass(frozen=True)
@@ -58,7 +58,6 @@ class Paths:
 
     data: Path = DEFAULT_CONFIG_PATH.parent  # BirdNET-Go's /data, settings.json beside it
     detector: Path = REPO_ROOT / "detector"
-    undo: Path = Path("/dev/shm/fugleramme-gift.json")  # memory: gone with the power
 
     @property
     def settings(self) -> Path:
@@ -77,82 +76,12 @@ class Paths:
 class Splash:
     """What the splash shows."""
 
-    month: str  # the arrival's, for the subtitle
+    title: str
     notes: tuple[str, ...]
-    birds: tuple[str, ...]  # scientific names, the spotlight among them
-    spotlight: str | None  # the first favourite
+    birds: tuple[str, ...]  # scientific names
 
 
-@dataclass(frozen=True)
-class Restore:
-    """What `unwrap` puts back, recorded before the step that changes it. The history is not
-    in it: wrapping deletes that."""
-
-    restart: str = ""  # the container's restart policy before wrapping set it to always
-    latitude: str = ""
-    longitude: str = ""
-    wifi: str = ""  # the saved profile's uuid
-    admin_password: str | None = None  # None: left alone
-
-
-def read_undo(path: Path) -> Restore | None:
-    """The undo record, or None. One that is not exactly what `write_undo` writes is deleted
-    and said so: half a record would put back half a frame."""
-    try:
-        return _undo(json.loads(path.read_text()))
-    except FileNotFoundError:
-        return None
-    except (OSError, ValueError, TypeError) as error:
-        log.warning("Deleting %s, it is not an undo record: %s", path, error)
-        with contextlib.suppress(OSError):
-            path.unlink()
-        return None
-
-
-def _undo(raw: Any) -> Restore:
-    """`write_undo`'s output read back strictly: every key, no others, each of its type."""
-    if not isinstance(raw, dict) or set(raw) != {f.name for f in fields(Restore)}:
-        raise ValueError("not the keys an undo record has")
-    password = raw.pop("admin_password")
-    if not all(isinstance(v, str) for v in raw.values()) or not isinstance(password, str | None):
-        raise TypeError("a value is not text")
-    for key in ("latitude", "longitude"):
-        if raw[key]:
-            float(raw[key])  # written back into config.yaml as it stands
-    return Restore(**raw, admin_password=password)
-
-
-def write_undo(path: Path, restore: Restore) -> None:
-    """Atomic, and 0600: it can hold the admin password."""
-    tmp = path.with_name(path.name + ".tmp")
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as handle:
-        handle.write(json.dumps(asdict(restore), indent=2) + "\n")
-    os.replace(tmp, path)
-
-
-# -- what goes on the splash -------------------------------------------------
-
-
-def week(day: date) -> int:
-    """BirdNET's 48-week year, four weeks a month (`calculateWeek` in upstream's range.go)."""
-    return (day.month - 1) * 4 + min((day.day - 1) // 7 + 1, 4)
-
-
-def splash_birds(
-    scores: Iterable[tuple[str, float]], favourites: Iterable[str], drawable: set[str]
-) -> tuple[str, ...]:
-    """Favourites first whatever the range model thinks of them, then the likeliest birds
-    the style has a plate for, up to SPLASH_BIRDS."""
-    chosen: dict[str, str] = {}
-    for name in [*favourites, *(name for name, _score in scores)]:
-        key = normalize(name)
-        if key in drawable and key not in chosen:
-            chosen[key] = canonical(name)
-    return tuple(chosen.values())[:SPLASH_BIRDS]
-
-
-# -- the form's checks: each returns what is wrong, "" when nothing is --------
+# -- the place, its timezone and the birds' names -----------------------------
 
 
 @dataclass(frozen=True)
@@ -160,66 +89,123 @@ class Place:
     label: str
     latitude: float
     longitude: float
+    country: str = ""  # ISO 3166, "" for a typed position
 
 
-def find_place(text: str, fetch: Callable[[str], Any] | None = None) -> Place | None:
+def _json(url: str) -> Any:
+    with urlopen(url, timeout=10) as answer:
+        return json.load(answer)
+
+
+def find_place(text: str, fetch: Callable[[str], Any] = _json) -> Place | None:
     """A typed `lat, lon`, else the first place Photon has by that name. Raises OSError
     when Photon cannot be asked."""
     typed = LAT_LON.fullmatch(text)
     if typed:
         lat, lon = float(typed[1]), float(typed[2])
         return Place(text.strip(), lat, lon) if abs(lat) <= 90 and abs(lon) <= 180 else None
-    features = (fetch or _photon)(text.strip()).get("features") or []
+    features = fetch(PLACES + quote(text.strip())).get("features") or []
     if not features:
         return None
     props, (lon, lat) = features[0]["properties"], features[0]["geometry"]["coordinates"]
     parts = [props.get("name"), props.get("city"), props.get("state")]
     label = ", ".join(dict.fromkeys(p for p in [*parts, props.get("country")] if p))
-    return Place(label, float(lat), float(lon))
+    return Place(label, float(lat), float(lon), str(props.get("countrycode") or "").upper())
 
 
-def _photon(text: str) -> Any:
-    with urlopen(PLACES + quote(text), timeout=10) as answer:
-        return json.load(answer)
-
-
-def arrival(text: str, today: date) -> tuple[date | None, str]:
-    if not _DATE.fullmatch(text.strip()):
-        return None, f"Use YYYY-MM-DD, like {today.isoformat()}."
+def zone_at(place: Place, fetch: Callable[[str], Any] = _json) -> str:
+    """The timezone at a place by Open-Meteo, as Photon gives none. "" when it does not
+    answer, or names a zone this machine has no rules for."""
     try:
-        day = date.fromisoformat(text.strip())
-    except ValueError:
-        return None, "There is no such day."
-    return (None, "That day has passed.") if day < today else (day, "")
-
-
-def ssid_problem(name: str) -> str:
-    too_long = len(name.encode()) > SSID_BYTES
-    return f"Too long: a Wi-Fi name is at most {SSID_BYTES} bytes." if too_long else ""
-
-
-def password_problem(password: str) -> str:
-    low, high = PSK_CHARS
-    if not password or low <= len(password) <= high:
+        zone = str(fetch(ZONES.format(place.latitude, place.longitude)).get("timezone") or "")
+    except (OSError, ValueError, AttributeError):
         return ""
-    return f"A Wi-Fi password is {low} to {high} characters; this is {len(password)}."
+    return zone if zone in zoneinfo.available_timezones() else ""
+
+
+def zone_here() -> str:
+    """The Pi's own timezone, "" when timedatectl will not say."""
+    asked = ["timedatectl", "show", "-p", "Timezone", "--value"]
+    done = subprocess.run(asked, capture_output=True, text=True, check=False)
+    return done.stdout.strip() if done.returncode == 0 else ""
+
+
+def recorded(place: Place, today: date, fetch: Callable[[str], Any] = _json) -> list[str]:
+    """The birds GBIF has records of within NEAR_KM of a place, in this month of the last
+    ten years, most recorded first. Asked as `tools/species_map.py` asks of a country.
+    Raises OSError when GBIF cannot be asked."""
+    asked = {
+        "taxonKey": 212,  # Aves
+        "facet": "scientificName",
+        "facetLimit": 300,
+        "limit": 0,
+        "occurrenceStatus": "PRESENT",
+        "basisOfRecord": "HUMAN_OBSERVATION",
+        "year": f"{today.year - 9},{today.year}",
+        "month": today.month,
+        "geoDistance": f"{place.latitude:.2f},{place.longitude:.2f},{NEAR_KM}km",
+    }
+    facets = fetch(RECORDS + urlencode(asked)).get("facets") or [{}]
+    counts: dict[str, int] = {}
+    for value in facets[0].get("counts") or []:
+        binomial = _BINOMIAL.match(value["name"])  # the name carries its author
+        if binomial and not _HYBRID.search(value["name"]):
+            counts[binomial[0]] = counts.get(binomial[0], 0) + int(value["count"])
+    return sorted(counts, key=lambda name: -counts[name])
+
+
+def recorded_in(country: str) -> list[str]:
+    """A country's birds from the species page's GBIF snapshot, most recorded first: all
+    year and country wide, for when GBIF does not answer. [] for a country it lacks."""
+    try:
+        records = json.loads(SNAPSHOT.read_text())["countries"][country]["records"]
+    except (OSError, ValueError, KeyError):
+        return []
+    return sorted(records, key=lambda name: -records[name])
+
+
+def likely(place: Place, today: date, fetch: Callable[[str], Any] = _json) -> list[str]:
+    """The birds most recorded where the frame is going: near the place this month, else
+    its country's."""
+    try:
+        return recorded(place, today, fetch) or recorded_in(place.country)
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return recorded_in(place.country)
+
+
+def top_birds(names: Iterable[str], drawable: set[str], count: int = BIRDS) -> tuple[str, ...]:
+    """The first `count` of `names` the style has a plate for."""
+    chosen: dict[str, str] = {}
+    for name in names:
+        key = normalize(name)
+        if key in drawable and key not in chosen:
+            chosen[key] = canonical(name)
+    return tuple(chosen.values())[:count]
 
 
 @dataclass(frozen=True)
 class Names:
-    """Every name a favourite can be typed as, against its scientific name."""
+    """Every name a bird with a plate can be picked by."""
 
-    by_name: dict[str, str] = field(default_factory=dict)
+    by_name: dict[str, str] = field(default_factory=dict)  # folded, against the scientific
+    shown: tuple[str, ...] = ()  # what the search offers: each bird's common and scientific
 
     @classmethod
-    def of(cls, cache_dir: Path, language: str) -> Names:
+    def of(cls, cache_dir: Path, language: str, drawable: set[str]) -> Names:
         """The labels' English and scientific names, and the frame's own language's from
         the dictionary cached beside the settings."""
         english = {common: _scientific(key) for key, common in taxa.labels().items() if common}
-        scientific = {_scientific(key): _scientific(key) for key in taxa.labels()}
         local, _version = languages.dictionary(language, cache_dir)
-        by_name = {**{n: s for s, n in local.items()}, **english, **scientific}
-        return cls({folded(name): canonical(sci) for name, sci in by_name.items()})
+        common = {
+            name: canonical(sci)
+            for name, sci in {**{n: s for s, n in local.items()}, **english}.items()
+            if normalize(sci) in drawable
+        }
+        named = {**common, **{sci: sci for sci in common.values()}}
+        return cls({folded(name): sci for name, sci in named.items()}, tuple(sorted(named)))
+
+    def match(self, text: str) -> str | None:
+        return self.by_name.get(folded(text))
 
 
 def _scientific(key: str) -> str:
@@ -232,57 +218,22 @@ def folded(name: str) -> str:
     return re.sub(r"[\s\-]+", " ", re.sub(r"['’]", "", name.lower())).strip()
 
 
-@dataclass(frozen=True)
-class Favourite:
-    name: str | None  # scientific, when it matched
-    problem: str = ""
-    guess: str = ""  # the common name it likely meant, offered in its place
+# -- wrapping ----------------------------------------------------------------
 
 
-def favourite(text: str, names: Names, drawable: set[str], scores: dict[str, float]) -> Favourite:
-    """A typed favourite matched, or why not. A typo gets the likeliest bird with a plate
-    it could mean, by the range model's score where the frame is going: "robin" is an
-    American Robin in Ohio, not a Rose Robin."""
-    typed = folded(text)
-    exact = names.by_name.get(typed)
-    if exact:
-        if normalize(exact) in drawable:
-            return Favourite(exact)
-        return Favourite(None, f"There is no picture of {text} in this style.")
-    near = difflib.get_close_matches(typed, names.by_name, n=20, cutoff=0.6)
-    # Word by word too, or "cardnal" never reaches "northern cardinal" as a whole.
-    vocabulary = {word for name in names.by_name for word in name.split()}
-    meant = [
-        {word, *difflib.get_close_matches(word, vocabulary, n=5, cutoff=0.8)}
-        for word in typed.split()
-    ]
-    worded = [
-        name
-        for name in names.by_name
-        if meant and all(options & set(name.split()) for options in meant)
-    ]
-    guesses = [
-        names.by_name[name]
-        for name in dict.fromkeys([*near, *worded])
-        if normalize(names.by_name[name]) in drawable
-    ]
-    if not guesses:
-        return Favourite(None, f"No bird called {text}.")
-    best = max(guesses, key=lambda sci: scores.get(sci, 0.0))
-    guess = taxa.common_of(best) or best
-    return Favourite(None, f"No bird called {text}. {guess}?", guess)
+def bundled(paths: Paths) -> bool:
+    """Whether this Pi runs the BirdNET-Go that install.sh sets up, by run.sh's marker."""
+    return paths.env.exists()
 
 
-# -- wrapping and unwrapping -------------------------------------------------
-
-
-def appliance(paths: Paths) -> str:
-    """Why this frame cannot be wrapped, "" when it can."""
-    if not paths.env.exists():
-        return "gift mode needs the BirdNET-Go that install.sh sets up on this Pi"
-    if not paths.birdnet_config.exists():
-        return f"no {paths.birdnet_config}: run run.sh first"
-    return ""
+def root(*command: str) -> bool:
+    """Run a command as root. Without a password where sudo allows it, else asking for one
+    where there is a terminal to ask on."""
+    if subprocess.run(["sudo", "-n", *command], capture_output=True, check=False).returncode == 0:
+        return True
+    if not sys.stdin.isatty():
+        return False
+    return subprocess.run(["sudo", *command], check=False).returncode == 0
 
 
 def docker(*args: str) -> str:
@@ -306,59 +257,49 @@ def compose(paths: Paths, *args: str) -> str:
 _SECTION = re.compile(r"(?m)^birdnet:[ \t]*$")
 _NEXT_SECTION = re.compile(r"(?m)^\S")
 _COORD = r"(?m)^([ \t]+{}:[ \t]*)(\S+)"
+_TZ = re.compile(r"(?m)^TZ=.*$")
 
 
-def located(text: str, latitude: str, longitude: str) -> tuple[str, str, str]:
-    """BirdNET-Go's config with `birdnet.latitude`/`longitude` replaced, and the two old
-    values. By line, not by YAML, to leave the rest of the file as BirdNET-Go wrote it."""
+def located(text: str, latitude: str, longitude: str) -> str:
+    """BirdNET-Go's config with `birdnet.latitude`/`longitude` replaced. By line, not by
+    YAML, to leave the rest of the file as BirdNET-Go wrote it."""
     section = _SECTION.search(text)
     if section is None:
         raise ValueError("no birdnet section in config.yaml")
     start = section.end()
     after = _NEXT_SECTION.search(text, start + 1)
     end = after.start() if after else len(text)
-    block, old = text[start:end], []
+    block = text[start:end]
     for key, value in (("latitude", latitude), ("longitude", longitude)):
         match = re.search(_COORD.format(key), block)
         if match is None:
             raise ValueError(f"no birdnet.{key} in config.yaml")
-        old.append(match[2])
         block = block[: match.start(2)] + value + block[match.end(2) :]
-    return text[:start] + block + text[end:], old[0], old[1]
+    return text[:start] + block + text[end:]
+
+
+def zoned(env: str, zone: str) -> str:
+    """`detector/.env` with the container's `TZ` replaced, the line run.sh writes."""
+    line = f"TZ={zone}"
+    return _TZ.sub(line, env) if _TZ.search(env) else f"{env}{line}\n"
 
 
 def forget_history(paths: Paths) -> None:
     """Delete this place's detections and clips, with the detector stopped. BirdNET-Go
-    starts an empty database at the recipient's. The glob takes the update's
-    `birdnet.db.bak` and SQLite's -wal and -shm with the database."""
+    starts an empty database. The glob takes the update's `birdnet.db.bak` and SQLite's
+    -wal and -shm with the database."""
     for path in paths.data.glob("birdnet.db*"):
         path.unlink(missing_ok=True)
     shutil.rmtree(paths.data / "clips", ignore_errors=True)
 
 
-@dataclass(frozen=True)
-class Heard:
-    """What wrapping deletes, to say so before it does. None where BirdNET-Go would not
-    say."""
-
-    detections: int | None
-    species: int | None
-    since: date | None
-    clips: int
-    clip_bytes: int
-
-
-def heard(paths: Paths, source: ApiSource) -> Heard:
-    """Counted while the detector still runs: its summary for the birds, the disk for the
-    clips."""
-    clips = [p for p in (paths.data / "clips").rglob("*") if p.is_file()]
-    size = sum(p.stat().st_size for p in clips)
+def heard(source: ApiSource) -> int | None:
+    """How many detections wrapping can delete, to say so before it does. None when
+    BirdNET-Go will not say."""
     try:
-        stats = source.stats()
-        first = min((s.first_seen for s in source.life_list()), default=None)
+        return int(source.stats()["total"])
     except Unavailable:
-        return Heard(None, None, None, len(clips), size)
-    return Heard(stats["total"], stats["species"], first and first.date(), len(clips), size)
+        return None
 
 
 def _write(path: Path, text: str) -> None:
@@ -373,12 +314,11 @@ def _write(path: Path, text: str) -> None:
 
 @dataclass(frozen=True)
 class Wrapping:
-    """What the form hands `wrap`, every field already checked."""
+    """What the questions hand `wrap`, every answer already checked."""
 
-    place: Place
-    splash: Splash
-    ssid: str = ""
-    password: str = ""
+    place: Place | None  # None: no BirdNET-Go of its own, so no place or history to change
+    zone: str = ""  # "": the Pi's own already
+    delete: bool = False
     clear_admin: bool = False
 
 
@@ -388,69 +328,45 @@ Step = Callable[[str], None]
 def wrap(
     paths: Paths,
     wrapping: Wrapping,
-    save_wifi: Callable[[str, str], str],
-    clear_admin: Callable[[], str],
-    draw: Callable[[Splash], None],
+    clear_admin: Callable[[], object],
     done: Step = lambda line: None,
 ) -> None:
-    """Ready the frame for its new home and draw the splash, with the frame service already
-    stopped. The undo record is written before each step that changes something, so
-    `unwrap` can put back what a wrap that failed half way had done. `save_wifi` returns the
-    profile's uuid, `clear_admin` the password it cleared."""
-    restore = Restore()
-
-    def record(**changes: Any) -> None:
-        nonlocal restore
-        restore = Restore(**{**asdict(restore), **changes})
-        write_undo(paths.undo, restore)
-
-    # `unless-stopped` would leave a container stopped by hand stopped at every boot from
-    # here; `always` brings it back at the recipient's first one.
+    """Ready the frame for its new home, with the frame service already stopped and the
+    splash on the glass. BirdNET-Go is stopped for it and brought back whatever fails in
+    between: stopped by hand it would stay stopped at every boot from here."""
     place = wrapping.place
-    new, lat, lon = located(
+    if place is None:
+        _settle(paths, wrapping, clear_admin, done)
+        os.sync()
+        return
+    new = located(
         paths.birdnet_config.read_text(), f"{place.latitude:.4f}", f"{place.longitude:.4f}"
     )  # before anything changes: a config it cannot read stops the wrap here
-    policy = docker("inspect", "-f", "{{.HostConfig.RestartPolicy.Name}}", CONTAINER)
-    record(restart=policy)
-    docker("update", "--restart", "always", CONTAINER)
     compose(paths, "stop")
-    done("Detector stopped")
-    record(latitude=lat, longitude=lon)
-    _write(paths.birdnet_config, new)
-    done(f"Location set to {place.label}")
-    if wrapping.ssid:
-        record(wifi=save_wifi(wrapping.ssid, wrapping.password))
-        done(f"Wi-Fi {wrapping.ssid} saved")
-    if wrapping.clear_admin:
-        record(admin_password=clear_admin())
-        done("Admin password cleared")
-    draw(wrapping.splash)
-    # Last, so a step above that fails leaves everything `unwrap` can put back.
-    forget_history(paths)
-    done("Birds heard here deleted")
-    os.sync()  # the card has everything before anyone pulls the plug
-    done("Written to the card")
-
-
-def unwrap(
-    paths: Paths, forget_wifi: Callable[[str], None], restore_admin: Callable[[str], None]
-) -> bool:
-    """Put back what `wrap` changed, before the frame is unplugged: the place, the Wi-Fi,
-    the admin password and the detector. Not the history, which is gone. False when there
-    is nothing to undo."""
-    restore = read_undo(paths.undo)
-    if restore is None:
-        return False
-    if restore.latitude and restore.longitude:
-        text = paths.birdnet_config.read_text()
-        new, _lat, _lon = located(text, restore.latitude, restore.longitude)
+    done("BirdNET-Go stopped")
+    try:
         _write(paths.birdnet_config, new)
-    if restore.wifi:
-        forget_wifi(restore.wifi)
-    if restore.admin_password is not None:
-        restore_admin(restore.admin_password)
-    if restore.restart:
-        docker("update", "--restart", restore.restart, CONTAINER)
-        compose(paths, "start")
-    paths.undo.unlink(missing_ok=True)
-    return True
+        done(f"Location set to {place.label}")
+        _settle(paths, wrapping, clear_admin, done)
+        if wrapping.delete:
+            forget_history(paths)
+            done("Detections and clips deleted")
+    finally:
+        compose(paths, "up", "-d")  # recreates the container when its TZ changed
+    done("BirdNET-Go started")
+    os.sync()  # the card has everything, so pulling the plug is as good as the power-off
+
+
+def _settle(
+    paths: Paths, wrapping: Wrapping, clear_admin: Callable[[], object], done: Step
+) -> None:
+    """What any frame takes to a new home: the Pi's clock and the admin password."""
+    if wrapping.zone:
+        if not root("timedatectl", "set-timezone", wrapping.zone):
+            raise RuntimeError(f"could not set the timezone to {wrapping.zone}")
+        if bundled(paths):
+            _write(paths.env, zoned(paths.env.read_text(), wrapping.zone))
+        done(f"Timezone set to {wrapping.zone}")
+    if wrapping.clear_admin:
+        clear_admin()
+        done("Admin password removed")

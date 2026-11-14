@@ -1,76 +1,73 @@
 # Giving it as a gift
 
-A frame can go in the box with a picture on it: the birds the recipient may hear where they live, in the month it arrives, with your note at the bottom. E-ink keeps the picture without power, so it is there when the box is opened.
+E-inks keep the drawn frame without power, which makes for a great opportunity to leave a nice surprise for the recipients of the frame!
 
-![The gift splash: "Birds you may hear", a Steller's Jay large in the middle with other birds around it, and a note along the bottom](assets/gift-splash.jpg)
+Gift-wrap the frame before you give it away, and it shows a nice picture when the box is opened: birds that are common where the recipient lives (or whichever you'd like to show), and a custom title and message from you.
 
-Wrapping also gets the frame ready for its new home. It forgets the birds heard at your place, sets the recipient's location in BirdNET-Go and can save their Wi-Fi, so it starts listening as soon as it is plugged in.
+![The gift picture: "Birds you may hear in your garden" at the top, twenty garden birds below it, and a message at the bottom](assets/gift-splash.jpg)
 
-It needs a frame with an Inky panel and the BirdNET-Go that the [install](install.md) sets up beside it.
+Wrapping also gets the frame ready for its new owner. It sets the location and timezone, and you can delete your old detections, wipe your saved Wi-Fi networks and remove the admin password.
 
-## Wrapping it
+> [!IMPORTANT]
+> Only meant to work on an all-in-one build: a Pi with Fugleramme installed and an Inky panel connected.
 
-Do this last, once the frame works: install it, check the panel and the microphone, and let it hear a few birds.
+A frame that uses BirdWeather, or connects to BirdNET-Go on another machine, can be wrapped too. (Since it doesn't listen for birds itself, there's no location to set and no detections to delete)
 
-The birds heard at your place are deleted when it is wrapped. To keep them, back up BirdNET-Go first.
+## Before you wrap
 
-Then, over SSH on the Pi:
+- Check that everything works: the panel, and BirdNET-Go (if installed). Make sure that it actually draws something on the screen when hearing a bird sound.
+- Set the display settings in the admin the way the recipient should have them: language, label font, artwork, rotation and margins. The gift picture uses these settings, and the frame keeps them afterwards.
+- Remove anything personal you set in BirdNET-Go's own settings (e.g a BirdWeather token).
+
+## Wrapping
+
+Run this over SSH on the Pi:
 
 ```bash
 cd ~/fugleramme
 uv run fugleramme-gift
 ```
 
-While it runs the frame is yours to draw on: its own page and the admin pause, and they start again when you quit. `sudo` may ask for your password to pause and start it.
+The frame's web server shuts down while the command runs (so it won't be reachable), and start again if you quit. `sudo` may ask for your password.
 
-It starts by listing the admin settings the picture is drawn with: the names and their languages, the label font, the artwork, the rotation and the margins. The picture looks like the frame's own page. To change any of them, quit, change them in the admin, and run it again.
+It will ask four things:
 
-It asks one question at a time. An answer it cannot use gets a red ✗ with what is wrong, and the question again with your answer still there to fix.
-
-| Question | What to put |
+| Question | Answer |
 | --- | --- |
-| Where is it going? | A town or an address, or `latitude, longitude`. It shows the place it found, so check it is the right Columbus |
-| When does it arrive? | The day, as `YYYY-MM-DD`. The birds are the ones likely there that month |
-| Birds that must be on it? | Separated by commas, the first drawn large in the middle. Tab completes a name, and a misspelt one is offered back corrected: press Enter to take it |
-| A note | Up to three lines for the bottom of the picture, one at a time. A line too long for this frame's panel says by how many characters. An empty line finishes |
-| Wi-Fi | Optional. The recipient's network and its password, so the frame joins it by itself. The password shows as you type, to catch a typo here rather than at their house |
-| Admin password | Asked only when the admin page has one. Clearing it is the default, or the new owner could never change a setting |
-
-Then it draws the picture on the frame, which takes up to 30 seconds, and lists your answers by number. Type a number to change one: the picture is drawn again with it. `w` wraps it, `q` quits without changing anything. Ctrl-C quits at any point before the wrap.
-
-Wrapping asks once more, and says what goes for good: how many detections and clips. Its answer is No unless you type `y`. Then it stops BirdNET-Go, writes the new location into its settings, saves the Wi-Fi and clears the password if you asked, and deletes the birds heard at your place last. It ends:
-
-```text
-Wrapped.
-
-Unplug it now and box it. The picture stays without
-power. The next time it is plugged in, wherever that is,
-it wakes as a normal frame and starts listening for the
-birds around Columbus.
-```
-
-If the connection drops before then, nothing is wrapped: reboot the frame to get its birds back.
-
-## Changed your mind
-
-Before you unplug it, this puts back the location, the Wi-Fi and the admin password, and starts the frame again. The birds heard at your place stay deleted.
-
-```bash
-uv run fugleramme-gift unwrap
-```
-
-It also puts back what a wrap that stopped part way had changed. Once the frame has been unplugged and plugged in again there is nothing to undo.
-
-## When it is plugged in
-
-The next time the frame starts, it is an ordinary frame again. BirdNET-Go starts listening at the new place, and within a minute the picture gives way to a bare branch until the first birds it hears there. It may be worth telling them, or putting a note in the box.
-
-If it has no Wi-Fi it knows, it opens its own [Wi-Fi setup](wifi.md) as any frame does.
+| Location | Where the recipient lives: a town, an address, or `latitude, longitude`. The command shows the place and timezone it found, so you can check them |
+| Birds on the picture | `1` uses the most common birds near the location this month: 20 of them, or any number from 0 to 40. `2` lets you choose them: type an English or scientific name, pick from the list, and leave a line empty to finish |
+| Message | Up to three lines, shown at the bottom of the picture. Leave a line empty to skip/finish |
+| Title | Shown at the top of the picture, with the default text "Birds you may hear in your garden" |
 
 > [!NOTE]
-> Plugging it in again at home, even for a quick test, ends gift mode: the picture goes and it starts listening at your place with the recipient's location. To wrap it again, run `uv run fugleramme-gift` again.
+> The most common birds are the ones most often seen within 50 km of the location this month, according to [GBIF](https://www.gbif.org). (Birds without artwork are skipped)
 
-## When it isn't available
+> [!IMPORTANT]
+> The picture is then drawn on the panel, which takes up to 30 seconds. Enter a number to change an answer, `w` to wrap or `q` to quit. Nothing on the frame is changed until you wrap.
 
-- A frame reading another BirdNET-Go, or BirdWeather stations, cannot be wrapped: the birds and the location are not its own to change.
-- A frame without an Inky panel has nothing to hold the picture without power. The command says so.
+Wrapping asks up to three more questions:
+
+| Question | Answer |
+| --- | --- |
+| Delete this frame's detections and audio clips? | Only asked on a frame with its own BirdNET-Go. Type `delete` to delete them. This can't be undone, so back up BirdNET-Go first if you want a copy. Press Enter to keep them |
+| Forget saved Wi-Fi networks? | Yes by default. Your networks and their passwords are removed, and the frame starts [Wi-Fi setup](wifi.md) the next time it's plugged in |
+| Remove the admin password? | Only asked if one is set. Yes by default, because the recipient can't change settings without it |
+
+The command then lists everything wrapping will do and asks you to confirm. After that the frame shuts down. Wait 30 seconds, then unplug it. Unplugging it right away is also fine.
+
+If your SSH connection drops before you wrap, nothing is changed. Reboot the frame to get its page back.
+
+## After wrapping
+
+When the frame is plugged in again, it starts up as usual. The gift picture is replaced by the birds it hears, or an empty branch until it hears the first one. If it has no Wi-Fi network, it starts [Wi-Fi setup](wifi.md).
+
+> [!NOTE]
+> This also happens if you plug it in again at home. Run `uv run fugleramme-gift` again to wrap it again.
+
+Changed your mind? Run the command again with your own location to set the frame back. Deleted detections can't be restored.
+
+## What is not changed
+
+- The Pi's hostname. The frame's address is still the `<host>.local` you set it up with.
+- BirdNET-Go's own settings, apart from the location.
+- The admin settings, apart from the password.

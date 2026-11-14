@@ -1,54 +1,54 @@
 """`fugleramme-gift`: wrap a working frame as a gift (#355).
 
-    uv run fugleramme-gift          ask about the gift, then wrap it
-    uv run fugleramme-gift unwrap   undo a wrap, before the frame is unplugged
+    uv run fugleramme-gift                    ask about the gift, then wrap it
+    uv run fugleramme-gift --preview OUT.png  ask about the picture and save it, nothing else
 
 It borrows the frame: it stops the frame service, draws on the panel itself, and starts the
-service again when it quits. A wrap leaves the service stopped with the splash on the glass;
-the next boot brings it back as an ordinary frame. Whatever goes wrong here, a reboot gives
-the frame back.
+service again when it quits. A wrap powers the Pi off with the splash on the glass; the next
+boot brings it back as an ordinary frame. Whatever goes wrong here, a reboot gives the frame
+back.
 
 One question at a time, each checked as it is answered and asked again, with what is wrong,
 until it is right. After the last one the splash is drawn on the frame, and again after any
-change, so what the giver confirms is the picture on the glass. Nothing changes until the
-final y/N, which says what is deleted for good. What wrapping does is `gift.py`'s.
+change, so what the giver wraps is the picture on the glass. Nothing changes before the
+wrap, which first asks what else to clear, lists all it will do and asks for a yes. What
+wrapping does is `gift.py`'s.
 """
 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import signal
 import subprocess
 import sys
 import textwrap
-import threading
-from collections.abc import Callable, Iterable, Iterator
+import zoneinfo
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass, field, replace
-from datetime import date, timedelta
-from functools import partial
+from datetime import date
+from pathlib import Path
 from typing import Protocol
 
-from prompt_toolkit import PromptSession, print_formatted_text
-from prompt_toolkit.completion import CompleteEvent, Completer, Completion
-from prompt_toolkit.document import Document
+from PIL import Image, ImageFont
+from prompt_toolkit import print_formatted_text, prompt
+from prompt_toolkit.completion import FuzzyCompleter, WordCompleter
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.styles import Style
 
-from . import gift, languages, taxa
+from . import gift, taxa
 from .api import ApiSource
 from .config import DEFAULT_PORT, REPO_ROOT
 from .languages import namer
-from .names import drawable_keys, image_for, normalize, resolve
-from .panel import Panel, init_panel
-from .render import fonts, packing
+from .names import drawable_keys, image_for, resolve
+from .panel import Panel, init_panel, resolution_of
 from .render.dither import dither
-from .render.gift import overflow, splash
+from .render.gift import TITLE, note_font, overflow, smallest_title, splash
 from .render.page import Edges, day_ordinal
 from .settings import Settings, SettingsStore, from_env
-from .source import BIRDWEATHER, Unavailable
+from .source import BIRDWEATHER
 from .wifi import Nmcli
 
-ARRIVAL = timedelta(weeks=2)  # the date offered first
 IMAGES = REPO_ROOT / "assets" / "artwork"
 WIDTH = 56  # prose wraps here: a phone's ssh app is 40-60 columns
 NOTE_LINES = 3
@@ -61,7 +61,7 @@ STYLE = Style.from_dict(
         "hint": "dim",
         "good": "ansigreen",
         "bad": "ansired",
-        "loss": "ansired bold",
+        "warn": "ansiyellow",
     }
 )
 _UTF8 = (sys.stdout.encoding or "").lower().replace("-", "") == "utf8"
@@ -69,23 +69,24 @@ OK, NO = ("✓", "✗") if _UTF8 else ("ok", "x")
 
 
 class Io(Protocol):
-    def ask(self, default: str = "", label: str = "> ", completer: Completer | None = None) -> str:
-        """One line from the giver, `default` already typed. Ctrl-C raises."""
+    def ask(self, default: str = "", label: str = "> ", choices: Sequence[str] = ()) -> str:
+        """One line from the giver, `default` already typed. With `choices`, what is typed
+        searches them. Ctrl-C raises."""
         ...
 
     def say(self, text: str = "", style: str = "") -> None: ...
 
 
 class Terminal:
-    def __init__(self) -> None:
-        self.session: PromptSession[str] = PromptSession(style=STYLE)
-
-    def ask(self, default: str = "", label: str = "> ", completer: Completer | None = None) -> str:
-        return self.session.prompt(
+    def ask(self, default: str = "", label: str = "> ", choices: Sequence[str] = ()) -> str:
+        # The whole line is the search, as a name has spaces: "stlr jay" finds Steller's Jay.
+        search = FuzzyCompleter(WordCompleter(list(choices), sentence=True), pattern=r"^.+")
+        return prompt(
             [("class:hint", label)],
             default=default,
-            completer=completer,
-            complete_while_typing=False,  # Tab asks; a menu at every key is a lot on a phone
+            style=STYLE,
+            completer=search if choices else None,
+            complete_while_typing=True,
         )
 
     def say(self, text: str = "", style: str = "") -> None:
@@ -107,258 +108,24 @@ def row(io: Io, lead: str, value: str, style: str = "") -> None:
         io.say(" " * len(lead) + more, style)
 
 
-@dataclass(frozen=True)
-class Frame:
-    """What the questions need to know about this frame."""
-
-    paths: gift.Paths
-    settings: Settings
-    size: tuple[int, int]  # the panel's page as it hangs
-    margin: Edges
-    names: gift.Names
-    drawable: set[str]
-
-    @classmethod
-    def here(cls, paths: gift.Paths, panel: tuple[int, int]) -> Frame:
-        settings = SettingsStore(paths.settings, from_env()).get()
-        return cls(
-            paths,
-            settings,
-            settings.oriented(panel),
-            Edges(*(m / 100 for m in settings.margins(True))),
-            gift.Names.of(paths.data, settings.primary_language),
-            drawable_keys(IMAGES, resolve(settings.style, IMAGES)),
-        )
-
-    def bird_names(self) -> list[str]:
-        """The common names Tab completes: every bird with a picture in this style."""
-        return sorted(
-            {
-                taxa.common_of(sci) or sci
-                for sci in self.names.by_name.values()
-                if normalize(sci) in self.drawable
-            }
-        )
+def question(io: Io, text: str, hint: str) -> None:
+    io.say()
+    io.say(text, "question")
+    para(io, hint, "hint")
 
 
-@dataclass(frozen=True)
-class Gift:
-    """The answers so far."""
-
-    place: gift.Place | None = None
-    arrives: date | None = None
-    favourites: tuple[str, ...] = ()  # scientific names, the spotlight first
-    notes: tuple[str, ...] = ()
-    ssid: str = ""
-    password: str = ""
-    clear_admin: bool = False
+def banner(io: Io, text: str) -> None:
+    """The command's title, ruled off from what sudo and the panel printed above it."""
+    rule = ("═" if _UTF8 else "=") * WIDTH
+    io.say()
+    io.say(rule, "title")
+    io.say(f" {text}", "title")
+    io.say(rule, "title")
+    io.say()
 
 
-class Birds(Completer):
-    """Completes the name after the last comma."""
-
-    def __init__(self, names: Iterable[str]):
-        self.names = list(names)
-
-    def get_completions(self, document: Document, _event: CompleteEvent) -> Iterator[Completion]:
-        typed = document.text_before_cursor.rsplit(",", 1)[-1].lstrip()
-        key = gift.folded(typed)
-        if key:
-            for name in self.names:
-                if gift.folded(name).startswith(key):
-                    yield Completion(name, start_position=-len(typed))
-
-
-Scores = Callable[[float, float, int], list[tuple[str, float]]]
-
-
-def _day(day: date) -> str:
-    return f"{day:%a} {day.day} {day:%b %Y}"
-
-
-def _common(sci: str) -> str:
-    return taxa.common_of(sci) or sci
-
-
-@dataclass
-class Questions:
-    io: Io
-    frame: Frame
-    today: date
-    scores: Scores
-    find_place: Callable[[str], gift.Place | None] = gift.find_place
-    wifi_problem: Callable[[], str] = lambda: ""  # why this Pi cannot save a network
-    _scored: dict[tuple, dict[str, float]] = field(default_factory=dict)
-
-    def steps(self) -> list[tuple[str, Callable[[Gift], Gift]]]:
-        """In the order asked, and numbered so in the summary."""
-        steps: list[tuple[str, Callable[[Gift], Gift]]] = [
-            ("Place", self.place),
-            ("Arrives", self.arrives),
-            ("Favourites", self.favourites),
-            ("Note", self.notes),
-            ("Wi-Fi", self.wifi),
-        ]
-        if self.frame.settings.admin_password:
-            steps.append(("Admin", self.admin))
-        return steps
-
-    def _question(self, text: str, hint: str) -> None:
-        self.io.say()
-        self.io.say(text, "question")
-        para(self.io, f"({hint})", "hint")
-
-    def _yes(self, text: str) -> None:
-        para(self.io, f"{OK} {text}", "good", "  ")
-
-    def _no(self, text: str) -> None:
-        para(self.io, f"{NO} {text}", "bad", "  ")
-
-    def place(self, g: Gift) -> Gift:
-        self._question("Where is it going?", "a town, an address, or latitude, longitude")
-        default = g.place.label if g.place else ""
-        while True:
-            text = self.io.ask(default).strip()
-            default = text
-            if not text:
-                self._no("Needed: the birds on the picture are the ones there.")
-                continue
-            if not gift.LAT_LON.fullmatch(text):
-                self.io.say("  Looking it up...", "hint")
-            try:
-                place = self.find_place(text)
-            except OSError:
-                self._no(
-                    "The place search did not answer. Try again, or type latitude, "
-                    "longitude from a maps app."
-                )
-                continue
-            if place is None:
-                self._no(f"No place called {text}. Try a town nearby, or latitude, longitude.")
-                continue
-            self._yes(f"{place.label} ({place.latitude:.2f}, {place.longitude:.2f})")
-            return replace(g, place=place)
-
-    def arrives(self, g: Gift) -> Gift:
-        self._question("When does it arrive?", "YYYY-MM-DD; the birds are that month's")
-        default = (g.arrives or self.today + ARRIVAL).isoformat()
-        while True:
-            text = self.io.ask(default).strip()
-            day, problem = gift.arrival(text, self.today)
-            if day is not None:
-                self._yes(f"{_day(day)}, {day:%B}'s birds")
-                return replace(g, arrives=day)
-            self._no(problem)
-            default = text
-
-    def favourites(self, g: Gift) -> Gift:
-        self._question(
-            "Birds that must be on it?",
-            "separated by commas; the first is drawn large in the middle. Tab completes a "
-            "name, Enter alone for none",
-        )
-        default = ", ".join(map(_common, g.favourites))
-        completer = Birds(self.frame.bird_names())
-        while True:
-            text = self.io.ask(default, completer=completer)
-            found, problem, default = self._matched(text, g)
-            if not problem:
-                if found:
-                    shown = [_common(sci) for sci in found]
-                    self._yes(", ".join([f"{shown[0]} (large)", *shown[1:]]))
-                return replace(g, favourites=found)
-            self._no(problem)
-
-    def _matched(self, text: str, g: Gift) -> tuple[tuple[str, ...], str, str]:
-        """The favourites found, the first problem, and the line to offer again: what was
-        typed with each typo swapped for the bird it likely meant."""
-        found, problem, offered = [], "", []
-        for typed in (part.strip() for part in text.split(",")):
-            if not typed:
-                continue
-            match = gift.favourite(typed, self.frame.names, self.frame.drawable, self.ranked(g))
-            if match.name is not None:
-                found.append(match.name)
-            problem = problem or match.problem
-            offered.append(_common(match.name) if match.name else match.guess or typed)
-        return tuple(dict.fromkeys(found)), problem, ", ".join(offered)
-
-    def notes(self, g: Gift) -> Gift:
-        self._question(
-            "A note for the bottom of the picture?",
-            f"up to {NOTE_LINES} lines; Enter on an empty line finishes",
-        )
-        lines: list[str] = []
-        for i in range(NOTE_LINES):
-            default = g.notes[i] if i < len(g.notes) else ""
-            while True:
-                text = self.io.ask(default, label=f"Line {i + 1} > ").strip()
-                if not text:
-                    return replace(g, notes=tuple(lines))
-                frame = self.frame
-                over = overflow(text, frame.settings.label_font, frame.size, frame.margin)
-                if not over:
-                    lines.append(text)
-                    break
-                self._no(f"{over} characters too long for this frame's panel.")
-                default = text
-        return replace(g, notes=tuple(lines))
-
-    def wifi(self, g: Gift) -> Gift:
-        self._question(
-            "The Wi-Fi name where it is going?",
-            "so it joins by itself; Enter to skip, and it offers its own Wi-Fi setup",
-        )
-        default = g.ssid
-        while True:
-            ssid = self.io.ask(default).strip()
-            if not ssid:
-                return replace(g, ssid="", password="")
-            problem = gift.ssid_problem(ssid) or self.wifi_problem()
-            if not problem:
-                break
-            self._no(problem)
-            default = ssid
-        self._question(
-            "And its password?", "shown as you type, so a typo is caught here; Enter if none"
-        )
-        default = g.password
-        while True:
-            password = self.io.ask(default)
-            problem = gift.password_problem(password)
-            if not problem:
-                return replace(g, ssid=ssid, password=password)
-            self._no(problem)
-            default = password
-
-    def admin(self, g: Gift) -> Gift:
-        self._question(
-            "Clear the admin password?",
-            "the admin page has one; without it they could never change a setting",
-        )
-        return replace(g, clear_admin=yes_or_no(self.io, True))
-
-    def ranked(self, g: Gift) -> dict[str, float]:
-        """The range model's scores where and when it is going, {} while the detector does
-        not answer."""
-        if g.place is None or g.arrives is None:
-            return {}
-        where = (g.place.latitude, g.place.longitude, gift.week(g.arrives))
-        if where not in self._scored:
-            try:
-                self._scored[where] = dict(self.scores(*where))
-            except Unavailable:
-                return {}
-        return self._scored[where]
-
-    def splash(self, g: Gift) -> gift.Splash:
-        ranked = sorted(self.ranked(g).items(), key=lambda item: -item[1])
-        return gift.Splash(
-            f"{g.arrives:%B}",
-            g.notes,
-            gift.splash_birds(ranked, g.favourites, self.frame.drawable),
-            g.favourites[0] if g.favourites else None,
-        )
+def refuse(io: Io, text: str) -> None:
+    para(io, f"{NO} {text}", "bad", "  ")
 
 
 def yes_or_no(io: Io, default: bool) -> bool:
@@ -369,335 +136,487 @@ def yes_or_no(io: Io, default: bool) -> bool:
             return default
         if answer in ("y", "yes", "n", "no"):
             return answer.startswith("y")
-        para(io, f"{NO} Type y or n.", "bad", "  ")
+        refuse(io, "Enter y or n.")
+
+
+@contextlib.contextmanager
+def held(*signals: int) -> Iterator[None]:
+    """Ignore these signals through a step that must not stop half way."""
+    old = [(number, signal.signal(number, signal.SIG_IGN)) for number in signals]
+    try:
+        yield
+    finally:
+        for number, handler in old:
+            signal.signal(number, handler)
+
+
+@dataclass(frozen=True)
+class Frame:
+    """What the questions and the picture need to know about this frame."""
+
+    paths: gift.Paths
+    settings: Settings
+    size: tuple[int, int]  # the panel's page as it hangs
+    margin: Edges
+    names: gift.Names
+    drawable: set[str]
+    own: bool = True  # this Pi's own BirdNET-Go hears its birds: a place and a history to change
+
+    @classmethod
+    def here(cls, paths: gift.Paths, panel: Panel | None) -> Frame:
+        settings = SettingsStore(paths.settings, from_env()).get()
+        drawable = drawable_keys(IMAGES, resolve(settings.style, IMAGES))
+        return cls(
+            paths,
+            settings,
+            settings.oriented(resolution_of(panel, settings.external_panel_size)),
+            Edges(*(m / 100 for m in settings.margins(True))),
+            gift.Names.of(paths.data, settings.primary_language, drawable),
+            drawable,
+            gift.bundled(paths) and settings.detector_kind != BIRDWEATHER,
+        )
+
+
+@dataclass(frozen=True)
+class Gift:
+    """The answers so far."""
+
+    place: gift.Place | None = None
+    zone: str = ""  # the place's timezone, "" when nothing looked it up
+    birds: tuple[str, ...] = ()  # the giver's own, scientific; none: the most recorded there
+    notes: tuple[str, ...] = ()
+    title: str = TITLE
+    count: int = gift.BIRDS  # how many of the most recorded, when the giver names none
+
+
+def _common(sci: str) -> str:
+    return taxa.common_of(sci) or sci
+
+
+def _near(g: Gift) -> str:
+    """The place in a few words: its town, or the position as typed."""
+    label = g.place.label if g.place else ""
+    return label if gift.LAT_LON.fullmatch(label) else label.split(",")[0]
+
+
+def _likely(place: gift.Place) -> list[str]:
+    return gift.likely(place, date.today())
+
+
+@dataclass
+class Questions:
+    io: Io
+    frame: Frame
+    likely: Callable[[gift.Place], list[str]] = _likely
+    find_place: Callable[[str], gift.Place | None] = gift.find_place
+    zone_at: Callable[[gift.Place], str] | None = gift.zone_at  # None: no clock to set
+    zone_here: Callable[[], str] = gift.zone_here
+    _recorded: dict[gift.Place, list[str]] = field(default_factory=dict)
+
+    def steps(self) -> list[tuple[str, Callable[[Gift], Gift]]]:
+        """In the order asked, and numbered so in the summary."""
+        return [
+            ("Location", self.place),
+            ("Birds", self.birds),
+            ("Message", self.notes),
+            ("Title", self.title),
+        ]
+
+    def place(self, g: Gift) -> Gift:
+        question(
+            self.io,
+            "Location",
+            "Where the recipient lives: a town, an address, or latitude, longitude.",
+        )
+        default = g.place.label if g.place else ""
+        while True:
+            text = self.io.ask(default).strip()
+            default = text
+            if not text:
+                refuse(self.io, "A location is required.")
+                continue
+            if not gift.LAT_LON.fullmatch(text):
+                self.io.say("  Searching...", "hint")
+            try:
+                place = self.find_place(text)
+            except OSError:
+                refuse(
+                    self.io,
+                    "Location search is unavailable. Try again, or enter latitude, longitude.",
+                )
+                continue
+            if place is None:
+                refuse(self.io, f"Couldn't find {text}. Try a nearby town, or latitude, longitude.")
+                continue
+            zone = self._zone(place)
+            where = f"{place.label} ({place.latitude:.2f}, {place.longitude:.2f})"
+            para(self.io, f"{OK} {where}{f', {zone}' if zone else ''}", "good", "  ")
+            return replace(g, place=place, zone=zone)
+
+    def _zone(self, place: gift.Place) -> str:
+        """The place's timezone, asked for when the lookup has none."""
+        if self.zone_at is None:
+            return ""
+        zone = self.zone_at(place)
+        if zone:
+            return zone
+        question(
+            self.io,
+            "Timezone",
+            "Couldn't look it up for this location. Type to search, for example oslo.",
+        )
+        zones = sorted(zoneinfo.available_timezones())
+        default = self.zone_here()
+        while True:
+            text = self.io.ask(default, choices=zones).strip()
+            if text in zones:
+                return text
+            refuse(self.io, f"Unknown timezone {text}. Pick one from the list.")
+            default = text
+
+    def birds(self, g: Gift) -> Gift:
+        self.io.say()
+        self.io.say("Birds on the picture", "question")
+        row(self.io, "  1) ", f"the most common near {_near(g)} this month")
+        row(self.io, "  2) ", "choose them yourself")
+        default = "2" if g.birds else "1"
+        while True:
+            choice = self.io.ask(label=f"choice [{default}] > ").strip() or default
+            if choice in ("1", "2"):
+                break
+            refuse(self.io, "Enter 1 or 2.")
+        if choice == "1":
+            most = gift.MOST_BIRDS
+            while True:
+                text = self.io.ask(label=f"how many, 0-{most} [{g.count}] > ").strip() or str(
+                    g.count
+                )
+                if text.isdigit() and int(text) <= most:
+                    return replace(g, birds=(), count=int(text))
+                refuse(self.io, f"Enter a number from 0 to {most}.")
+        para(
+            self.io,
+            "Type part of a name, English or scientific, and pick from the list. Leave "
+            "empty to finish.",
+            "hint",
+        )
+        names = self.frame.names
+        picked: list[str] = []
+        default = _common(g.birds[0]) if g.birds else ""
+        while len(picked) < gift.MOST_BIRDS:
+            text = self.io.ask(default, f"Bird {len(picked) + 1} > ", names.shown).strip()
+            if not text:
+                break
+            found = names.match(text)
+            if found is None:
+                refuse(self.io, f"No artwork for {text} in this style. Pick one from the list.")
+                default = text
+                continue
+            picked.append(found)
+            default = _common(g.birds[len(picked)]) if len(picked) < len(g.birds) else ""
+        return replace(g, birds=tuple(dict.fromkeys(picked)))
+
+    def notes(self, g: Gift) -> Gift:
+        question(
+            self.io,
+            "Message",
+            f"Shown at the bottom of the picture. Up to {NOTE_LINES} lines; leave a line "
+            "empty to finish.",
+        )
+        font = note_font(self.frame.settings.label_font, min(self.frame.size))
+        lines: list[str] = []
+        for i in range(NOTE_LINES):
+            text = self._fitting(g.notes[i] if i < len(g.notes) else "", f"Line {i + 1} > ", font)
+            if not text:
+                break
+            lines.append(text)
+        return replace(g, notes=tuple(lines))
+
+    def title(self, g: Gift) -> Gift:
+        question(self.io, "Title", "Shown at the top of the picture. Press Enter to keep it.")
+        text = self._fitting(g.title, "> ", smallest_title(min(self.frame.size)))
+        return replace(g, title=text or TITLE)
+
+    def _fitting(self, default: str, label: str, font: ImageFont.FreeTypeFont) -> str:
+        """A line that fits the picture's width, or "" for none."""
+        while True:
+            text = self.io.ask(default, label).strip()
+            over = overflow(text, font, self.frame.size, self.frame.margin)
+            if not over:
+                return text
+            refuse(self.io, f"Too long for this panel by {over} characters.")
+            default = text
+
+    def recorded(self, g: Gift) -> list[str]:
+        """The birds most recorded where it is going, asked once a place."""
+        if g.place is None:
+            return []
+        if g.place not in self._recorded:
+            self._recorded[g.place] = self.likely(g.place)
+        return self._recorded[g.place]
+
+    def splash(self, g: Gift) -> gift.Splash:
+        birds = g.birds or gift.top_birds(self.recorded(g), self.frame.drawable, g.count)
+        return gift.Splash(g.title, g.notes, birds)
 
 
 Draw = Callable[[gift.Splash], None]
 
 
-class Preview:
-    """The splash on the glass, drawn behind the questions. One refresh at a time, and a
-    refresh is never cut short: an Inky part way through its waveform is left in a mess."""
-
-    def __init__(self, draw: Draw, io: Io):
-        self.draw, self.io = draw, io
-        self.shown: gift.Splash | None = None
-        self._tried: gift.Splash | None = None
-        self.error = ""
-        self._thread: threading.Thread | None = None
-
-    def show(self, shown: gift.Splash) -> None:
-        """Draw it unless it is on the glass, or failed and has not changed since."""
-        self.settle()
-        if shown in (self.shown, self._tried):
-            return
-        self._tried, self.error = shown, ""
-
-        def run() -> None:
-            try:
-                self.draw(shown)
-                self.shown = shown
-            except Exception as error:
-                self.error = str(error) or type(error).__name__
-
-        para(
-            self.io,
-            "Drawing it on the frame. A full refresh takes up to 30 seconds and the panel "
-            "flashes; that is normal.",
-            "hint",
-        )
-        self._thread = threading.Thread(target=run, daemon=True)
-        self._thread.start()
-
-    def settle(self) -> None:
-        """Wait out a refresh, Ctrl-C included."""
-        if self._thread is None or not self._thread.is_alive():
-            return
-        self.io.say("Finishing this refresh first...", "hint")
-        old = signal.signal(signal.SIGINT, signal.SIG_IGN)
-        try:
-            self._thread.join()
-        finally:
-            signal.signal(signal.SIGINT, old)
-
-    def final(self, shown: gift.Splash) -> None:
-        """Wrapping's draw: only when the glass does not hold it already."""
-        self.settle()
-        if shown != self.shown:
-            self.draw(shown)
-            self.shown = shown
-
-
-def _summary(io: Io, q: Questions, g: Gift, shown: gift.Splash, preview: Preview) -> None:
-    password = f", password {g.password}" if g.password else ", no password"
+def _summary(io: Io, q: Questions, g: Gift, shown: gift.Splash, error: str) -> None:
     values = {
-        "Place": g.place.label if g.place else "",
-        "Arrives": f"{_day(g.arrives)}, {g.arrives:%B}'s birds" if g.arrives else "",
-        "Favourites": ", ".join(
-            f"{_common(s)} (large)" if i == 0 else _common(s) for i, s in enumerate(g.favourites)
-        )
-        or "none",
-        "Note": " / ".join(g.notes) or "none",
-        "Wi-Fi": f"{g.ssid}{password}" if g.ssid else "none; it offers its own setup",
-        "Admin": "password cleared" if g.clear_admin else "password kept",
+        "Location": ", ".join(part for part in (g.place.label if g.place else "", g.zone) if part),
+        "Birds": ", ".join(map(_common, g.birds))
+        or f"the {g.count} most common near {_near(g)} this month",
+        "Message": " / ".join(g.notes) or "none",
+        "Title": g.title,
     }
     io.say()
-    io.say("The gift", "title")
+    io.say("Summary", "title")
     for i, (label, _ask) in enumerate(q.steps(), 1):
-        row(io, f" {i}  {label:<11}  ", values[label])
+        row(io, f" {i}  {label:<8}  ", values[label])
     io.say()
-    birds = [_common(sci) for sci in shown.birds]
-    if not birds:
-        para(io, "No birds on it: BirdNET-Go did not say which live there. Add favourites.", "bad")
-    else:
-        more = f" and {len(birds) - 4} more" if len(birds) > 4 else ""
-        para(io, f"On the glass: {', '.join(birds[:4])}{more}.", "hint")
-    if preview.error:
-        para(io, f"{NO} Could not draw it: {preview.error}", "bad")
+    if not shown.birds and g.count:
+        para(
+            io,
+            "No birds found for this location. Change line 2 and choose them yourself.",
+            "bad",
+        )
+    if error:
+        para(io, f"{NO} Couldn't draw the picture: {error}", "bad")
 
 
-def _size(count: int) -> str:
-    size = float(count)
-    for unit in ("bytes", "KB", "MB"):
-        if size < 1000:
-            return f"{size:.0f} {unit}" if unit == "bytes" else f"{size:.1f} {unit}"
-        size /= 1000
-    return f"{size:.1f} GB"
+@dataclass(frozen=True)
+class Reset:
+    """What a wrap changes besides the location, as the giver answered."""
+
+    delete: bool = False
+    forget_wifi: bool = False
+    clear_admin: bool = False
+    zone: str = ""  # the timezone to set, "" when it is the Pi's already
 
 
-def confirm(io: Io, g: Gift, heard: gift.Heard) -> bool:
-    """The last question, and the only one that changes anything."""
-    if heard.detections is None:
-        birds = "every bird BirdNET-Go heard here"
-    else:
-        since = f" since {heard.since.day} {heard.since:%b %Y}" if heard.since else ""
-        birds = f"{heard.detections:,} detections of {heard.species} species heard here{since}"
-    clips = f", and {heard.clips:,} clips ({_size(heard.clip_bytes)})" if heard.clips else ""
-    io.say()
-    io.say("Wrap it?", "question")
-    io.say()
-    para(io, f"Deleted for good: {birds}{clips}.", "bad", "  ")
-    para(io, "They do not come back.", "loss", "  ")
-    para(io, "To keep them, back up BirdNET-Go first and run this again.", "", "  ")
-    io.say()
-    para(io, "Changed, and put back by `uv run fugleramme-gift unwrap` until it is unplugged:")
-    changes = [("Location", g.place.label if g.place else "")]
-    if g.ssid:
-        changes.append(("Wi-Fi", f"{g.ssid} saved"))
-    if g.clear_admin:
-        changes.append(("Admin", "password cleared"))
-    for label, value in changes:
-        row(io, f"  {label:<10}  ", value)
-    io.say()
-    return yes_or_no(io, False)
+Confirm = Callable[[Gift], Reset | None]
 
 
 def review(
-    io: Io, q: Questions, g: Gift, preview: Preview, heard: Callable[[], gift.Heard]
-) -> Gift | None:
-    """The summary, changes, and the confirm. The gift to wrap, or None to quit."""
+    io: Io, q: Questions, g: Gift, draw: Draw, confirm: Confirm | None = None
+) -> tuple[Gift, Reset] | None:
+    """The picture, the summary and what to do next: change a line, wrap, or quit. The gift
+    and what to clear with it once the giver has confirmed the wrap, or None when they quit.
+    Without `confirm` it is a preview, and there is nothing to wrap."""
     steps = q.steps()
+    lines = f"1-{len(steps)}"
+    shown, error = None, ""
     while True:
-        shown = q.splash(g)
-        preview.show(shown)
-        _summary(io, q, g, shown, preview)
-        choice = io.ask(label=f"Change a line (1-{len(steps)}), w to wrap it, q to quit > ")
-        choice = choice.strip().lower()
+        asked = q.splash(g)
+        if asked != shown:
+            shown, error = asked, ""
+            try:
+                draw(shown)
+            except Exception as failure:
+                error = str(failure) or type(failure).__name__
+        _summary(io, q, g, shown, error)
+        io.say()
+        row(io, f"  {lines:<5}", "change that line and redraw the picture")
+        if confirm:
+            row(io, "  w    ", "wrap: prepare the frame for its new owner, then shut it down")
+            row(io, "  q    ", "quit without wrapping; nothing is changed")
+        else:
+            row(io, "  q    ", "quit")
+        choice = io.ask(label="choice > ").strip().lower()
         if choice == "q":
             return None
-        if choice == "w":
-            preview.settle()
-            if confirm(io, g, heard()):
-                return g
-            continue
         if choice.isdigit() and 1 <= int(choice) <= len(steps):
             g = steps[int(choice) - 1][1](g)
-            continue
-        para(io, f"{NO} Type a number from 1 to {len(steps)}, w or q.", "bad", "  ")
+        elif choice == "w" and confirm and error:
+            refuse(io, "Can't wrap: the picture isn't on the panel.")
+        elif choice == "w" and confirm:
+            chosen = confirm(g)
+            if chosen is not None:
+                return g, chosen
+        else:
+            refuse(io, f"Enter {lines}{', w' if confirm else ''} or q.")
 
 
-def look(frame: Frame) -> list[tuple[str, str]]:
-    """The admin's settings the splash is drawn with, in the admin's own words."""
-    s = frame.settings
-    found = languages.catalog(frame.paths.data)
-
-    def language(code: str) -> str:
-        return "scientific" if code == languages.SCIENTIFIC else found.get(code, code)
-
-    names = "off"
-    if s.show_names:
-        names = language(s.primary_language)
-        if s.secondary_language != languages.NONE:
-            names += f", then {language(s.secondary_language)}"
-        if s.name_key:
-            names += ", numbered in a key"
-    margins = set(s.margins(True))
-    margin = (
-        f"{margins.pop()}%" if len(margins) == 1 else "{}% {}% {}% {}%".format(*s.margins(True))
-    )
-    return [
-        ("Names", names),
-        ("Labels", f"{fonts.FONTS[s.label_font][0]}, {fonts.LABEL_SIZES[s.label_size][0]}"),
-        ("Artwork", f"{resolve(s.style, IMAGES)}, {packing.layout_of(s.layout).label} layout"),
-        ("Panel", f"turned {s.rotation}°, {margin} margin" if s.rotation else f"{margin} margin"),
-    ]
-
-
-def ask(q: Questions, preview: Preview, heard: Callable[[], gift.Heard]) -> Gift | None:
-    q.io.say("Wrap this frame as a gift", "title")
+def ask(q: Questions, title: str, intro: str, warning: str = "") -> Gift:
+    """The command's opening and its questions, each once."""
+    banner(q.io, title)
+    para(q.io, intro)
     q.io.say()
+    if warning:
+        para(q.io, warning, "warn")
+        q.io.say()
     para(
         q.io,
-        "It forgets the birds heard here, sets the place it is going and leaves a picture "
-        "on the glass for the box. Nothing changes until you say so at the end. Ctrl-C "
-        "quits at any point.",
-    )
-    q.io.say()
-    para(q.io, "The picture is drawn with this frame's admin settings:")
-    for label, value in look(q.frame):
-        q.io.say(f"  {label:<8}  {value}")
-    para(
-        q.io,
-        "To draw it differently, quit, change them in the admin and run this again.",
+        "The picture uses this frame's display settings from the admin: language, label "
+        "font, artwork, rotation and margins.",
         "hint",
     )
     g = Gift()
     for _label, step in q.steps():
         g = step(g)
-    return review(q.io, q, g, preview, heard)
+    return g
 
 
-def _drawer(paths: gift.Paths, panel: Panel) -> Draw:
-    """Draw a splash on the panel the way the service would draw a page: the frame's own
-    settings, dithered, turned by its rotation."""
-
-    def draw(shown: gift.Splash) -> None:
-        settings = SettingsStore(paths.settings, from_env()).get()
-        name_of = namer(settings.primary_language, settings.secondary_language, paths.data)
-        style, day = resolve(settings.style, IMAGES), day_ordinal()
-        page = splash(
-            [(name, image_for(name, IMAGES, style, day)) for name in shown.birds],
-            shown.spotlight,
-            shown.month,
-            shown.notes,
-            settings.oriented(panel.resolution),
-            Edges(*(m / 100 for m in settings.margins(True))),
-            font_key=settings.label_font,
-            label_size=settings.label_size,
-            label_text=name_of.label,
-            show_names=settings.show_names,
-            textured=False,  # flat paper and one-bit words, as the panel's page
-            layout=settings.layout,
-            name_key=settings.name_key,
+def reset(
+    io: Io, g: Gift, frame: Frame, heard: int | None, networks: Sequence[str], zone_here: str
+) -> Reset | None:
+    """What else to clear, then everything the wrap will do, to confirm. None when the giver
+    says no: nothing has changed, and the summary is still there to go back to."""
+    io.say()
+    io.say("Wrap", "title")
+    answer = ""
+    if frame.own:
+        count = "" if heard is None else f" {heard:,}"
+        question(
+            io,
+            f"Delete this frame's{count} detections and audio clips?",
+            "This can't be undone. Type delete to confirm, or press Enter to keep them.",
         )
-        panel.push(dither(page), settings.rotation)
+        while True:
+            answer = io.ask().strip().lower()
+            if answer in ("", "delete"):
+                break
+            refuse(io, "Type delete, or press Enter to keep them.")
+    forget_wifi = clear_admin = False
+    if networks:
+        question(
+            io,
+            "Forget saved Wi-Fi networks?",
+            f"{', '.join(networks)}. The frame then starts Wi-Fi setup the next time it's "
+            "plugged in.",
+        )
+        forget_wifi = yes_or_no(io, True)
+    if frame.settings.admin_password:
+        question(
+            io,
+            "Remove the admin password?",
+            "The recipient can't change settings without it.",
+        )
+        clear_admin = yes_or_no(io, True)
+    chosen = Reset(
+        answer == "delete", forget_wifi, clear_admin, g.zone if g.zone != zone_here else ""
+    )
+    will = [f"set the location to {g.place.label}"] if frame.own and g.place else []
+    will += [f"set the timezone to {chosen.zone}"] if chosen.zone else []
+    will += ["delete this frame's detections and audio clips"] if chosen.delete else []
+    will += ["forget the saved Wi-Fi networks"] if forget_wifi else []
+    will += ["remove the admin password"] if clear_admin else []
+    io.say()
+    io.say("Wrapping will:", "question")
+    for line in [*will, "shut the frame down"]:
+        row(io, "  - ", line)
+    io.say()
+    io.say("Wrap the frame now?", "question")
+    if yes_or_no(io, False):
+        return chosen
+    io.say("Not wrapped. Nothing is changed.")
+    return None
+
+
+def _page(frame: Frame, shown: gift.Splash, textured: bool) -> Image.Image:
+    """The splash the way the service would draw a page: the frame's own settings."""
+    settings, data = frame.settings, frame.paths.data
+    name_of = namer(settings.primary_language, settings.secondary_language, data)
+    style, day = resolve(settings.style, IMAGES), day_ordinal()
+    return splash(
+        [(name, image_for(name, IMAGES, style, day)) for name in shown.birds],
+        shown.title,
+        shown.notes,
+        frame.size,
+        frame.margin,
+        font_key=settings.label_font,
+        label_size=settings.label_size,
+        label_text=name_of.label,
+        show_names=settings.show_names,
+        textured=textured,
+        layout=settings.layout,
+        name_key=settings.name_key,
+    )
+
+
+def _on_panel(io: Io, frame: Frame, panel: Panel) -> Draw:
+    def draw(shown: gift.Splash) -> None:
+        para(
+            io,
+            "Drawing the picture on the panel. This takes up to 30 seconds and the panel "
+            "flashes while it updates.",
+            "hint",
+        )
+        page = dither(_page(frame, shown, textured=False))  # flat, as the panel's own page
+        # An Inky cut off part way through its waveform is left in a mess.
+        with held(signal.SIGINT):
+            panel.push(page, frame.settings.rotation)
 
     return draw
 
 
-def _wifi(nmcli: Nmcli) -> Callable[[str, str], str]:
-    def save(ssid: str, password: str) -> str:
-        uuid = nmcli.save(nmcli.device(), ssid, password)
-        if not uuid:
-            raise RuntimeError(f"NetworkManager would not save {ssid}")
-        return uuid
+def _to_file(io: Io, frame: Frame, out: Path) -> Draw:
+    def draw(shown: gift.Splash) -> None:
+        _page(frame, shown, textured=True).save(out)
+        io.say(f"Saved to {out}", "hint")
 
-    return save
-
-
-def _wifi_problem(nmcli: Nmcli) -> str:
-    if not nmcli.allowed():
-        return "sudo will not run nmcli here: run install.sh again, or Enter to skip."
-    if not nmcli.device():
-        return "This Pi has no Wi-Fi to save it on. Enter to skip."
-    return ""
-
-
-def _admin(paths: gift.Paths) -> tuple[Callable[[], str], Callable[[str], None]]:
-    store = SettingsStore(paths.settings, from_env())
-
-    def clear() -> str:
-        old = store.get().admin_password
-        store.update(admin_password="")
-        return old
-
-    def restore(password: str) -> None:
-        store.update(admin_password=password)
-
-    return clear, restore
+    return draw
 
 
 def service(action: str) -> bool:
-    """Stop or start the frame service. Without a password where sudo allows it, else asking
-    for one where there is a terminal to ask on."""
-    command = ["systemctl", action, gift.UNIT]
-    if subprocess.run(["sudo", "-n", *command], capture_output=True, check=False).returncode == 0:
-        return True
-    if not sys.stdin.isatty():
-        return False
-    return subprocess.run(["sudo", *command], check=False).returncode == 0
+    """Stop or start the frame service."""
+    return gift.root("systemctl", action, gift.UNIT)
 
 
-def wrap(io: Io, paths: gift.Paths, wrapping: gift.Wrapping, nmcli: Nmcli, draw: Draw) -> bool:
-    """Ctrl-C waits: the steps take seconds, and stopping between two leaves a frame half
-    wrapped."""
-    clear, _restore = _admin(paths)
+def wrap(io: Io, frame: Frame, g: Gift, chosen: Reset, nmcli: Nmcli) -> bool:
+    """Ctrl-C and a dropped connection are ignored: the steps take seconds, and stopping
+    between two leaves a frame half wrapped."""
+    assert g.place is not None  # the first question
+    place = g.place if frame.own else None
+    wrapping = gift.Wrapping(place, chosen.zone, chosen.delete, chosen.clear_admin)
+    store = SettingsStore(frame.paths.settings, from_env())
     io.say()
-    io.say("Wrapping it. Ctrl-C waits until it is done.", "hint")
-    old = signal.signal(signal.SIGINT, signal.SIG_IGN)
-    try:
-        gift.wrap(
-            paths,
-            wrapping,
-            _wifi(nmcli),
-            clear,
-            draw,
-            lambda line: row(io, f"  {OK} ", line, "good"),
+    io.say("Wrapping. Don't unplug the frame.", "hint")
+    # Asked now: forgetting the Wi-Fi may leave no connection to ask on before the power-off.
+    subprocess.run(["sudo", "-v"], check=False)
+    with held(signal.SIGINT, signal.SIGHUP, signal.SIGTERM):
+        try:
+            gift.wrap(
+                frame.paths,
+                wrapping,
+                lambda: store.update(admin_password=""),
+                lambda line: row(io, f"  {OK} ", line, "good"),
+            )
+        except Exception as error:
+            refuse(io, str(error))
+            para(
+                io,
+                f"Wrapping stopped. The steps marked {OK} are done. Fix the problem and run "
+                "the command again.",
+            )
+            return False
+        io.say()
+        io.say("Done", "title")
+        io.say()
+        para(
+            io,
+            "The frame is shutting down. Wait 30 seconds, then unplug it. The picture stays "
+            "on the panel without power. The next time it's plugged in, it starts up as "
+            "usual.",
         )
-    except Exception as error:
-        para(io, f"{NO} {error}", "bad", "  ")
-        para(io, "`uv run fugleramme-gift unwrap` puts back what it had changed.")
-        return False
-    finally:
-        signal.signal(signal.SIGINT, old)
-    town = wrapping.place.label.split(",")[0]
-    around = "there" if gift.LAT_LON.fullmatch(wrapping.place.label) else f"around {town}"
-    io.say()
-    io.say("Wrapped.", "title")
-    io.say()
-    para(
-        io,
-        "Unplug it now and box it. The picture stays without power. The next time it is "
-        f"plugged in, wherever that is, it wakes as a normal frame and starts listening for "
-        f"the birds {around}.",
-    )
-    io.say()
-    io.say("Changed your mind? Before you unplug it:")
-    io.say("  uv run fugleramme-gift unwrap")
+        if chosen.forget_wifi:
+            nmcli.forget_saved()
+        if not gift.root("systemctl", "poweroff"):
+            para(io, "Couldn't shut the frame down. You can unplug it now.")
     return True
 
 
-def unwrap(paths: gift.Paths) -> int:
-    _clear, restore = _admin(paths)
-    if not gift.unwrap(paths, Nmcli(DEFAULT_PORT).forget, restore):
-        print("Nothing to unwrap: this frame is not wrapped, or it has been unplugged since.")
-        return 1
-    service("start")
-    print("Unwrapped: the place, the Wi-Fi, the password and the frame are back.")
-    return 0
+def _reads(settings: Settings) -> str:
+    """Where a frame without a BirdNET-Go of its own gets its birds."""
+    if settings.detector_kind == BIRDWEATHER:
+        return "BirdWeather"
+    return f"the BirdNET-Go at {settings.detector_url}"
 
 
-def _refusal(paths: gift.Paths) -> str:
-    problem = gift.appliance(paths)
-    if problem:
-        return problem
-    if SettingsStore(paths.settings, from_env()).get().detector_kind == BIRDWEATHER:
-        return "gift mode is for a frame with its own BirdNET-Go, not a BirdWeather station"
-    if gift.read_undo(paths.undo) is not None:
-        return "this frame is wrapped already: `uv run fugleramme-gift unwrap` to start over"
-    if not (sys.stdin.isatty() and sys.stdout.isatty()):
-        return "it asks questions, so it needs a terminal: `ssh -t` when ssh runs it"
-    return ""
+def _source(settings: Settings) -> ApiSource:
+    return ApiSource(settings.detector_url, settings.detector_username, settings.detector_password)
 
 
 def _hang_up(signum: int, _frame: object) -> None:
@@ -705,54 +624,71 @@ def _hang_up(signum: int, _frame: object) -> None:
     raise SystemExit(128 + signum)
 
 
-def _wrapping(q: Questions, g: Gift) -> gift.Wrapping:
-    assert g.place is not None  # the first question
-    return gift.Wrapping(g.place, q.splash(g), g.ssid, g.password, g.clear_admin)
+def preview(io: Io, paths: gift.Paths, out: Path) -> None:
+    """The questions about the picture and the picture as a file, on any machine."""
+    frame = Frame.here(paths, None)
+    q = Questions(io, frame, zone_at=None)
+    intro = f"The picture is saved to {out}. Nothing else is changed."
+    with contextlib.suppress(KeyboardInterrupt, EOFError):
+        review(io, q, ask(q, "Gift picture preview", intro), _to_file(io, frame, out))
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="fugleramme-gift", description=__doc__.split("\n")[0])
-    parser.add_argument("action", nargs="?", choices=["unwrap"], help="undo a wrap")
+    parser.add_argument(
+        "--preview",
+        type=Path,
+        metavar="OUT.png",
+        help="ask about the picture and save it there; no frame, panel or wrap",
+    )
     args = parser.parse_args(argv)
     paths = gift.Paths()
-    if args.action == "unwrap":
-        sys.exit(unwrap(paths))
-    refusal = _refusal(paths)
-    if refusal:
-        sys.exit(refusal)
-    print("Pausing the frame. sudo may ask for your password.")
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        sys.exit("fugleramme-gift needs an interactive terminal. Over ssh, use `ssh -t`.")
+    io = Terminal()
+    if args.preview:
+        preview(io, paths, args.preview)
+        return
+    if gift.bundled(paths) and not paths.birdnet_config.exists():
+        sys.exit(f"no {paths.birdnet_config}: run run.sh first")
+    print("Stopping the frame service. sudo may ask for your password.")
     if not service("stop"):
         sys.exit(f"Could not stop {gift.UNIT}.")
     signal.signal(signal.SIGHUP, _hang_up)
     signal.signal(signal.SIGTERM, _hang_up)
-    io = Terminal()
-    preview: Preview | None = None
-    tried = False  # a wrap that fails leaves the service to `unwrap`, which starts it
+    wrapped = False
     try:
         panel = init_panel()
         if panel is None:
-            sys.exit("No Inky panel here: nothing would hold the splash without power.")
-        frame = Frame.here(paths, panel.resolution)
-        settings = frame.settings
-        source = ApiSource(
-            settings.detector_url, settings.detector_username, settings.detector_password
-        )
+            sys.exit("No Inky panel found. It is what keeps the picture without power.")
+        frame = Frame.here(paths, panel)
         nmcli = Nmcli(DEFAULT_PORT)
-        preview = Preview(_drawer(paths, panel), io)
-        q = Questions(
-            io, frame, date.today(), source.range_scores, wifi_problem=partial(_wifi_problem, nmcli)
+        warning = ""
+        if not frame.own:
+            warning = (
+                "Note: this frame doesn't listen for birds itself. It shows birds from "
+                f"{_reads(frame.settings)}, so there is no location to set and no detections "
+                "to delete."
+            )
+        intro = (
+            "Draws a gift picture on the panel and prepares the frame for its new owner. "
+            "Nothing is changed until you wrap at the end. Press Ctrl-C to quit."
         )
-        g = ask(q, preview, partial(gift.heard, paths, source))
-        if g is None:
+
+        def confirm(g: Gift) -> Reset | None:
+            heard = gift.heard(_source(frame.settings)) if frame.own else None
+            return reset(io, g, frame, heard, nmcli.saved(), gift.zone_here())
+
+        q = Questions(io, frame)
+        g = ask(q, "Wrap this frame as a gift", intro, warning)
+        done = review(io, q, g, _on_panel(io, frame, panel), confirm)
+        if done is None:
             io.say("Nothing changed.")
         else:
-            tried = True
-            wrap(io, paths, _wrapping(q, g), nmcli, preview.final)
+            wrapped = wrap(io, frame, *done, nmcli)
     except (KeyboardInterrupt, EOFError):
         print("\nNothing changed.")
     finally:
-        if preview is not None:
-            preview.settle()
-        # Left stopped only after a wrap; a reboot starts it in any case.
-        if not tried and not service("start"):
-            print(f"Could not start {gift.UNIT}; a reboot will.")
+        # Left stopped only by a wrap; a reboot starts it in any case.
+        if not wrapped and not service("start"):
+            print(f"Couldn't start {gift.UNIT}. Reboot the frame to start it.")
