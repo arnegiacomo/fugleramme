@@ -12,13 +12,6 @@ describes a work and its terms, never a single plate.
 
 ## Sources
 
-**daniel-giraud-elliot** - *The New and Heretofore Unfigured Species of the
-Birds of North America* by **Daniel Giraud Elliot** (1835–1915), New York,
-1869. Plates after drawings by Elliot, Joseph Wolf, and Edwin Sheppard.
-Biodiversity Heritage Library scans of the two-volume work, public domain:
-[Volume 2, plate page](https://www.biodiversitylibrary.org/item/235066#page/101/mode/1up).
-Manifest key: `daniel-giraud-elliot`.
-
 **von Wright** - *Svenska Fåglar* by the **von Wright brothers** (Magnus
 1805-1868, Wilhelm 1810-1887, Ferdinand 1822-1906), from the Commons category
 [Svenska fåglar (von Wright)](https://commons.wikimedia.org/wiki/Category:Svenska_f%C3%A5glar_(von_Wright)):
