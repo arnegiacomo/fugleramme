@@ -1,28 +1,19 @@
 # Screens
 
-Fugleramme serves the collage over HTTP, so it can show on more than the e-ink
-panel.
+Fugleramme serves the rendered images over HTTP, so they can show on more than the e-ink panel.
 
 ## Two pictures
 
-The frame draws two pictures of the same birds, with the same mode, style and
-names:
+The frame draws two pictures of the same birds:
 
-- **The panel's page** is what the e-ink panel shows. It is dithered to the
-  panel's six inks, on plain paper, at the panel's own size and **Rotation**.
-  New birds change it at most as often as **Panel refresh** allows, and it
-  stays up while BirdNET-Go is unreachable.
-- **The web page**, at `/collage.png`, is in full colour on textured paper, at
-  the size you pick under **Resolution**. With **Lock to panel** on it has the
-  panel's shape, otherwise its own **Aspect**. It is drawn whenever something
-  asks for it, so new birds show up straight away.
+- **The panel's page** is for the e-ink panel: six colours, at the panel's size and **Rotation**. It changes at most as often as [**Panel refresh**](frame.md#panel-refresh) allows, and stays up while the detectors are unreachable.
+- **The web page**, at `/collage.png`, is for everything else: full colour, textured paper, at the **Resolution** you pick. It is drawn each time a screen asks for it, so **Panel refresh** does not affect it. Its shape is its own **Aspect**, or the panel's with **Lock to panel** on.
 
-The preview on the admin page is the panel's page in full colour, with any
-changes you have not saved yet. Without a panel it shows the web page.
+The preview on the admin page is the panel's page in full colour, with the changes you have not saved yet. Without a panel it is the web page.
 
 ![Overview of different rendering endpoints](assets/screens.svg)
 
-Six ways to show them, easiest first.
+The ways to show them, easiest first.
 
 ## From another device
 
@@ -36,7 +27,20 @@ On a tablet, add the page to the home screen and it opens like an app, with its 
 > [!NOTE]
 > The icon remembers the address it was saved with, so use the hostname, or give the machine running Fugleramme a static IP lease in your router.
 
-On an old e-reader such as a Kindle, whose browser runs little or no JavaScript, open `http://<host>.local:8080/kindle` instead. It is only the picture, with no settings button, and it reloads itself every 2 minutes.
+## On an e-reader or old browser
+
+An old browser, such as on an e-reader, cannot run the normal page: it stays blank or looks wrong. Open `http://<ip address>:8080/plain` instead. It is only the picture, with no settings button, and it reloads itself every 2 minutes.
+
+![An old Kindle held in a hand, showing a Pied Currawong in greyscale](assets/plain-kindle.jpg)
+
+Contributed by [@fred-dev](https://github.com/fred-dev) and tested on a Kindle (7th generation, firmware 5.12.2.2).
+
+- The browser might not find the frame by hostname, so use the IP address of the machine running Fugleramme.
+- The Kindle's own browser keeps its address bar on screen. To hide it, jailbreak the Kindle and open the page with [fred-dev's fork of WebLaunch](https://github.com/fred-dev/WebLaunch).
+
+Newer Kindles, from 2018 on, are reported to have a newer browser that may show the normal page. (untested)
+
+Tried it on a Kobo, a newer Kindle or another old browser? [Open an issue](https://github.com/arnegiacomo/fugleramme/issues) and tell me how it went!
 
 ## On HDMI, Raspberry Pi OS Desktop
 
