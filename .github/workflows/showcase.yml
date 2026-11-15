@@ -1,0 +1,38 @@
+name: showcase
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/showcase.md
+      - .github/workflows/showcase.yml
+  pull_request:
+    paths:
+      - docs/showcase.md
+      - .github/workflows/showcase.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # A listed frame is one click from its admin, so it has to ask for a sign-in.
+      # A locked frame answers a non-browser request to /admin with a 401 and an
+      # open one with a 200. Anything else is a proxy that keeps /admin to itself,
+      # or a frame that is down. HEAD, so an open admin's page is never loaded.
+      - run: |
+          open=0
+          for url in $(grep -o '<a href="[^"]*"' docs/showcase.md | cut -d'"' -f2); do
+            admin="$(echo "$url" | cut -d/ -f1-3)/admin"
+            code=$(curl -sI -o /dev/null -m 20 -w '%{http_code}' -H 'Accept: application/json' "$admin" || true)
+            echo "$code $admin"
+            if [ "$code" = 200 ]; then
+              echo "::error file=docs/showcase.md::$admin is open. Set an admin password on the frame before listing it."
+              open=1
+            fi
+          done
+          exit "$open"
