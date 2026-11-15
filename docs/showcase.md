@@ -120,3 +120,6 @@ Running one yourself and want to share with others? Post the link in
 [Want to share your frame?](https://github.com/arnegiacomo/fugleramme/discussions/146) or open a PR adding it here.
 Listing a frame means visitors to this page load its collage straight from your
 Pi, so expect some image traffic.
+
+Before you share your frame, [set a password on the admin page](operations.md#enabling-authentication-for-the-admin-page)
+or make sure it can't be reached from the internet. Otherwise anyone can change your settings, and the frame shouldn't be listed here.
