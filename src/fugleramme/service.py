@@ -12,10 +12,12 @@ push, the same path as the preview.
 
 from __future__ import annotations
 
+import ctypes
 import faulthandler
 import logging
 import os
 import signal
+import sys
 import threading
 import time
 from dataclasses import replace
@@ -35,6 +37,27 @@ from .web.server import serve
 log = logging.getLogger(__name__)
 
 _POLL_SECONDS = 5  # one query per tick; re-renders only on change, so e-ink stays the bottleneck
+
+# glibc's mallopt parameter, and the size it starts out at.
+_M_MMAP_THRESHOLD = -3
+_MMAP_THRESHOLD = 128 * 1024
+
+
+def _pin_mmap_threshold() -> None:
+    """Keep glibc handing a render's buffers back to the system when they are freed (#396).
+
+    glibc serves a block of this size or larger with an mmap of its own, returned on
+    free, but raises the size (up to 32 MB) after the first such free. From then on the
+    image buffers come out of the calling thread's arena and stay there, and the server
+    renders on a new thread per request, so arena after arena held some 300 MB of freed
+    memory. Setting the size, even to what it starts at, stops it rising. Set here and
+    not as MALLOC_MMAP_THRESHOLD_ in the unit, which a Pi that updates never gets."""
+    if sys.platform != "linux":
+        return
+    try:
+        ctypes.CDLL(None).mallopt(_M_MMAP_THRESHOLD, _MMAP_THRESHOLD)
+    except AttributeError:
+        pass  # musl has no mallopt
 
 
 def detector(config: Config) -> tuple[SettingsStore, Configured]:
@@ -161,6 +184,7 @@ def run(config: Config) -> None:
     logging.getLogger("fugleramme").setLevel(os.environ.get("FUGLERAMME_LOG_LEVEL", "INFO"))
     # `kill -USR1 <pid>` dumps every thread's stack to the journal - for when it wedges.
     faulthandler.register(signal.SIGUSR1, all_threads=True)
+    _pin_mmap_threshold()
 
     log.info("Fugleramme v%s", __version__)
 
