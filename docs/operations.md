@@ -138,3 +138,13 @@ visitor has the same IP, so a stranger's guesses would block you
 too. Tick **The frame is behind a reverse proxy** and the frame counts per
 visitor again. Leave it off if the frame's own port is open to
 the internet as well: anyone reaching it directly can claim any address.
+
+### Under a path
+
+The frame answers at the root of its address by default. To serve it under a
+path instead, for example `https://example.org/frame/` beside other services on
+the same address, start it with `FUGLERAMME_BASE_PATH=/frame` in front. It then
+answers `/frame/...` and, for a proxy that strips the path, plain `/...` too. The
+bare `/frame` is sent on to `/frame/`, and the sign-in cookie is kept to that
+path. Leave it unset for a frame at the root. It is read when the frame starts,
+so restart the frame after changing it.

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block body %}
-<form class="login" method="post" action="{{ LOGIN }}">
+<form class="login" method="post" action="{{ LOGIN.rsplit('/', 1)[1] }}">
   <h1>Fugleramme</h1>
   <label><span>Admin password</span>
     <input type="password" name="password" autocomplete="current-password" autofocus></label>
@@ -8,6 +8,6 @@
   <p class="note bad" role="alert">{{ error }}</p>
   {% endif %}
   <button type="submit">Sign in</button>
-  <p class="note"><a href="/">Back to the kiosk</a></p>
+  <p class="note"><a href="../">Back to the kiosk</a></p>
 </form>
 {% endblock %}

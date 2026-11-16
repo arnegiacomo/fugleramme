@@ -115,7 +115,7 @@ form.addEventListener("change", (e) => {
   clearTimeout(matTimer);
   matTimer = setTimeout(async () => {
     try {
-      signedOut(await fetch("/mat-test", {method: "POST", body: new URLSearchParams(new FormData(form))}));
+      signedOut(await fetch("mat-test", {method: "POST", body: new URLSearchParams(new FormData(form))}));
     } catch (e) {}  // the preview still shows the margin
   }, 500);
 });

@@ -3,7 +3,7 @@
    open admin (Settings.admin_locked). #}
 {% from "macros.html" import checkbox, declare, text_field, hint %}
 <section id="tab-security" role="tabpanel" aria-labelledby="security-tab" hidden>
-  <form class="card block access" method="post" action="/admin">
+  <form class="card block access" method="post" action="admin">
     <h2>Admin access</h2>
     {{ declare("require_sign_in behind_proxy") }}
     {% call checkbox("require_sign_in", settings.require_sign_in) %}Require sign-in for the admin page{% endcall %}

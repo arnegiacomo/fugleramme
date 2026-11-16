@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#f2ede2">
-<link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <title>Fugleramme</title>
 <!-- Inline: one page, no reuse, and no two extra round trips to come up. -->
 <style>
@@ -19,7 +19,7 @@
   html { background: #f2ede2; }
   body { display: flex; align-items: center; justify-content: center; }
   /* Tiled right only once the page has a size, so it comes up with the page. */
-  #paper { position: fixed; inset: 0; z-index: -1; background: url(/paper.png); opacity: 0; }
+  #paper { position: fixed; inset: 0; z-index: -1; background: url(paper.png); opacity: 0; }
   #paper.up { opacity: 1; }
   /* The incoming page, centred by the collage's own rules; never eats a click. */
   #over { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
@@ -45,11 +45,11 @@
 </head>
 <body>
 <div id="paper"></div>
-<img id="collage" src="/collage.png" alt="Birds seen recently" hidden>
-<p id="waiting" hidden>Waiting for BirdNET-Go<br><a href="/admin">Configure it in the admin panel</a></p>
+<img id="collage" src="collage.png" alt="Birds seen recently" hidden>
+<p id="waiting" hidden>Waiting for BirdNET-Go<br><a href="admin">Configure it in the admin panel</a></p>
 <div id="over"></div>
 <div id="controls">
-  <a id="settings" href="/admin" aria-label="Settings" title="Settings">
+  <a id="settings" href="admin" aria-label="Settings" title="Settings">
     <!-- Lucide's "settings" icon (ISC licence) -->
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
   </a>
@@ -112,12 +112,12 @@
   let token = null;
   async function tick() {
     try {
-      const state = await (await fetch("/state", {cache: "no-store"})).json();
+      const state = await (await fetch("state", {cache: "no-store"})).json();
       if (state.token !== token) {
         token = state.token;
         const next = new Image();  // decode before swapping, so the frame never blanks
         next.onload = () => swap(next);
-        next.src = "/collage.png?v=" + encodeURIComponent(token);
+        next.src = "collage.png?v=" + encodeURIComponent(token);
       }
     } catch (e) {}  // transient: retry next tick
     setTimeout(tick, DELAY);

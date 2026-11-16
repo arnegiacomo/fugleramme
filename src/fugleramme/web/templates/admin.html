@@ -8,7 +8,7 @@
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
   </button>
   <nav id="links">
-    <a href="/">Kiosk</a>
+    <a href="./">Kiosk</a>
     {#- Several stations have no page between them, so the link opens a list of them. #}
     {% if not nav_stations %}
     <a id="birdnet" href="#" title="detection &amp; stats">{{ detector_name }}</a>
@@ -19,7 +19,7 @@
     <a href="{{ DOCS_URL }}" target="_blank" rel="noopener">Docs</a>
     {#- Only offered where there is a session to end. #}
     {% if settings.admin_locked %}
-    <form class="inline signout" method="post" action="{{ LOGOUT }}"><button type="submit">Sign out</button></form>
+    <form class="inline signout" method="post" action="{{ LOGOUT.lstrip('/') }}"><button type="submit">Sign out</button></form>
     {%- endif %}
   </nav>
 </header>
@@ -30,7 +30,7 @@
 </nav>
 {# Display and Frame are two tabs over one form, so one preview serves both. #}
 <section id="settings" class="cols">
-  <form class="settings" method="post" action="/admin">
+  <form class="settings" method="post" action="admin">
     {{ display }}
     {{ frame }}
   </form>
@@ -66,5 +66,5 @@
   <button type="button" id="save">Save</button>
 </div>
 <script id="config" type="application/json">{{ config|tojson }}</script>
-<script type="module" src="/admin/main.js?v={{ version }}"></script>
+<script type="module" src="admin/main.js?v={{ version }}"></script>
 {% endblock %}

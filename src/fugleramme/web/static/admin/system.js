@@ -27,7 +27,7 @@ if (bar) {
   (function poll() {
     setTimeout(async () => {
       try {
-        const answer = await fetch("/update", {cache: "no-store"});
+        const answer = await fetch("update", {cache: "no-store"});
         if (signedOut(answer)) return;
         const state = await answer.json();
         if (!state.updating) {

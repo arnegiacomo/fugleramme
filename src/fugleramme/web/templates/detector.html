@@ -27,7 +27,7 @@
   {# A refused save comes back on the type it was refused for, with the note
      under that type's address, since that is the field to fix. #}
   {% set note %}{% if refusal %}<p class="note bad">Not saved. {{ refusal }}</p>{% endif %}{% endset %}
-  <form class="card block detector" id="detector" method="post" action="/admin">
+  <form class="card block detector" id="detector" method="post" action="admin">
     <div class="field"><span>Type</span>
       {%- for kind, label in kinds %}<label class="src"><input type="radio" name="detector_kind" value="{{ kind }}"{{ flags(checked=kind == chosen) }}> {{ logo(kind) }}{{ label }}</label>{% endfor -%}
     </div>
