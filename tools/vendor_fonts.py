@@ -7,6 +7,9 @@ Every face comes from the Noto project at a pinned commit. Noto Sans CJK is
 Chinese, Japanese and Korean names in BirdNET v2.4's label files and in
 BirdWeather's names for every bird, the dates babel writes in those languages,
 and printable ASCII.
+
+It also cuts Cormorant Garamond down to the title of the admin and the Wi-Fi
+portal, from the face already under assets/fonts/.
 """
 
 from __future__ import annotations
@@ -22,7 +25,8 @@ from fontTools.ttLib import TTFont
 
 from fugleramme.birdweather import translations
 from fugleramme.languages import NONE, Namer
-from fugleramme.render.fonts import FONTS_DIR
+from fugleramme.render.fonts import FONTS, FONTS_DIR, TITLE_CUT
+from fugleramme.web.portal import TITLE
 
 NOTO = "https://raw.githubusercontent.com/notofonts/notofonts.github.io/51a53382c7fca5180dd6030d79a4464c1a2730c8/fonts"
 CJK = "https://raw.githubusercontent.com/notofonts/noto-cjk/f8d157532fbfaeda587e826d4cd5b21a49186f7c/Sans"
@@ -120,6 +124,14 @@ def cjk_subset(font: bytes) -> TTFont:
     return subset_font
 
 
+def title_cut() -> TTFont:
+    subsetter = subset.Subsetter()
+    subsetter.populate(text=TITLE)
+    cut = TTFont(FONTS_DIR / FONTS["cormorant"][1], recalcTimestamp=False)
+    subsetter.subset(cut)
+    return cut
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     licences = []
@@ -131,6 +143,7 @@ def main() -> None:
         )
     cjk_subset(fetch(f"{CJK}/OTF/SimplifiedChinese/{CJK_FACE}")).save(OUT / CJK_FACE)
     licences.append((CJK_FACE, fetch(f"{CJK}/LICENSE")))
+    title_cut().save(FONTS_DIR / TITLE_CUT)
     # One file for the folder, each upstream's own text under the faces it covers.
     (OUT / "OFL.txt").write_text(
         "\n\n".join(f"===== {name}\n\n{text.decode().strip()}" for name, text in licences) + "\n"

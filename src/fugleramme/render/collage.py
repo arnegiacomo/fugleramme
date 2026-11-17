@@ -341,9 +341,7 @@ _LAYOUTS_MAX = 8
 
 def _placements(
     key: tuple,
-    arts: list[Image.Image],
-    names: list[str],
-    ratios: list[float],
+    kept: list[tuple[str, Path]],
     flips: list[bool],
     width: int,
     height: int,
@@ -353,7 +351,7 @@ def _placements(
     layout: str,
     margin: Edges,
     mask_of: _Mask,
-    spotlit: tuple[int, tuple[float, float]] | None = None,
+    spotlight: str | None = None,
 ) -> tuple[tuple[_Placed, ...], int]:
     """Pack the page, or return the cached packing. A kiosk locked to the panel
     packs identically to it - only `scale` and the paper differ - so whichever
@@ -363,6 +361,14 @@ def _placements(
         hit = _layouts.get(key)
         if hit is not None:
             return hit
+
+        # Only the silhouettes are held through the pack; the draw pass decodes
+        # each plate as it draws it, so the full plates are never all in memory.
+        alphas = [trim(path).getchannel("A") for _, path in kept]
+        # Mass sizes the bird; this sizes the plate it is drawn on.
+        ratios = [span_ratio(path, a.size) for (_, path), a in zip(kept, alphas, strict=True)]
+        names = [name for name, _ in kept]
+        spotlit = _spotlit(kept, alphas, spotlight)
 
         # Pack inside the margin but size off the whole page, so only a set that
         # doesn't fit has to shrink.
@@ -390,7 +396,6 @@ def _placements(
             share = min(SPOTLIGHT_SHARE * ratios[index], _MAX_SHARE)
             pin = _Pin(index, round(share * min(box)), centre)
             order = [index, *order]
-        alphas = [img.getchannel("A") for img in arts]
         args = (names, alphas, order, weights, flips, base, *box)
 
         placed, used_px = _layout(*args, font_key, name_px, label_text, layout, mask_of, pin)
@@ -502,9 +507,6 @@ def _draw_birds(
     """Pack the birds into a `pack` box and draw them at `origin`, `scale`
     times larger, labels reserved but not drawn. Returns the placements and
     the label size they packed at."""
-    arts = [trim(path) for _, path in kept]
-    # Mass sizes the bird; this sizes the plate it is drawn on.
-    ratios = [span_ratio(path, art.size) for (_, path), art in zip(kept, arts, strict=True)]
     width, height = pack
 
     names = [name for name, _ in kept]
@@ -523,9 +525,7 @@ def _draw_birds(
     )
     placed, used_px = _placements(
         key,
-        arts,
-        names,
-        ratios,
+        kept,
         flips,
         width,
         height,
@@ -535,11 +535,11 @@ def _draw_birds(
         layout,
         margin,
         mask_of,
-        _spotlit(kept, arts, spotlight),
+        spotlight,
     )
 
     for p in placed:
-        art = _scaled(arts[p.index], max(1, round(p.dim * scale)), flips[p.index])
+        art = _scaled(trim(kept[p.index][1]), max(1, round(p.dim * scale)), flips[p.index])
         at = _at(p.at, scale, origin)
         corner = (at[0] - PAD, at[1] - PAD)
         proc = process_sprite(art, corner, textured=textured)
@@ -548,14 +548,14 @@ def _draw_birds(
 
 
 def _spotlit(
-    kept: list[tuple[str, Path]], arts: list[Image.Image], spotlight: str | None
+    kept: list[tuple[str, Path]], alphas: list[Image.Image], spotlight: str | None
 ) -> tuple[int, tuple[float, float]] | None:
     """The spotlit entry's index and where its bird is on the plate, if it is on the page."""
     names = [name for name, _ in kept]
     if spotlight not in names:
         return None
     index = names.index(spotlight)
-    return index, bird_centre(kept[index][1], arts[index].size)
+    return index, bird_centre(kept[index][1], alphas[index].size)
 
 
 def _stamp_labels(

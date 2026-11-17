@@ -41,10 +41,9 @@ def _noise() -> np.ndarray:
     freq = np.hypot(*np.meshgrid(np.fft.fftfreq(TILE), np.fft.fftfreq(TILE)))
     gain = np.maximum(freq, 1 / LARGEST) ** (-BETA / 2)
     shaped = np.fft.ifft2(np.fft.fft2(rng.normal(size=(TILE, TILE))) * gain).real
-    return np.rint(shaped * (STRENGTH / shaped.std()))
+    return np.rint(shaped * (STRENGTH / shaped.std())).astype(np.int8)
 
 
-@functools.cache
 def _tile() -> np.ndarray:
     tex = np.array(TARGET_PAPER)[None, None, :] + _noise()[..., None]
     return np.clip(tex, 0, 255).astype(np.uint8)
@@ -117,22 +116,30 @@ def process_sprite(
     `at`. When textured, the halo takes the page's texture under it so its edge
     does not read as an outline; on the flat panel page it stays flat."""
     target = target or (TARGET_PAPER if textured else PANEL_PAPER)
-    arr = np.asarray(sprite).astype(np.int16)
-    alpha, rgb = arr[..., 3], arr[..., :3]
+    # one uint8 buffer throughout, padded so the feather has room. `out` is the
+    # sprite in its middle and `rgb` the same pixels, so `rgb` follows every write
+    # to `out`. uint8 wraps: widen before a sum or difference that can leave 0..255
+    h, w = sprite.height, sprite.width
+    padded = np.zeros((h + 2 * PAD, w + 2 * PAD, 4), np.uint8)
+    padded[..., :3] = target
+    out = padded[PAD : PAD + h, PAD : PAD + w]
+    out[:] = np.asarray(sprite)
+    alpha, rgb = out[..., 3], out[..., :3]
     opaque = alpha > 24
 
     # sample the halo tone from the opaque ring next to the transparent edge
     near_edge = _box_sum((~opaque).astype(np.int32), 4) > 0
     ring = near_edge & opaque
-    paper = np.median(rgb[ring], axis=0) if ring.sum() > 50 else np.array(target)
+    sampled = np.median(rgb[ring], axis=0) if ring.sum() > 50 else np.array(target)
+    # float32 holds a median of whole numbers exactly, and `dist` below comes out half the size
+    paper = sampled.astype(np.float32)
 
     # shift paper-like pixels to the target tone (tiny shift, so pale birds are safe)
     delta = np.array(target) - paper
-    dist = np.abs(rgb - paper).max(2)
+    dist = np.abs(rgb.astype(np.int16) - paper).max(2)
     sat = rgb.max(2) - rgb.min(2)
     paper_px = opaque & (dist < 50) & (sat < 55) & (rgb.max(2) > 160)
-    out = arr.copy()
-    out[paper_px, :3] = np.clip(rgb[paper_px] + delta, 0, 255)
+    out[paper_px, :3] = np.clip(rgb[paper_px].astype(np.int16) + delta, 0, 255)
     # scans shade across the halo: level paper near the cut, outside-in and capped
     depth = _reach(~opaque, paper_px, HALO_REACH)
     halo = depth > 0
@@ -144,17 +151,15 @@ def process_sprite(
     )
     # the band bites into pale plumage, so fade out rather than draw its edge there
     level *= np.clip((HALO_REACH - depth[halo]) / HALO_FADE, 0, 1)[:, None]
-    out[halo, :3] = np.clip(out[halo, :3] + np.rint(level).astype(np.int16), 0, 255)
+    out[halo, :3] = np.clip(
+        out[halo, :3].astype(np.int16) + np.rint(level).astype(np.int16), 0, 255
+    )
     # the outer ring's bright fringe (bg-removal + resize overshoot) survives the
     # median delta and rims the halo; snap it flat to target. Always halo paper.
     out[ring & paper_px, :3] = target
 
-    # pad so the feather has room; give all transparent pixels the paper tone so
-    # the feathered edge reveals paper, not whatever RGB sat under the alpha
-    h, w = alpha.shape
-    padded = np.zeros((h + 2 * PAD, w + 2 * PAD, 4), np.int16)
-    padded[..., :3] = target
-    padded[PAD : PAD + h, PAD : PAD + w] = out
+    # give all transparent pixels the paper tone so the feathered edge reveals
+    # paper, not whatever RGB sat under the alpha
     padded[padded[..., 3] <= 24, :3] = target
 
     if textured:
@@ -163,10 +168,12 @@ def process_sprite(
         rows = (np.arange(padded.shape[0]) + at[1]) % TILE
         cols = (np.arange(padded.shape[1]) + at[0]) % TILE
         texture = _noise()[np.ix_(rows, cols)].astype(np.int16)
-        padded[paper_mask, :3] = np.clip(padded[paper_mask, :3] + texture[paper_mask, None], 0, 255)
+        padded[paper_mask, :3] = np.clip(
+            padded[paper_mask, :3].astype(np.int16) + texture[paper_mask, None], 0, 255
+        )
 
     feathered = np.asarray(
-        Image.fromarray(padded[..., 3].astype(np.uint8)).filter(ImageFilter.GaussianBlur(FEATHER))
+        Image.fromarray(padded[..., 3]).filter(ImageFilter.GaussianBlur(FEATHER))
     )
     padded[..., 3] = feathered
-    return Image.fromarray(padded.astype(np.uint8), "RGBA")
+    return Image.fromarray(padded, "RGBA")

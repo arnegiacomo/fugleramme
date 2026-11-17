@@ -30,6 +30,7 @@ from fugleramme.render.page import (
     text_mask,
 )
 from fugleramme.render.paper import PANEL_PAPER
+from fugleramme.web import portal
 
 
 def _ink(font, text="Turdus merula") -> float:
@@ -507,6 +508,12 @@ def test_the_cjk_subset_sets_every_date(code):
         for hour in (0, 11, 12, 23):
             when = datetime(2026, month, 28, hour, tzinfo=UTC)
             assert fonts._covers(cjk, namer.date(when) + namer.moment(when))
+
+
+def test_the_title_cut_sets_the_title():
+    """A new title needs tools/vendor_fonts.py run again, or a browser sets the
+    letters the cut lacks in another face."""
+    assert fonts._covers(str(fonts.FONTS_DIR / fonts.TITLE_CUT), portal.TITLE)
 
 
 @pytest.mark.parametrize("name", ["Erithacus rubecula", SCRIPTS["zh"]])

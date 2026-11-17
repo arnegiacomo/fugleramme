@@ -15,7 +15,6 @@ scripts none has.
 
 from __future__ import annotations
 
-import io
 from functools import cache
 from typing import Any, NamedTuple, cast
 
@@ -38,6 +37,11 @@ FONTS: dict[str, tuple[str, str]] = {
 }
 
 DEFAULT_FONT = "gentium"
+
+# Cormorant Garamond cut down to the title of the admin and the Wi-Fi portal
+# (tools/vendor_fonts.py): a few kilobytes, small enough for the portal to carry
+# inline, as it cannot fetch a font.
+TITLE_CUT = "cormorantgaramond/CormorantGaramond-Italic-Title.ttf"
 
 # Fraction of the page's short side, so a name holds its proportion at any resolution.
 LABEL_SIZES: dict[str, tuple[str, float]] = {
@@ -78,21 +82,6 @@ def load(key: str, size: int) -> ImageFont.FreeTypeFont:
     font = ImageFont.truetype(str(FONTS_DIR / filename), size, layout_engine=ImageFont.Layout.BASIC)
     _pin_weight(font)
     return font
-
-
-@cache
-def cut(key: str, text: str) -> bytes:
-    """A face cut down to the characters of `text`: a few kilobytes, small enough for a page
-    to carry inline where it cannot fetch a font, as the Wi-Fi setup's portal cannot."""
-    from fontTools import subset
-
-    font = TTFont(FONTS_DIR / FONTS[key][1])
-    subsetter = subset.Subsetter()
-    subsetter.populate(text=text)
-    subsetter.subset(font)
-    buffer = io.BytesIO()
-    font.save(buffer)
-    return buffer.getvalue()
 
 
 @cache

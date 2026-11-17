@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import re
 
-import segno
 from PIL import Image, ImageDraw, ImageFont
 
 _PAD = 0.05  # of the short side, inside the mat's margin, so nothing touches the glass's edge
@@ -113,6 +112,8 @@ def setup_page(
     page = Image.new(mode, size, "white")
     draw = ImageDraw.Draw(page)
     y0 += _name(draw, short, (x0, y0, x1), name_font) + gap
+
+    import segno  # here, so only a frame that shows this screen loads it
 
     matrix = segno.make(wifi_qr(name, password), error="m").matrix
     modules = len(matrix) + 2 * _QUIET

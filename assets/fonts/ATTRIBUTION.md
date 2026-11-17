@@ -26,6 +26,10 @@ distribution. Only the italic is vendored - a scientific name is set in italic -
 and six of the seven are variable fonts, instantiated at weight 400 by
 `fonts.py`.
 
+`cormorantgaramond/CormorantGaramond-Italic-Title.ttf` is modified: it is
+Cormorant Garamond's italic subset by `tools/vendor_fonts.py` to the letters of
+the title on the admin page and the Wi-Fi setup page.
+
 ## Fallbacks
 
 `noto/` holds the faces for a label line its italic has no glyphs for. All are

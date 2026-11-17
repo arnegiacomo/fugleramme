@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import sys
 import threading
 import time
 from collections import Counter
@@ -400,8 +401,9 @@ class BirdWeatherSource:
         return [
             _Day(
                 date.fromisoformat(day["date"]),
-                str(row["species"]["id"]),
-                canonical(row["species"]["scientificName"]),
+                # interned: a long record repeats the same few ids and names on every day
+                sys.intern(str(row["species"]["id"])),
+                sys.intern(canonical(row["species"]["scientificName"])),
                 int(row["count"]),
             )
             for day in data["dailyDetectionCounts"]

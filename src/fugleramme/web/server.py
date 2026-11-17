@@ -43,7 +43,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 from .. import __version__, buttons, e6, modes, updates, wifi
 from ..languages import namer
 from ..panel import Panel, resolution_of, to_glass
-from ..render.fonts import cut
+from ..render.fonts import FONTS_DIR, TITLE_CUT
 from ..render.page import banded
 from ..render.paper import paper_tile
 from ..settings import Settings, SettingsStore, merged
@@ -104,10 +104,11 @@ FILES = {
 }
 
 
+@functools.cache
 def _title_font() -> bytes:
     """The title face of the portal and the admin: Cormorant Garamond, the plates'
     engraved display italic, cut to the one word it sets."""
-    return cut("cormorant", portal.TITLE)
+    return (FONTS_DIR / TITLE_CUT).read_bytes()
 
 
 @functools.cache
