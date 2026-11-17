@@ -60,7 +60,9 @@ by **Henry Seebohm**, edited by **R. B. Sharpe** (1898-1902);
 *A monograph of the Capitonidæ, or scansorial barbets* by **C. H. T. Marshall** and
 **G. F. L. Marshall** (1871); *A Monograph of the Alcedinidae, or Family of Kingfishers* by
 **R. B. Sharpe** (1868-1871), Ernst Mayr Library scans via the
-[Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/137827); and *The Birds of Australia* by **Gregory M. Mathews**, vol. 3
+[Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/137827); *The Avifauna of Laysan and the Neighbouring Islands* by **Walter Rothschild**
+(1893-1900), Smithsonian Libraries scan via the
+[Internet Archive](https://archive.org/details/avifaunaLaysannplatRoth); and *The Birds of Australia* by **Gregory M. Mathews**, vol. 3
 (1913-1914), Smithsonian Libraries scans via the
 [Internet Archive](https://archive.org/details/birdsaustralia3math).
 Public domain (PD-old-70-expired; Keulemans died 1912); the *Onze vogels* scans held
@@ -124,7 +126,9 @@ and American Game Birds* (National Geographic Society, 1918), with text by
 (US copyright expired; Fuertes died in 1927).
 Also his plates for **F. E. L. Beal**'s *Birds of California in Relation to the Fruit Industry*,
 Parts I and II (U.S. Biological Survey Bulletins 30 and 34, 1907-1910), via the Internet Archive
-([Part I](https://archive.org/details/birdsofcaliforni30beal), [Part II](https://archive.org/details/bulletinbiologic3238unit)).
+([Part I](https://archive.org/details/birdsofcaliforni30beal), [Part II](https://archive.org/details/bulletinbiologic3238unit)),
+and for his *Food of Our More Important Flycatchers* (Bulletin 44, 1912), National Agricultural Library scan via the
+[Internet Archive](https://archive.org/details/foodofourmoreimp44beal).
 Public domain (US Federal Government work).
 And paintings of his in the U.S. Fish and Wildlife Service's [FWS Library](https://www.fws.gov/library),
 public domain.
@@ -218,7 +222,7 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Ridgway** - plates after watercolours by **Robert Ridgway** in *Our Native Birds of Song and Beauty* by **Henry Nehrling**, Volume I (Milwaukee: George Brumder, 1893), whose colour plates are after paintings by Ridgway, **A. Goering** and **Gustav Muetzel**. Cornell University Library scan via the [Internet Archive](https://archive.org/details/cu31924084820350). Public domain (published in the US before 1929). Manifest key: `ridgway`.
 
-**Bonaparte** - *Iconografia della fauna italica per le quattro classi degli animali vertebrati* by **Charles Lucien Bonaparte** (1832-1841), hand-coloured lithographs, via the [Internet Archive](https://archive.org/details/Iconografiadellt1c1Bona). Public domain. Manifest key: `bonaparte`.
+**Bonaparte** - *Iconografia della fauna italica per le quattro classi degli animali vertebrati* by **Charles Lucien Bonaparte** (1832-1841), hand-coloured lithographs, via the [Internet Archive](https://archive.org/details/Iconografiadellt1c1Bona); and his *American Ornithology; or, The Natural History of Birds Inhabiting the United States, not given by Wilson* (1825-1833), plates after **Titian Ramsay Peale** engraved by **Alexander Lawson**, National Gallery of Art scans (CC0) via [Wikimedia Commons](https://commons.wikimedia.org/). Public domain. Manifest key: `bonaparte`.
 
 **Smit** - plates by **Joseph Smit** from *The Ibis* (1894), printed by **Mintern Bros.**, via the [Internet Archive](https://archive.org/details/ibis661894188994brit), and from the *Proceedings of the Zoological Society of London* (1883), via the [Internet Archive](https://archive.org/details/proceedingsofgen83zool). Public domain (Smit died 1929). Manifest key: `smit`.
 
@@ -263,3 +267,5 @@ CC BY 2.0. Manifest key: `jardine`.
 **Hardwicke** - *Illustrations of Indian Zoology* by **John Edward Gray** (1830-1835), from the collection of **Thomas Hardwicke**, lithographed by **Benjamin Waterhouse Hawkins** and printed by **W. Day**. Scans via the [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/item/172892) and the [Internet Archive](https://archive.org/details/IllustrationsIn1Gray). Public domain. Manifest key: `hardwicke`.
 
 **Sydney Bird Painter** - bird watercolours of 1791-1792 by the anonymous artist known as the **Sydney Bird Painter**, from an album held by the **State Library of New South Wales**, scans in the Commons category [Collection 27: Drawings of birds chiefly from Australia, 1791-1792](https://commons.wikimedia.org/wiki/Category:Collection_27:_Drawings_of_birds_chiefly_from_Australia,_1791-1792). Public domain. Manifest key: `sydneybirdpainter`.
+
+**Gosse** - *Illustrations of the Birds of Jamaica* by **Philip Henry Gosse** (London: John Van Voorst, 1849), plates drawn and lithographed by Gosse. Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/Illustrationsbi00Goss). Public domain. Manifest key: `gosse`.

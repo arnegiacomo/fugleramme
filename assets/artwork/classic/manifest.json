@@ -291,6 +291,18 @@
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Andropadus_importunus_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16400045.tif"
   },
+  "birds/anhinga-anhinga-2.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n589/mode/1up"
+  },
+  "birds/anhinga-anhinga-3.webp": {
+    "source": "vieillot",
+    "url": "https://commons.wikimedia.org/wiki/File:Plotus_melanogaster_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ18000029.tif"
+  },
+  "birds/anhinga-anhinga.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:316_Black-bellied_Darter.jpg"
+  },
   "birds/anous-stolidus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVNoddy_Tern.jpg"
@@ -2031,6 +2043,14 @@
     "source": "dekay",
     "url": "https://digitalcollections.nypl.org/items/dad79380-c60d-012f-1be4-58d385a7bc34"
   },
+  "birds/egretta-tricolor-2.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr06audu/page/n208/mode/1up"
+  },
+  "birds/egretta-tricolor.webp": {
+    "source": "gosse",
+    "url": "https://archive.org/details/Illustrationsbi00Goss/page/n96/mode/1up"
+  },
   "birds/elanoides-forficatus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(9398548273).jpg"
@@ -2695,6 +2715,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLong-legged_Plover.jpg"
   },
+  "birds/himantopus-mexicanus-2.webp": {
+    "source": "keulemans",
+    "url": "https://archive.org/details/avifaunaLaysannplatRoth/page/n162/mode/1up"
+  },
+  "birds/himantopus-mexicanus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:Black-Necked_Stillt._Male_(NYPL_b13559627-108617).tiff"
+  },
   "birds/hippolais-icterina-2.webp": {
     "source": "desmurs",
     "url": "https://commons.wikimedia.org/wiki/File:Hippolais_polyglotta_%26_Hippolais_icterina_1849.jpg"
@@ -2883,6 +2911,10 @@
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Laniarius_boulboul_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16600477.tif"
   },
+  "birds/lanius-borealis.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdsofnewyork02eat/page/n738/mode/1up"
+  },
   "birds/lanius-collurio-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00064.jpg"
@@ -2906,6 +2938,26 @@
   "birds/lanius-excubitor.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIGreatShrike.jpg"
+  },
+  "birds/lanius-ludovicianus-2.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr04audu/page/n193/mode/1up"
+  },
+  "birds/lanius-ludovicianus-3.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
+  },
+  "birds/lanius-ludovicianus-4.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/birdsofnewyork02eat/page/n738/mode/1up"
+  },
+  "birds/lanius-ludovicianus-5.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n322/mode/1up"
+  },
+  "birds/lanius-ludovicianus.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer02rich_0/page/n204/mode/1up"
   },
   "birds/lanius-meridionalis.webp": {
     "source": "gould",
@@ -3367,6 +3419,10 @@
     "source": "fuertes",
     "url": "https://archive.org/details/birdlore151913nati/page/n265/mode/1up"
   },
+  "birds/melospiza-georgiana-3.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
+  },
   "birds/melospiza-georgiana.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/swamp-sparrow"
@@ -3815,9 +3871,17 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00070.jpg"
   },
+  "birds/passerculus-sandwichensis-2.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
+  },
   "birds/passerculus-sandwichensis.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18241602688).jpg"
+  },
+  "birds/passerella-iliaca-2.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
   },
   "birds/passerella-iliaca.webp": {
     "source": "audubon",
@@ -4619,6 +4683,10 @@
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00088.jpg"
   },
+  "birds/regulus-satrapa-2.webp": {
+    "source": "bonaparte",
+    "url": "https://commons.wikimedia.org/wiki/File:Alexander_Lawson_after_Titian_Ramsay_Peale,_Swallow-tailed_Flycatcher,_Arkansas_Flycatcher,_Say%27s_Flycatcher,_and_Female_Golden-crested_Wren,_NGA_73718.jpg"
+  },
   "birds/regulus-satrapa.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_America_-_from_drawings_made_in_the_United_States_and_their_territories_(1840)_(14750095595).jpg"
@@ -4694,6 +4762,14 @@
   "birds/sayornis-phoebe.webp": {
     "source": "fuertes",
     "url": "https://www.fws.gov/media/eastern-phoebe"
+  },
+  "birds/sayornis-saya-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:359_I._Arkansaw_Flycatcher_-_2._Swallow-Tailed_Flycatcher_-_3._Says_Flycatcher.jpg"
+  },
+  "birds/sayornis-saya-3.webp": {
+    "source": "bonaparte",
+    "url": "https://commons.wikimedia.org/wiki/File:Alexander_Lawson_after_Titian_Ramsay_Peale,_Swallow-tailed_Flycatcher,_Arkansas_Flycatcher,_Say%27s_Flycatcher,_and_Female_Golden-crested_Wren,_NGA_73718.jpg"
   },
   "birds/sayornis-saya.webp": {
     "source": "audubon",
@@ -5631,9 +5707,37 @@
     "source": "wilson",
     "url": "https://archive.org/details/Wilson5896-v3"
   },
+  "birds/tyrannus-forficatus-2.webp": {
+    "source": "bonaparte",
+    "url": "https://commons.wikimedia.org/wiki/File:Alexander_Lawson_after_Titian_Ramsay_Peale,_Swallow-tailed_Flycatcher,_Arkansas_Flycatcher,_Say%27s_Flycatcher,_and_Female_Golden-crested_Wren,_NGA_73718.jpg"
+  },
+  "birds/tyrannus-forficatus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:359_I._Arkansaw_Flycatcher_-_2._Swallow-Tailed_Flycatcher_-_3._Says_Flycatcher.jpg"
+  },
   "birds/tyrannus-tyrannus.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(18431073241).jpg"
+  },
+  "birds/tyrannus-verticalis-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:359_I._Arkansaw_Flycatcher_-_2._Swallow-Tailed_Flycatcher_-_3._Says_Flycatcher.jpg"
+  },
+  "birds/tyrannus-verticalis-3.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr01audu/page/n311/mode/1up"
+  },
+  "birds/tyrannus-verticalis-4.webp": {
+    "source": "fuertes",
+    "url": "https://archive.org/details/foodofourmoreimp44beal/page/n32/mode/1up"
+  },
+  "birds/tyrannus-verticalis-5.webp": {
+    "source": "bonaparte",
+    "url": "https://commons.wikimedia.org/wiki/File:Alexander_Lawson_after_Titian_Ramsay_Peale,_Swallow-tailed_Flycatcher,_Arkansas_Flycatcher,_Say%27s_Flycatcher,_and_Female_Golden-crested_Wren,_NGA_73718.jpg"
+  },
+  "birds/tyrannus-verticalis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:359_I._Arkansaw_Flycatcher_-_2._Swallow-Tailed_Flycatcher_-_3._Says_Flycatcher.jpg"
   },
   "birds/tyto-alba-2.webp": {
     "source": "vonwright",
@@ -5762,6 +5866,10 @@
   "birds/zenaida-macroura.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:Zenaida_macrouraAWP17AA.jpg"
+  },
+  "birds/zonotrichia-albicollis-2.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v3"
   },
   "birds/zonotrichia-albicollis.webp": {
     "source": "audubon",
