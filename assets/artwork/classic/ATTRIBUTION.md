@@ -34,7 +34,7 @@ public domain (PD-Art, PD-old-100); *The Birds of New Guinea* (1875-1888), with
 **William Hart** and **Richard Bowdler Sharpe**, Biodiversity Heritage Library scans on
 Wikimedia Commons, public domain; and *The Birds of Australia* (1840-1848),
 illustrated by **John and Elizabeth Gould** and **Henry Constantine Richter**,
-scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524),
+scans from Smithsonian Libraries via [BHL](https://www.biodiversitylibrary.org/), [University of Kansas](https://digital.lib.ku.edu/ku-gould), the [State Library of NSW](https://collection.sl.nsw.gov.au/record/74VK6kaN0JMg), and [Project Gutenberg / Internet Archive](https://www.gutenberg.org/ebooks/62524),
 public domain, and rawpixel's scan of the 1972 facsimile edition on
 [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book327.jpg) (CC BY-SA 4.0); *A Century of Birds from the Himalaya Mountains* (1831-1832), drawn on stone
 by **Elizabeth Gould**, via the [Internet Archive](https://archive.org/details/centurybirdsfro00Goul); and *The Birds of Great Britain* (1862-1873), with **Henry Constantine Richter**,
