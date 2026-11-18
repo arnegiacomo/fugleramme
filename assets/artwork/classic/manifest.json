@@ -515,6 +515,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Aquila_Imperialis_by_John_Gould.jpg"
   },
+  "birds/archilochus-alexandri-2.webp": {
+    "source": "cassin",
+    "url": "https://archive.org/details/illustrationsofb00cass/page/n197/mode/1up"
+  },
+  "birds/archilochus-alexandri.webp": {
+    "source": "gould",
+    "url": "https://commons.wikimedia.org/wiki/File:MonographTrochi3Goul_0072.jpg"
+  },
   "birds/archilochus-colubris.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(18431069441).jpg"
@@ -571,6 +579,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVTurnstone.jpg"
   },
+  "birds/arremonops-rufivirgatus.webp": {
+    "source": "lawrence",
+    "url": "https://archive.org/details/annalsoflyceumof51852lyce/page/n604/mode/1up"
+  },
   "birds/artamus-leucorynchus.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/15042"
@@ -618,6 +630,10 @@
   "birds/athene-noctua.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILittle_Owl.jpg"
+  },
+  "birds/auriparus-flaviceps.webp": {
+    "source": "lawrence",
+    "url": "https://archive.org/details/annalsoflyceumof51852lyce/page/n604/mode/1up"
   },
   "birds/aythya-affinis.webp": {
     "source": "audubon",
@@ -922,6 +938,10 @@
   "birds/cacomantis-flabelliformis.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/13986"
+  },
+  "birds/calamospiza-melanocorys.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:390_I._Lark_Finch_-_2._Prairie_Finch_-_3._Brown_Song_Sparrow.jpg"
   },
   "birds/calandrella-brachydactyla.webp": {
     "source": "gould",
@@ -1287,6 +1307,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVRingDottrell.jpg"
   },
+  "birds/charadrius-semipalmatus.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr05audu/page/n302/mode/1up"
+  },
   "birds/charadrius-vociferus-2.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/kildeer-plover"
@@ -1335,6 +1359,18 @@
     "source": "siebold",
     "url": "https://archive.org/details/faunajaponicasi4sieb/page/n282"
   },
+  "birds/chondestes-grammacus-2.webp": {
+    "source": "bonaparte",
+    "url": "https://commons.wikimedia.org/wiki/File:Alexander_Lawson_after_Titian_Ramsay_Peale,_Female_Crow_Blackbird,_Orange-Crowned_Warbler,_Lark_Finch,_NGA_53858.jpg"
+  },
+  "birds/chondestes-grammacus-3.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr03audu/page/n105/mode/1up"
+  },
+  "birds/chondestes-grammacus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:390_I._Lark_Finch_-_2._Prairie_Finch_-_3._Brown_Song_Sparrow.jpg"
+  },
   "birds/chordeiles-minor-2.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-147-night-hawk.jpg"
@@ -1346,6 +1382,14 @@
   "birds/chroicocephalus-genei.webp": {
     "source": "bonaparte",
     "url": "https://archive.org/details/Iconografiadellt1c1Bona/page/n367"
+  },
+  "birds/chroicocephalus-philadelphia-2.webp": {
+    "source": "lilford",
+    "url": "https://archive.org/details/colouredfigureso06lilf_0/page/n83/mode/1up"
+  },
+  "birds/chroicocephalus-philadelphia.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer02rich_0/page/n595/mode/1up"
   },
   "birds/chroicocephalus-ridibundus-2.webp": {
     "source": "vonwright",
@@ -1586,6 +1630,14 @@
   "birds/contopus-cooperi.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Annual_report_(1912)_(18431073241).jpg"
+  },
+  "birds/contopus-sordidulus-2.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer02rich_0/page/n242/mode/1up"
+  },
+  "birds/contopus-sordidulus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:434_I._Little_Tyrant_Fly-catcher_-_2._Small-headed_Fly-catcher_-_3._Blue_Mountain_Warbler_-_4._Bartran%27s_Vireo_-_5._Short-legged_Pewee_-_6._Rocky_Mountain_Fly-catcher.jpg"
   },
   "birds/contopus-virens.webp": {
     "source": "audubon",
@@ -1979,6 +2031,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:54_Rice_Bird.jpg"
   },
+  "birds/dolichonyx-oryzivorus-3.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
+  },
   "birds/dolichonyx-oryzivorus.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:54_Rice_Bird.jpg"
@@ -2166,6 +2222,10 @@
   "birds/emberiza-schoeniclus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIReed_Bunting.jpg"
+  },
+  "birds/empidonax-minimus.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer02rich_0/page/n242/mode/1up"
   },
   "birds/empidonax-virescens.webp": {
     "source": "audubon",
@@ -4543,6 +4603,10 @@
     "source": "ridgway",
     "url": "https://archive.org/details/cu31924084820350/page/n187/mode/1up"
   },
+  "birds/psaltriparus-minimus-4.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n234/mode/1up"
+  },
   "birds/psaltriparus-minimus.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/chesnut-backed-titmouse-black-capt-titmouse-and-chesnut-crowned-titmouse"
@@ -4767,6 +4831,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIStonechat.jpg"
   },
+  "birds/sayornis-nigricans-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:434_I._Little_Tyrant_Fly-catcher_-_2._Small-headed_Fly-catcher_-_3._Blue_Mountain_Warbler_-_4._Bartran%27s_Vireo_-_5._Short-legged_Pewee_-_6._Rocky_Mountain_Fly-catcher.jpg"
+  },
   "birds/sayornis-nigricans.webp": {
     "source": "swainson",
     "url": "https://commons.wikimedia.org/wiki/File:A_selection_of_the_birds_of_Brazil_and_Mexico_(Plate_69)_(5977794422).jpg"
@@ -4874,6 +4942,14 @@
   "birds/setophaga-coronata.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/yellow-crown-warbler"
+  },
+  "birds/setophaga-dominica-2.webp": {
+    "source": "gosse",
+    "url": "https://archive.org/details/Illustrationsbi00Goss/page/n46/mode/1up"
+  },
+  "birds/setophaga-dominica.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:85_Yellow_Throated_Warbler.jpg"
   },
   "birds/setophaga-fusca.webp": {
     "source": "horsfall",
@@ -5439,6 +5515,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVLittle_Bustard.jpg"
   },
+  "birds/thalasseus-maximus.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr07audu/page/n100/mode/1up"
+  },
   "birds/thalasseus-sandvicensis-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00180.jpg"
@@ -5474,6 +5554,10 @@
   "birds/thryothorus-ludovicianus-2.webp": {
     "source": "fuertes",
     "url": "https://archive.org/details/annualreport6631912newy/page/n790/mode/1up"
+  },
+  "birds/thryothorus-ludovicianus-3.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
   },
   "birds/thryothorus-ludovicianus.webp": {
     "source": "audubon",
@@ -5834,6 +5918,10 @@
   "birds/vireo-huttoni.webp": {
     "source": "baird",
     "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n334/mode/1up"
+  },
+  "birds/vireo-olivaceus-2.webp": {
+    "source": "wilson",
+    "url": "https://archive.org/details/Wilson5896-v2"
   },
   "birds/vireo-olivaceus.webp": {
     "source": "audubon",
