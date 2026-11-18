@@ -287,7 +287,7 @@ def make_handler(
             """A browser is sent to the login page; anything else is told plainly.
             The admin's own fetches land here when a session runs out mid-page."""
             if "text/html" not in self.headers.get("Accept", ""):
-                self._send(401, b"sign in at /admin/login", "text/plain")
+                self._send(401, f"sign in at {BASE_PATH}{LOGIN}".encode(), "text/plain")
                 return
             self._redirect(LOGIN)
 

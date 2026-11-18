@@ -20,7 +20,7 @@ Covers the `web/` package.
 
 - `FUGLERAMME_BASE_PATH` (`web.BASE_PATH`) is where a proxy serves the frame. Launch-only like `FUGLERAMME_LOG_LEVEL`, not a setting: changing it from the admin would cut off the page doing it.
 - The pages use relative URLs, so none of them knows the prefix. A `<base>` tag was rejected: it turns the `#detector` links into links to the root. A new absolute URL in a page, script or manifest breaks a prefixed frame, which `test_no_page_script_or_manifest_names_a_path_from_the_root` catches by pattern.
-- The server needs it in three places. `parse_request` takes it off the path, so a proxy may strip it or not, and sends the bare prefix to `prefix/`, since relative URLs resolve against the directory. `_redirect` puts it on every `Location`. The session cookie takes it as its `Path`, so a frame sharing an address with other services does not hand them its session.
+- The server needs it in three places. `parse_request` takes it off the path, so a proxy may strip it or not, and sends the bare prefix to `prefix/`, since relative URLs resolve against the directory. A proxy that strips sends `/` for the bare prefix too, which the frame cannot tell from `prefix/`, so that redirect is then the proxy's to make. `_redirect` puts it on every `Location`. The session cookie takes it as its `Path`, so a frame sharing an address with other services does not hand them its session.
 
 ## The Detector tab (`templates/detector.html`, `admin.refused`)
 

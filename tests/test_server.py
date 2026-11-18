@@ -1093,8 +1093,10 @@ def test_without_a_base_path_the_cookie_covers_the_site(locked):
 
 
 def test_no_page_script_or_manifest_names_a_path_from_the_root():
+    # Any quoted path, however the script uses it. One joined onto an address
+    # (`birdnet + "/ui/..."`) is the detector's path, not the frame's.
     absolute = re.compile(
-        r"""(?:href|src|action)\s*=\s*["'`]/(?!/)|url\(/|(?:fetch|assign)\(["'`]/|(?:start_url|src)"\s*:\s*"/"""
+        r"""(?:href|src|action)\s*=\s*["'`]/(?!/)|url\(/|(?<!\+ )["'`]/[a-z]|start_url"\s*:\s*"/"""
     )
     shipped = {".html", ".js", ".css", ".webmanifest"}
     files = [f for f in STATIC_DIR.parent.rglob("*") if f.suffix in shipped]
