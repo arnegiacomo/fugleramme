@@ -83,10 +83,10 @@ async function saveAll() {
   }
   saving = save.disabled = discard.disabled = true;
   said.textContent = "Saving…";
-  let next = "/admin";
+  let next = "admin";
   try {
     for (const form of dirty) {
-      const answer = await fetch("/admin", {method: "POST", body: new URLSearchParams(new FormData(form))});
+      const answer = await fetch("admin", {method: "POST", body: new URLSearchParams(new FormData(form))});
       if (answer.status === 401) break;  // signed out, or a new password just ended the session
       if (!answer.ok) throw new Error(answer.status);
       const landed = new URL(answer.url);
@@ -101,7 +101,7 @@ async function saveAll() {
   leave(next);
 }
 save.addEventListener("click", saveAll);
-discard.addEventListener("click", () => leave("/admin"));
+discard.addEventListener("click", () => leave("admin"));
 // Enter in a field is a Save of everything. Not left to the browser: a form with
 // several fields and no submit button does not submit on Enter at all.
 for (const form of forms) {

@@ -138,3 +138,28 @@ visitor has the same IP, so a stranger's guesses would block you
 too. Tick **The frame is behind a reverse proxy** and the frame counts per
 visitor again. Leave it off if the frame's own port is open to
 the internet as well: anyone reaching it directly can claim any address.
+
+### Under a path
+
+Fugleramme answers at the root of its address by default. To serve it under a
+path instead, for example `https://example.org/frame/` beside other services on
+the same address, set `FUGLERAMME_BASE_PATH=/frame`. It then answers
+`/frame/...` and, for a proxy that strips the path, plain `/...` too. Your
+sign-in is only sent to `/frame`, not to the other services on that address.
+Using a path that already exists as a route, such as `/admin`, is not supported.
+
+On a Pi, run `sudo systemctl edit fugleramme-frame`, add these lines, then
+restart Fugleramme with `sudo systemctl restart fugleramme-frame`:
+
+```ini
+[Service]
+Environment=FUGLERAMME_BASE_PATH=/frame
+```
+
+In the container, set it as an
+[environment variable](container.md#settings-from-environment-variables).
+
+The setting is kept across updates.
+
+The address must end in a slash: `/frame/`, not `/frame`. If your proxy strips
+the path, set it to redirect `/frame` to `/frame/`.

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import re
+from urllib.parse import urljoin, urlsplit
 
 import pytest
 from markupsafe import escape
@@ -18,7 +19,7 @@ from fugleramme.languages import namer
 from fugleramme.settings import MARGIN_CEILING, Settings, SettingsStore, merged
 from fugleramme.source import BIRDNET_GO, BIRDWEATHER, NEEDS_PASSWORD
 from fugleramme.status import Status
-from fugleramme.web import STATIC_DIR, admin, server
+from fugleramme.web import LOGIN, STATIC_DIR, admin, server
 
 PANEL = (1600, 1200)
 
@@ -77,9 +78,26 @@ def test_the_detector_tab_counts_every_bird_heard_without_art(tmp_path, source):
 
 
 def test_every_asset_the_page_links_is_one_the_server_serves(tmp_path, source):
-    linked = set(re.findall(r'(?:href|src)="(/[^"?]*)', _page(tmp_path, source())))
+    # Locked, so the sign-out form is on the page too.
+    page = _page(tmp_path, source(), require_sign_in=True, admin_password="wren-house")
+    assert not re.findall(r'(?:href|src|action)="/', page)
+    linked = {
+        urlsplit(urljoin("http://frame/admin", ref)).path
+        for ref in re.findall(r'(?:href|src)="((?!#|https?:)[^"?]*)', page)
+    }
     assert linked == {"/", "/admin.css", "/admin/main.js", "/favicon.png"}
     assert linked <= set(server.FILES)
+
+
+def test_the_login_page_links_resolve_from_where_it_is_served():
+    # One level below the other pages, so its relative links climb back up.
+    page = admin.login_page()
+    assert not re.findall(r'(?:href|src|action)="/', page)
+    linked = {
+        urlsplit(urljoin("http://frame" + LOGIN, ref)).path
+        for ref in re.findall(r'(?:href|src|action)="([^"?]*)', page)
+    }
+    assert linked == {"/", "/admin.css", "/favicon.png", LOGIN}
 
 
 SCRIPTS = sorted((STATIC_DIR / "admin").glob("*.js"))

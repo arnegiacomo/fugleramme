@@ -49,7 +49,7 @@ from ..render.paper import paper_tile
 from ..settings import Settings, SettingsStore, merged
 from ..source import Source, Unavailable
 from ..status import MAT_TEST_SECONDS, Frame, MatTest, Status, under_test
-from . import LOGIN, LOGOUT, STATIC_DIR, admin, portal
+from . import BASE_PATH, LOGIN, LOGOUT, STATIC_DIR, admin, portal
 
 log = logging.getLogger(__name__)
 
@@ -150,7 +150,7 @@ def _retry_after(status: int) -> dict[str, str] | None:
 def _set_cookie(value: str, seconds: int) -> str:
     # No Secure: the frame is http://<pi>:8080 and the flag would drop the cookie
     # on every LAN install. Lax keeps it off another site's cross-site POST.
-    return f"{COOKIE}={value}; Max-Age={seconds}; Path=/; HttpOnly; SameSite=Lax"
+    return f"{COOKIE}={value}; Max-Age={seconds}; Path={BASE_PATH or '/'}; HttpOnly; SameSite=Lax"
 
 
 def _banded_png(ctx: modes.Context) -> bytes:
@@ -208,6 +208,22 @@ def make_handler(
         # Set when a route answered from a held copy rather than the detector, so
         # a served page is not mistaken for the detector having come back.
         degraded = False
+
+        def parse_request(self):
+            """Takes the base path off the request, so a proxy need not."""
+            if not super().parse_request():
+                return False
+            if not BASE_PATH:
+                return True
+            if self.path.split("?", 1)[0] == BASE_PATH:
+                self.send_response(308)
+                self.send_header("Location", BASE_PATH + "/" + self.path[len(BASE_PATH) :])
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return False
+            if self.path.startswith(BASE_PATH + "/"):
+                self.path = self.path[len(BASE_PATH) :]
+            return True
 
         def log_message(self, fmt, *args):
             log.debug("%s %s", self.address_string(), fmt % args)
@@ -271,13 +287,13 @@ def make_handler(
             """A browser is sent to the login page; anything else is told plainly.
             The admin's own fetches land here when a session runs out mid-page."""
             if "text/html" not in self.headers.get("Accept", ""):
-                self._send(401, b"sign in at /admin/login", "text/plain")
+                self._send(401, f"sign in at {BASE_PATH}{LOGIN}".encode(), "text/plain")
                 return
             self._redirect(LOGIN)
 
         def _redirect(self, location: str, cookie: str = ""):
             self.send_response(303)
-            self.send_header("Location", location)
+            self.send_header("Location", BASE_PATH + location)
             if cookie:
                 self.send_header("Set-Cookie", cookie)
             self.send_header("Content-Length", "0")

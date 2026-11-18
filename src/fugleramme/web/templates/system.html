@@ -38,7 +38,7 @@
   {% if container %}
   <div class="block off">{% call checkbox("auto_update", false, disabled=true) %}Install new releases automatically <small>· disabled in container mode</small>{% endcall %}</div>
   {% else %}
-  <form class="block" method="post" action="/admin">
+  <form class="block" method="post" action="admin">
     {% call checkbox("auto_update", settings.auto_update, declared=true) %}Install new releases automatically{% endcall %}
   </form>
   {% endif %}
@@ -62,7 +62,7 @@
     </p>
   </div>
   {% else %}
-  <form class="block" method="post" action="/admin">
+  <form class="block" method="post" action="admin">
     {% call checkbox("wifi_setup", settings.wifi_setup, declared=true) %}Start Wi-Fi setup when the frame is offline{% endcall %}
     <label><span>Hotspot password {{ hint("The frame creates a hotspot for Wi-Fi setup. It's open unless you set a password.") }}</span><input minlength="8" maxlength="63" type="text" name="hotspot_password" value="{{ settings.hotspot_password }}"></label>
     {% if wifi and wifi.up %}

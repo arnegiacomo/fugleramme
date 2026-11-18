@@ -144,6 +144,7 @@ _ENV.globals.update(
     LIMIT_CEILING=LIMIT_CEILING,
     LOGIN=LOGIN,
     LOGOUT=LOGOUT,
+    root="",
     MARGIN_CEILING=MARGIN_CEILING,
     MOST_STATIONS=MOST_STATIONS,
     PASSWORD_SET=PASSWORD_SET,
@@ -447,7 +448,7 @@ def _typed(page: str) -> str:
 def login_page(error: str = "") -> str:
     """The door (#52). Rendered by the frame, styled like the admin behind it -
     the browser's own credential prompt is nobody's idea of this product."""
-    return _render("login.html", error=error)
+    return _render("login.html", error=error, root="../")
 
 
 def birdnet_link(url: str, kind: str = BIRDNET_GO, public_url: str = "") -> tuple[str, int | None]:

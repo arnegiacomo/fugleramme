@@ -71,7 +71,7 @@ body { font: 1rem/1.45 system-ui, sans-serif; color: var(--text); background: va
        max-width: 64rem; margin: 1.5rem auto; padding: 0 1rem; accent-color: var(--accent); }
 a { color: var(--accent); }
 /* The weight range opens the variable font's axis; without it the browser draws its default, Light. */
-@font-face { font-family: Title; src: url(/title.ttf); font-weight: 300 700; }
+@font-face { font-family: Title; src: url(title.ttf); font-weight: 300 700; }
 h1 { font: italic 450 2.4rem/1 Title, Georgia, serif; margin: 0; }
 h2 { font-size: 1rem; font-weight: 600; margin: 0 0 0.9rem; position: relative; }  /* a hint's bubble hangs off it */
 small { color: var(--muted); font-weight: 400; }

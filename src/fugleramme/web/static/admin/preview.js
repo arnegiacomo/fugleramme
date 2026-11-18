@@ -61,13 +61,13 @@ function loadPreview() {
     caption.textContent = "Preview unavailable";
   };
   // The token busts the browser's in-page image cache, which ignores no-cache.
-  next.src = "/preview.png?" + query + (page ? "&page=" + page : "");
+  next.src = "preview.png?" + query + (page ? "&page=" + page : "");
   loadSpecies(query, id);
 }
 
 async function loadSpecies(query, id) {
   try {
-    const answer = await fetch("/species?" + query, {cache: "no-store"});
+    const answer = await fetch("species?" + query, {cache: "no-store"});
     if (signedOut(answer)) return;
     const body = await answer.json();
     if (id !== seq) return;
@@ -92,7 +92,7 @@ export function start() {
   loadPreview();
   (async function follow() {
     try {
-      const state = await (await fetch("/state", {cache: "no-store"})).json();
+      const state = await (await fetch("state", {cache: "no-store"})).json();
       const moved = page !== null && state.token !== page;
       page = state.token;
       if (!moved) return;

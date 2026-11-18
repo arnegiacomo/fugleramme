@@ -55,5 +55,5 @@
 
 {# A form of its own that posts one action, such as Check or Reboot. #}
 {% macro action(name, label) -%}
-<form class="inline {{ name }}" method="post" action="/admin"><input type="hidden" name="action" value="{{ name }}"><button type="submit">{{ label }}</button></form>
+<form class="inline {{ name }}" method="post" action="admin"><input type="hidden" name="action" value="{{ name }}"><button type="submit">{{ label }}</button></form>
 {%- endmacro %}

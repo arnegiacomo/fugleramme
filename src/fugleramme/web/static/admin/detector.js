@@ -15,7 +15,7 @@ test.addEventListener("click", async () => {
   outcome.textContent = "testing…";
   try {
     const body = new URLSearchParams(new FormData(detectorForm));
-    const answer = await fetch("/detector", {method: "POST", body});
+    const answer = await fetch("detector", {method: "POST", body});
     if (signedOut(answer)) return;
     const result = await answer.json();
     // "names" is a working detector holding back one thing, and "partial"
@@ -130,7 +130,7 @@ const pick = async (place) => {
   list();
   tell("searching…");
   try {
-    const answer = await fetch(`/stations?lat=${place.lat}&lon=${place.lon}`);
+    const answer = await fetch(`stations?lat=${place.lat}&lon=${place.lon}`);
     if (signedOut(answer)) return;
     const result = await answer.json();
     listed = result.stations;

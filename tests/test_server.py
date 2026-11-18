@@ -17,6 +17,7 @@ import urllib.request
 from dataclasses import replace
 from http.server import ThreadingHTTPServer
 from types import SimpleNamespace
+from urllib.parse import urljoin
 
 import pytest
 from PIL import Image
@@ -25,7 +26,7 @@ from fugleramme import api, birdweather, fake
 from fugleramme.api import ApiSource
 from fugleramme.settings import Settings, SettingsStore
 from fugleramme.status import Status
-from fugleramme.web import LOGIN, LOGOUT, admin, server
+from fugleramme.web import LOGIN, LOGOUT, STATIC_DIR, admin, base_path, server
 
 SETTINGS = "s.json"
 PASSWORD = "wren-house"
@@ -564,7 +565,10 @@ def test_every_icon_in_the_manifest_has_its_declared_size(locked):
     manifest = json.loads(_fetch(locked + "/manifest.webmanifest")[2])
     for icon in manifest["icons"]:
         width, height = map(int, icon["sizes"].split("x"))
-        assert _size(_fetch(locked + icon["src"])[2]) == (width, height)
+        assert _size(_fetch(urljoin(locked + "/manifest.webmanifest", icon["src"]))[2]) == (
+            width,
+            height,
+        )
 
 
 def test_signing_in_opens_the_admin_and_signing_out_shuts_it(locked):
@@ -1047,3 +1051,54 @@ def test_a_margin_test_paints_the_kiosk_and_moves_its_token(frame):
     page = Image.open(io.BytesIO(_fetch(frame + "/collage.png")[2])).convert("RGB")
     assert page.getpixel((5, 5)) == (0, 0, 0)
     assert page.getpixel((page.width // 2, page.height // 2)) != (0, 0, 0)
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [("", ""), ("/", ""), ("frame", "/frame"), ("/frame/", "/frame"), ("//a//b/", "/a/b")],
+)
+def test_a_base_path_has_one_spelling(raw, expected):
+    assert base_path(raw) == expected
+
+
+@pytest.fixture
+def prefixed(locked, monkeypatch):
+    monkeypatch.setattr(server, "BASE_PATH", "/frame")
+    return locked
+
+
+def test_the_base_path_is_taken_off_the_request_and_a_proxy_may_do_it_instead(prefixed):
+    assert _fetch(prefixed + "/frame/state")[0] == 200
+    assert _fetch(prefixed + "/state")[0] == 200
+
+
+def test_the_bare_base_path_asks_for_its_slash(prefixed):
+    status, headers, _body = _fetch(prefixed + "/frame", follow=False)
+    assert (status, headers["Location"]) == (308, "/frame/")
+    status, headers, _body = _fetch(prefixed + "/frame?v=1", follow=False)
+    assert (status, headers["Location"]) == (308, "/frame/?v=1")
+
+
+def test_redirects_and_the_session_cookie_keep_to_the_base_path(prefixed):
+    status, headers, _body = _post(prefixed + "/frame" + LOGIN, {"password": PASSWORD})
+    assert (status, headers["Location"]) == (303, "/frame/admin")
+    assert "Path=/frame;" in headers["Set-Cookie"]
+    status, headers, _body = _fetch(prefixed + "/frame/admin", headers=BROWSER, follow=False)
+    assert (status, headers["Location"]) == (303, "/frame" + LOGIN)
+
+
+def test_without_a_base_path_the_cookie_covers_the_site(locked):
+    _status, headers, _body = _post(locked + LOGIN, {"password": PASSWORD})
+    assert "Path=/;" in headers["Set-Cookie"]
+
+
+def test_no_page_script_or_manifest_names_a_path_from_the_root():
+    # Any quoted path, however the script uses it. One joined onto an address
+    # (`birdnet + "/ui/..."`) is the detector's path, not the frame's.
+    absolute = re.compile(
+        r"""(?:href|src|action)\s*=\s*["'`]/(?!/)|url\(/|(?<!\+ )["'`]/[a-z]|start_url"\s*:\s*"/"""
+    )
+    shipped = {".html", ".js", ".css", ".webmanifest"}
+    files = [f for f in STATIC_DIR.parent.rglob("*") if f.suffix in shipped]
+    assert files
+    assert [f.name for f in files if absolute.search(f.read_text())] == []

@@ -16,6 +16,12 @@ Covers the `web/` package.
 - `admin_password` is stored in the clear beside `detector_password` deliberately - `FUGLERAMME_ADMIN_PASSWORD` seeds a container, and a hand edit is how a locked-out Pi gets back in. BirdNET-Go stores its own the same way.
 - `SameSite=Lax` keeps the cookie off another site's POST, and `do_POST` refuses a `Sec-Fetch-Site: cross-site` request besides - which is what protects a frame with no password set at all. Comparing `Origin` to `Host` instead would lock out anyone running the frame behind an HTTPS proxy.
 
+## Under a base path
+
+- `FUGLERAMME_BASE_PATH` (`web.BASE_PATH`) is where a proxy serves the frame. Launch-only like `FUGLERAMME_LOG_LEVEL`, not a setting: changing it from the admin would cut off the page doing it.
+- The pages use relative URLs, so none of them knows the prefix. A `<base>` tag was rejected: it turns the `#detector` links into links to the root. A new absolute URL in a page, script or manifest breaks a prefixed frame, which `test_no_page_script_or_manifest_names_a_path_from_the_root` catches by pattern.
+- The server needs it in three places. `parse_request` takes it off the path, so a proxy may strip it or not, and sends the bare prefix to `prefix/`, since relative URLs resolve against the directory. A proxy that strips sends `/` for the bare prefix too, which the frame cannot tell from `prefix/`, so that redirect is then the proxy's to make. `_redirect` puts it on every `Location`. The session cookie takes it as its `Path`, so a frame sharing an address with other services does not hand them its session.
+
 ## The Detector tab (`templates/detector.html`, `admin.refused`)
 
 - Each type keeps its own fields. The other type's are `hidden` and `disabled`, so a save posts nothing for them and their stored values stand for a switch back; `detector.js` swaps them before the form's dirty check reads it. Both are text inputs: a url input would refuse a bare station ID and a BirdNET-Go typed without a scheme.
