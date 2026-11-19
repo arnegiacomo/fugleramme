@@ -461,6 +461,10 @@ class ApiSource:
         """No connection to release: every call is its own request."""
 
 
+# Whichever detector the settings name; see `Configured`.
+AnySource = ApiSource | BirdWeatherSource | DemoSource
+
+
 class Configured:
     """The detector the settings name, rebuilt when they name another one.
 
@@ -473,12 +477,14 @@ class Configured:
     def __init__(self, store: SettingsStore, timeout: float = _TIMEOUT):
         self._store = store
         self._timeout = timeout
+        # Beside settings.json, as the names `languages` caches are: a demo's tiles.
+        self._data_dir = store.path.parent
         self._lock = threading.Lock()
         self._key: tuple[str, str, str, str] | None = None
-        self._source: ApiSource | BirdWeatherSource | DemoSource | None = None
+        self._source: AnySource | None = None
 
     @property
-    def source(self) -> ApiSource | BirdWeatherSource | DemoSource:
+    def source(self) -> AnySource:
         settings = self._store.get()
         kind, url = settings.detector_kind, settings.detector_address
         key = (kind, url, settings.detector_username, settings.detector_password)
@@ -490,14 +496,11 @@ class Configured:
             self._key, self._source = key, self._build(settings)
             return self._source
 
-    def _build(self, settings: Settings) -> ApiSource | BirdWeatherSource | DemoSource:
-        kind, url = settings.detector_kind, settings.detector_address
-        if kind == DEMO:
-            # Its tiles sit beside settings.json, like the names `languages` caches.
-            return DemoSource(
-                settings.demo_latitude, settings.demo_longitude, self._store.path.parent
-            )
-        if kind == BIRDWEATHER:
+    def _build(self, settings: Settings) -> AnySource:
+        url = settings.detector_address
+        if settings.detector_kind == DEMO:
+            return DemoSource(settings.demo_latitude, settings.demo_longitude, self._data_dir)
+        if settings.detector_kind == BIRDWEATHER:
             return BirdWeatherSource(url, timeout=self._timeout)
         return ApiSource(
             url, settings.detector_username, settings.detector_password, timeout=self._timeout
