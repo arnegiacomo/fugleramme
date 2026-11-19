@@ -87,6 +87,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVSpotted_Sandpiper.jpg"
   },
+  "birds/aechmophorus-occidentalis.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n174/mode/1up"
+  },
   "birds/aegithalos-caudatus-2.webp": {
     "source": "vonwright",
     "url": "https://www.rawpixel.com/image/8864445/long-tailed-tit-1828-wilhelm-von-wright"
@@ -130,6 +134,10 @@
   "birds/agelaius-phoeniceus.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-67-red-winged-starling.jpg"
+  },
+  "birds/agelaius-tricolor.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:388_I._Nuttall%27s_Starling_-_2._Yellow-headed_Troopial_-_3._Bullock%27s_Oriole.jpg"
   },
   "birds/aix-galericulata.webp": {
     "source": "dorbigny",
@@ -2223,6 +2231,14 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIIReed_Bunting.jpg"
   },
+  "birds/empidonax-difficilis.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n326/mode/1up"
+  },
+  "birds/empidonax-hammondii.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n326/mode/1up"
+  },
   "birds/empidonax-minimus.webp": {
     "source": "swainson",
     "url": "https://archive.org/details/faunaborealiamer02rich_0/page/n242/mode/1up"
@@ -2863,6 +2879,46 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeVBlack-headed_Gull.jpg"
   },
+  "birds/icteria-virens-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:137_Yellow-breasted_Chat.jpg"
+  },
+  "birds/icteria-virens-3.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:137_Yellow-breasted_Chat.jpg"
+  },
+  "birds/icteria-virens-4.webp": {
+    "source": "prr",
+    "url": "https://archive.org/details/reportsofexplora61857unit/page/n536/mode/1up"
+  },
+  "birds/icteria-virens-5.webp": {
+    "source": "vieillot",
+    "url": "https://commons.wikimedia.org/wiki/File:Icteria_virens_-_1825-1834_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16600285.tif"
+  },
+  "birds/icteria-virens.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:137_Yellow-breasted_Chat.jpg"
+  },
+  "birds/icterus-bullockii-2.webp": {
+    "source": "dawson",
+    "url": "https://archive.org/details/birdsofcalif192301daws/page/n140/mode/1up"
+  },
+  "birds/icterus-bullockii-3.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:433_I._Bullock%27s_Oriole_-_2._Baltimore_Oriole_-_3._Mexican_Goldfinch_-_4._Varied_Thrush_-_5._Common_Water_Thrush.jpg"
+  },
+  "birds/icterus-bullockii-4.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:433_I._Bullock%27s_Oriole_-_2._Baltimore_Oriole_-_3._Mexican_Goldfinch_-_4._Varied_Thrush_-_5._Common_Water_Thrush.jpg"
+  },
+  "birds/icterus-bullockii-5.webp": {
+    "source": "audubon",
+    "url": "https://archive.org/details/birdsofamericafr04audu/page/n63/mode/1up"
+  },
+  "birds/icterus-bullockii.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:388_I._Nuttall%27s_Starling_-_2._Yellow-headed_Troopial_-_3._Bullock%27s_Oriole.jpg"
+  },
   "birds/icterus-cucullatus.webp": {
     "source": "cassin",
     "url": "https://archive.org/details/illustrationsofb00cass/page/n70/mode/1up"
@@ -2870,6 +2926,10 @@
   "birds/icterus-galbula-2.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_lore_(1922)_(14747962941).jpg"
+  },
+  "birds/icterus-galbula-3.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:433_I._Bullock%27s_Oriole_-_2._Baltimore_Oriole_-_3._Mexican_Goldfinch_-_4._Varied_Thrush_-_5._Common_Water_Thrush.jpg"
   },
   "birds/icterus-galbula.webp": {
     "source": "audubon",
@@ -3423,6 +3483,14 @@
     "source": "malherbe",
     "url": "https://archive.org/details/Monographiedespt418Malh/page/n88/mode/1up"
   },
+  "birds/melanerpes-uropygialis-2.webp": {
+    "source": "prr",
+    "url": "https://archive.org/details/reportsofexplora10unit/page/n646/mode/1up"
+  },
+  "birds/melanerpes-uropygialis.webp": {
+    "source": "prr",
+    "url": "https://archive.org/details/reportsofexplora10unit/page/n646/mode/1up"
+  },
   "birds/melanitta-fusca-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00265.jpg"
@@ -3882,6 +3950,22 @@
   "birds/parkesia-motacilla.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-19-louisiana-water-thrush.jpg"
+  },
+  "birds/parkesia-noveboracensis-2.webp": {
+    "source": "baird",
+    "url": "https://archive.org/details/birdsofnorthamer1860bair/page/n342/mode/1up"
+  },
+  "birds/parkesia-noveboracensis-3.webp": {
+    "source": "swainson",
+    "url": "https://archive.org/details/faunaborealiamer02rich_0/page/n336/mode/1up"
+  },
+  "birds/parkesia-noveboracensis-4.webp": {
+    "source": "sagra",
+    "url": "https://archive.org/details/histoirephysiqu3sagr/page/n36/mode/1up"
+  },
+  "birds/parkesia-noveboracensis.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:433_I._Bullock%27s_Oriole_-_2._Baltimore_Oriole_-_3._Mexican_Goldfinch_-_4._Varied_Thrush_-_5._Common_Water_Thrush.jpg"
   },
   "birds/parus-cinereus.webp": {
     "source": "gould",
@@ -4747,6 +4831,10 @@
     "source": "dekay",
     "url": "https://digitalcollections.nypl.org/items/510d47d9-76c4-a3d9-e040-e00a18064a99"
   },
+  "birds/recurvirostra-americana.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_America_(Pl._353)_(8592710314).jpg"
+  },
   "birds/recurvirostra-avosetta-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00326.jpg"
@@ -4902,6 +4990,14 @@
   "birds/selasphorus-rufus.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:379_Ruff-necked_Humming-bird.jpg"
+  },
+  "birds/selasphorus-sasin-2.webp": {
+    "source": "lesson",
+    "url": "https://archive.org/details/histoirenaturell00le/page/n214/mode/1up"
+  },
+  "birds/selasphorus-sasin.webp": {
+    "source": "lesson",
+    "url": "https://archive.org/details/Histoirenaturel00Less/page/n410/mode/1up"
   },
   "birds/serinus-serinus.webp": {
     "source": "gould",
@@ -5167,6 +5263,10 @@
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14270"
   },
+  "birds/sphyrapicus-thyroideus.webp": {
+    "source": "prr",
+    "url": "https://archive.org/details/reportsofexplora61857unit/page/n536/mode/1up"
+  },
   "birds/sphyrapicus-varius-2.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-190-yellow-bellied-woodpecker.jpg"
@@ -5186,6 +5286,10 @@
   "birds/spinus-pinus.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/pine-finch"
+  },
+  "birds/spinus-psaltria-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:433_I._Bullock%27s_Oriole_-_2._Baltimore_Oriole_-_3._Mexican_Goldfinch_-_4._Varied_Thrush_-_5._Common_Water_Thrush.jpg"
   },
   "birds/spinus-psaltria.webp": {
     "source": "audubon",
@@ -5595,6 +5699,14 @@
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/15090"
   },
+  "birds/toxostoma-curvirostre-2.webp": {
+    "source": "emory",
+    "url": "https://archive.org/details/mobot31753002023650/page/n136/mode/1up"
+  },
+  "birds/toxostoma-curvirostre.webp": {
+    "source": "temminck",
+    "url": "https://archive.org/details/Nouveaurecueild4Temm/page/n251/mode/1up"
+  },
   "birds/toxostoma-rufum-2.webp": {
     "source": "fuertes",
     "url": "https://www.flickr.com/photos/internetarchivebookimages/18425305152/"
@@ -5847,6 +5959,10 @@
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:359_I._Arkansaw_Flycatcher_-_2._Swallow-Tailed_Flycatcher_-_3._Says_Flycatcher.jpg"
   },
+  "birds/tyrannus-vociferans.webp": {
+    "source": "emory",
+    "url": "https://archive.org/details/mobot31753002023650/page/n133/mode/1up"
+  },
   "birds/tyto-alba-2.webp": {
     "source": "vonwright",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_from_Svenska_F%C3%A5glar_(Swedish_Birds)_by_the_von_Wright_brothers_from_rawpixel%27s_original_edition_of_the_publication_00232.jpg"
@@ -5946,6 +6062,14 @@
   "birds/vireo-solitarius.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/vireo-solitarius"
+  },
+  "birds/xanthocephalus-xanthocephalus-2.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:388_I._Nuttall%27s_Starling_-_2._Yellow-headed_Troopial_-_3._Bullock%27s_Oriole.jpg"
+  },
+  "birds/xanthocephalus-xanthocephalus.webp": {
+    "source": "audubon",
+    "url": "https://commons.wikimedia.org/wiki/File:388_I._Nuttall%27s_Starling_-_2._Yellow-headed_Troopial_-_3._Bullock%27s_Oriole.jpg"
   },
   "birds/xema-sabini.webp": {
     "source": "gould",

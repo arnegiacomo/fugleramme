@@ -228,6 +228,10 @@ CC BY 2.0. Manifest key: `jardine`.
 
 **Emory** - *Report on the United States and Mexican boundary survey* (1857-1859), directed by **William H. Emory**, with ornithology by **Spencer Fullerton Baird**. Missouri Botanical Garden Library scan via [Internet Archive / BHL](https://archive.org/details/mobot31753002023650). Public domain. Manifest key: `emory`.
 
+**Pacific Railroad Reports** - bird plates in the *Reports of Explorations and Surveys, to Ascertain the Most Practicable and Economical Route for a Railroad from the Mississippi River to the Pacific Ocean*, vols. 6 and 10, with ornithology by **Spencer Fullerton Baird**, hand-coloured lithographs, via the Internet Archive ([vol. 6](https://archive.org/details/reportsofexplora61857unit), [vol. 10](https://archive.org/details/reportsofexplora10unit)). Public domain. Manifest key: `prr`.
+
+**Sagra** - the birds (*Oiseaux*, by **Alcide d'Orbigny**) of *Histoire physique, politique et naturelle de l'île de Cuba* by **Ramón de la Sagra**, hand-coloured plates, via the [Internet Archive](https://archive.org/details/histoirephysiqu3sagr). Public domain. Manifest key: `sagra`.
+
 **Baird** - *The Birds of North America* by **Spencer F. Baird**, **John Cassin** and **George N. Lawrence** (Philadelphia: J. B. Lippincott & Co., 1860), atlas of hand-coloured lithographs by **Bowen & Co.**, Smithsonian Libraries scan via the [Internet Archive](https://archive.org/details/birdsofnorthamer1860bair). Public domain (No Copyright - United States). Manifest key: `baird`.
 
 **Lawrence** - plates for papers by **George N. Lawrence** in the *Annals of the Lyceum of Natural History of New-York* (1852), hand-coloured lithographs, via the [Internet Archive](https://archive.org/details/annalsoflyceumof51852lyce). Public domain. Manifest key: `lawrence`.
