@@ -33,6 +33,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 from pathlib import Path
 
 from .config import REPO_ROOT
@@ -104,14 +105,36 @@ def artwork_keys(scientific_name: str) -> tuple[str, ...]:
     return (key, legacy) if legacy else (key,)
 
 
-def _by_stem(folder: Path, pattern: str = "*") -> dict[str, Path]:
-    """Matching artwork keyed on stem. One entry per stem: a folder holding both
-    formats for a bird would otherwise draw it twice and hold it as two variants."""
+_NUMBERED = re.compile(r"-\d+$")
+# Seconds. A folder changed more recently can change again inside its timestamp's grain
+# (4 ms on the Pi's ext4, 2 s on FAT), so its listing is not kept yet.
+_SETTLED = 3
+_listings: dict[Path, tuple[int, dict[str, Path], set[str]]] = {}
+
+
+def _listing(folder: Path) -> tuple[dict[str, Path], set[str]]:
+    """A folder's artwork keyed on stem, and the species keys those stems make.
+    One entry per stem: a folder holding both formats for a bird would otherwise
+    draw it twice and hold it as two variants.
+
+    Kept until the folder's mtime moves, which adding, removing or renaming a
+    file does: the loop and every open kiosk ask several times every 5 seconds,
+    and a shipped style is 1,400 files. Callers share both, so must not change them."""
+    try:
+        stat = folder.stat()
+    except OSError:
+        return {}, set()
+    cached = _listings.get(folder)
+    if cached is not None and cached[0] == stat.st_mtime_ns:
+        return cached[1], cached[2]
     found: dict[str, Path] = {}
     for suffix in reversed(SUFFIXES):  # preferred last: it overwrites the rest
-        for path in folder.glob(f"{pattern}{suffix}"):
+        for path in folder.glob(f"*{suffix}"):
             found[path.stem] = path
-    return found
+    keys = {normalize(_NUMBERED.sub("", stem)) for stem in found}
+    if time.time() - stat.st_mtime > _SETTLED:
+        _listings[folder] = (stat.st_mtime_ns, found, keys)
+    return found, keys
 
 
 def _artwork(folder: Path, stem: str) -> Path | None:
@@ -122,13 +145,7 @@ def _artwork(folder: Path, stem: str) -> Path | None:
 def artwork_in(folder: Path) -> list[Path]:
     """Every drawable file in a folder, one per stem, sorted. The curation tools
     list a style through this so they cannot disagree with the frame."""
-    return sorted(_by_stem(folder).values())
-
-
-def _holds_artwork(folder: Path) -> bool:
-    """Whether anything drawable is in here. Short-circuits, since
-    `available_styles` runs on every admin load and a shipped style is 800 files."""
-    return any(next(folder.glob(f"*{s}"), None) is not None for s in SUFFIXES)
+    return sorted(_listing(folder)[0].values())
 
 
 def available_styles(images_dir: Path) -> list[str]:
@@ -139,9 +156,7 @@ def available_styles(images_dir: Path) -> list[str]:
     frame when selected. Perches alone do not count - there would be no birds.
     """
     try:
-        return sorted(
-            d.name for d in images_dir.iterdir() if d.is_dir() and _holds_artwork(d / BIRDS)
-        )
+        return sorted(d.name for d in images_dir.iterdir() if d.is_dir() and _listing(d / BIRDS)[0])
     except OSError:
         return []
 
@@ -173,27 +188,20 @@ def variants_for(scientific_name: str, images_dir: Path, style: str) -> list[Pat
         numbered = re.compile(rf"{re.escape(key)}-(\d+)")
         base = [path] if (path := _artwork(folder, key)) else []
         rest = [
-            (m, p)
-            for stem, p in _by_stem(folder, f"{key}-*").items()
-            if (m := numbered.fullmatch(stem))
+            (m, p) for stem, p in _listing(folder)[0].items() if (m := numbered.fullmatch(stem))
         ]
         variants += base + [p for _m, p in sorted(rest, key=lambda mp: int(mp[0].group(1)))]
     return variants
-
-
-_NUMBERED = re.compile(r"-\d+$")
 
 
 def drawable_keys(images_dir: Path, style: str) -> set[str]:
     """Every species key the style can draw, from one directory listing.
 
     The plate modes ask this of the whole life list on every poll, and
-    variants_for costs a glob per species - a hundred of them several times a
-    minute is real work on an SD card.
+    variants_for costs a file lookup and a search of the listing per species - a
+    hundred of them several times a minute is real work on an SD card.
     """
-    if not style:
-        return set()
-    return {normalize(_NUMBERED.sub("", stem)) for stem in _by_stem(images_dir / style / BIRDS)}
+    return _listing(images_dir / style / BIRDS)[1] if style else set()
 
 
 def image_for(scientific_name: str, images_dir: Path, style: str, day: int) -> Path | None:

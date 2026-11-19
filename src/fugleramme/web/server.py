@@ -118,6 +118,14 @@ def paper_png() -> bytes:
     return buffer.getvalue()
 
 
+@functools.lru_cache(maxsize=2)
+def _etag(body: bytes) -> str:
+    """A body's ETag, kept for the last two sent. The page is megabytes and is asked for
+    again unchanged, and bytes remember their own hash, so the same object costs no pass
+    over it."""
+    return f'"{hashlib.md5(body).hexdigest()}"'
+
+
 def _key(settings: Settings) -> bytes:
     """What the session cookie is signed with: the stored secret mixed with the
     password, so changing the password ends every session signed under the old one."""
@@ -245,7 +253,7 @@ def make_handler(
 
         def _send_cached(self, body: bytes, content_type: str):
             # no-cache + ETag lets an unchanged refresh return a bodyless 304.
-            etag = f'"{hashlib.md5(body).hexdigest()}"'
+            etag = _etag(body)
             if self.headers.get("If-None-Match") == etag:
                 self.send_response(304)
                 self.send_header("ETag", etag)

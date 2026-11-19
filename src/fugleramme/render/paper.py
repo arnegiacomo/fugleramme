@@ -93,16 +93,28 @@ def _local_tone(rgb: np.ndarray, mask: np.ndarray, at: np.ndarray) -> np.ndarray
 
 def _reach(seed: np.ndarray, allowed: np.ndarray, steps: int) -> np.ndarray:
     """Steps to grow `seed` through `allowed`, 0 where never reached, 4-connected
-    so thin ink stops it."""
-    grown = seed
-    depth = np.zeros(seed.shape, np.int16)
+    so thin ink stops it. Each step starts from the pixels the last one reached,
+    not from the whole array: they are a thin line of it."""
+    # Padded with pixels that are never open, so a hop off an edge finds nothing.
+    grown = np.pad(seed, 1)
+    todo = np.pad(allowed & ~seed, 1)
+    width = todo.shape[1]
+    near = np.zeros_like(grown)
+    near[1:-1, 1:-1] = grown[:-2, 1:-1] | grown[2:, 1:-1] | grown[1:-1, :-2] | grown[1:-1, 2:]
+    edge = np.flatnonzero(todo & near)
+    todo = todo.ravel()
+    todo[edge] = False
+    depth = np.zeros(todo.shape, np.int16)
     for step in range(1, steps + 1):
-        p = np.pad(grown, 1)
-        near = p[1:-1, 1:-1] | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]
-        nxt = seed | (near & allowed)
-        depth[nxt & ~grown & allowed] = step
-        grown = nxt
-    return depth
+        depth[edge] = step
+        reached = []
+        for hop in (-width, -1, 1, width):
+            there = edge + hop
+            there = there[todo[there]]
+            todo[there] = False  # closed as it is reached, so no pixel comes twice
+            reached.append(there)
+        edge = np.concatenate(reached)
+    return depth.reshape(grown.shape)[1:-1, 1:-1]
 
 
 def process_sprite(
@@ -136,10 +148,15 @@ def process_sprite(
 
     # shift paper-like pixels to the target tone (tiny shift, so pale birds are safe)
     delta = np.array(target) - paper
-    dist = np.abs(rgb.astype(np.int16) - paper).max(2)
-    sat = rgb.max(2) - rgb.min(2)
-    paper_px = opaque & (dist < 50) & (sat < 55) & (rgb.max(2) > 160)
-    out[paper_px, :3] = np.clip(rgb[paper_px].astype(np.int16) + delta, 0, 255)
+    # a channel at a time, here and below: across an axis of three numpy works pixel by pixel
+    channels = [rgb[..., c] for c in range(3)]
+    dist = np.maximum.reduce(
+        [np.abs(one.astype(np.float32) - tone) for one, tone in zip(channels, paper, strict=True)]
+    )
+    high, low = np.maximum.reduce(channels), np.minimum.reduce(channels)
+    paper_px = opaque & (dist < 50) & (high - low < 55) & (high > 160)
+    for one, shift in zip(channels, delta, strict=True):
+        one[paper_px] = np.clip(one[paper_px] + shift, 0, 255)
     # scans shade across the halo: level paper near the cut, outside-in and capped
     depth = _reach(~opaque, paper_px, HALO_REACH)
     halo = depth > 0
@@ -160,17 +177,18 @@ def process_sprite(
 
     # give all transparent pixels the paper tone so the feathered edge reveals
     # paper, not whatever RGB sat under the alpha
-    padded[padded[..., 3] <= 24, :3] = target
+    paper_mask = padded[..., 3] <= 24
+    for c in range(3):
+        np.putmask(padded[..., c], paper_mask, target[c])
 
     if textured:
-        paper_mask = padded[..., 3] <= 24
         paper_mask[PAD : PAD + h, PAD : PAD + w] |= paper_px
         rows = (np.arange(padded.shape[0]) + at[1]) % TILE
         cols = (np.arange(padded.shape[1]) + at[0]) % TILE
-        texture = _noise()[np.ix_(rows, cols)].astype(np.int16)
-        padded[paper_mask, :3] = np.clip(
-            padded[paper_mask, :3].astype(np.int16) + texture[paper_mask, None], 0, 255
-        )
+        # nothing off the paper, so the whole sprite takes it in one sum
+        texture = (_noise()[np.ix_(rows, cols)] * paper_mask).astype(np.int16)
+        for c in range(3):
+            padded[..., c] = np.clip(padded[..., c] + texture, 0, 255)
 
     feathered = np.asarray(
         Image.fromarray(padded[..., 3]).filter(ImageFilter.GaussianBlur(FEATHER))

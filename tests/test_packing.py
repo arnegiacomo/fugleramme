@@ -4,6 +4,8 @@ so switching layouts is not answered from the cache."""
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pytest
 from PIL import Image, UnidentifiedImageError
@@ -38,6 +40,39 @@ def test_a_packed_page_never_overlaps_and_never_clips(layout):
 @pytest.mark.parametrize("layout", sorted(LAYOUTS))
 def test_a_set_that_cannot_fit_is_reported_rather_than_squeezed(layout):
     assert LAYOUTS[layout].pack(_sprites(4), 100, 60) is None
+
+
+@pytest.mark.parametrize("layout", sorted(LAYOUTS))
+def test_a_packer_takes_the_sprites_once_and_in_order(layout):
+    """The size search makes each sprite as the packer asks for it."""
+    pack = LAYOUTS[layout].pack
+    whole, lazy = pack(_sprites(), 500, 400), pack(iter(_sprites()), 500, 400)
+    assert whole is not None and lazy is not None
+    assert [(s.index, x, y) for s, x, y in lazy] == [(s.index, x, y) for s, x, y in whole]
+
+
+def test_the_spiral_takes_the_first_free_place_on_its_walk():
+    """Against the walk done one position at a time with nothing but the box test."""
+    width, height = 240, 180
+    yy, xx = np.ogrid[-1:1:40j, -1:1:56j]
+    disc = xx**2 + yy**2 <= 1
+    sprites = [_Sprite(n, 0, disc[: 40 - 3 * n, : 56 - 4 * n]) for n in range(10)]
+
+    occ = np.zeros((height, width), dtype=bool)
+    expected = []
+    for sprite in sprites:
+        h, w = sprite.mask.shape
+        for px, py in packing._ring(width / 2, height / 2, math.hypot(width, height)):
+            x, y = int(px - w / 2), int(py - h / 2)
+            on_page = x >= 0 and y >= 0 and x + w <= width and y + h <= height
+            if on_page and not (occ[y : y + h, x : x + w] & sprite.mask).any():
+                break
+        occ[y : y + h, x : x + w] |= sprite.mask
+        expected.append((x, y))
+
+    placed = packing.spiral(sprites, width, height)
+    assert placed is not None
+    assert [(x, y) for _sprite, x, y in placed] == expected
 
 
 def test_the_layout_is_part_of_the_collage_cache_key(crowded):

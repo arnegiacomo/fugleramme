@@ -57,8 +57,8 @@ def _palette_image() -> Image.Image:
     return pal
 
 
-def _boost(rgb: np.ndarray) -> np.ndarray:
-    return _PIVOT + (rgb * _LIFT - _PIVOT) * _CONTRAST
+def _boost(rgb: np.ndarray, lift: np.ndarray | float = _LIFT) -> np.ndarray:
+    return _PIVOT + (rgb * lift - _PIVOT) * _CONTRAST
 
 
 def _pop(image: Image.Image) -> Image.Image:
@@ -67,12 +67,18 @@ def _pop(image: Image.Image) -> Image.Image:
     rgb = np.asarray(image.convert("RGB"))
     paper = np.array(PANEL_PAPER, np.float64)
     bands = [slice(top, top + _BAND) for top in range(0, rgb.shape[0], _BAND)]
-    dist = np.concatenate([np.linalg.norm(rgb[rows] - paper, axis=2) for rows in bands])
+    # A channel at a time, here and below: across an axis of three numpy works pixel by pixel.
+    dist = np.concatenate(
+        [np.sqrt(sum((rgb[rows, :, c] - paper[c]) ** 2 for c in range(3))) for rows in bands]
+    )
     halo = _reach(dist <= 1, dist <= _HALO, _HALO_REACH) > 0
     out = np.empty_like(rgb)
+    back = paper - _boost(paper)
     for rows in bands:
-        keep = np.maximum(np.exp(-dist[rows] / _FADE), halo[rows])[..., None]
-        out[rows] = np.clip(np.rint(_boost(rgb[rows]) + keep * (paper - _boost(paper))), 0, 255)
+        keep = np.maximum(np.exp(-dist[rows] / _FADE), halo[rows])
+        for c in range(3):
+            boosted = _boost(rgb[rows, :, c], _LIFT[c])
+            out[rows, :, c] = np.clip(np.rint(boosted + keep * back[c]), 0, 255)
     return Image.fromarray(out)
 
 

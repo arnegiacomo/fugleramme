@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from PIL import Image, ImageDraw, ImageFont, features
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, features
 
 from fugleramme import fake
 from fugleramme.languages import NONE, Namer
@@ -28,6 +28,7 @@ from fugleramme.render.page import (
     label_px,
     stamp,
     text_mask,
+    text_room,
 )
 from fugleramme.render.paper import PANEL_PAPER
 from fugleramme.web import portal
@@ -207,6 +208,13 @@ def test_a_bird_thinner_than_the_erosion_still_reserves_its_body():
     band = Image.new("L", (24, 16), 0)
     band.paste(255, (0, 7, 24, 10))  # three rows: gone under an erosion of two
     assert collage._footprint(band).any()
+
+
+def test_the_footprint_matches_a_min_filter():
+    solid = np.random.default_rng(0).random((60, 80)) > 0.03
+    alpha = Image.fromarray(solid.astype(np.uint8) * 255)
+    expected = np.asarray(alpha.filter(ImageFilter.MinFilter(collage._OVERLAP_PX * 2 + 1)))
+    assert np.array_equal(collage._footprint(alpha), expected > 0)
 
 
 def test_sprite_without_a_label_is_just_the_bird():
@@ -445,6 +453,21 @@ def test_a_mark_never_runs_off_its_label(key, text):
 # One name per label locale, from BirdNET v2.4's labels by way of the fake.
 SCRIPTS = {code: fake.LABELS[code]["Passer domesticus"] for code in sorted(fake.LABELS)}
 SHAPED = {"ar", "he", "ml"}  # unreadable unshaped, so set only where raqm is
+
+
+@pytest.mark.parametrize("flat", [True, False])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Pica pica",
+        "Skjære\n(Pica pica)",
+        "Pica pica" + NEW + "\n(Skjære)",
+        "Pica\n" + SCRIPTS["zh"],
+    ],
+)
+def test_a_label_packs_at_the_size_it_is_drawn_at(text, flat):
+    font = fonts.load(fonts.DEFAULT_FONT, 26)
+    assert text_room(text, font, flat).size == text_mask(text, font, flat).size
 
 
 def _tofu(text: str) -> str:

@@ -45,6 +45,18 @@ def test_the_edge_ring_matches_a_max_filter():
     assert np.array_equal(paper._box_sum(clear.astype(np.int32), 4) > 0, expected > 0)
 
 
+def test_reach_counts_the_steps_of_a_growth_through_neighbours():
+    rng = np.random.default_rng(0)
+    seed, allowed = rng.random((40, 50)) > 0.98, rng.random((40, 50)) > 0.3
+    grown, expected = seed, np.zeros(seed.shape, int)
+    for step in range(1, 13):
+        p = np.pad(grown, 1)
+        new = (p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]) & allowed & ~grown
+        expected[new] = step
+        grown = grown | new
+    assert np.array_equal(paper._reach(seed, allowed, 12), expected)
+
+
 def _flat(sprite: np.ndarray) -> np.ndarray:
     return np.asarray(process_sprite(Image.fromarray(sprite), (0, 0), textured=False)).astype(int)
 

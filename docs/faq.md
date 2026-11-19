@@ -18,7 +18,7 @@ No. Without one, the frame can use a public BirdWeather station instead - your o
 
 ## Which Raspberry Pi?
 
-A Pi 5 for the full build, because BirdNET-Go classifies around the clock. For a frame that only draws, any 40-pin Pi does - people are running a Pi 4 and a Pi Zero 2 W, and render time varies by model. See [Frame only](hardware.md#frame-only-external-or-existing-birdnet-go).
+A Pi 5 for the full build, because BirdNET-Go classifies around the clock. For a frame that only draws, any 40-pin Pi does - a Pi 4 and a Pi Zero 2 W are both officially supported, and people are running them. (The Zero takes a little longer to render a collage, about 25 seconds for 20 birds). See [Frame only](hardware.md#frame-only-external-or-existing-birdnet-go).
 
 ## Can I use a smaller or a different Inky?
 

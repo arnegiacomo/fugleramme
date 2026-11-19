@@ -1,6 +1,6 @@
 """Where the birds go: the packers the collage can be laid out with.
 
-The spiral walks candidate positions one at a time and takes the first that does
+The spiral walks candidate positions in order and takes the first that does
 not collide. Simple, and the reason its page comes out as a round blob with bare
 corners. Voids asks the question the other way round: get every legal position
 for a sprite at once, then pick the one on the emptiest paper.
@@ -21,8 +21,9 @@ fine-pixel overlap always lands in a cell both of them claim.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable, Iterator, Sequence
-from functools import partial
+from collections.abc import Callable, Iterable, Iterator
+from functools import lru_cache, partial
+from itertools import chain
 from typing import NamedTuple, Protocol
 
 import numpy as np
@@ -38,11 +39,11 @@ class Sprite(Protocol):
 Placed = list[tuple[Sprite, int, int]]
 # (sprites, width, height, anchor): `anchor` is the point of the first sprite
 # pinned to the middle of the page.
-Packer = Callable[[Sequence[Sprite], int, int, tuple[int, int] | None], Placed | None]
+Packer = Callable[[Iterable[Sprite], int, int, tuple[int, int] | None], Placed | None]
 Cost = Callable[["Board", np.ndarray], np.ndarray]
 
 _STEP = 6  # spiral: pixels between candidate positions
-_PROBE_BANDS = 3
+_PROBE_BANDS = 8
 K = 6  # voids: pack pixels per cell, matching the spiral's step
 _SIGMA = 8.0  # cells the emptiness field is measured over
 _PAD = int(3 * _SIGMA) + 1  # solid border the page is blurred inside
@@ -86,41 +87,64 @@ def _pinned(
     return x, y
 
 
-def _first_free(occ: np.ndarray, mask: np.ndarray) -> tuple[int, int] | None:
+@lru_cache(maxsize=2)
+def _centres(width: int, height: int) -> np.ndarray:
+    """Every centre the walk tries on a page, x over y, in the order it tries
+    them. It ends at the corners: no sprite fits around a centre further out
+    than the page's half diagonal."""
+    ring = _ring(width / 2, height / 2, math.hypot(width, height) / 2 + _STEP)
+    return np.fromiter(chain.from_iterable(ring), dtype=float).reshape(-1, 2).T.copy()
+
+
+def _runs(row: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Where each run of set pixels in a mask row starts and ends."""
+    edges = np.flatnonzero(np.diff(row, prepend=False, append=False))
+    return edges[::2], edges[1::2]
+
+
+def _first_free(occ: np.ndarray, filled: np.ndarray, mask: np.ndarray) -> tuple[int, int] | None:
     """The first position on an outward walk from the middle where `mask` fits."""
     height, width = occ.shape
     h, w = mask.shape
-    probes = _probes(mask)
-    for px, py in _ring(width / 2, height / 2, math.hypot(width, height)):
-        x, y = int(px - w / 2), int(py - h / 2)
-        if x < 0 or y < 0 or x + w > width or y + h > height:
-            continue
-        # A colliding probe row is a real collision, so this only ever skips
-        # the box test for positions it would have rejected anyway.
-        if any((occ[y + r, x : x + w] & row).any() for r, row in probes):
-            continue
-        if not (occ[y : y + h, x : x + w] & mask).any():
-            return x, y
+    px, py = _centres(width, height)
+    x, y = (px - w / 2).astype(int), (py - h / 2).astype(int)  # truncates, as int() does
+    on_page = (x >= 0) & (y >= 0) & (x + w <= width) & (y + h <= height)
+    x, y = x[on_page], y[on_page]
+    # A run of a probe row is clear where `filled` does not rise across it. A
+    # colliding probe row is a real collision, so this only ever skips the box
+    # test for positions it would have rejected anyway. Densest row first: each
+    # row is only tested where the ones before it were clear.
+    for r, row in sorted(_probes(mask), key=lambda probe: -int(probe[1].sum())):
+        for start, end in zip(*_runs(row), strict=True):
+            clear = filled[y + r, x + end] == filled[y + r, x + start]
+            x, y = x[clear], y[clear]
+    for at in zip(x.tolist(), y.tolist(), strict=True):
+        if not (occ[at[1] : at[1] + h, at[0] : at[0] + w] & mask).any():
+            return at
     return None
 
 
 def spiral(
-    sprites: Sequence[Sprite], width: int, height: int, anchor: tuple[int, int] | None = None
+    sprites: Iterable[Sprite], width: int, height: int, anchor: tuple[int, int] | None = None
 ) -> Placed | None:
     """Place every sprite with no opaque overlap and fully on-screen, or return
     None if one does not fit. Sprites should be pre-sorted largest-first."""
     occ = np.zeros((height, width), dtype=bool)
+    # Occupied pixels left of each column, row by row. Past 65,535 it wraps,
+    # which can only make a colliding run look clear and leave it to the box test.
+    filled = np.zeros((height, width + 1), dtype=np.uint16)
     placed: Placed = []
     for n, sprite in enumerate(sprites):
         if anchor and n == 0:
             spot = _pinned(sprite, anchor, width, height)
         else:
-            spot = _first_free(occ, sprite.mask)
+            spot = _first_free(occ, filled, sprite.mask)
         if spot is None:
             return None
         x, y = spot
         h, w = sprite.mask.shape
         occ[y : y + h, x : x + w] |= sprite.mask
+        np.cumsum(occ[y : y + h], axis=1, dtype=np.uint16, out=filled[y : y + h, 1:])
         placed.append((sprite, x, y))
     return placed
 
@@ -208,7 +232,7 @@ class Board:
 
 
 def scored(
-    sprites: Sequence[Sprite],
+    sprites: Iterable[Sprite],
     width: int,
     height: int,
     anchor: tuple[int, int] | None = None,
@@ -251,8 +275,8 @@ class Layout(NamedTuple):
     label: str  # what the admin radio reads
     blurb: str  # its line in the admin hint
     pack: Packer
-    # Bisection steps the size search may spend after its first fit. A spiral
-    # pack costs ~3x a voids pack, so it keeps its first fit.
+    # Bisection steps the size search may spend after its first fit. The spiral
+    # keeps its first fit: bisecting would move the birds on every spiral page.
     refine: int
 
 

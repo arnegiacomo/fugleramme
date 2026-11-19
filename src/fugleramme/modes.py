@@ -75,7 +75,7 @@ class Context:
         return perches_for(self.images_dir, self.style)
 
     def drawable(self):
-        """Species keys this style can draw. One listing, not a glob per name:
+        """Species keys this style can draw. One listing, not a search per name:
         the plate modes ask it of the whole life list on every poll."""
         return drawable_keys(self.images_dir, self.style)
 
@@ -427,6 +427,8 @@ def png_bytes(ctx: Context) -> bytes:
         if _cache is not None and _cache[0] == key:
             return _cache[1]
         buffer = io.BytesIO()
-        render(ctx).save(buffer, format="PNG")
+        # Level 4 of 9: the paper's grain barely compresses, so the levels above it
+        # cost a third of the encode for a file a tenth smaller at most.
+        render(ctx).save(buffer, format="PNG", compress_level=4)
         _cache = (key, buffer.getvalue())
         return _cache[1]

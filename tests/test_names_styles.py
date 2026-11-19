@@ -115,6 +115,22 @@ def test_drawable_keys_name_a_reclassified_bird_once(tmp_path):
     assert drawable_keys(tmp_path, "classic") == {"coloeus-monedula", "turdus-merula"}
 
 
+def test_a_kept_listing_is_read_again_when_the_folder_changes(tmp_path):
+    _make(tmp_path, "classic", "turdus-merula")
+    birds = tmp_path / "classic" / BIRDS
+    os.utime(birds, (0, 1))  # long settled, so the listing is kept
+    assert drawable_keys(tmp_path, "classic") is drawable_keys(tmp_path, "classic")
+
+    _make(tmp_path, "classic", "corvus-corax", "corvus-corax-2")
+    assert drawable_keys(tmp_path, "classic") == {"turdus-merula", "corvus-corax"}
+    assert len(variants_for("Corvus corax", tmp_path, "classic")) == 2
+
+    os.utime(birds, (0, 2))
+    assert drawable_keys(tmp_path, "classic") is drawable_keys(tmp_path, "classic")
+    (birds / "turdus-merula.png").unlink()
+    assert drawable_keys(tmp_path, "classic") == {"corvus-corax"}
+
+
 def test_image_for_is_none_when_the_active_style_has_nothing(tmp_path):
     _make(tmp_path, "classic", "turdus-merula")
     _make(tmp_path, "custom", "corvus-corax")

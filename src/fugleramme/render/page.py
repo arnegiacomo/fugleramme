@@ -127,30 +127,31 @@ def draw_mark(mask: Image.Image, x: float, baseline: float, font: ImageFont.Free
     mask.paste(255, _mark_corner(mark, offset, x, baseline, _cap(font)), mark)
 
 
-def text_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:
+def text_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool, ink: bool = True) -> Image.Image:
     """Text as an "L" alpha mask, +1px so the italic's overhang is not shaved.
     Newlines stack centred (a second language) on the text layout's own
     baselines - separately trimmed masks would sit unevenly. Flat draws in
     mode "1" (`flat_mode`), so the mask holds no grey for the dither to speckle
     into colour. A first line ending in NEW gets its mark; whatever it reaches
     past the text on the right is matched on the left, so the name stays centred.
-    A label with a line in a fallback face (`fonts.face`) is stacked by hand."""
+    A label with a line in a fallback face (`fonts.face`) is stacked by hand.
+    Without `ink` the mask is sized and its text left undrawn, which is most of the cost."""
     first, *rest = text.split("\n")
     marked = first.endswith(NEW)
     lines = [first.removesuffix(NEW), *rest]
     faces = [fonts.face(line, font) for line in lines]
     mode = flat_mode(flat)
     if all(face is font for face in faces):
-        mask, origin = _multiline("\n".join(lines), font, mode)
+        mask, origin = _multiline("\n".join(lines), font, mode, ink)
     else:
-        mask, origin = _stacked(lines, faces, font, mode)
+        mask, origin = _stacked(lines, faces, font, mode, ink)
     if marked:
         mask = _with_mark(mask, lines, faces, origin)
     return mask.convert("L")
 
 
 def _multiline(
-    text: str, font: ImageFont.FreeTypeFont, mode: str
+    text: str, font: ImageFont.FreeTypeFont, mode: str, ink: bool
 ) -> tuple[Image.Image, tuple[float, float]]:
     """Lines in one face, and where the first line's ascender starts."""
     spacing = round(font.size * _LINE_SPACING)
@@ -161,14 +162,19 @@ def _multiline(
     # Ceil: a multi-line bbox is fractional, and a short box shaves the text.
     mask = Image.new(mode, (math.ceil(x1 - x0) + 2, math.ceil(y1 - y0) + 2), 0)
     origin = (1 - x0, 1 - y0)
-    ImageDraw.Draw(mask).multiline_text(
-        origin, text, font=font, fill=255, spacing=spacing, align="center"
-    )
+    if ink:
+        ImageDraw.Draw(mask).multiline_text(
+            origin, text, font=font, fill=255, spacing=spacing, align="center"
+        )
     return mask, origin
 
 
 def _stacked(
-    lines: list[str], faces: list[ImageFont.FreeTypeFont], font: ImageFont.FreeTypeFont, mode: str
+    lines: list[str],
+    faces: list[ImageFont.FreeTypeFont],
+    font: ImageFont.FreeTypeFont,
+    mode: str,
+    ink: bool,
 ) -> tuple[Image.Image, tuple[float, float]]:
     """`_multiline` for lines in faces of their own: centred on the widest, and
     a line apart by Pillow's own multiline rule (the foot of an "A" plus the
@@ -185,6 +191,8 @@ def _stacked(
     x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
     mask = Image.new(mode, (math.ceil(x1 - x0) + 2, math.ceil(y1 - y0) + 2), 0)
     origin = (1 - x0, 1 - y0)
+    if not ink:
+        return mask, origin
     draw = ImageDraw.Draw(mask)
     for (x, y), face, line in zip(spots, faces, lines, strict=True):
         draw.text((origin[0] + x, origin[1] + y), line, font=face, fill=255, anchor="la")
@@ -210,6 +218,11 @@ def _with_mark(
     grown.paste(mask, (side, -top))
     grown.paste(255, (sx + side, sy - top), mark)
     return grown
+
+
+def text_room(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:
+    """A mask the size of `text_mask`'s, its text undrawn. The pack reads a label's size alone."""
+    return text_mask(text, font, flat, ink=False)
 
 
 def figures_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:
