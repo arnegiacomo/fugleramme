@@ -32,11 +32,13 @@ from urllib.parse import urlencode, urljoin
 from urllib.request import HTTPCookieProcessor, HTTPRedirectHandler, Request, build_opener
 
 from .birdweather import BirdWeatherSource
+from .demo import DemoSource
 from .names import canonical, normalize
-from .settings import SettingsStore
+from .settings import Settings, SettingsStore
 from .source import (
     BIRDNET_GO,
     BIRDWEATHER,
+    DEMO,
     NEEDS_PASSWORD,
     Detection,
     NoSuchStation,
@@ -473,10 +475,10 @@ class Configured:
         self._timeout = timeout
         self._lock = threading.Lock()
         self._key: tuple[str, str, str, str] | None = None
-        self._source: ApiSource | BirdWeatherSource | None = None
+        self._source: ApiSource | BirdWeatherSource | DemoSource | None = None
 
     @property
-    def source(self) -> ApiSource | BirdWeatherSource:
+    def source(self) -> ApiSource | BirdWeatherSource | DemoSource:
         settings = self._store.get()
         kind, url = settings.detector_kind, settings.detector_address
         key = (kind, url, settings.detector_username, settings.detector_password)
@@ -485,15 +487,21 @@ class Configured:
                 return self._source
             if self._key is not None:
                 log.info("Detector is now %s", url)
-            self._key, self._source = key, self._build(*key)
+            self._key, self._source = key, self._build(settings)
             return self._source
 
-    def _build(
-        self, kind: str, url: str, username: str, password: str
-    ) -> ApiSource | BirdWeatherSource:
+    def _build(self, settings: Settings) -> ApiSource | BirdWeatherSource | DemoSource:
+        kind, url = settings.detector_kind, settings.detector_address
+        if kind == DEMO:
+            # Its tiles sit beside settings.json, like the names `languages` caches.
+            return DemoSource(
+                settings.demo_latitude, settings.demo_longitude, self._store.path.parent
+            )
         if kind == BIRDWEATHER:
             return BirdWeatherSource(url, timeout=self._timeout)
-        return ApiSource(url, username, password, timeout=self._timeout)
+        return ApiSource(
+            url, settings.detector_username, settings.detector_password, timeout=self._timeout
+        )
 
     def latest(self) -> Detection | None:
         return self.source.latest()
@@ -528,10 +536,10 @@ class Configured:
         return source.request(path, method, headers, params)
 
     def common_names(self) -> dict[str, dict[str, str]]:
-        """A BirdWeather station's names, which `languages` reads instead of
-        asking `request`."""
+        """A BirdWeather station's names, or a demo's, which `languages` reads
+        instead of asking `request`."""
         source = self.source
-        if not isinstance(source, BirdWeatherSource):
+        if not isinstance(source, BirdWeatherSource | DemoSource):
             raise Unavailable(f"{source.base_url} names its birds through `request`")
         return source.common_names()
 

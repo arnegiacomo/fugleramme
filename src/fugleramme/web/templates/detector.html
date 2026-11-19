@@ -2,12 +2,13 @@
 {% from "macros.html" import text_field, hint, logo, stamp %}
 {% from "rows.html" import state %}
 {% set birdweather = settings.detector_kind == BIRDWEATHER %}
+{% set demo = settings.detector_kind == DEMO %}
 <section id="tab-detector" role="tabpanel" aria-labelledby="detector-tab" hidden>
 <div class="card">
   <h2>{{ name }}</h2>
   <dl class="status">
     {# BirdWeather's logos are on each station's line instead. #}
-    <dt>{{ "Detector(s)" if birdweather else "Detector" }}</dt><dd>{% if not birdweather %}{{ logo(BIRDNET_GO) }}{% endif %}<span id="detector-state">{{ row }}</span></dd>
+    <dt>{{ "Detector(s)" if birdweather else "Detector" }}</dt><dd>{% if not birdweather and not demo %}{{ logo(BIRDNET_GO) }}{% endif %}<span id="detector-state">{{ row }}</span></dd>
     <dt>Last detection</dt><dd>
       {%- if latest %}{{ latest[0] }} · {{ stamp(latest[1]) }}
       {%- elif outage %}{{ outage }}
@@ -23,6 +24,13 @@
     </dd>
   </dl>
 </div>
+  {% if demo %}
+  {# Demo is chosen at install, so there is no form to switch it here. #}
+  <div class="card block">
+    <p>This frame shows made-up birds {{ demo_place }}, picked from GBIF checklists for the month. There is no detector to set up.</p>
+    <p class="note">To read a BirdNET-Go or a BirdWeather station instead, run the installer again.</p>
+  </div>
+  {% else %}
   {% set birdnet = chosen == BIRDNET_GO %}
   {# A refused save comes back on the type it was refused for, with the note
      under that type's address, since that is the field to fix. #}
@@ -55,4 +63,5 @@
     <button type="button" id="test">Test connection</button>
     <span id="test-result"></span>
   </form>
+  {% endif %}
 </section>

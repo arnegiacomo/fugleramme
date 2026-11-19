@@ -1,9 +1,9 @@
 """Where detections come from, as the rest of the frame sees them.
 
 One protocol over the detector, so nothing above it knows whether it is the
-BirdNET-Go container beside it, an install across the house or a BirdWeather
-station. `api.ApiSource` and `birdweather.BirdWeatherSource` are the
-implementations.
+BirdNET-Go container beside it, an install across the house, a BirdWeather
+station or made-up birds. `api.ApiSource`, `birdweather.BirdWeatherSource` and
+`demo.DemoSource` are the implementations.
 """
 
 from __future__ import annotations
@@ -19,10 +19,13 @@ from urllib.parse import urlsplit
 NEEDS_PASSWORD = "needs a password"
 
 # Which kind of detector the frame reads (`Settings.detector_kind`): `api.ApiSource`
-# reads a BirdNET-Go, `birdweather.BirdWeatherSource` a public BirdWeather station.
+# reads a BirdNET-Go, `birdweather.BirdWeatherSource` a public BirdWeather station,
+# `demo.DemoSource` makes birds up. Demo is chosen at install only, so the admin
+# offers the first two (`admin.KINDS`).
 BIRDNET_GO = "birdnet-go"
 BIRDWEATHER = "birdweather"
-DETECTOR_KINDS = (BIRDNET_GO, BIRDWEATHER)
+DEMO = "demo"
+DETECTOR_KINDS = (BIRDNET_GO, BIRDWEATHER, DEMO)
 
 # Where a bare station ID is looked up.
 BIRDWEATHER_SITE = "https://app.birdweather.com"

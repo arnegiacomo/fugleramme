@@ -24,9 +24,9 @@ export function showLogos(root) {
 }
 
 // Not queryType=species: BirdNET-Go shows only today's for that. A BirdWeather
-// station's page has no search to link into.
+// station's page has no search to link into, and a demo has no page at all.
 export function linkSpecies() {
-  if (cfg.kind === "birdweather") return;
+  if (cfg.kind !== "birdnet-go") return;
   for (const a of document.querySelectorAll("#species a[data-species]")) {
     a.href = birdnet + "/ui/detections?search=" + encodeURIComponent(a.dataset.species);
   }

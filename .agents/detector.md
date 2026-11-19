@@ -1,6 +1,6 @@
 # Talking to the detector
 
-Covers `source.py`, `api.py`, `birdweather.py`, `taxa.py`, `languages.py` and `fake.py` - everything that reaches the detector, a BirdNET-Go or public BirdWeather stations (`Settings.detector_kind`). Anything asking "which detector" keys on `detector_address`, never `detector_url`, which stays set while a station is read.
+Covers `source.py`, `api.py`, `birdweather.py`, `demo.py`, `taxa.py`, `languages.py` and `fake.py` - everything that reaches the detector, a BirdNET-Go or public BirdWeather stations, or a demo's made-up birds (`Settings.detector_kind`). Anything asking "which detector" keys on `detector_address`, never `detector_url`, which stays set while a station is read.
 
 **The API is the interface.** The halves meet at the detector's API - BirdNET-Go's `/api/v2` or BirdWeather's GraphQL - never at its database. A frame can therefore point at the container beside it, at a BirdNET-Go already running on the same machine, or at one across the house - all the same code path, only a different URL.
 
@@ -28,6 +28,17 @@ Covers `source.py`, `api.py`, `birdweather.py`, `taxa.py`, `languages.py` and `f
 - **The station search** (`nearest`): `stations(ne, sw)` filters loosely by a box, so the circle is cut here. Each of `RADII_KM` is its own query, since one wide box can hit the 500 cap and miss the nearest. Without a `period` it answers every station ever set up.
 - **`dailyDetectionCounts` bins by UTC day** whatever timezone is asked for, so the record starts at `earliestDetectionAt`'s UTC date.
 - **There is no first-heard field.** The life list dates a species to its first UTC day, at noon so the date holds from UTC-11 to UTC+12. Only a first day of today or yesterday is read to the detection, since "new" is counted in hours (`modes.NEW_HOURS`) and detections come newest first only, so that reads the whole day.
+
+## Demo (`demo.py`, #358)
+
+- **Chosen at install only.** `install.sh` writes `detector_kind` and the location into `settings.json`, and the admin's type radio never offers it (`admin.KINDS`), so a working frame cannot be flipped to made-up birds by a stray click. On a demo frame the Detector tab says where the birds come from instead of holding the form.
+- **The birds are GBIF checklists, by place and month.** A tile (`tools/demo_tiles.py`) holds GBIF's EQDGC cells as a quadtree: a code's parent is the code less its last letter (A to D: north-west, north-east, south-west, south-east), every level is the sum of the one below, and a cell is kept only with enough checklists. The frame takes the longest code its tile has, so dense areas get cells down to 1/8° and sparse ones fall back to 1°. Below 1/8° the cells would show where birders walk: eBird, nearly all of the data, places a checklist only to within a few km.
+- **Share of checklists, not records.** Within a cell they rank the same, but only checklists give a fair floor: a bird on fewer than `FLOOR` of a cell's checklists is a stray there, whatever the cell's effort. A thin month reads the whole year.
+- **eBird's own names**, not GBIF's interpreted ones: they follow BirdNET's labels' taxonomy, so 98% match directly; `demo_tiles.SPLITS` folds the splits since v2.4 back to the label they came from.
+- **A fixed function of place and hour.** Each hour's detections are seeded by the location and the UTC hour, so the panel and the page agree, a restart reshuffles nothing, and a year of history (`HISTORY_DAYS`, rebuilt once an hour) gives the lookbacks, "new" and the life list something real to read.
+- Tiles are read from `detector/data/demo/<tile>.json.gz`, one per 10° square named by its south-west corner. Nothing fetches them yet: they are to come from a data repo's yearly release, named by a manifest here, so a data release can never become this repo's "latest" and steer the self-update.
+- Only birds with artwork are picked. No location, no tile, or no cell for the place is every such bird alike, logged once, never `Unavailable`.
+- English names come off the v2.4 labels through `common_names`, the path BirdWeather's take (`languages._NAMED_BY_SOURCE`); other languages are not offered yet.
 
 ## The detector owns the names (`languages.py`)
 
