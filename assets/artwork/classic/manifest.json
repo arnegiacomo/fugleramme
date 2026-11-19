@@ -2241,7 +2241,7 @@
   },
   "birds/eopsaltria-australis.webp": {
     "source": "gould",
-    "url": "https://www.sl.nsw.gov.au/collection-items/yellow-breasted-robin-eopsaltria-australis-birds-australia-vol-3"
+    "url": "https://www.biodiversitylibrary.org/page/48285759"
   },
   "birds/eremophila-alpestris.webp": {
     "source": "vonwright",
@@ -4523,6 +4523,10 @@
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17806778914).jpg"
   },
+  "birds/porphyrio-melanotus.webp": {
+    "source": "gould",
+    "url": "https://www.biodiversitylibrary.org/page/48400862"
+  },
   "birds/porphyrio-porphyrio.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIVHyacinthine_Porphyrio.jpg"
@@ -4618,6 +4622,10 @@
   "birds/psittacula-krameri.webp": {
     "source": "keulemans",
     "url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Keulemans_Onze_vogels_3_09.jpg"
+  },
+  "birds/psophodes-olivaceus.webp": {
+    "source": "gould",
+    "url": "https://www.biodiversitylibrary.org/page/48285739"
   },
   "birds/pternistis-swainsonii.webp": {
     "source": "finchdavies",
@@ -5310,6 +5318,10 @@
   "birds/strepera-graculina.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:Bird_illustration_by_Elizabeth_Gould_for_Birds_of_Australia,_digitally_enhanced_from_rawpixel%27s_own_facsimile_book78.jpg"
+  },
+  "birds/strepera-versicolor.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/birdsaustralia2goul/page/n111"
   },
   "birds/streptopelia-decaocto.webp": {
     "source": "keulemans",
