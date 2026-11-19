@@ -377,6 +377,33 @@ def test_with_the_e6_page_on_the_loop_hands_over_a_page_at_the_external_panel_s_
     assert pushed == ([(480, 800)] if inky else [])
 
 
+def test_the_allocator_is_pinned_before_the_web_server_starts(tmp_path, images):
+    """The server's threads are the ones whose freed renders glibc kept, so the pin has
+    to hold before the first of them exists."""
+    config = Config(
+        images_dir=images,
+        detector_url=None,
+        output_path=tmp_path / "frame.png",
+        host="127.0.0.1",
+        port=0,
+        config_path=tmp_path / "settings.json",
+    )
+    order: list[str] = []
+
+    def serve(*_args):
+        order.append("serve")
+        raise _Stop
+
+    with (
+        patch.object(service, "_pin_mmap_threshold", lambda: order.append("pin")),
+        patch.object(service, "serve", serve),
+        pytest.raises(_Stop),
+    ):
+        service.run(config)
+
+    assert "pin" in order[: order.index("serve")]
+
+
 @pytest.mark.parametrize("signal_code", [signal.SIGINT, signal.SIGTERM])
 def test_signal_runs_the_shutdown_handler(tmp_path, images, detector, signal_code):
     """Signal is registered and triggers the shutdown routine."""

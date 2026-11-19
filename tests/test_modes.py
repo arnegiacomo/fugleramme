@@ -4,8 +4,11 @@ would freeze the frame."""
 
 from __future__ import annotations
 
+import os
+import sys
 from dataclasses import replace
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -35,6 +38,29 @@ def _heard(source: ApiSource, rows: list, row: fake.Detection) -> None:
     rather than answering from its few seconds of memory."""
     rows.insert(0, row)
     source._cache.clear()
+
+
+_noting: list[list[Path]] = []
+
+
+def _note_listing(event: str, args: tuple) -> None:
+    if event in ("os.scandir", "os.listdir"):
+        for listed in _noting:
+            listed.append(Path(args[0]))
+
+
+# An audit hook hears of a listing however it is reached: glob keeps its own hold on
+# `os.scandir` on some Pythons, so replacing that would hear nothing. A hook cannot be
+# taken off again, so this one notes only while a test asks.
+sys.addaudithook(_note_listing)
+
+
+@pytest.fixture
+def listed():
+    """Every folder listed while the test runs, in order."""
+    _noting.append([])
+    yield _noting[-1]
+    _noting.clear()
 
 
 @pytest.fixture
@@ -130,6 +156,24 @@ def test_the_collage_holds_the_page_when_a_bird_already_on_it_calls_again(
 
     assert detections.species_since()[0][0] == BLACKBIRD  # the ranking did flip
     assert modes.state_key(_ctx(detections, images, tmp_path, "collage")) == before
+
+
+def test_a_poll_with_nothing_changed_lists_no_folder(tmp_path, images, source, listed):
+    """The loop and every open kiosk ask for the key every few seconds, and a shipped
+    style is 1,400 files. A poll finds the styles again, and lists nothing inside one."""
+    detections = source(rows=[_row(2, TIT, 2), _row(1, BLACKBIRD, 1)])
+    style = images / "classic"
+    for folder in (style, *style.iterdir()):
+        os.utime(folder, (0, 1))  # long settled, so its listing is kept
+
+    def poll() -> tuple:
+        return modes.state_key(_ctx(detections, images, tmp_path, "collage"))
+
+    first = poll()
+    assert style / "birds" in listed  # the style's birds were listed, and the listing was noted
+    listed.clear()
+    assert poll() == first
+    assert not [folder for folder in listed if folder.is_relative_to(style)]
 
 
 def test_a_limit_keeps_the_most_heard_and_the_ranking_takes_the_other_end(tmp_path, images, source):
