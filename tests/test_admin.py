@@ -444,6 +444,7 @@ def test_the_page_carries_the_link_for_a_detector_on_another_machine(tmp_path, s
     blob = _config(_page(tmp_path, source(), detector_url="http://birdnet.local:8080"))
     assert blob["birdnetUrl"] == "http://birdnet.local:8080"
     assert blob["birdnetPort"] is None
+    assert blob["speciesSearch"] is True  # its species link into BirdNET-Go's search
 
 
 def test_the_connection_test_tells_the_three_answers_apart(detector):
@@ -720,7 +721,7 @@ def test_the_detector_tab_names_the_station_and_what_it_last_heard(tmp_path, sta
     assert 'title="detection &amp; stats">BirdWeather</a>' in page  # the link carries no logo
     assert "<dt>Detector(s)</dt><dd><span id=" in page  # each station's line has its own
     blob = _config(page)
-    assert (blob["birdnetUrl"], blob["birdnetPort"], blob["kind"]) == (url, None, BIRDWEATHER)
+    assert (blob["birdnetUrl"], blob["birdnetPort"], blob["speciesSearch"]) == (url, None, False)
 
 
 def _detector_form(page: str) -> str:
@@ -796,7 +797,7 @@ def test_a_demo_says_where_its_birds_come_from_and_offers_no_detector(tmp_path, 
     assert '<span class="ok">a sample of birds near 43.665, -116.180</span>' in page
     assert 'name="detector_kind"' not in page  # chosen at install, so no form to leave it
     assert 'id="birdnet"' not in page  # nothing to link to
-    assert _config(page)["kind"] == DEMO
+    assert _config(page)["speciesSearch"] is False  # no BirdNET-Go search to link birds into
 
 
 def test_a_refused_save_says_it_was_not_saved(tmp_path, source):

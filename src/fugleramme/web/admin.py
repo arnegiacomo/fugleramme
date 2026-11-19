@@ -734,7 +734,8 @@ def page(
         config={
             "birdnetUrl": birdnet_url,
             "birdnetPort": birdnet_port,
-            "kind": settings.detector_kind,
+            # Only BirdNET-Go has a detections search for the species list to link into.
+            "speciesSearch": settings.detector_kind == BIRDNET_GO,
             "version": __version__,
             "passwordSet": PASSWORD_SET,
             "windowedModes": [k for k, m in MODES.items() if m.windowed],
