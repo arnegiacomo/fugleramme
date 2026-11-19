@@ -15,9 +15,10 @@ from PIL import features
 from fugleramme import fake, languages, modes
 from fugleramme.birdweather import BirdWeatherSource
 from fugleramme.config import BIRDNET_PORT, DEFAULT_DETECTOR_URL
+from fugleramme.demo import DemoSource
 from fugleramme.languages import namer
 from fugleramme.settings import MARGIN_CEILING, Settings, SettingsStore, merged
-from fugleramme.source import BIRDNET_GO, BIRDWEATHER, NEEDS_PASSWORD
+from fugleramme.source import BIRDNET_GO, BIRDWEATHER, DEMO, NEEDS_PASSWORD
 from fugleramme.status import Status
 from fugleramme.web import LOGIN, STATIC_DIR, admin, server
 
@@ -461,6 +462,7 @@ def test_the_page_carries_the_link_for_a_detector_on_another_machine(tmp_path, s
     blob = _config(_page(tmp_path, source(), detector_url="http://birdnet.local:8080"))
     assert blob["birdnetUrl"] == "http://birdnet.local:8080"
     assert blob["birdnetPort"] is None
+    assert blob["speciesSearch"] is True  # its species link into BirdNET-Go's search
 
 
 def test_the_connection_test_tells_the_three_answers_apart(detector):
@@ -737,7 +739,7 @@ def test_the_detector_tab_names_the_station_and_what_it_last_heard(tmp_path, sta
     assert 'title="detection &amp; stats">BirdWeather</a>' in page  # the link carries no logo
     assert "<dt>Detector(s)</dt><dd><span id=" in page  # each station's line has its own
     blob = _config(page)
-    assert (blob["birdnetUrl"], blob["birdnetPort"], blob["kind"]) == (url, None, BIRDWEATHER)
+    assert (blob["birdnetUrl"], blob["birdnetPort"], blob["speciesSearch"]) == (url, None, False)
 
 
 def _detector_form(page: str) -> str:
@@ -802,6 +804,18 @@ def test_birdweather_with_no_station_saved_says_so_without_asking(tmp_path, monk
     assert "$" not in page
     assert '<span id="detector-state"><span class="bad">no station saved</span></span>' in page
     assert "<dd>no station saved</dd>" in page  # the last detection, beside the row
+
+
+def test_a_demo_says_where_its_birds_come_from_and_offers_no_detector(tmp_path, monkeypatch):
+    monkeypatch.setattr(admin.hostinfo, "detector", lambda url: pytest.fail("asked a detector"))
+    place = {"demo_latitude": 43.665, "demo_longitude": -116.18}
+    page = _page(tmp_path, DemoSource(43.665, -116.18, tmp_path), detector_kind=DEMO, **place)
+
+    assert "$" not in page
+    assert '<span class="ok">a sample of birds near 43.665, -116.180</span>' in page
+    assert 'name="detector_kind"' not in page  # chosen at install, so no form to leave it
+    assert 'id="birdnet"' not in page  # nothing to link to
+    assert _config(page)["speciesSearch"] is False  # no BirdNET-Go search to link birds into
 
 
 def test_a_refused_save_says_it_was_not_saved(tmp_path, source):

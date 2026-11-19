@@ -28,7 +28,8 @@ locale list gets any answer, 401 included, and stays offered from then on.
 
 A BirdWeather station has none of that: `common_names` hands over every language
 its birds are named in at once, and those are the languages offered. They cache
-under `<cache_dir>/names/birdweather.json`, with the station they name.
+under `<cache_dir>/names/birdweather.json`, with the station they name. A demo
+frame hands over English the same way, off BirdNET's own labels.
 """
 
 from __future__ import annotations
@@ -46,6 +47,7 @@ from typing import Any
 from .source import (
     BIRDNET_GO,
     BIRDWEATHER,
+    DEMO,
     NEEDS_PASSWORD,
     NoSuchStation,
     Unavailable,
@@ -110,6 +112,11 @@ def _station() -> str:
     we run, and a password entered for the locale list must not sit out the
     retry TTL before it counts."""
     return str(getattr(_source, "station", ""))
+
+
+# Kinds that hand over all their names at once (`common_names`) rather than
+# being asked per language.
+_NAMED_BY_SOURCE = (BIRDWEATHER, DEMO)
 
 
 def _kind() -> str:
@@ -212,7 +219,7 @@ def catalog(cache_dir: Path) -> dict[str, str]:
     """
     global _catalog
     with _lock:
-        if _kind() == BIRDWEATHER:
+        if _kind() in _NAMED_BY_SOURCE:
             table = _birdweather(cache_dir)[2]
             return {SCIENTIFIC: "Scientific", **{code: _language_name(code) for code in table}}
         station = _station()
@@ -322,7 +329,7 @@ def catalog_failure() -> str:
     with the catalog rather than returned beside it: a list served off the disk
     cache is a working menu whatever the probe behind it just did."""
     with _lock:
-        if _kind() == BIRDWEATHER:
+        if _kind() in _NAMED_BY_SOURCE:
             return _translations[4] if _translations else ""
         return _catalog[5] if _catalog else ""
 
@@ -342,7 +349,7 @@ def dictionary(code: str, cache_dir: Path) -> tuple[dict[str, str], str]:
         return {}, ""
     global _station_locale
     with _lock:
-        if _kind() == BIRDWEATHER:
+        if _kind() in _NAMED_BY_SOURCE:
             _deadline, _held, table, version, _why = _birdweather(cache_dir)
             return table.get(code, {}), version
         station = _station()
