@@ -166,7 +166,7 @@ class Settings:
     # client id, so it is here only for an install that changed that id.
     detector_username: str = ""
     detector_password: str = ""
-    # Where a demo frame's made-up birds live (`demo.py`). None is anywhere: every
+    # Where a demo frame's birds are sampled from (`demo.py`). None is anywhere: every
     # bird with artwork, equally likely.
     demo_latitude: float | None = None
     demo_longitude: float | None = None

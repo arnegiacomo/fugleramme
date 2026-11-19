@@ -1,4 +1,4 @@
-"""Demo mode: made-up birds from a tile of GBIF checklists (#358)."""
+"""Demo mode: birds sampled from a tile of GBIF checklists (#358)."""
 
 from __future__ import annotations
 

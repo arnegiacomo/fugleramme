@@ -1,4 +1,4 @@
-"""Made-up birds for a frame with no detector (`Settings.detector_kind` DEMO, #358).
+"""Birds sampled from local records for a frame with no detector (`Settings.detector_kind` DEMO, #358).
 
 The birds come from GBIF checklists around the frame's location, by month, read
 out of a tile built by `tools/demo_tiles.py`. A tile holds a quadtree of GBIF's
@@ -124,7 +124,7 @@ def _anywhere() -> Weights:
 
 
 class DemoSource:
-    """A `source.Source` over made-up detections. Never `Unavailable`: there is
+    """A `source.Source` over detections sampled from the tile. Never `Unavailable`: there is
     nothing to reach once the tile is on disk."""
 
     kind = DEMO

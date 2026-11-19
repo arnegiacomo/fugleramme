@@ -123,7 +123,7 @@ def run(url: str, username: str, password: str, cache_dir: Path, kind: str = BIR
 
 
 def run_demo(source: DemoSource, cache_dir: Path) -> int:
-    """A demo has nothing to reach, only its made-up birds to read."""
+    """A demo has nothing to reach, only its sampled birds to read."""
     languages.use(source)
     print(f"{source.base_url}\n")
     return _reads(source, cache_dir, 0)

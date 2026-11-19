@@ -164,7 +164,7 @@ choose_detector() {
      2) yes - it already runs on this machine
      3) yes - it runs on another machine
      4) no - I'll use a BirdWeather station instead
-     5) no - just show the artwork (a demo, with made-up birds)
+     5) no - just show the artwork (a demo of local birds)
 EOF
     read -rp "   choice [$default] " choice </dev/tty || choice=$default
   fi

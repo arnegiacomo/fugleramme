@@ -191,9 +191,10 @@ def _kind_name(kind: str) -> str:
 
 
 def _demo_place(settings: Settings) -> str:
+    """Where a demo's birds are sampled near, or "" for anywhere."""
     if settings.demo_latitude is None or settings.demo_longitude is None:
-        return "anywhere"
-    return f"near {settings.demo_latitude:.3f}, {settings.demo_longitude:.3f}"
+        return ""
+    return f"{settings.demo_latitude:.3f}, {settings.demo_longitude:.3f}"
 
 
 NO_STATION = "no station saved"
@@ -367,7 +368,9 @@ def _status_row(settings: Settings, reading: bool, names_failure: str) -> tuple[
     """The saved detector's state and its Detector row. BirdWeather with no
     station saved has nothing to ask, so it says so. A demo has nothing to ask at all."""
     if settings.detector_kind == DEMO:
-        return "ok", _ROWS.state("ok", f"made-up birds {_demo_place(settings)}")
+        place = _demo_place(settings)
+        said = f"a sample of birds near {place}" if place else "any bird with artwork"
+        return "ok", _ROWS.state("ok", said)
     if settings.detector_kind != BIRDWEATHER:
         state, version = hostinfo.detector(settings.detector_url)
         return state, _ROWS.state(*_detector(state, version, reading, names_failure))

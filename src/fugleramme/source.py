@@ -2,7 +2,7 @@
 
 One protocol over the detector, so nothing above it knows whether it is the
 BirdNET-Go container beside it, an install across the house, a BirdWeather
-station or made-up birds. `api.ApiSource`, `birdweather.BirdWeatherSource` and
+station or a sample of the birds recorded nearby. `api.ApiSource`, `birdweather.BirdWeatherSource` and
 `demo.DemoSource` are the implementations.
 """
 
@@ -20,7 +20,7 @@ NEEDS_PASSWORD = "needs a password"
 
 # Which kind of detector the frame reads (`Settings.detector_kind`): `api.ApiSource`
 # reads a BirdNET-Go, `birdweather.BirdWeatherSource` a public BirdWeather station,
-# `demo.DemoSource` makes birds up. Demo is chosen at install only, so the admin
+# `demo.DemoSource` samples them from GBIF checklists. Demo is chosen at install only, so the admin
 # offers the first two (`admin.KINDS`).
 BIRDNET_GO = "birdnet-go"
 BIRDWEATHER = "birdweather"

@@ -27,7 +27,11 @@
   {% if demo %}
   {# Demo is chosen at install, so there is no form to switch it here. #}
   <div class="card block">
-    <p>This frame shows made-up birds {{ demo_place }}, picked from GBIF checklists for the month. There is no detector to set up.</p>
+    {%- if demo_place %}
+    <p>This frame shows a sample of the birds recorded near {{ demo_place }}, weighted by how often GBIF checklists there report each one this month. There is no detector to set up.</p>
+    {%- else %}
+    <p>This frame has no location, so any bird with artwork turns up. There is no detector to set up.</p>
+    {%- endif %}
     <p class="note">To read a BirdNET-Go or a BirdWeather station instead, run the installer again.</p>
   </div>
   {% else %}

@@ -793,7 +793,7 @@ def test_a_demo_says_where_its_birds_come_from_and_offers_no_detector(tmp_path, 
     page = _page(tmp_path, DemoSource(43.665, -116.18, tmp_path), detector_kind=DEMO, **place)
 
     assert "$" not in page
-    assert '<span class="ok">made-up birds near 43.665, -116.180</span>' in page
+    assert '<span class="ok">a sample of birds near 43.665, -116.180</span>' in page
     assert 'name="detector_kind"' not in page  # chosen at install, so no form to leave it
     assert 'id="birdnet"' not in page  # nothing to link to
     assert _config(page)["kind"] == DEMO
