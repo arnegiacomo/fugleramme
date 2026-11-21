@@ -2843,6 +2843,18 @@
    1200
   ]
  },
+ "birds/cacomantis-variolosus.webp": {
+  "box": [
+   0.34883023395320933,
+   0.2569026061437871,
+   0.9048290341931614,
+   0.8046195630698388
+  ],
+  "cut": [
+   1125,
+   1200
+  ]
+ },
  "birds/calamospiza-melanocorys.webp": {
   "box": [
    0.013503990526085958,
@@ -7703,6 +7715,18 @@
    626
   ]
  },
+ "birds/gallinula-tenebrosa.webp": {
+  "box": [
+   0.1202221235006664,
+   0.19976636248415716,
+   0.6714082629942246,
+   0.716914474017744
+  ],
+  "cut": [
+   1200,
+   701
+  ]
+ },
  "birds/gallirallus-philippensis.webp": {
   "box": [
    0.1792,
@@ -7941,6 +7965,18 @@
   "cut": [
    1200,
    926
+  ]
+ },
+ "birds/gerygone-mouki.webp": {
+  "box": [
+   0.125,
+   0.0504,
+   0.9717,
+   0.6675
+  ],
+  "cut": [
+   1200,
+   794
   ]
  },
  "birds/glareola-pratincola.webp": {
@@ -10653,6 +10689,18 @@
   "cut": [
    973,
    1200
+  ]
+ },
+ "birds/meliphaga-lewinii.webp": {
+  "box": [
+   0.045,
+   0.1336,
+   0.83,
+   0.8745
+  ],
+  "cut": [
+   1200,
+   988
   ]
  },
  "birds/melospiza-georgiana-2.webp": {
@@ -14600,6 +14648,18 @@
   ],
   "cut": [
    1087,
+   1200
+  ]
+ },
+ "birds/rhipidura-albiscapa.webp": {
+  "box": [
+   0.1064,
+   0.25,
+   0.727,
+   0.925
+  ],
+  "cut": [
+   1128,
    1200
   ]
  },
