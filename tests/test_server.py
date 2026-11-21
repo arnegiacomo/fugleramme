@@ -15,6 +15,7 @@ import time
 import urllib.parse
 import urllib.request
 from dataclasses import replace
+from datetime import datetime
 from http.server import ThreadingHTTPServer
 from types import SimpleNamespace
 from urllib.parse import urljoin
@@ -350,12 +351,15 @@ def test_the_e6_page_is_not_there_for_a_panel_it_cannot_pack(ext_eink_panel):
 
 
 @pytest.mark.parametrize("route", ["/frame.e6", "/frame.png"])
-def test_every_answer_to_an_external_panel_carries_the_rotation(ext_eink_panel, route):
+def test_every_answer_to_an_external_panel_carries_the_rotation_and_time(ext_eink_panel, route):
     url = ext_eink_panel.base + route
     ext_eink_panel.store.update(rotation=90)
 
     def answer(headers: dict | None = None) -> tuple[int, str]:
         status, sent, _body = _fetch(url, headers=headers)
+        sent_at = datetime.fromisoformat(sent["Fugleramme-Time"])
+        assert sent_at.utcoffset() == datetime.now().astimezone().utcoffset()
+        assert abs((datetime.now().astimezone() - sent_at).total_seconds()) < 5
         return status, sent["Fugleramme-Rotation"]
 
     assert answer() == (503, "90")
@@ -370,10 +374,11 @@ def test_every_answer_to_an_external_panel_carries_the_rotation(ext_eink_panel, 
 
 
 @pytest.mark.parametrize("route", ["/collage.png", "/health"])
-def test_the_rotation_is_only_on_the_external_panel_s_pages(ext_eink_panel, route):
+def test_the_client_headers_are_only_on_the_external_panel_s_pages(ext_eink_panel, route):
     ext_eink_panel.status.frame = (_dithered(1), 0)
     status, headers, _body = _fetch(ext_eink_panel.base + route)
     assert status == 200 and "Fugleramme-Rotation" not in headers
+    assert "Fugleramme-Time" not in headers
 
 
 def test_the_preview_follows_this_frame_s_inky_whatever_the_external_size(tmp_path, source):
