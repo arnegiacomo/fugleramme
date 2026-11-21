@@ -208,6 +208,8 @@ already dithered and rotated as necessary.
 Choose your panel size under **External panel size**. **Rotation**, **Margin** and
 **Panel refresh** all apply to it. Until you choose one, it gets the same as the Inky connected to this frame, or a 13.3" page if there is none.
 
+Responses from `/frame.e6` and `/frame.png` (errors included) include a `Fugleramme-Rotation` header with the **Rotation**, so an external client can draw its own messages and such the right way up.
+
 ### Buttons
 
 An external panel's buttons work just like the [frame's own](operations.md#buttons), through a form `POST` to `/press`:

@@ -344,8 +344,36 @@ def test_the_e6_page_is_not_there_for_a_panel_it_cannot_pack(ext_eink_panel):
     ext_eink_panel.store.update(external_panel_size="4")
     ext_eink_panel.status.frame = (Image.new("P", (640, 400), 1), 0)
 
-    status, _headers, body = _fetch(ext_eink_panel.base + "/frame.e6")
+    status, headers, body = _fetch(ext_eink_panel.base + "/frame.e6")
     assert status == 404 and b'7.3" and 13.3"' in body
+    assert headers["Fugleramme-Rotation"] == "0"
+
+
+@pytest.mark.parametrize("route", ["/frame.e6", "/frame.png"])
+def test_every_answer_to_an_external_panel_carries_the_rotation(ext_eink_panel, route):
+    url = ext_eink_panel.base + route
+    ext_eink_panel.store.update(rotation=90)
+
+    def answer(headers: dict | None = None) -> tuple[int, str]:
+        status, sent, _body = _fetch(url, headers=headers)
+        return status, sent["Fugleramme-Rotation"]
+
+    assert answer() == (503, "90")
+
+    ext_eink_panel.status.frame = (Image.new("P", (1200, 1600), 1), 90)
+    assert answer() == (200, "90")
+    etag = _fetch(url)[1]["ETag"]
+    assert answer({"If-None-Match": etag}) == (304, "90")
+
+    ext_eink_panel.store.update(external_panel=False, rotation=270)
+    assert answer() == (404, "270")
+
+
+@pytest.mark.parametrize("route", ["/collage.png", "/health"])
+def test_the_rotation_is_only_on_the_external_panel_s_pages(ext_eink_panel, route):
+    ext_eink_panel.status.frame = (_dithered(1), 0)
+    status, headers, _body = _fetch(ext_eink_panel.base + route)
+    assert status == 200 and "Fugleramme-Rotation" not in headers
 
 
 def test_the_preview_follows_this_frame_s_inky_whatever_the_external_size(tmp_path, source):
