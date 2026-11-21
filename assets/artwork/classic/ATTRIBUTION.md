@@ -70,9 +70,9 @@ by the Biodiversity Heritage Library are additionally offered under CC BY 2.0.
 Manifest key: `keulemans`.
 
 **Grönvold** - plates by **Henrik Grönvold** (1858-1940) for *The Birds of Australia* by
-**Gregory M. Mathews**, vol. 12 (1925-1927), Museums Victoria scans via the
+**Gregory M. Mathews** (1910-1927), Smithsonian Libraries and Museums Victoria scans via the
 [Biodiversity Heritage Library](https://www.biodiversitylibrary.org/bibliography/126732) and the
-[Internet Archive](https://archive.org/details/birdsaustraliaxiimath);
+[Internet Archive](https://archive.org/search?query=title%3A%28birds+of+australia%29+AND+creator%3A%28mathews%29);
 and for *The Ibis* (1912), printed by **West, Newman**, from the Commons category
 [Ibis (1912)](https://commons.wikimedia.org/wiki/Category:Ibis_(1912)).
 Public domain (PD-old-70-expired; Grönvold died 1940). Manifest key: `gronvold`.
