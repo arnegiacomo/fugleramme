@@ -2,6 +2,114 @@
 
 <!-- version list -->
 
+## v0.33.0 (2026-11-21)
+
+### Bug Fixes
+
+- #308 wrap the inline install command and quiet fontTools' log
+  ([`d9d7922`](https://github.com/arnegiacomo/fugleramme/commit/d9d79223fb7c6b214cf885f2f9836f8abf99f28c))
+
+- #396 hand freed render memory back to the system
+  ([`62948ee`](https://github.com/arnegiacomo/fugleramme/commit/62948eede03fed1a455a3cc27829f20229d7dec9))
+
+### Chores
+
+- **assets**: #33 add 11 North American birds and 5 variants
+  ([`a239324`](https://github.com/arnegiacomo/fugleramme/commit/a2393245868be62a90199a06896c040b425f0733))
+
+- **assets**: #33 add 14 North American birds and 2 variants
+  ([`3cd54f4`](https://github.com/arnegiacomo/fugleramme/commit/3cd54f4cf457153cd4681321c1c1155a1ed97998))
+
+- **assets**: #33 add 3 North American birds
+  ([`c727571`](https://github.com/arnegiacomo/fugleramme/commit/c727571a463eb0ee5550235820394264b358e206))
+
+- **assets**: #33 add 5 North American birds
+  ([`86739cc`](https://github.com/arnegiacomo/fugleramme/commit/86739cc5c6174b68ba3dd92691e9f3bb586c6f36))
+
+- **assets**: #33 add 6 North American birds and 7 variants
+  ([`383dfb5`](https://github.com/arnegiacomo/fugleramme/commit/383dfb5746ddd562e767f2a053c125b3c515756b))
+
+- **assets**: #33 add 7 North American birds and 7 variants
+  ([`b43bef8`](https://github.com/arnegiacomo/fugleramme/commit/b43bef829a84fa0b7a4107a6f6c5f1a7357a5329))
+
+- **assets**: #33 add Larus occidentalis
+  ([#395](https://github.com/arnegiacomo/fugleramme/pull/395),
+  [`2e7f5c3`](https://github.com/arnegiacomo/fugleramme/commit/2e7f5c34583019bec7aaa7b3593d39150fd564f5))
+
+- **assets**: Add 4 Thai birds ([#383](https://github.com/arnegiacomo/fugleramme/pull/383),
+  [`9048294`](https://github.com/arnegiacomo/fugleramme/commit/9048294349904b52e80142d38a28c701c27612c2))
+
+- **assets**: Add Eopsaltria australis, Macropygia phasianella and Phaps chalcoptera
+  ([#402](https://github.com/arnegiacomo/fugleramme/pull/402),
+  [`3b462ae`](https://github.com/arnegiacomo/fugleramme/commit/3b462aee4de750137c202be969001ce0f46deed4))
+
+- **assets**: Add Philemon corniculatus ([#400](https://github.com/arnegiacomo/fugleramme/pull/400),
+  [`b8215a0`](https://github.com/arnegiacomo/fugleramme/commit/b8215a0d807d96aada2270a68aa26ce0b599333b))
+
+- **assets**: Add Porphyrio melanotus, Psophodes olivaceus and Strepera versicolor
+  ([#405](https://github.com/arnegiacomo/fugleramme/pull/405),
+  [`142bbc9`](https://github.com/arnegiacomo/fugleramme/commit/142bbc98652b0b264fab88420659ccd8c1082f07))
+
+- **assets**: Use the cleaner Gould cut for Alectoris barbara
+  ([`9df2854`](https://github.com/arnegiacomo/fugleramme/commit/9df2854d004ad7f8c5535e1b8ff1f3988fe968e1))
+
+- **deps**: Bump docker/login-action from 3 to 4 in the actions group
+  ([#391](https://github.com/arnegiacomo/fugleramme/pull/391),
+  [`1a644a2`](https://github.com/arnegiacomo/fugleramme/commit/1a644a25357a9afe89e70fd865e79d2785a36d8e))
+
+- **deps**: Bump the python group with 3 updates
+  ([#392](https://github.com/arnegiacomo/fugleramme/pull/392),
+  [`89b2f56`](https://github.com/arnegiacomo/fugleramme/commit/89b2f569e515e2d3fb25a4c17cf62747ee56fbb3))
+
+### Continuous Integration
+
+- Check that showcased frames ask for a sign-in
+  ([`3f38c7b`](https://github.com/arnegiacomo/fugleramme/commit/3f38c7b6a28e95f0da0a4503acf7fd638d0416d1))
+
+### Documentation
+
+- Add a breadcrumb for the clients repo
+  ([`28b2256`](https://github.com/arnegiacomo/fugleramme/commit/28b22560aae2395c85e10f1b1deff3fa2cf2f0fa))
+
+- Name both XIAO boards in the screens diagram
+  ([`5b9db6e`](https://github.com/arnegiacomo/fugleramme/commit/5b9db6e50a460ce1badf95fc85a14fc41cdbd158))
+
+- Say to set an admin password before sharing a frame
+  ([`9996d72`](https://github.com/arnegiacomo/fugleramme/commit/9996d725003408656765bc42ce326fe6f309150e))
+
+- **clients**: Add photo of Spectra 6 13.3" display to screens.md
+  ([#393](https://github.com/arnegiacomo/fugleramme/pull/393),
+  [`d08fdd3`](https://github.com/arnegiacomo/fugleramme/commit/d08fdd3dcaba08b55c802e42d35eace8471e1f0d))
+
+### Features
+
+- #355 wrap a frame as a gift ([#369](https://github.com/arnegiacomo/fugleramme/pull/369),
+  [`883431a`](https://github.com/arnegiacomo/fugleramme/commit/883431ad99377ab966ea8f96cc41161852c0db89))
+
+- Pack /frame.e6 for the 7.3" panel ([#346](https://github.com/arnegiacomo/fugleramme/pull/346),
+  [`82b91c5`](https://github.com/arnegiacomo/fugleramme/commit/82b91c501b8557681c2ca336828f02b8454c6982))
+
+- Serve the frame under a base path ([#403](https://github.com/arnegiacomo/fugleramme/pull/403),
+  [`f0bc396`](https://github.com/arnegiacomo/fugleramme/commit/f0bc396a4e39f805bde7ff16f5d270fa1b311bd2))
+
+- **web**: Add a script-free /plain page for old browsers
+  ([#390](https://github.com/arnegiacomo/fugleramme/pull/390),
+  [`233c9fc`](https://github.com/arnegiacomo/fugleramme/commit/233c9fc7bb71f981910a5a742f75e4f62b4192d1))
+
+### Performance Improvements
+
+- #396 lower the memory a render needs
+  ([`56682d4`](https://github.com/arnegiacomo/fugleramme/commit/56682d4e7db73f0cd925f57905189d543d17e2b2))
+
+- Render a page about four times faster
+  ([`1025bb4`](https://github.com/arnegiacomo/fugleramme/commit/1025bb40b09d9172460ed5381f696b1a3c6dd181))
+
+### Testing
+
+- #396 add regression tests for the memory and speed work
+  ([`e4e32fe`](https://github.com/arnegiacomo/fugleramme/commit/e4e32fec75481b926fab916e344a20a6250331f7))
+
+
 ## v0.32.0 (2026-11-11)
 
 ### Chores
