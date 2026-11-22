@@ -2655,9 +2655,13 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/roscoes-yellow-throat"
   },
+  "birds/gerygone-mouki-2.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14782"
+  },
   "birds/gerygone-mouki.webp": {
-    "source": "gronvold",
-    "url": "https://archive.org/details/birdsaustralia8math/page/n304/mode/1up"
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14782"
   },
   "birds/glareola-pratincola.webp": {
     "source": "gould",
