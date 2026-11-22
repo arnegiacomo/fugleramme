@@ -947,6 +947,10 @@
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/13986"
   },
+  "birds/cacomantis-variolosus.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/birdsAustraliav4Goul/page/n359/mode/1up"
+  },
   "birds/calamospiza-melanocorys.webp": {
     "source": "audubon",
     "url": "https://commons.wikimedia.org/wiki/File:390_I._Lark_Finch_-_2._Prairie_Finch_-_3._Brown_Song_Sparrow.jpg"
@@ -2567,6 +2571,10 @@
     "source": "audubon",
     "url": "https://archive.org/details/birdsofamericafr05audu/page/n184/mode/1up"
   },
+  "birds/gallinula-tenebrosa.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/birdsAustraliav6Goul/page/n299/mode/1up"
+  },
   "birds/gallirallus-philippensis.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/13206"
@@ -2646,6 +2654,14 @@
   "birds/geothlypis-trichas.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/roscoes-yellow-throat"
+  },
+  "birds/gerygone-mouki-2.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14782"
+  },
+  "birds/gerygone-mouki.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14782"
   },
   "birds/glareola-pratincola.webp": {
     "source": "gould",
@@ -3550,6 +3566,14 @@
   "birds/meleagris-gallopavo.webp": {
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/wild-turkey"
+  },
+  "birds/meliphaga-lewinii-2.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/birdsAustraliav4Goul/page/n139/mode/1up"
+  },
+  "birds/meliphaga-lewinii.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/birdsAustraliav4Goul/page/n139/mode/1up"
   },
   "birds/melospiza-georgiana-2.webp": {
     "source": "fuertes",
@@ -4866,6 +4890,10 @@
   "birds/remiz-pendulinus.webp": {
     "source": "dresser",
     "url": "https://archive.org/details/historyofbirdsof13dres/page/n215/mode/1up"
+  },
+  "birds/rhipidura-albiscapa.webp": {
+    "source": "gould",
+    "url": "https://archive.org/details/birdsAustraliav2Goul/page/n339/mode/1up"
   },
   "birds/rhipidura-leucophrys.webp": {
     "source": "gould",
