@@ -23,6 +23,10 @@ services:
       - ./config:/config
       # Persistent: BirdNET-Go's own database and config. The frame reads the API.
       - ./data:/data
+      # The host's avahi, so an RTSP source can be named `<host>.local`: the image
+      # has nss-mdns but no daemon to ask. The folder, not the socket, so the mount
+      # outlives an avahi restart.
+      - /run/avahi-daemon:/run/avahi-daemon:ro
     # Throwaway churn kept off the card: debug logs (~26GB ceiling at BirdNET-Go's
     # defaults) and HLS segments. Sized so a runaway logger fills RAM, not disk.
     tmpfs:
