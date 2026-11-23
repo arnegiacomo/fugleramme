@@ -2343,6 +2343,10 @@
     "source": "hahn",
     "url": "https://commons.wikimedia.org/wiki/File:Ploceus_oryx_-_1700-1880_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ15900083.tif"
   },
+  "birds/eurystomus-orientalis.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/15106"
+  },
   "birds/falco-biarmicus.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeILanner_Falcon.jpg"
@@ -3987,6 +3991,10 @@
     "source": "gould",
     "url": "https://archive.org/details/birdsAustraliav2Goul/page/n147/mode/1up"
   },
+  "birds/pardalotus-striatus.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/15022"
+  },
   "birds/parkesia-motacilla.webp": {
     "source": "audubon",
     "url": "https://media.audubon.org/boa_illustration/plate-19-louisiana-water-thrush.jpg"
@@ -4643,6 +4651,10 @@
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14563982960).jpg"
   },
+  "birds/poodytes-gramineus.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14596"
+  },
   "birds/pooecetes-gramineus.webp": {
     "source": "fuertes",
     "url": "https://commons.wikimedia.org/wiki/Category:Birds_of_New_York_(1912)#/media/File:Annual_report_(1912)_(17806778914).jpg"
@@ -4914,6 +4926,10 @@
   "birds/rhipidura-leucophrys.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/14830"
+  },
+  "birds/rhipidura-rufifrons.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14838"
   },
   "birds/riparia-riparia-2.webp": {
     "source": "vonwright",
@@ -5602,6 +5618,10 @@
   "birds/tachymarptis-melba.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIWhite-bellied_Swift.jpg"
+  },
+  "birds/tachyspiza-cirrocephala.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/15260"
   },
   "birds/tachyspiza-fasciata.webp": {
     "source": "gould",
