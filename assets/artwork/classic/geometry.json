@@ -47,6 +47,18 @@
    760
   ]
  },
+ "birds/acanthorhynchus-tenuirostris.webp": {
+  "box": [
+   0.3899,
+   0.3852,
+   0.6882,
+   0.5398
+  ],
+  "cut": [
+   697,
+   1200
+  ]
+ },
  "birds/accipiter-nisus-2.webp": {
   "box": [
    0.0319324126066985,
@@ -345,6 +357,18 @@
   "cut": [
    1069,
    1087
+  ]
+ },
+ "birds/aegotheles-cristatus.webp": {
+  "box": [
+   0.1132,
+   0.4889,
+   0.609,
+   0.7285
+  ],
+  "cut": [
+   950,
+   1200
   ]
  },
  "birds/aegypius-monachus.webp": {
@@ -9791,6 +9815,18 @@
    692
   ]
  },
+ "birds/leucosarcia-melanoleuca.webp": {
+  "box": [
+   0.2643,
+   0.2879,
+   0.8693,
+   0.8262
+  ],
+  "cut": [
+   1200,
+   717
+  ]
+ },
  "birds/limosa-lapponica-2.webp": {
   "box": [
    0.011028088331222534,
@@ -10820,6 +10856,18 @@
   ],
   "cut": [
    935,
+   1200
+  ]
+ },
+ "birds/menura-novaehollandiae.webp": {
+  "box": [
+   0.0663,
+   0.4469,
+   0.6085,
+   0.8549
+  ],
+  "cut": [
+   819,
    1200
   ]
  },
@@ -18453,6 +18501,18 @@
   "cut": [
    1200,
    1030
+  ]
+ },
+ "birds/zosterops-lateralis.webp": {
+  "box": [
+   0.3343,
+   0.2605,
+   0.4797,
+   0.463
+  ],
+  "cut": [
+   775,
+   1200
   ]
  },
  "birds/zosterops-simplex.webp": {
