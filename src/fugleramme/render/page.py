@@ -21,6 +21,7 @@ INK = (30, 30, 30)
 PANEL_INK = (0, 0, 0)  # exact palette black: the dither leaves it alone
 
 MIN_LABEL_PX = 11
+SECOND_LANGUAGE = 0.90  # a second language's line, against the name's size
 _LINE_SPACING = 0.1  # extra leading between a label's two lines, em
 _PERCH_FILL = 0.7  # of the page's short side
 # Ends a label's first line for a bird new to the station. Drawn as the face's
@@ -71,6 +72,15 @@ def banded(page: Image.Image, margin: Edges, ink: int | tuple[int, int, int]) ->
 def label_px(width: int, height: int, size_key: str) -> int:
     _name, scale = fonts.LABEL_SIZES.get(size_key, fonts.LABEL_SIZES[fonts.DEFAULT_LABEL_SIZE])
     return max(MIN_LABEL_PX, round(min(width, height) * scale))
+
+
+def second_share(px: float, short: int, glass: int) -> float:
+    """How large a second language is set against a name of `px` on a page whose
+    short side is `short`: SECOND_LANGUAGE, or more where that would leave it under
+    MIN_LABEL_PX on the glass the page is for, whose short side is `glass`. The pack
+    and every output of a page agree on it, since it is a share of the page."""
+    floor = MIN_LABEL_PX * short / glass
+    return min(1.0, max(SECOND_LANGUAGE, floor / px))
 
 
 def trim(path: Path) -> Image.Image:
@@ -127,19 +137,23 @@ def draw_mark(mask: Image.Image, x: float, baseline: float, font: ImageFont.Free
     mask.paste(255, _mark_corner(mark, offset, x, baseline, _cap(font)), mark)
 
 
-def text_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool, ink: bool = True) -> Image.Image:
+def text_mask(
+    text: str, font: ImageFont.FreeTypeFont, flat: bool, ink: bool = True, second: float = 1.0
+) -> Image.Image:
     """Text as an "L" alpha mask, +1px so the italic's overhang is not shaved.
     Newlines stack centred (a second language) on the text layout's own
     baselines - separately trimmed masks would sit unevenly. Flat draws in
     mode "1" (`flat_mode`), so the mask holds no grey for the dither to speckle
     into colour. A first line ending in NEW gets its mark; whatever it reaches
     past the text on the right is matched on the left, so the name stays centred.
-    A label with a line in a fallback face (`fonts.face`) is stacked by hand.
+    A label with a line in a fallback face (`fonts.face`), or a second language
+    set `second` times the name's size, is stacked by hand.
     Without `ink` the mask is sized and its text left undrawn, which is most of the cost."""
     first, *rest = text.split("\n")
     marked = first.endswith(NEW)
     lines = [first.removesuffix(NEW), *rest]
-    faces = [fonts.face(line, font) for line in lines]
+    under = fonts.resized(font, max(1, round(font.size * second))) if second != 1 else font
+    faces = [fonts.face(line, font if k == 0 else under) for k, line in enumerate(lines)]
     mode = flat_mode(flat)
     if all(face is font for face in faces):
         mask, origin = _multiline("\n".join(lines), font, mode, ink)
@@ -220,9 +234,11 @@ def _with_mark(
     return grown
 
 
-def text_room(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:
+def text_room(
+    text: str, font: ImageFont.FreeTypeFont, flat: bool, second: float = 1.0
+) -> Image.Image:
     """A mask the size of `text_mask`'s, its text undrawn. The pack reads a label's size alone."""
-    return text_mask(text, font, flat, ink=False)
+    return text_mask(text, font, flat, ink=False, second=second)
 
 
 def figures_mask(text: str, font: ImageFont.FreeTypeFont, flat: bool) -> Image.Image:

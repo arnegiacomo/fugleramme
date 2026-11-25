@@ -22,6 +22,7 @@ from .page import (
     draw_perch,
     fit,
     label_px,
+    second_share,
     stamp,
     text_mask,
     trim,
@@ -54,8 +55,10 @@ def render_plate(
     perches: Sequence[Path] = (),
     day: int | None = None,
     margin: Edges = NO_MARGIN,
+    glass: int | None = None,
 ) -> Image.Image:
-    """The page for one bird, or the empty perch when there is none to draw."""
+    """The page for one bird, or the empty perch when there is none to draw. `glass`
+    is the short side of the screen the page is for, if not this output's."""
     width, height = resolution
     canvas = blank(resolution, textured)
     if art_path is None:
@@ -65,7 +68,9 @@ def render_plate(
     x0, y0, x1, y1 = effective_margin(margin).window(resolution)
     name_px = round(label_px(width, height, label_size) * _NAME_SCALE)
     lines = (
-        _fitted(name, note, name_px, font_key, not textured, x1 - x0) if show_names and name else []
+        _fitted(name, note, name_px, font_key, not textured, x1 - x0, glass or min(resolution))
+        if show_names and name
+        else []
     )
     caption = sum(mask.height + gap for mask, gap in lines)
 
@@ -85,10 +90,12 @@ def render_plate(
 
 
 def _caption(
-    name: str, note: str, name_px: int, font_key: str, flat: bool
+    name: str, note: str, name_px: int, font_key: str, flat: bool, glass: int
 ) -> list[tuple[Image.Image, int]]:
     """The name and the note under it, each mask with the gap above it."""
-    lines = [(text_mask(name, fonts.load(font_key, name_px), flat), round(name_px * _NAME_GAP))]
+    font = fonts.load(font_key, name_px)
+    second = second_share(name_px, glass, glass)
+    lines = [(text_mask(name, font, flat, second=second), round(name_px * _NAME_GAP))]
     if not note:
         return lines
     note_mask = text_mask(note, fonts.load(font_key, round(name_px * _NOTE_SCALE)), flat)
@@ -96,16 +103,16 @@ def _caption(
 
 
 def _fitted(
-    name: str, note: str, name_px: int, font_key: str, flat: bool, width: int
+    name: str, note: str, name_px: int, font_key: str, flat: bool, width: int, glass: int
 ) -> list[tuple[Image.Image, int]]:
     """The caption at `name_px`, or shrunk as one until its widest line fits
     `width`. A face's advance is not exactly proportional to its size, so the
     scaled guess is stepped down until it fits."""
-    lines = _caption(name, note, name_px, font_key, flat)
+    lines = _caption(name, note, name_px, font_key, flat, glass)
     widest = max(mask.width for mask, _ in lines)
     px = name_px * width // widest
     while widest > width and px > 1:
-        lines = _caption(name, note, px, font_key, flat)
+        lines = _caption(name, note, px, font_key, flat, glass)
         widest = max(mask.width for mask, _ in lines)
         px -= 1
     return lines

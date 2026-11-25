@@ -70,6 +70,9 @@ class Context:
     spotlight: bool
     margin: Edges  # of the short side; the settings are percents
     textured: bool = True
+    # The short side of the screen the page is for, when it is drawn at another
+    # size (a kiosk locked to the panel): how small a second language may get.
+    glass: int | None = None
 
     def perches(self):
         return perches_for(self.images_dir, self.style)
@@ -88,8 +91,10 @@ def context(
     resolution: tuple[int, int],
     textured: bool = True,
     panel: bool = False,
+    glass: int | None = None,
 ) -> Context:
-    """`panel`: the page is the panel's or follows it, and takes its edges."""
+    """`panel`: the page is the panel's or follows it, and takes its edges.
+    `glass`: the short side of the screen it is for, if not `resolution`'s."""
     keyed = settings.show_names and settings.name_key
     return Context(
         mode=settings.mode,
@@ -110,6 +115,7 @@ def context(
         spotlight=settings.spotlight,
         margin=Edges(*(m / 100 for m in settings.margins(panel))),
         textured=textured,
+        glass=glass,
     )
 
 
@@ -185,6 +191,7 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
         ctx.label_size,
         ctx.perches(),
         margin=ctx.margin,
+        glass=ctx.glass,
     )
 
 
@@ -244,6 +251,7 @@ def _collage(ctx: Context) -> Image.Image:
         ctx.margin,
         ctx.name_key,
         spotlit,
+        ctx.glass,
     )
 
 
@@ -351,6 +359,7 @@ def state_key(ctx: Context) -> tuple:
         ctx.mode,
         ctx.style,
         ctx.resolution,
+        ctx.glass,
         ctx.show_names,
         ctx.font_key,
         ctx.label_size,

@@ -81,6 +81,7 @@ def main(argv: list[str] | None = None) -> None:
             name_of,
             replace(settings, web_lock=True).web_size(panel.resolution if panel else None),
             panel=panel is not None,
+            glass=min(panel.resolution) if panel else None,
         )
         try:
             page = modes.render(ctx)
