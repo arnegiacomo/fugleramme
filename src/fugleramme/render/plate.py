@@ -16,6 +16,7 @@ from PIL import Image
 from . import fonts
 from .page import (
     NO_MARGIN,
+    SECOND_LANGUAGE,
     Edges,
     blank,
     day_ordinal,
@@ -88,7 +89,8 @@ def _caption(
     name: str, note: str, name_px: int, font_key: str, flat: bool
 ) -> list[tuple[Image.Image, int]]:
     """The name and the note under it, each mask with the gap above it."""
-    lines = [(text_mask(name, fonts.load(font_key, name_px), flat), round(name_px * _NAME_GAP))]
+    font = fonts.load(font_key, name_px)
+    lines = [(text_mask(name, font, flat, second=SECOND_LANGUAGE), round(name_px * _NAME_GAP))]
     if not note:
         return lines
     note_mask = text_mask(note, fonts.load(font_key, round(name_px * _NOTE_SCALE)), flat)

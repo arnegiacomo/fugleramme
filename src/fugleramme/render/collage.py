@@ -52,6 +52,7 @@ from .page import (
     flat_mode,
     label_px,
     mark_room,
+    second_share,
     stamp,
     text_mask,
     text_room,
@@ -458,6 +459,7 @@ def render_collage(
     margin: Edges = _DEFAULT_EDGES,
     name_key: bool = False,
     spotlight: str | None = None,
+    glass: int | None = None,
 ) -> Image.Image:
     """Composite the given (name, image) entries into a tightly packed collage.
 
@@ -469,6 +471,7 @@ def render_collage(
     margin: bare paper along each edge, as fractions of the short side.
     name_key: with names on, number the birds and list the names in a key.
     spotlight: the entry drawn large in the middle, the rest packed round it.
+    glass: the short side of the screen the page is for, if not this output's.
     """
     canvas = blank(resolution, textured)
 
@@ -476,9 +479,19 @@ def render_collage(
     if not kept:
         draw_perch(canvas, perches, day_ordinal(), textured)
         return canvas
+    glass = glass or min(resolution)
     if show_names and name_key:
         _draw_keyed(
-            canvas, kept, textured, font_key, label_size, label_text, layout, margin, spotlight
+            canvas,
+            kept,
+            textured,
+            font_key,
+            label_size,
+            label_text,
+            layout,
+            margin,
+            glass,
+            spotlight,
         )
         return canvas
 
@@ -498,7 +511,9 @@ def render_collage(
         label_text,
         layout,
         margin,
-        spotlight=spotlight,
+        _with_second(text_room, _PACK_SHORT, glass),
+        spotlight,
+        glass,
     )
     # Names last: halos feather past the collision mask, so a name drawn inline
     # with the birds would be washed over by the next neighbour.
@@ -506,8 +521,16 @@ def render_collage(
         font = fonts.load(font_key, max(1, round(used_px * scale)))
         texts = {p.index: label_text(names[p.index]) for p in placed}
         held = names.index(spotlight) if spotlight in names else None
-        _stamp_labels(canvas, placed, texts, font, scale, (0, 0), textured, held=held)
+        mask_of = _with_second(text_mask, min(resolution), glass)
+        _stamp_labels(canvas, placed, texts, font, scale, (0, 0), textured, mask_of, held)
     return canvas
+
+
+def _with_second(draw: Callable[..., Image.Image], short: int, glass: int) -> _Mask:
+    """`draw` with a second language at its share of the size it is drawn at."""
+    return lambda text, font, flat: draw(
+        text, font, flat, second=second_share(font.size, short, glass)
+    )
 
 
 def _draw_birds(
@@ -524,6 +547,7 @@ def _draw_birds(
     margin: Edges,
     mask_of: _Mask = text_room,
     spotlight: str | None = None,
+    glass: int = _PACK_SHORT,
 ) -> tuple[tuple[_Placed, ...], int]:
     """Pack the birds into a `pack` box and draw them at `origin`, `scale`
     times larger, labels reserved but not drawn. Returns the placements and
@@ -543,6 +567,7 @@ def _draw_birds(
         layout,
         margin,
         spotlight,
+        glass,  # how small a second language may get
     )
     placed, used_px = _placements(
         key,
@@ -619,11 +644,16 @@ class _Key:
 
 
 def _fit_key(
-    texts: list[list[str]], font_key: str, px: int, box: tuple[int, int, int, int]
+    texts: list[list[str]],
+    font_key: str,
+    px: int,
+    box: tuple[int, int, int, int],
+    glass: int | None = None,
 ) -> tuple[_Key, tuple[int, int, int, int]]:
     """Lay the key out in pack pixels below a portrait page's birds or beside a
     landscape one's, shrinking its type until it takes no more than `_KEY_SHARE`
-    of the page. Returns the key and the box left for the birds."""
+    of the page. Returns the key and the box left for the birds. With the `glass`
+    the page is for, a second language is set at its share (`second_share`)."""
     x0, y0, x1, y1 = box
     bw, bh = x1 - x0, y1 - y0
     below = bh > bw
@@ -636,7 +666,11 @@ def _fit_key(
         num_w = math.ceil(font.getlength(f"{len(texts)}."))
         space = round(px * 0.4)
         gutter = round(px * 1.2)
-        widest = max(_line_width(part, font) for t in texts for part in t)
+        second = second_share(px, _PACK_SHORT, glass) if glass else 1.0
+        under = fonts.resized(font, max(1, round(px * second)))
+        widest = max(
+            _line_width(part, under if k else font) for t in texts for k, part in enumerate(t)
+        )
         col_w = num_w + space + math.ceil(widest) + gutter
         # The last entry ends at its descenders, not its leading.
         last = (depth - 1) * line + sum(font.getmetrics())
@@ -703,6 +737,7 @@ def _draw_keyed(
     label_text: Callable[[str], str],
     layout: str,
     margin: Edges,
+    glass: int,
     spotlight: str | None = None,
 ) -> None:
     """The birds with a number each, and their names in a key. The key is fitted
@@ -712,7 +747,7 @@ def _draw_keyed(
     pw, ph = round(w / scale), round(h / scale)
     texts = [label_text(name).split("\n") for name, _ in kept]
     key, (bx0, by0, bx1, by1) = _fit_key(
-        texts, font_key, label_px(pw, ph, label_size), margin.window((pw, ph))
+        texts, font_key, label_px(pw, ph, label_size), margin.window((pw, ph)), glass
     )
 
     # Numbering waits on the pack, so every bird reserves room for any number.
@@ -742,6 +777,7 @@ def _draw_keyed(
 
     pad = max(1, round(key.px * scale))  # also room for the italic's overhang, cropped off below
     font = fonts.load(font_key, pad)
+    under = fonts.resized(font, max(1, round(pad * second_share(key.px, _PACK_SHORT, glass))))
     ascent = font.getmetrics()[0]
     ax0, ay0, ax1, ay1 = (round(v * scale) for v in key.area)
     mask = Image.new(flat_mode(not textured), (ax1 - ax0 + 2 * pad, ay1 - ay0 + 2 * pad), 0)
@@ -754,7 +790,7 @@ def _draw_keyed(
         for k, part in enumerate(texts[p.index]):
             at = (x + round(key.space * scale), y + round(k * key.line * scale))
             line = part.removesuffix(NEW)
-            face = fonts.face(line, font)
+            face = fonts.face(line, under if k else font)
             draw.text(at, line, font=face, fill=255, anchor="ls")
             if line != part:
                 draw_mark(mask, at[0] + face.getlength(line), at[1], face)

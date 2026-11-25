@@ -82,7 +82,7 @@ packed around it. Default is **off**.
 **Show species names** turns the labels on and off, same as **B** on the panel.
 
 Names come from BirdNET-Go or BirdWeather. Pick a **primary language** and optionally a second,
-which stacks underneath in parentheses. Which languages are supported, and how they
+which stacks underneath in parentheses, slightly smaller. Which languages are supported, and how they
 are drawn, is in [Languages](languages.md).
 
 **Typeface** and **size** apply to every label.

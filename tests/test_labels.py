@@ -21,11 +21,14 @@ from fugleramme.render.packing import _probes, spiral
 from fugleramme.render.page import (
     _LINE_SPACING,
     INK,
+    MIN_LABEL_PX,
     NEW,
     PANEL_INK,
+    SECOND_LANGUAGE,
     Edges,
     figures_mask,
     label_px,
+    second_share,
     stamp,
     text_mask,
     text_room,
@@ -133,6 +136,46 @@ def test_a_second_language_stacks_centred_under_the_first():
     inked = rows.nonzero()[0]
     assert not rows[inked.min() : inked.max()].all()  # blank rows separate the lines
     assert np.asarray(two).nonzero()[1].mean() == pytest.approx(two.width / 2, abs=2)
+
+
+def _lines(mask: Image.Image) -> list[np.ndarray]:
+    """A label's lines, split at the blank rows between them."""
+    ink = np.asarray(mask) > 0
+    rows = ink.any(axis=1)
+    inked = rows.nonzero()[0]
+    gap = inked.min() + int(np.argmin(rows[inked.min() :]))
+    return [ink[:gap], ink[gap:]]
+
+
+def test_a_second_language_is_set_smaller_than_the_name():
+    font = fonts.load(fonts.DEFAULT_FONT, 40)
+    text = "Svarttrost\n(Turdus merula)"
+    full = text_mask(text, font, flat=True)
+    small = text_mask(text, font, flat=True, second=SECOND_LANGUAGE)
+
+    name, under = (line.any(axis=0).sum() for line in _lines(small))
+    assert name == _lines(full)[0].any(axis=0).sum()  # the name keeps its size
+    assert under == pytest.approx(_lines(full)[1].any(axis=0).sum() * SECOND_LANGUAGE, rel=0.05)
+    assert small.height < full.height
+    columns = np.asarray(small).nonzero()[1]
+    assert columns.mean() == pytest.approx(small.width / 2, abs=3)  # still centred
+
+
+def test_a_one_line_label_ignores_the_second_language_size():
+    font = fonts.load(fonts.DEFAULT_FONT, 26)
+    plain = text_mask("Turdus merula", font, flat=False)
+    assert text_mask("Turdus merula", font, flat=False, second=0.5).tobytes() == plain.tobytes()
+
+
+@pytest.mark.parametrize("px", range(4, 60))
+def test_a_second_language_stays_readable_on_the_7_3_inch_panel(px):
+    share = second_share(px, 480, 480)
+    assert SECOND_LANGUAGE <= share <= 1
+    assert round(px * share) >= min(px, MIN_LABEL_PX)  # never under the floor, nor over the name
+    if px * SECOND_LANGUAGE >= MIN_LABEL_PX:
+        assert share == SECOND_LANGUAGE  # raised only where the panel needs it
+    assert second_share(px * 2.5, 1200, 480) == pytest.approx(share)  # the pack agrees
+    assert second_share(px, 480, 1200) <= share  # a bigger screen reads a smaller line
 
 
 def test_label_size_scales_with_the_short_side():
@@ -284,13 +327,35 @@ def test_the_panel_and_the_kiosk_share_one_pack(tmp_path, crowded, name_key):
 
     with patch.object(collage, "_layout", spy):
         for size, textured in (((1600, 1200), False), ((1920, 1440), True), ((2880, 2160), True)):
-            render_collage(entries, size, textured=textured, name_key=name_key)
+            # A kiosk locked to the panel draws it for the panel's glass.
+            render_collage(entries, size, textured=textured, name_key=name_key, glass=1200)
     assert calls == 1
 
     # A different page still packs: the key is the species and their artwork.
     with patch.object(collage, "_layout", spy):
         render_collage(crowded(6), (1600, 1200), textured=False, name_key=name_key)
     assert calls == 2
+
+
+def test_a_kiosk_locked_to_a_small_panel_shares_its_pack(crowded):
+    """How small a second language may get is the panel's to say, so the kiosk
+    drawing the panel's page at its own size still packs it once."""
+    entries = crowded(8)
+    calls = 0
+    real = collage._layout
+
+    def spy(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return real(*args, **kwargs)
+
+    def label(name: str) -> str:
+        return f"{name}\n({name})"
+
+    with patch.object(collage, "_layout", spy):
+        render_collage(entries, (800, 480), textured=False, label_text=label)
+        render_collage(entries, (1800, 1080), label_text=label, glass=480)
+    assert calls == 1
 
 
 @pytest.mark.parametrize("size", [(700, 500), (500, 700)])
@@ -393,6 +458,15 @@ def test_a_second_language_stacks_rather_than_widening_the_key():
     )
 
 
+def test_the_key_sets_a_second_language_smaller():
+    """A long scientific name set the key's column, as it set a label's width."""
+    two = [["Blue Jay", "(Cyanocitta cristata)"]] * 6
+    box = (0, 0, 1600, 1200)
+    full = collage._fit_key(two, fonts.DEFAULT_FONT, 60, box)[0]
+    small = collage._fit_key(two, fonts.DEFAULT_FONT, 60, box, glass=1200)[0]
+    assert small.col_w < full.col_w
+
+
 def test_the_birds_are_numbered_in_reading_order():
     at = [(500, 20), (20, 30), (300, 520), (40, 500)]  # two rows, each out of order
     placed = [collage._Placed(i, 10, xy, xy, 10) for i, xy in enumerate(at)]
@@ -465,9 +539,11 @@ SHAPED = {"ar", "he", "ml"}  # unreadable unshaped, so set only where raqm is
         "Pica\n" + SCRIPTS["zh"],
     ],
 )
-def test_a_label_packs_at_the_size_it_is_drawn_at(text, flat):
+@pytest.mark.parametrize("second", [1.0, SECOND_LANGUAGE])
+def test_a_label_packs_at_the_size_it_is_drawn_at(text, flat, second):
     font = fonts.load(fonts.DEFAULT_FONT, 26)
-    assert text_room(text, font, flat).size == text_mask(text, font, flat).size
+    room = text_room(text, font, flat, second=second)
+    assert room.size == text_mask(text, font, flat, second=second).size
 
 
 def _tofu(text: str) -> str:

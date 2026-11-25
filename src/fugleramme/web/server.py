@@ -434,13 +434,15 @@ def make_handler(
 
         def _context(self, settings: Settings) -> modes.Context:
             attached = glass(settings)
+            locked = settings.web_lock and attached is not None
             return modes.context(
                 source,
                 images_dir,
                 settings,
                 namer(settings.primary_language, settings.secondary_language, store.path.parent),
                 settings.web_size(attached),
-                panel=settings.web_lock and attached is not None,
+                panel=locked,
+                glass=min(attached) if locked and attached else None,
             )
 
         def _edited(self) -> Settings:
