@@ -21,7 +21,7 @@ INK = (30, 30, 30)
 PANEL_INK = (0, 0, 0)  # exact palette black: the dither leaves it alone
 
 MIN_LABEL_PX = 11
-SECOND_LANGUAGE = 0.90  # a second language's line, against the name's size
+SECOND_LANGUAGE = 0.85  # a second language's line, against the name's size
 _LINE_SPACING = 0.1  # extra leading between a label's two lines, em
 _PERCH_FILL = 0.7  # of the page's short side
 # Ends a label's first line for a bird new to the station. Drawn as the face's

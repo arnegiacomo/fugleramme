@@ -191,7 +191,6 @@ def _plate(ctx: Context, name: str | None, note: str = "", art: Path | None = No
         ctx.label_size,
         ctx.perches(),
         margin=ctx.margin,
-        glass=ctx.glass,
     )
 
 
