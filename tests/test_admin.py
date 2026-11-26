@@ -388,6 +388,8 @@ def test_the_external_panel_size_is_offered_while_the_external_panel_is_ticked(t
     page = _page(tmp_path, source(), detected=False, external_panel=True, external_panel_size="5.7")
     assert offered in page
     assert '<option value="5.7" selected>5.7&#34; (600×448)</option>' in page
+    assert '<option value="7.5">7.5&#34; (1024×600)</option>' in page
+    assert _config(page)["panelSizes"]["7.5"] == [1024, 600]
     assert _config(page)["panelSizes"]["13.3"] == [1600, 1200]  # the preview follows the pick
     assert offered in _page(tmp_path, source(), detected=True, external_panel=True)
     page = _page(tmp_path, source(), external_panel=False)

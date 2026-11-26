@@ -194,7 +194,10 @@ another device to render its content:
   or the
   [Seeed Studio 7.3" Spectra 6 panel](https://www.seeedstudio.com/7-3inch-Six-Color-eInk-ePaper-Display-with-800x480-Pixels-p-6567.html)
   on a
-  [XIAO EE04](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-EE04-p-6560.html).
+  [XIAO EE04](https://www.seeedstudio.com/XIAO-ePaper-Display-Board-EE04-p-6560.html),
+  or the 7.5" Spectra 6 panel of a
+  [Bigme F7 Pro](https://store.bigme.vip/products/bigme-7-3f7-pro-smart-digital-color-e-ink-photo-frame)
+  photo frame.
 
 > [!IMPORTANT]
 > Like the kiosk, `/frame.e6` and `/frame.png` need no sign-in: anyone who can
@@ -282,9 +285,9 @@ pixel data.
 | 4 | 2 | Version, `1` |
 | 6 | 1 | Encoding, `1` (the colour codes below) |
 | 7 | 1 | Poll minutes, from **Panel refresh** |
-| 8 | 2 | Width, `1200` on the 13.3", `800` on the 7.3" |
-| 10 | 2 | Height, `1600` on the 13.3", `480` on the 7.3" |
-| 12 | 4 | Length of the pixels, `960000` on the 13.3", `192000` on the 7.3" |
+| 8 | 2 | Width, `1200` on the 13.3", `1024` on the 7.5", `800` on the 7.3" |
+| 10 | 2 | Height, `1600` on the 13.3", `600` on the 7.5", `480` on the 7.3" |
+| 12 | 4 | Length of the pixels, `960000` on the 13.3", `307200` on the 7.5", `192000` on the 7.3" |
 | 16 | 4 | CRC-32 of the pixels |
 
 The pixels are already oriented the way the panel's controllers read them, so
@@ -293,13 +296,16 @@ high half; black `0`, white `1`, yellow `2`, red `3`, blue `5`, green `6`. The
 13.3" panel has two controllers, one per half: the first 480000 bytes are the
 left half of every row, top to bottom, for the first controller, and the rest
 are the right halves for the second. The 7.3" panel has one, which takes every
-row in turn, top to bottom. With a different Inky connected, the file
-carries that panel's page, which its width and height reveal, so check them.
+row in turn, top to bottom. The 7.5" panel has two, side by side, each
+512×600: every row in turn, top to bottom, is 256 bytes for the left
+controller followed by 256 bytes for the right. With a different Inky
+connected, the file carries that panel's page, which its width and height
+reveal, so check them.
 
 The response carries an `ETag`; send it back as `If-None-Match` and an
 unchanged page responds with `304` and nothing to download. `404` means the
-setting is off or the panel size is neither 7.3" nor 13.3", and `503` that the
-frame has not drawn a page yet.
+setting is off or the panel size is not 7.3", 7.5" or 13.3", and `503` that
+the frame has not drawn a page yet.
 
 ## As a desktop wallpaper and/or screensaver (MacOs)
 

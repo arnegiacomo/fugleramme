@@ -527,6 +527,8 @@ def test_the_panel_size_follows_the_inky_until_another_is_saved(tmp_path):
 
     path.write_text(json.dumps({"external_panel_size": "7.3"}))
     assert SettingsStore(path).get().external_panel_size == "7.3"
+    path.write_text(json.dumps({"external_panel_size": "7.5"}))
+    assert SettingsStore(path).get().external_panel_size == "7.5"
     for nonsense in ("8", "1600x1200", None, ["13.3"]):
         path.write_text(json.dumps({"external_panel_size": nonsense}))
         assert SettingsStore(path).get().external_panel_size == SAME_AS_INKY
