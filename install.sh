@@ -24,6 +24,11 @@ FRAME_PORT=8080
 BIRDNET_PORT=8090
 DETECTOR_MODE=bundled
 DETECTOR_URL=""
+# A demo frame makes its birds up (#358) and has no detector at all. A blank
+# location is anywhere.
+DEMO=0
+DEMO_LATITUDE=""
+DEMO_LONGITUDE=""
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
@@ -57,8 +62,32 @@ ask() {  # $1 = prompt, $2 = default
     echo "$2"
     return 0
   fi
-  read -rp "   $1 [$2] " ans </dev/tty || ans=""
+  read -rp "   $1${2:+ [$2]} " ans </dev/tty || ans=""
   echo "${ans:-$2}"
+}
+
+# Where a demo's birds come from, as one "latitude, longitude", the shape a map
+# copies. Asked again until it reads as one; blank is anywhere.
+ask_location() {
+  local typed="" current=""
+  [[ -n $DEMO_LATITUDE ]] && current="$DEMO_LATITUDE, $DEMO_LONGITUDE"
+  echo "   where should the birds come from? blank for anywhere"
+  while :; do
+    typed="$(ask "latitude, longitude" "$current")"
+    if [[ -z $typed ]]; then
+      DEMO_LATITUDE="" DEMO_LONGITUDE=""
+      return 0
+    fi
+    if [[ $typed =~ ^[[:space:]]*(-?[0-9]+(\.[0-9]+)?)[[:space:]]*,[[:space:]]*(-?[0-9]+(\.[0-9]+)?)[[:space:]]*$ ]] &&
+      awk -v a="${BASH_REMATCH[1]}" -v b="${BASH_REMATCH[3]}" \
+        'BEGIN { exit !(a >= -90 && a <= 90 && b >= -180 && b <= 180) }'; then
+      DEMO_LATITUDE="${BASH_REMATCH[1]}" DEMO_LONGITUDE="${BASH_REMATCH[3]}"
+      return 0
+    fi
+    echo "   not a place: use degrees, latitude first, e.g. 43.665, -116.180"
+    # Nothing to ask again without a terminal: anywhere beats a loop.
+    unattended && { DEMO_LATITUDE="" DEMO_LONGITUDE=""; return 0; }
+  done
 }
 
 listener() {  # $1 = port; prints what holds it, non-zero when free
@@ -125,6 +154,7 @@ choose_detector() {
   fi
   local default=1 choice="" birdweather=0
   [[ $DETECTOR_MODE == external ]] && default=3
+  [[ $DEMO == 1 ]] && default=5
   if unattended; then
     choice=$default
   else
@@ -134,9 +164,11 @@ choose_detector() {
      2) yes - it already runs on this machine
      3) yes - it runs on another machine
      4) no - I'll use a BirdWeather station instead
+     5) no - just show the artwork (a demo of local birds)
 EOF
     read -rp "   choice [$default] " choice </dev/tty || choice=$default
   fi
+  DEMO=0
   case "${choice:-$default}" in
     2) DETECTOR_MODE=external
        DETECTOR_URL="$(ask "its address" "${DETECTOR_URL:-http://127.0.0.1:8080}")" ;;
@@ -145,6 +177,9 @@ EOF
     # The frame still wants an address; it is kept for a switch back to BirdNET-Go.
     4) DETECTOR_MODE=external birdweather=1
        DETECTOR_URL="${DETECTOR_URL:-http://birdnet.local:8080}" ;;
+    5) DETECTOR_MODE=external DEMO=1
+       DETECTOR_URL="${DETECTOR_URL:-http://birdnet.local:8080}"
+       ask_location ;;
     *) DETECTOR_MODE=bundled ;;
   esac
 
@@ -154,7 +189,9 @@ EOF
     DETECTOR_URL="http://127.0.0.1:$BIRDNET_PORT"
   else
     DETECTOR_URL="${DETECTOR_URL%/}"
-    if [[ $birdweather == 1 ]]; then
+    if [[ $DEMO == 1 ]]; then
+      :  # nothing to reach
+    elif [[ $birdweather == 1 ]]; then
       echo "   pick the station on http://<this pi>:$FRAME_PORT/admin, Detector tab"
     else
       probe_detector "$DETECTOR_URL"
@@ -198,7 +235,41 @@ FRAME_PORT=$FRAME_PORT
 BIRDNET_PORT=$BIRDNET_PORT
 DETECTOR_MODE=$DETECTOR_MODE
 DETECTOR_URL="$DETECTOR_URL"
+DEMO=$DEMO
+DEMO_LATITUDE="$DEMO_LATITUDE"
+DEMO_LONGITUDE="$DEMO_LONGITUDE"
 EOF
+}
+
+# Demo is chosen here only, so settings.json is written here: it wins over every
+# seed. Leaving demo puts the frame back on BirdNET-Go, its type before; any other
+# saved settings are left alone.
+write_demo_settings() {
+  local file="$REPO_DIR/detector/data/settings.json"
+  mkdir -p "$(dirname "$file")"
+  python3 - "$file" "$DEMO" "$DEMO_LATITUDE" "$DEMO_LONGITUDE" <<'PY'
+import json, sys
+from pathlib import Path
+
+path, demo, lat, lon = Path(sys.argv[1]), sys.argv[2] == "1", sys.argv[3], sys.argv[4]
+saved = json.loads(path.read_text()) if path.exists() else {}
+
+
+def degrees(text):
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+if demo:
+    saved.update(detector_kind="demo", demo_latitude=degrees(lat), demo_longitude=degrees(lon))
+elif saved.get("detector_kind") == "demo":
+    saved["detector_kind"] = "birdnet-go"
+else:
+    sys.exit(0)
+path.write_text(json.dumps(saved, indent=2) + "\n")
+PY
 }
 
 need() {
@@ -414,6 +485,7 @@ main() {
   echo "==> repo"
   ensure_repo
   write_frame_env
+  write_demo_settings
   drop_bundled_detector
 
   if [[ $DETECTOR_MODE == bundled ]]; then

@@ -10,7 +10,9 @@
   <nav id="links">
     <a href="./">Kiosk</a>
     {#- Several stations have no page between them, so the link opens a list of them. #}
-    {% if not nav_stations %}
+    {#- A demo has no detector of its own to link to. #}
+    {% if settings.detector_kind == DEMO %}
+    {%- elif not nav_stations %}
     <a id="birdnet" href="#" title="detection &amp; stats">{{ detector_name }}</a>
     {%- else %}
     <button type="button" class="link" popovertarget="stations" title="detection &amp; stats">{{ detector_name }}</button>

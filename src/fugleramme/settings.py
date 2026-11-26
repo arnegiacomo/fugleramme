@@ -37,6 +37,7 @@ from .render.packing import DEFAULT_LAYOUT, LAYOUTS
 from .source import (
     BIRDNET_GO,
     BIRDWEATHER,
+    DEMO,
     DETECTOR_KINDS,
     station_fault,
     station_pages,
@@ -165,6 +166,10 @@ class Settings:
     # client id, so it is here only for an install that changed that id.
     detector_username: str = ""
     detector_password: str = ""
+    # Where a demo frame's birds are sampled from (`demo.py`). None is anywhere: every
+    # bird with artwork, equally likely.
+    demo_latitude: float | None = None
+    demo_longitude: float | None = None
     # The door (#52): shut only with this on and a password saved. Off is also how
     # the admin is opened up again for a while without throwing the password away.
     require_sign_in: bool = False
@@ -191,6 +196,8 @@ class Settings:
     @property
     def detector_address(self) -> str:
         """Where the frame reads its birds: the address of `detector_kind`'s own."""
+        if self.detector_kind == DEMO:
+            return f"demo:{self.demo_latitude},{self.demo_longitude}"
         return self.detector_station if self.detector_kind == BIRDWEATHER else self.detector_url
 
     def window_hours(self) -> float:
@@ -271,6 +278,15 @@ def _as_bool(value, default: bool) -> bool:
     if isinstance(value, str):
         return value.lower() in ("1", "true", "on", "yes")
     return default
+
+
+def _as_degrees(value, default: float | None, limit: float) -> float | None:
+    """A latitude or longitude within ±limit, or the default."""
+    try:
+        degrees = float(value)
+    except (TypeError, ValueError):
+        return default
+    return degrees if -limit <= degrees <= limit else default
 
 
 def _one_of(value, options, default):
@@ -400,6 +416,8 @@ def _coerce(raw: dict, base: Settings | None = None) -> Settings:
         detector_station=_station(raw.get("detector_station"), d.detector_station),
         detector_username=_text(raw.get("detector_username"), d.detector_username),
         detector_password=_text(raw.get("detector_password"), d.detector_password),
+        demo_latitude=_as_degrees(raw.get("demo_latitude"), d.demo_latitude, 90),
+        demo_longitude=_as_degrees(raw.get("demo_longitude"), d.demo_longitude, 180),
         require_sign_in=_as_bool(raw.get("require_sign_in"), d.require_sign_in),
         behind_proxy=_as_bool(raw.get("behind_proxy"), d.behind_proxy),
         admin_password=_secret(raw.get("admin_password"), d.admin_password),

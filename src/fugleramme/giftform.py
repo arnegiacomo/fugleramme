@@ -46,7 +46,7 @@ from .render.dither import dither
 from .render.gift import TITLE, note_font, overflow, smallest_title, splash
 from .render.page import Edges, day_ordinal
 from .settings import Settings, SettingsStore, from_env
-from .source import BIRDWEATHER
+from .source import BIRDWEATHER, DEMO
 from .wifi import Nmcli
 
 IMAGES = REPO_ROOT / "assets" / "artwork"
@@ -612,6 +612,8 @@ def _reads(settings: Settings) -> str:
     """Where a frame without a BirdNET-Go of its own gets its birds."""
     if settings.detector_kind == BIRDWEATHER:
         return "BirdWeather"
+    if settings.detector_kind == DEMO:
+        return "GBIF records, as a demo"
     return f"the BirdNET-Go at {settings.detector_url}"
 
 

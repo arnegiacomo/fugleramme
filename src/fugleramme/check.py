@@ -28,10 +28,12 @@ from . import languages
 from .api import ApiSource, probe
 from .birdweather import BirdWeatherSource
 from .config import DEFAULT_CONFIG_PATH, DEFAULT_DETECTOR_URL
+from .demo import DemoSource
 from .settings import SettingsStore, from_env
 from .source import (
     BIRDNET_GO,
     BIRDWEATHER,
+    DEMO,
     Source,
     Unavailable,
     station_id,
@@ -117,6 +119,17 @@ def run(url: str, username: str, password: str, cache_dir: Path, kind: str = BIR
         reachable = state in ("ok", "names")
         _line(reachable, "reachable", detail or "answered", started)
         unreached = int(not reachable)
+    return _reads(source, cache_dir, unreached)
+
+
+def run_demo(source: DemoSource, cache_dir: Path) -> int:
+    """A demo has nothing to reach, only its sampled birds to read."""
+    languages.use(source)
+    print(f"{source.base_url}\n")
+    return _reads(source, cache_dir, 0)
+
+
+def _reads(source: Source, cache_dir: Path, unreached: int) -> int:
     checks = [
         ("species, 6 hours", lambda: source.species_since(6)),
         ("species, 24 hours", lambda: source.species_since(24)),
@@ -162,6 +175,9 @@ def main() -> None:
         )
     if not url:
         sys.exit("No BirdWeather station is saved: name one with --detector")
+    if kind == DEMO:
+        demo = DemoSource(saved.demo_latitude, saved.demo_longitude, args.config.parent)
+        sys.exit(run_demo(demo, args.config.parent))
     sys.exit(
         run(
             url,

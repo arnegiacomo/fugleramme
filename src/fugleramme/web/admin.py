@@ -60,6 +60,7 @@ from ..source import (
     BIRDNET_GO,
     BIRDWEATHER,
     BIRDWEATHER_SITE,
+    DEMO,
     DETECTOR_KINDS,
     MOST_STATIONS,
     NEEDS_PASSWORD,
@@ -135,6 +136,7 @@ _ENV.globals.update(
     BIRDNET_GO=BIRDNET_GO,
     BIRDWEATHER=BIRDWEATHER,
     BIRDWEATHER_SITE=BIRDWEATHER_SITE,
+    DEMO=DEMO,
     CHECKBOXES=CHECKBOXES,
     CONTAINER_COMMAND=updates.CONTAINER_COMMAND,
     DEFAULT_LIMIT=DEFAULT_LIMIT,
@@ -180,12 +182,20 @@ def form_changes(form: dict[str, list[str]]) -> dict:
     return changes
 
 
-# The Detector form's type, as the reader knows each one.
+# The Detector form's type, as the reader knows each one. Demo is chosen at
+# install only, so the form never offers it.
 KINDS = {BIRDNET_GO: "BirdNET-Go", BIRDWEATHER: "BirdWeather station(s)"}
 
 
 def _kind_name(kind: str) -> str:
-    return KINDS[kind].removesuffix(" station(s)")
+    return {**KINDS, DEMO: "Demo"}[kind].removesuffix(" station(s)")
+
+
+def _demo_place(settings: Settings) -> str:
+    """Where a demo's birds are sampled near, or "" for anywhere."""
+    if settings.demo_latitude is None or settings.demo_longitude is None:
+        return ""
+    return f"{settings.demo_latitude:.3f}, {settings.demo_longitude:.3f}"
 
 
 NO_STATION = "no station saved"
@@ -357,7 +367,11 @@ _STATION_LEADS = {"ok": "connected", "partial": "connected", "unreachable": "unr
 
 def _status_row(settings: Settings, reading: bool, names_failure: str) -> tuple[str, Markup]:
     """The saved detector's state and its Detector row. BirdWeather with no
-    station saved has nothing to ask, so it says so."""
+    station saved has nothing to ask, so it says so. A demo has nothing to ask at all."""
+    if settings.detector_kind == DEMO:
+        place = _demo_place(settings)
+        said = f"a sample of birds near {place}" if place else "any bird with artwork"
+        return "ok", _ROWS.state("ok", said)
     if settings.detector_kind != BIRDWEATHER:
         state, version = hostinfo.detector(settings.detector_url)
         return state, _ROWS.state(*_detector(state, version, reading, names_failure))
@@ -638,6 +652,7 @@ def detector_tab(
         missing_text=missing_text(without),
         issue_url=issue_url(without),
         chosen=chosen,
+        demo_place=_demo_place(settings),
         refusal=refusal(refused, stations)[1] if refused in DETECTOR_KINDS else "",
         kinds=list(KINDS.items()),
         station_rows=[_typed(page) for page in station_pages(settings.detector_station)] or [""],
@@ -720,7 +735,8 @@ def page(
         config={
             "birdnetUrl": birdnet_url,
             "birdnetPort": birdnet_port,
-            "kind": settings.detector_kind,
+            # Only BirdNET-Go has a detections search for the species list to link into.
+            "speciesSearch": settings.detector_kind == BIRDNET_GO,
             "version": __version__,
             "passwordSet": PASSWORD_SET,
             "windowedModes": [k for k, m in MODES.items() if m.windowed],
