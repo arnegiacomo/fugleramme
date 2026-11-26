@@ -1111,6 +1111,10 @@
     "source": "audubon",
     "url": "https://www.audubon.org/art/birds-of-america/california-partridge"
   },
+  "birds/callocephalon-fimbriatum.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/13840"
+  },
   "birds/calonectris-diomedea-2.webp": {
     "source": "gould",
     "url": "https://commons.wikimedia.org/wiki/File:The_birds_of_Europe_(1837)_(14750436402).jpg"
@@ -2035,6 +2039,10 @@
     "source": "levaillant",
     "url": "https://commons.wikimedia.org/wiki/File:Bessonornis_bicolor_-_1796-1808_-_Print_-_Iconographia_Zoologica_-_Special_Collections_University_of_Amsterdam_-_UBA01_IZ16300353.tif"
   },
+  "birds/dicrurus-bracteatus.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14846"
+  },
   "birds/diopsittaca-nobilis-2.webp": {
     "source": "martinet",
     "url": "https://archive.org/details/planchesenlumin02mart/page/n140/mode/1up"
@@ -2650,6 +2658,10 @@
   "birds/geopelia-humeralis.webp": {
     "source": "gould",
     "url": "https://digital.lib.ku.edu/ku-gould/13608"
+  },
+  "birds/geopelia-placida.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/13604"
   },
   "birds/geothlypis-formosa-2.webp": {
     "source": "audubon",
@@ -3438,6 +3450,10 @@
   "birds/malurus-cyaneus.webp": {
     "source": "gould",
     "url": "https://www.biodiversitylibrary.org/page/48285751"
+  },
+  "birds/malurus-lamberti.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14644"
   },
   "birds/manorina-melanocephala.webp": {
     "source": "gould",
@@ -5058,6 +5074,10 @@
   "birds/selasphorus-sasin.webp": {
     "source": "lesson",
     "url": "https://archive.org/details/Histoirenaturel00Less/page/n410/mode/1up"
+  },
+  "birds/sericornis-frontalis.webp": {
+    "source": "gould",
+    "url": "https://digital.lib.ku.edu/ku-gould/14544"
   },
   "birds/serinus-serinus.webp": {
     "source": "gould",
