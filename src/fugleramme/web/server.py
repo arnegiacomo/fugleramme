@@ -513,7 +513,7 @@ def make_handler(
             if frame is None:
                 return
             if tuple(sorted(frame[0].size, reverse=True)) not in e6.GLASSES:
-                refusal = b"/frame.e6 cannot pack this panel size"
+                refusal = b'/frame.e6 is only for the 7.3", 7.5" and 13.3" panels'
                 self._send(404, refusal, "text/plain", self._client_headers())
                 return
             poll = store.get().refresh_minutes

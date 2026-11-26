@@ -341,10 +341,11 @@ def test_the_picked_panel_size_lays_out_the_page_and_its_e6(ext_eink_panel):
     assert struct.unpack_from("<HHI", body, 8) == (800, 480, 192_000)
 
 
-def test_the_bigme_f7_pro_has_native_png_and_e6_pages(ext_eink_panel):
+def test_the_7_5_inch_panel_size_lays_out_the_page_and_its_e6(ext_eink_panel):
     ext_eink_panel.store.update(external_panel_size="7.5")
-    ext_eink_panel.status.frame = (Image.new("P", (1024, 600), 1), 0)
+    assert _size(_fetch(ext_eink_panel.base + "/preview.png")[2]) == (1843, 1080)
 
+    ext_eink_panel.status.frame = (Image.new("P", (1024, 600), 1), 0)
     assert _size(_fetch(ext_eink_panel.base + "/frame.png")[2]) == (1024, 600)
     status, _headers, body = _fetch(ext_eink_panel.base + "/frame.e6")
     assert status == 200
@@ -357,7 +358,7 @@ def test_the_e6_page_is_not_there_for_a_panel_it_cannot_pack(ext_eink_panel):
     ext_eink_panel.status.frame = (Image.new("P", (640, 400), 1), 0)
 
     status, headers, body = _fetch(ext_eink_panel.base + "/frame.e6")
-    assert status == 404 and b"cannot pack this panel size" in body
+    assert status == 404 and b'7.3", 7.5" and 13.3"' in body
     assert headers["Fugleramme-Rotation"] == "0"
 
 

@@ -101,7 +101,7 @@ def test_the_7_inch_page_is_its_glass_row_by_row():
     assert payload[-1] == 0x16  # bottom right
 
 
-def test_the_bigme_f7_pro_rows_split_between_its_two_controllers():
+def test_the_7_5_inch_rows_split_between_its_two_controllers():
     """Each controller owns 512x600 pixels: 256 wire bytes from each row."""
     page = _marked(
         1024,

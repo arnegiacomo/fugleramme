@@ -12,9 +12,10 @@ one in the high nibble, in the order the glass's controllers read them. The
 13.3" glass is driven as two halves: every row's left half goes to the first
 controller (CS0), then every row's right half to the second (CS1), so the
 payload is those two runs back to back. The 7.3" glass has one controller,
-which reads its landscape rows top to bottom. The 7.5" BigMe F7 Pro has two
-512x600 controllers; each row's left 256 bytes go to one and its right 256
-bytes to the other, so its wire stream is ordinary row-major 4bpp data.
+which reads its landscape rows top to bottom. The 7.5" glass, the Bigme F7
+Pro's, has two 512x600 controllers side by side; each row's left 256 bytes go
+to one and its right 256 bytes to the other, so its wire stream is ordinary
+row-major 4bpp data.
 
 The poll is the frame's Panel refresh in minutes, 0 meaning as soon as it
 changes: the client sleeps that long between fetches, its own minimum on top.
@@ -37,8 +38,8 @@ ENCODING = 1
 HEADER = struct.Struct("<4sHBBHHII")
 
 # The glasses `encode` packs for: the 13.3" Seeed panel's, as two controllers,
-# the 7.3"'s, as one, and the BigMe F7 Pro's paired controllers, which also read
-# an ordinary row-major stream.
+# the 7.3"'s, as one, and the 7.5"'s paired controllers, which also read an
+# ordinary row-major stream.
 _SEEED_13_3 = PANEL_SIZES["13.3"]
 GLASSES = (PANEL_SIZES["7.3"], PANEL_SIZES["7.5"], _SEEED_13_3)
 
