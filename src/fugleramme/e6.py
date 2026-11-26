@@ -12,7 +12,9 @@ one in the high nibble, in the order the glass's controllers read them. The
 13.3" glass is driven as two halves: every row's left half goes to the first
 controller (CS0), then every row's right half to the second (CS1), so the
 payload is those two runs back to back. The 7.3" glass has one controller,
-which reads its landscape rows top to bottom.
+which reads its landscape rows top to bottom. The 7.5" BigMe F7 Pro has two
+512x600 controllers; each row's left 256 bytes go to one and its right 256
+bytes to the other, so its wire stream is ordinary row-major 4bpp data.
 
 The poll is the frame's Panel refresh in minutes, 0 meaning as soon as it
 changes: the client sleeps that long between fetches, its own minimum on top.
@@ -35,9 +37,10 @@ ENCODING = 1
 HEADER = struct.Struct("<4sHBBHHII")
 
 # The glasses `encode` packs for: the 13.3" Seeed panel's, as two controllers,
-# and the 7.3"'s, as one.
-_TWO_CONTROLLERS = PANEL_SIZES["13.3"]
-GLASSES = (PANEL_SIZES["7.3"], _TWO_CONTROLLERS)
+# the 7.3"'s, as one, and the BigMe F7 Pro's paired controllers, which also read
+# an ordinary row-major stream.
+_SEEED_13_3 = PANEL_SIZES["13.3"]
+GLASSES = (PANEL_SIZES["7.3"], PANEL_SIZES["7.5"], _SEEED_13_3)
 
 # `dither`'s palette order - black, white, yellow, red, blue, green - to the
 # controllers' codes, which skip 4.
@@ -47,7 +50,7 @@ _NATIVE = np.array([0, 1, 2, 3, 5, 6], dtype=np.uint8)
 def encode(frame: Image.Image, rotation: int, poll: int) -> bytes:
     """The dithered panel page, as it hangs, packed for the glass."""
     glass = to_glass(frame, rotation)
-    halves = glass.size == _TWO_CONTROLLERS
+    halves = glass.size == _SEEED_13_3
     # The 13.3"'s controllers read it a quarter turn clockwise from the landscape
     # glass, as Pimoroni's driver turns it.
     scan = glass.transpose(Image.Transpose.ROTATE_270) if halves else glass

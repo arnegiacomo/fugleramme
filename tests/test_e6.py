@@ -101,6 +101,25 @@ def test_the_7_inch_page_is_its_glass_row_by_row():
     assert payload[-1] == 0x16  # bottom right
 
 
+def test_the_bigme_f7_pro_rows_split_between_its_two_controllers():
+    """Each controller owns 512x600 pixels: 256 wire bytes from each row."""
+    page = _marked(
+        1024,
+        600,
+        {(0, 0): 0, (511, 0): 3, (512, 0): 4, (1023, 0): 5},
+    )
+    data = e6.encode(page, 0, poll=0)
+
+    assert struct.unpack_from("<HHI", data, 8) == (1024, 600, 307_200)
+    assert len(data) == 20 + 307_200
+    payload = data[20:]
+    assert payload[0] == 0x01
+    assert payload[255] == 0x13  # left controller's last pixel pair
+    assert payload[256] == 0x51  # right controller's first pixel pair
+    assert payload[511] == 0x16
+    assert payload[512] == 0x11  # the next row starts back on the left
+
+
 def test_a_portrait_7_inch_page_turns_back_onto_its_landscape_glass():
     """Hung at 90°, the page's top right corner is the glass's first pixel."""
     data = e6.encode(_marked(480, 800, {(479, 0): 0}), 90, poll=0)

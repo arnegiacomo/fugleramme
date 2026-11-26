@@ -108,5 +108,6 @@ def test_the_external_panel_takes_its_pick_else_the_inky_s_size_else_the_13_inch
     inky = Panel(device)
     assert external_resolution(inky, "") == (800, 480)
     assert external_resolution(inky, "4") == (640, 400)
+    assert external_resolution(inky, "7.5") == (1024, 600)
     assert external_resolution(None, "") == (1600, 1200)
     assert resolution_of(inky, "4") == (800, 480)  # this frame's own page stays the Inky's
